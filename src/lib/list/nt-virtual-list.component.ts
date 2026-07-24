@@ -1551,7 +1551,7 @@ export class NtVirtualListComponent implements OnDestroy {
       takeUntilDestroyed(),
       takeUntil(this.$initialized.pipe(
         takeUntilDestroyed(),
-        filter(v => !!this.itemTransform() ? false : !!v),
+        filter(v => ((!!this.snapToItem() && !this.dynamicSize()) || this.collapsingMode() === CollapsingModes.NONE) ? false : !!v),
       )),
       filter(([created, shown]) => created && shown),
       debounceTime(1),
