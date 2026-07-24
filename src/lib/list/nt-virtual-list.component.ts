@@ -1383,7 +1383,7 @@ export class NtVirtualListComponent implements OnDestroy {
 
           snappedComponent.element.style.clipPath = `path("M 0 0 L 0 ${snappedComponent.element.offsetHeight} L ${snappedComponent.element.offsetWidth} ${snappedComponent.element.offsetHeight} L ${snappedComponent.element.offsetWidth} 0 Z")`;
 
-          const { width: sWidth, height: sHeight } = snappedComponent.getBounds() ?? { width: 0, height: 0 },
+          const { height: sHeight } = snappedComponent.getBounds() ?? { width: 0, height: 0 },
             scrollerElement = scroller.nativeElement, delta = snappedComponent.item?.measures.delta ?? 0,
             scrollBarSize = this.scrollbarThickness();
 
@@ -1549,8 +1549,12 @@ export class NtVirtualListComponent implements OnDestroy {
 
     combineLatest([$created, this.$show, $resizeContent, $resizeViewport]).pipe(
       takeUntilDestroyed(),
-      debounceTime(1),
+      takeUntil(this.$initialized.pipe(
+        takeUntilDestroyed(),
+        filter(v => !!this.itemTransform() ? false : !!v),
+      )),
       filter(([created, shown]) => created && shown),
+      debounceTime(1),
       tap(v => {
         this._$initialized.next(true);
       }),
