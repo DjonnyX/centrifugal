@@ -1,0 +1,42 @@
+{
+  "name": "centrifugal",
+  "version": "0.0.1",
+  "author": {
+    "name": "Evgenii Alexandrovich Grebennikov",
+    "email": "djonnyx@gmail.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/DjonnyX/centrifugal/tree/main",
+  "keywords": [
+    "ng",
+    "angular",
+    "iot",
+    "development",
+    "kit",
+    "virtual",
+    "virtualized",
+    "list",
+    "group",
+    "grouped",
+    "scroll",
+    "scrolling",
+    "scroller",
+    "scroll",
+    "view",
+    "select",
+    "multiselect",
+    "multi-select",
+    "multi",
+    "collapsable",
+    "expandable"
+  ],
+  "peerDependencies": {
+    "@angular/cdk": "^20.0.4",
+    "@angular/common": "^20.0.4",
+    "@angular/core": "^20.0.4"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "sideEffects": false
+}

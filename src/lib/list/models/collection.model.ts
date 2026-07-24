@@ -1,0 +1,9 @@
+import { IVirtualListItem } from "./item.model";
+
+/**
+ * Virtual list elements collection interface
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/models/collection.model.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ */
+export interface IVirtualListCollection<E = Object> extends Array<IVirtualListItem<E>> { };

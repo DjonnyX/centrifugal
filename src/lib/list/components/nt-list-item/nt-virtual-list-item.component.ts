@@ -1,0 +1,278 @@
+import { ChangeDetectionStrategy, Component, inject, Injector, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { map, tap, combineLatest, fromEvent, switchMap, of, Observable, debounceTime } from 'rxjs';
+import { IRenderVirtualListItem } from '../../models/render-item.model';
+import {
+  DEFAULT_CLICK_DISTANCE, NAVIGATION_BY_KEYBOARD_TIMER, VISIBILITY_HIDDEN,
+} from '../../const';
+import { BaseVirtualListItemComponent } from './base';
+import { SelectingModesTypes } from '../../enums/selecting-modes-types';
+import { IDisplayObjectConfig } from '../../models';
+import { getListElementByIndex } from './utils';
+import {
+  ATTR_AREA_SELECTED, EVENT_FOCUS_IN, EVENT_FOCUS_OUT, EVENT_KEY_DOWN, KEY_ARR_DOWN, KEY_ARR_LEFT,
+  KEY_ARR_RIGHT, KEY_ARR_UP, KEY_SPACE, NTVL_VISIBILITY,
+} from './const';
+import { Id } from '../../../common';
+
+/**
+ * Virtual list component.
+ * Maximum performance for extremely large lists.
+ * It is based on algorithms for virtualization of screen objects.
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-list-item/nt-virtual-list-item.component.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ */
+@Component({
+  selector: 'nt-virtual-list-item',
+  templateUrl: './nt-virtual-list-item.component.html',
+  styleUrl: './nt-virtual-list-item.component.scss',
+  host: {
+    'class': 'cnvl__item',
+    'role': 'listitem',
+  },
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class NtVirtualListItemComponent extends BaseVirtualListItemComponent implements OnInit {
+  protected readonly maxClickDistance = signal<number>(DEFAULT_CLICK_DISTANCE);
+
+  protected _injector = inject(Injector);
+
+  constructor() {
+    super();
+  }
+
+  ngOnInit(): void {
+    this._service.$clickDistance.pipe(
+      takeUntilDestroyed(this._destroyRef),
+      tap(v => {
+        this.maxClickDistance.set(v);
+      }),
+    ).subscribe();
+
+    this._service.$langTextDir.pipe(
+      takeUntilDestroyed(this._destroyRef),
+      tap(v => {
+        this._langTextDir = v;
+      }),
+    ).subscribe();
+
+    this._service.$scrollBarSize.pipe(
+      takeUntilDestroyed(this._destroyRef),
+      tap(v => {
+        this._scrollBarSize = v;
+      }),
+    ).subscribe();
+
+    const $data = toObservable(this.data, { injector: this._injector }),
+      $focused = toObservable(this.focused, { injector: this._injector });
+
+    fromEvent(this.element, EVENT_FOCUS_IN).pipe(
+      takeUntilDestroyed(this._destroyRef),
+      tap(e => {
+        this._service.focusedId = this.itemId ?? null;
+        this.focused.set(true);
+
+        this.updateConfig(this._data, this._service.isGrabbing);
+
+        this.updatePartStr(this._data, this._isSelected, this._isCollapsed);
+      }),
+    ).subscribe(),
+
+      fromEvent(this.element, EVENT_FOCUS_OUT).pipe(
+        takeUntilDestroyed(this._destroyRef),
+        tap(e => {
+          this.focused.set(false);
+
+          this.updateConfig(this._data, this._service.isGrabbing);
+
+          this.updatePartStr(this._data, this._isSelected, this._isCollapsed);
+        }),
+      ).subscribe();
+
+    $focused.pipe(
+      takeUntilDestroyed(this._destroyRef),
+      debounceTime(this.getNavigationTimeout()),
+      switchMap(v => {
+        if (v) {
+          return this.keyKode();
+        }
+        return of(false);
+      }),
+    ).subscribe();
+
+    combineLatest([$data, this._service.$selectingMode, this._service.$selectedIds, this._service.$collapsedIds]).pipe(
+      takeUntilDestroyed(this._destroyRef),
+      map(([, m, selectedIds, collapsedIds]) => ({ method: m, selectedIds, collapsedIds })),
+      tap(({ method, selectedIds, collapsedIds }) => {
+        switch (method) {
+          case SelectingModesTypes.SELECT: {
+            const id = selectedIds as Id | undefined, isSelected = id === this.itemId;
+            this.element.setAttribute(ATTR_AREA_SELECTED, String(isSelected));
+            this.isSelected = isSelected;
+            break;
+          }
+          case SelectingModesTypes.MULTI_SELECT: {
+            const actualIds = selectedIds as Array<Id>, isSelected = this.itemId !== undefined && actualIds && actualIds.includes(this.itemId);
+            this.element.setAttribute(ATTR_AREA_SELECTED, String(isSelected));
+            this.isSelected = isSelected;
+            break;
+          }
+          case SelectingModesTypes.NONE:
+          default: {
+            this.element.removeAttribute(ATTR_AREA_SELECTED);
+            this.isSelected = false;
+            break;
+          }
+        }
+
+        const actualIds = collapsedIds, isCollapsed = this.itemId !== undefined && actualIds && actualIds.includes(this.itemId);
+        this._isCollapsed = isCollapsed;
+
+        this.updatePartStr(this._data, this._isSelected, isCollapsed);
+
+        this.updateConfig(this._data, this._service.isGrabbing);
+
+        this.updateMeasures(this._data);
+      }),
+    ).subscribe();
+  }
+
+  private keyKode() {
+    return fromEvent<KeyboardEvent>(this.element, EVENT_KEY_DOWN).pipe(
+      takeUntilDestroyed(this._destroyRef),
+      switchMap(e => {
+        switch (e.key) {
+          case KEY_SPACE: {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+            if (!!this._data) {
+              this._service.select(this._data!.id!);
+              this._service.collapse(this._data!.id!);
+            }
+            break;
+          }
+          case KEY_ARR_LEFT:
+            if (!this.config().isVertical) {
+              return this.toPrevItem(e);
+            }
+            break;
+          case KEY_ARR_UP:
+            if (this.config().isVertical) {
+              return this.toPrevItem(e);
+            }
+            break;
+          case KEY_ARR_RIGHT:
+            if (!this.config().isVertical) {
+              return this.toNextItem(e);
+            }
+            break;
+          case KEY_ARR_DOWN:
+            if (this.config().isVertical) {
+              return this.toNextItem(e);
+            }
+            break;
+        }
+        return of(null);
+      }),
+    );
+  }
+
+  private getNavigationTimeout() {
+    return this._service.snapToItem ?
+      Math.max(this._service.animationParams.snapToItem, this._service.animationParams.navigateByKeyboard ?? NAVIGATION_BY_KEYBOARD_TIMER) :
+      this._service.animationParams.navigateByKeyboard ?? NAVIGATION_BY_KEYBOARD_TIMER;
+  }
+
+  private toNextItem(e: Event): Observable<any> {
+    if (!!e && e.cancelable) {
+      e.stopImmediatePropagation();
+      e.preventDefault();
+    }
+
+    const index = this.focusNext();
+    if (index !== Number.MIN_SAFE_INTEGER) {
+      this._service.lastFocusedItemId = index;
+    }
+    return of(e).pipe(
+      takeUntilDestroyed(this._destroyRef),
+      debounceTime(this.getNavigationTimeout()),
+      switchMap(() => {
+        return this.keyKode();
+      }),
+    );
+  }
+
+  private toPrevItem(e: Event): Observable<any> {
+    if (!!e && e.cancelable) {
+      e.stopImmediatePropagation();
+      e.preventDefault();
+    }
+
+    const index = this.focusPrev();
+    if (index !== Number.MIN_SAFE_INTEGER) {
+      this._service.lastFocusedItemId = index;
+    }
+    return of(e).pipe(
+      takeUntilDestroyed(this._destroyRef),
+      debounceTime(this.getNavigationTimeout()),
+      switchMap(() => {
+        return this.keyKode();
+      }),
+    );
+  }
+
+  private focusNext(): number {
+    if (this._service.listElement) {
+      const tabIndex = this._data?.config?.tabIndex ?? 0, length = this._data?.config.totalItems ?? 0,
+        l = length > 0 ? (this._service.isInfinity ? (length + 1) : length) : 0;
+      let index = tabIndex;
+      while (index <= l) {
+        index++;
+        const element = this._service.listElement.querySelector<HTMLDivElement>(getListElementByIndex(index));
+        if (!!element && element.getAttribute(NTVL_VISIBILITY) !== VISIBILITY_HIDDEN) {
+          const focused = this._service.focus(element);
+          if (focused) {
+            return index;
+          }
+        }
+      }
+    }
+    return Number.MIN_SAFE_INTEGER;
+  }
+
+  private focusPrev(): number {
+    if (this._service.listElement) {
+      const tabIndex = this._data?.config?.tabIndex ?? 0, min = -(this._data?.config?.layoutIndexOffset ?? 0);
+      let index = tabIndex;
+      while (index >= min) {
+        index--;
+        const element = this._service.listElement.querySelector<HTMLDivElement>(getListElementByIndex(index));
+        if (!!element && element.getAttribute(NTVL_VISIBILITY) !== VISIBILITY_HIDDEN) {
+          this._service.focus(element);
+          return index;
+        }
+      }
+    }
+    return Number.MIN_SAFE_INTEGER;
+  }
+
+  protected override updateConfig(v: IRenderVirtualListItem<any> | null, grabbing: boolean) {
+    this.config.set({
+      ...v?.config || {} as IDisplayObjectConfig, selected: this._isSelected, collapsed: this._isCollapsed, focused: this.focused(), grabbing,
+    });
+  }
+
+  onClickHandler() {
+    this._service.virtualClick(this._data);
+  }
+
+  onClickPressHandler() {
+    this._service.clickPressed = true;
+  }
+
+  onClickCancelHandler() {
+    this._service.clickPressed = false;
+  }
+}

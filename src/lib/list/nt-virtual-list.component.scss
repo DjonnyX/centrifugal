@@ -1,0 +1,58 @@
+:host {
+    position: relative;
+    display: block;
+    /* default */
+    width: 400px;
+    overflow: hidden;
+}
+
+:host(.horizontal) {
+    /* default */
+    height: 48px;
+}
+
+:host(.vertical) {
+    /* default */
+    height: 320px;
+}
+
+.cnvl__snapped-container {
+    position: relative;
+    width: 100%;
+    opacity: 0;
+
+    &.prepared {
+        opacity: 1;
+    }
+}
+
+.cnvl__list-snapper {
+    -webkit-tap-highlight-color: transparent;
+    position: absolute;
+    list-style: none;
+    left: 0;
+    top: 0;
+    z-index: 1;
+}
+
+.cnvl__list-scroller {
+    -webkit-tap-highlight-color: transparent;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.cnvl__screen-reader {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

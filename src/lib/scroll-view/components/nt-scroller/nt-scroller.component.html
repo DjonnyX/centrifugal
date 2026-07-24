@@ -1,0 +1,48 @@
+@let filtered = motionBlurEnabled();
+@let prepared = preparedSignal();
+@let textDir = langTextDir();
+<div localeSensitive [langTextDir]="textDir" [listDir]="direction()" class="ntvs__container"
+    [ngClass]="containerClasses()">
+    <svg part="viewport" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink">
+        <filter [id]="_filterId">
+            <feGaussianBlur #filter></feGaussianBlur>
+        </filter>
+        <foreignObject xmlns="http://www.w3.org/1999/xhtml" width="100%" height="100%" class="ntvs__viewport">
+            <div class="ntvs__scroller-wrapper" [class.filtered]="filtered"
+                [style.filter]="filtered ? _filter : 'unset'">
+                <div cdkScrollable #scrollViewport part="scroller" class="ntvs__scroller">
+                    <div #scrollContent [attr.aria-orientation]="direction()"
+                        [attr.aria-activedescendant]="focusedElement()" tabindex="0" part="content"
+                        class="ntvs__content" [ngClass]="actualClasses()" [ngStyle]="listStyles()">
+                        <ng-content></ng-content>
+                    </div>
+                </div>
+            </div>
+        </foreignObject>
+    </svg>
+    @if (scrollbarEnabled()) {
+        @if (scrollbarVerticalEnabled()) {
+            <nt-scroll-bar #scrollBarVertical direction="vertical" [size]="thumbSizeVertical()"
+                [renderer]="scrollbarThumbRenderer()" [thickness]="scrollbarThickness()" [params]="scrollbarThumbParams()"
+                [loading]="loading()" [overlapping]="overlappingScrollbar()"
+                [thumbGradientPositions]="thumbGradientPositionsVertical()" [prepared]="prepared"
+                [interactive]="scrollbarInteractive()" [show]="scrollbarVerticalEnabled() && scrollbarEnabled() && prepared"
+                [topOffset]="topOffset()" [langTextDir]="textDir" [bottomOffset]="bottomOffset()"
+                [overscrollEnabled]="overscrollEnabled()" [scrollBehavior]="scrollBehavior()"
+                [scrollbarMinSize]="scrollbarMinSize()" (onDrag)="onScrollBarDragHandler($event)"
+                (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-scroll-bar>
+        }
+        @if (scrollbarHorizontalEnabled()) {
+            <nt-scroll-bar #scrollBarHorizontal direction="horizontal" [size]="thumbSizeHorizontal()"
+                [renderer]="scrollbarThumbRenderer()" [thickness]="scrollbarThickness()" [params]="scrollbarThumbParams()"
+                [loading]="loading()" [overlapping]="overlappingScrollbar()"
+                [thumbGradientPositions]="thumbGradientPositionsHorizontal()" [prepared]="prepared"
+                [interactive]="scrollbarInteractive()" [show]="scrollbarHorizontalEnabled() && scrollbarEnabled() && prepared"
+                [leftOffset]="leftOffset()" [langTextDir]="textDir" [rightOffset]="rightOffset()"
+                [overscrollEnabled]="overscrollEnabled()" [scrollBehavior]="scrollBehavior()"
+                [scrollbarMinSize]="scrollbarMinSize()" (onDrag)="onScrollBarDragHandler($event)"
+                (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-scroll-bar>
+        }
+    }
+</div>

@@ -1,0 +1,18 @@
+import { CollectionModes } from "../enums";
+import { CollectionMode } from "../types";
+
+const NORMAL_ALIASES = [CollectionModes.NORMAL, 'normal'],
+    LAZY_ALIASES = [CollectionModes.LAZY, 'lazy'];
+
+/**
+ * Determines the axis membership of a virtual list
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/utils/is-collection-mode.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ */
+export const isCollectionMode = (src: CollectionMode, expected: CollectionMode): boolean => {
+    if (LAZY_ALIASES.includes(expected)) {
+        return LAZY_ALIASES.includes(src);
+    }
+    return NORMAL_ALIASES.includes(src);
+}

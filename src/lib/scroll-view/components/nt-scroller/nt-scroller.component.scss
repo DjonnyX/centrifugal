@@ -1,0 +1,92 @@
+:host {
+    position: relative;
+    overflow: hidden;
+    user-select: none;
+}
+
+.ntvs__container {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    width: 100%;
+    height: 100%;
+    cursor: grab;
+
+    &.grabbing {
+        cursor: grabbing;
+    }
+
+    transition: grid-template-rows 100ms ease-out,
+    grid-template-columns 100ms ease-out;
+
+    &.scrollableX {
+        &.enabled {
+
+            &.both,
+            &.horizontal {
+                &:not(.overlapping) {
+                    grid-template-rows: 1fr auto;
+                }
+
+                &.overlapping {
+                    grid-template-rows: 1fr auto;
+                }
+            }
+        }
+    }
+
+    &.scrollableY {
+        &.enabled {
+
+            &.both,
+            &.vertical {
+                &:not(.overlapping) {
+                    grid-template-columns: 1fr auto;
+                }
+
+                &.overlapping {
+                    grid-template-columns: 1fr 0;
+                }
+            }
+        }
+    }
+
+    .ntvs__list {
+        display: inline-flex;
+    }
+
+    .ntvs__scroller-wrapper {
+
+        /** For motion blur correction */
+        &.filtered {
+            overflow: unset;
+        }
+    }
+
+    .ntvs__scroller {
+        overflow: unset;
+    }
+
+    .ntvs__scroller-wrapper,
+    .ntvs__scroller {
+        display: block;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+    }
+
+    .ntvs__content {
+        position: absolute;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        width: auto;
+        height: auto;
+        opacity: 0;
+
+        &.prepared {
+            opacity: 1;
+        }
+    }
+}

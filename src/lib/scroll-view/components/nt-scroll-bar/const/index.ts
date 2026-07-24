@@ -1,0 +1,11 @@
+export const DEFAULT_THICKNESS = 6,
+    DEFAULT_SIZE = 6,
+    PX = 'px',
+    WIDTH = 'width',
+    HEIGHT = 'height',
+    OPACITY = 'opacity',
+    OPACITY_0 = '0',
+    OPACITY_1 = '1',
+    TRANSITION = 'transition',
+    NONE = 'none',
+    TRANSITION_FADE_IN = `${OPACITY} 500ms ease-out`;

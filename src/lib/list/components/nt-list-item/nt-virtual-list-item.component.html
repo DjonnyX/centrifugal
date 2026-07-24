@@ -1,0 +1,15 @@
+@let renderer = itemRenderer();
+@let class = classes();
+<div #item class="ntvl-item" [ngClass]="class" [part]="part()" [attr.ntvl-index]="index()"
+    [attr.ntvl-visibility]="visibility" tabindex="-1">
+    @if (_blendColor) {
+        <div class="ntvl-item__blend-color" [style.--blend-color]="_blendColor"></div>
+    }
+    <div #container virtualClick [part]="fxPart()" [maxClickDistance]="maxClickDistance()" class="ntvl-item__container"
+        [ngClass]="class" (onVirtualClick)="onClickHandler()" (onVirtualClickPress)="onClickPressHandler()"
+        (onVirtualClickCancel)="onClickCancelHandler()">
+        @if (renderer) {
+            <ng-container [ngTemplateOutlet]="renderer" [ngTemplateOutletContext]="templateContext()" />
+        }
+    </div>
+</div>
