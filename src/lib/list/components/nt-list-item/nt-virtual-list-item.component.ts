@@ -28,7 +28,7 @@ import { Id } from '../../../common';
   templateUrl: './nt-virtual-list-item.component.html',
   styleUrl: './nt-virtual-list-item.component.scss',
   host: {
-    'class': 'cnvl__item',
+    'class': 'ntvl__item',
     'role': 'listitem',
   },
   standalone: false,

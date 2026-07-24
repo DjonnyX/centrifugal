@@ -16,7 +16,7 @@
     height: 320px;
 }
 
-.cnvl__snapped-container {
+.ntvl__snapped-container {
     position: relative;
     width: 100%;
     opacity: 0;
@@ -26,7 +26,7 @@
     }
 }
 
-.cnvl__list-snapper {
+.ntvl__list-snapper {
     -webkit-tap-highlight-color: transparent;
     position: absolute;
     list-style: none;
@@ -35,7 +35,7 @@
     z-index: 1;
 }
 
-.cnvl__list-scroller {
+.ntvl__list-scroller {
     -webkit-tap-highlight-color: transparent;
     position: absolute;
     left: 0;
@@ -45,7 +45,7 @@
     z-index: 0;
 }
 
-.cnvl__screen-reader {
+.ntvl__screen-reader {
     position: absolute;
     width: 1px;
     height: 1px;

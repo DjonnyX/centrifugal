@@ -61,7 +61,7 @@ const generateItem = (id: Id, trackBy: string): IRenderVirtualListItem => {
             x: 0, y: 0, width: 0, height: 0, delta: 0,
             position: 0,
             scrollSize: 0,
-            maNtScrollSize: 0,
+            maxScrollSize: 0,
             size: 0,
             boundsSize: 0,
             absoluteStartPosition: 0,
@@ -131,7 +131,7 @@ describe('Tracker', () => {
             items: IRenderVirtualListCollection = [],
             components = new Array<ComponentRef<BaseVirtualListItemComponent>>(),
             COLLECTION_LENGTH = 10,
-            expected = [];
+            expected = new Array<number>();
         for (let i = 0, l = COLLECTION_LENGTH; i < l; i++) {
             expected.push(i);
             const item = generateItem(i, trackBy);
@@ -142,7 +142,7 @@ describe('Tracker', () => {
 
         tracker.track(items, components as any, undefined, 1, 'id');
 
-        const result = [];
+        const result = new Array<number>();
         for (let i = 0, l = COLLECTION_LENGTH; i < l; i++) {
             const comp = components[i], instance = comp.instance as unknown as Component;
             if (instance.visible) {
@@ -159,7 +159,7 @@ describe('Tracker', () => {
             components = new Array<ComponentRef<BaseVirtualListItemComponent>>(),
             COLLECTION_LENGTH = 10, COMPONENTS_LENGTH = 15, COLLECTION_DIFF_LENGTH = COMPONENTS_LENGTH - COLLECTION_LENGTH,
             COMPONENT_ID_OFFSET = 100,
-            expected = [], displayObjectIndexMapById: {
+            expected = new Array<number>(), displayObjectIndexMapById: {
                 [id: number]: number;
             } = {};
         for (let i = 0, l = COLLECTION_LENGTH; i < l; i++) {
@@ -180,7 +180,7 @@ describe('Tracker', () => {
 
         tracker.track(items, components as any, undefined, 1, 'id');
 
-        const result = [];
+        const result = new Array<number>();
         for (let i = 0, l = COLLECTION_LENGTH; i < l; i++) {
             const comp = components[i], instance = comp.instance as unknown as Component;
             if (instance.visible) {
@@ -197,7 +197,7 @@ describe('Tracker', () => {
             components = new Array<ComponentRef<BaseVirtualListItemComponent>>(),
             COLLECTION_LENGTH = 10, COMPONENTS_LENGTH = 15, COLLECTION_DIFF_LENGTH = COMPONENTS_LENGTH - COLLECTION_LENGTH,
             COMPONENT_ID_OFFSET = 100, COMPONENTS_INDEX_OFFSET = 10,
-            expected = [], displayObjectIndexMapById: {
+            expected = new Array<number>(), displayObjectIndexMapById: {
                 [id: number]: number;
             } = {};
         for (let i = 0, l = COLLECTION_LENGTH; i < l; i++) {
@@ -218,7 +218,7 @@ describe('Tracker', () => {
 
         tracker.track(items, components as any, undefined, 1, 'id');
 
-        const result = [];
+        const result = new Array<number>();
         for (let i = 0, l = COLLECTION_LENGTH; i < l; i++) {
             const comp = components[i], instance = comp.instance as unknown as Component;
             if (instance.visible) {
@@ -235,7 +235,7 @@ describe('Tracker', () => {
             components = new Array<ComponentRef<BaseVirtualListItemComponent>>(),
             COLLECTION_LENGTH = 10, COMPONENTS_LENGTH = 15, COLLECTION_DIFF_LENGTH = COMPONENTS_LENGTH - COLLECTION_LENGTH,
             COMPONENT_ID_OFFSET = 100, COMPONENTS_INDEX_OFFSET = 10,
-            expected = [], displayObjectIndexMapById: {
+            expected = new Array<number>(), displayObjectIndexMapById: {
                 [id: number]: number;
             } = {};
         for (let i = 0, l = COLLECTION_LENGTH; i < l; i++) {
@@ -256,7 +256,7 @@ describe('Tracker', () => {
 
         tracker.track(items, components as any, undefined, 1, 'id');
 
-        const result = [];
+        const result = new Array<number>();
         for (let i = 0, l = COLLECTION_LENGTH; i < l; i++) {
             const comp = components[i], instance = comp.instance as unknown as Component;
             if (instance.visible) {

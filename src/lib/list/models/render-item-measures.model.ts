@@ -71,7 +71,7 @@ export interface IRenderVirtualListItemMeasures extends IRect {
     /**
      * Maximum scroll size
      */
-    maNtScrollSize: number;
+    maxScrollSize: number;
     /**
      * Item size
      */

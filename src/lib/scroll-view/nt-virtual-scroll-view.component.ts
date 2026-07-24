@@ -1353,28 +1353,28 @@ export class NtVirtualScrollViewComponent implements OnDestroy {
   private snappingHandler() {
     const scroller = this._scrollerComponent();
     if (!!scroller) {
-      const maNtScrollWidth = Math.round(scroller.scrollWidth ?? 0),
-        maNtScrollHeight = Math.round(scroller.scrollHeight),
+      const maxScrollWidth = Math.round(scroller.scrollWidth ?? 0),
+        maxScrollHeight = Math.round(scroller.scrollHeight),
         scrollWidth = scroller.scrollLeft ?? 0,
         scrollHeight = scroller.scrollTop ?? 0,
         actualScrollWidth = Math.round(scrollWidth),
         actualScrollHeight = Math.round(scrollHeight);
       if (!this._isLoading) {
-        const _isScrollRight = (maNtScrollWidth >= (actualScrollWidth - MIN_PIXELS_FOR_PREVENT_SNAPPING)) || !scroller.scrollableX;
+        const _isScrollRight = (maxScrollWidth >= (actualScrollWidth - MIN_PIXELS_FOR_PREVENT_SNAPPING)) || !scroller.scrollableX;
         if (_isScrollRight) {
           this._isScrollLeft.set(false);
           this._isScrollRight.set(true);
         } else {
-          const isScrollStart = (maNtScrollWidth <= MIN_PIXELS_FOR_PREVENT_SNAPPING);
+          const isScrollStart = (maxScrollWidth <= MIN_PIXELS_FOR_PREVENT_SNAPPING);
           this._isScrollLeft.set(isScrollStart);
           this._isScrollRight.set(false);
         }
-        const _isScrollBottom = (maNtScrollHeight >= (actualScrollHeight - MIN_PIXELS_FOR_PREVENT_SNAPPING)) || !scroller.scrollableY;
+        const _isScrollBottom = (maxScrollHeight >= (actualScrollHeight - MIN_PIXELS_FOR_PREVENT_SNAPPING)) || !scroller.scrollableY;
         if (_isScrollBottom) {
           this._isScrollTop.set(false);
           this._isScrollBottom.set(true);
         } else {
-          const isScrollTop = (maNtScrollHeight <= MIN_PIXELS_FOR_PREVENT_SNAPPING);
+          const isScrollTop = (maxScrollHeight <= MIN_PIXELS_FOR_PREVENT_SNAPPING);
           this._isScrollTop.set(isScrollTop);
           this._isScrollBottom.set(false);
         }
@@ -1410,8 +1410,8 @@ export class NtVirtualScrollViewComponent implements OnDestroy {
     if (!!scrollerComponent) {
       const scrollWidth = scrollerComponent.scrollLeft,
         scrollHeight = scrollerComponent.scrollTop,
-        maNtScrollWidth = scrollerComponent.scrollWidth,
-        maNtScrollHeight = scrollerComponent.scrollHeight,
+        maxScrollWidth = scrollerComponent.scrollWidth,
+        maxScrollHeight = scrollerComponent.scrollHeight,
         bounds = this._bounds() || { x: 0, y: 0, width: DEFAULT_LIST_SIZE, height: DEFAULT_LIST_SIZE };
 
       const event = new ScrollEvent({
@@ -1421,8 +1421,8 @@ export class NtVirtualScrollViewComponent implements OnDestroy {
         scrollerDirection: this.direction(),
         scrollWidth,
         scrollHeight,
-        isRight: !scrollerComponent.scrollableX || this._isScrollRight() || (Math.round(scrollWidth) === Math.round(maNtScrollWidth)),
-        isBottom: !scrollerComponent.scrollableY || this._isScrollBottom() || (Math.round(scrollHeight) === Math.round(maNtScrollHeight)),
+        isRight: !scrollerComponent.scrollableX || this._isScrollRight() || (Math.round(scrollWidth) === Math.round(maxScrollWidth)),
+        isBottom: !scrollerComponent.scrollableY || this._isScrollBottom() || (Math.round(scrollHeight) === Math.round(maxScrollHeight)),
         userAction,
       });
       if (update) {

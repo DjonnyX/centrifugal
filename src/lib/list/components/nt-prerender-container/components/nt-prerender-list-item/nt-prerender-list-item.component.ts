@@ -19,7 +19,7 @@ import { ID, POSITION, POSITION_ZERO } from '../../../nt-list-item/const';
     templateUrl: '../../../nt-list-item/nt-virtual-list-item.component.html',
     styleUrls: ['../../../nt-list-item/nt-virtual-list-item.component.scss', './nt-prerender-list-item.component.scss'],
     host: {
-        'class': 'cnvl__item',
+        'class': 'ntvl__item',
         'role': 'listitem',
     },
     standalone: false,

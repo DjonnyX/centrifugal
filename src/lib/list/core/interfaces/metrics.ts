@@ -35,7 +35,7 @@ export interface IMetrics<I extends IItem> {
     rightItemLength: number;
     rightItemsWeight: number;
     scrollSize: number;
-    maNtScrollSize: number;
+    maxScrollSize: number;
     leftSizeOfAddedItems: number;
     sizeProperty: typeof HEIGHT_PROP_NAME | typeof WIDTH_PROP_NAME;
     stickyEnabled: boolean;

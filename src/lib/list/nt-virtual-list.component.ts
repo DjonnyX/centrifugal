@@ -2659,8 +2659,8 @@ export class NtVirtualListComponent implements OnDestroy {
           useAnimations = !isInfinity && readyForAnimations && prevScrollable;
         if (this._readyForShow || (cachable && cached)) {
           const inverted = scroller.inverted,
-            currentScrollSize = (isVertical ? scroller.scrollTop : scroller.scrollLeft), maNtScrollSize = (isVertical ? scroller.scrollHeight : scroller.scrollWidth);
-          let actualScrollSize = !this._readyForShow && snapScrollToEnd ? maNtScrollSize :
+            currentScrollSize = (isVertical ? scroller.scrollTop : scroller.scrollLeft), maxScrollSize = (isVertical ? scroller.scrollHeight : scroller.scrollWidth);
+          let actualScrollSize = !this._readyForShow && snapScrollToEnd ? maxScrollSize :
             (isVertical ? scroller.scrollTop : scroller.scrollLeft),
             leftLayoutOffset = 0,
             displayItems: IRenderVirtualListCollection;
@@ -2668,20 +2668,20 @@ export class NtVirtualListComponent implements OnDestroy {
           const { width, height } = bounds,
             opts: IUpdateCollectionOptions<IVirtualListItem, IVirtualListCollection> = {
               alignment, bounds: { width, height }, dynamicSize, isVertical, itemSize, minItemSize, maxItemSize, bufferSize, maxBufferSize,
-              scrollSize: inverted ? maNtScrollSize - actualScrollSize : actualScrollSize, stickyEnabled, enabledBufferOptimization,
+              scrollSize: inverted ? maxScrollSize - actualScrollSize : actualScrollSize, stickyEnabled, enabledBufferOptimization,
               snapToItem, snapToItemAlign, inverted, itemTransform,
             };
 
           if (snapScrollToEnd && !this._readyForShow) {
             const { displayItems: calculatedDisplayItems, totalSize: calculatedTotalSize1, leftLayoutOffset: leftLayoutOffset1 } =
-              this._trackBox.updateCollection(items, itemConfigMap, { ...opts, scrollSize: inverted ? maNtScrollSize - actualScrollSize : actualScrollSize });
+              this._trackBox.updateCollection(items, itemConfigMap, { ...opts, scrollSize: inverted ? maxScrollSize - actualScrollSize : actualScrollSize });
             displayItems = calculatedDisplayItems;
             totalSize = calculatedTotalSize1;
             leftLayoutOffset = leftLayoutOffset1;
 
             if (!!itemTransform && dynamicSize && this._trackBox.delta !== 0) {
               const { displayItems: calculatedDisplayItems, totalSize: calculatedTotalSize1, leftLayoutOffset: leftLayoutOffset1 } =
-                this._trackBox.updateCollection(items, itemConfigMap, { ...opts, scrollSize: inverted ? (maNtScrollSize - actualScrollSize + this._trackBox.delta) : (actualScrollSize + this._trackBox.delta) });
+                this._trackBox.updateCollection(items, itemConfigMap, { ...opts, scrollSize: inverted ? (maxScrollSize - actualScrollSize + this._trackBox.delta) : (actualScrollSize + this._trackBox.delta) });
               displayItems = calculatedDisplayItems;
               totalSize = calculatedTotalSize1;
               leftLayoutOffset = leftLayoutOffset1;
@@ -2694,7 +2694,7 @@ export class NtVirtualListComponent implements OnDestroy {
 
             if (!!itemTransform && dynamicSize && this._trackBox.delta !== 0) {
               const { displayItems: calculatedDisplayItems, totalSize: calculatedTotalSize, leftLayoutOffset: leftLayoutOffset1 } = this._trackBox.updateCollection(items, itemConfigMap,
-                { ...opts, scrollSize: inverted ? (maNtScrollSize - actualScrollSize + this._trackBox.delta) : (actualScrollSize + this._trackBox.delta) });
+                { ...opts, scrollSize: inverted ? (maxScrollSize - actualScrollSize + this._trackBox.delta) : (actualScrollSize + this._trackBox.delta) });
               displayItems = calculatedDisplayItems;
               totalSize = calculatedTotalSize;
               leftLayoutOffset = leftLayoutOffset1;
@@ -3031,19 +3031,19 @@ export class NtVirtualListComponent implements OnDestroy {
               const { width, height } = this._bounds() || { width: DEFAULT_LIST_SIZE, height: DEFAULT_LIST_SIZE },
                 itemConfigMap = this.itemConfigMap(), isVertical = this._isVertical,
                 inverted = scrollerComponent.inverted,
-                maNtScrollSize = isVertical ? scrollerComponent.scrollHeight : scrollerComponent.scrollWidth,
+                maxScrollSize = isVertical ? scrollerComponent.scrollHeight : scrollerComponent.scrollWidth,
                 currentScrollSize = isVertical ? scrollerComponent.scrollTop : scrollerComponent.scrollLeft,
                 opts: IGetItemPositionOptions<IVirtualListItem, IVirtualListCollection> = {
                   alignment: this.actualAlignment(), inverted,
                   bounds: { width, height }, collection: items, dynamicSize, isVertical: this._isVertical, itemSize, minItemSize, maxItemSize,
                   bufferSize: this.bufferSize(), maxBufferSize: this.maxBufferSize(), itemTransform: this.itemTransform(),
-                  scrollSize: (inverted ? (maNtScrollSize - currentScrollSize) : currentScrollSize),
+                  scrollSize: (inverted ? (maxScrollSize - currentScrollSize) : currentScrollSize),
                   snapToItem: this.snapToItem(), snapToItemAlign: this.snapToItemAlign(),
                   stickyEnabled: this.stickyEnabled(), fromItemId: id, enabledBufferOptimization: this.enabledBufferOptimization(),
                 };
 
               let scrollSize = snapScrollToEnd && this._trackBox.isSnappedToEnd ?
-                maNtScrollSize :
+                maxScrollSize :
                 this._trackBox.getItemPosition(id, itemConfigMap, opts);
 
               if (scrollSize === -1) {
@@ -3054,7 +3054,7 @@ export class NtVirtualListComponent implements OnDestroy {
 
               const viewportSize = (isVertical ? height : width),
                 { displayItems, totalSize, leftLayoutOffset } = this._trackBox.updateCollection(items, itemConfigMap, {
-                  ...opts, scrollSize: (inverted ? (maNtScrollSize - scrollSize) : scrollSize), fromItemId: isLastIteration ? undefined : id,
+                  ...opts, scrollSize: (inverted ? (maxScrollSize - scrollSize) : scrollSize), fromItemId: isLastIteration ? undefined : id,
                 }), delta1 = this._trackBox.delta;
 
               const normalizedTotalSize = totalSize < viewportSize ? viewportSize : totalSize;
@@ -3077,7 +3077,7 @@ export class NtVirtualListComponent implements OnDestroy {
 
               this.updateOffsetsByAllignment();
 
-              scrollSize = this._trackBox.getItemPosition(id, itemConfigMap, { ...opts, scrollSize: (inverted ? (maNtScrollSize - actualScrollSize) : actualScrollSize), fromItemId: id });
+              scrollSize = this._trackBox.getItemPosition(id, itemConfigMap, { ...opts, scrollSize: (inverted ? (maxScrollSize - actualScrollSize) : actualScrollSize), fromItemId: id });
 
               if (scrollSize === -1) {
                 return of([finished, { id, blending, iteration: nextIteration, cb }]).pipe(delay(0));
@@ -3119,13 +3119,13 @@ export class NtVirtualListComponent implements OnDestroy {
                 const { width, height } = this._bounds() || { width: DEFAULT_LIST_SIZE, height: DEFAULT_LIST_SIZE },
                   itemConfigMap = this.itemConfigMap(), items = this._actualItems(),
                   inverted = scrollerComponent.inverted,
-                  maNtScrollSize = (isVertical ? scrollerComponent.scrollHeight : scrollerComponent.scrollWidth),
+                  maxScrollSize = (isVertical ? scrollerComponent.scrollHeight : scrollerComponent.scrollWidth),
                   actualScrollSize = (isVertical ? scrollerComponent.scrollTop : scrollerComponent.scrollLeft),
                   opts: IGetItemPositionOptions<IVirtualListItem, IVirtualListCollection> = {
                     alignment: this._actualAlignment(), inverted,
                     bounds: { width, height }, collection: items, dynamicSize, isVertical: this._isVertical, itemSize, minItemSize, maxItemSize,
                     bufferSize: this.bufferSize(), maxBufferSize: this.maxBufferSize(), itemTransform: this.itemTransform(),
-                    scrollSize: (inverted ? (maNtScrollSize - actualScrollSize) : actualScrollSize),
+                    scrollSize: (inverted ? (maxScrollSize - actualScrollSize) : actualScrollSize),
                     snapToItem, snapToItemAlign, stickyEnabled: this.stickyEnabled(), fromItemId: id,
                     enabledBufferOptimization: this.enabledBufferOptimization(),
                   };
@@ -3134,7 +3134,7 @@ export class NtVirtualListComponent implements OnDestroy {
 
                 const viewportSize = (isVertical ? height : width),
                   { displayItems, totalSize, leftLayoutOffset } = this._trackBox.updateCollection(items, itemConfigMap, {
-                    ...opts, scrollSize: (inverted ? (maNtScrollSize - scrollSize) : scrollSize),
+                    ...opts, scrollSize: (inverted ? (maxScrollSize - scrollSize) : scrollSize),
                     fromItemId: isLastIteration ? undefined : id,
                   });
 
@@ -3360,11 +3360,11 @@ export class NtVirtualListComponent implements OnDestroy {
     const scroller = this._scrollerComponent();
     if (!!scroller) {
       const isVertical = this.isVertical,
-        maNtScrollSize = Math.round(isVertical ? scroller.scrollHeight ?? 0 : scroller.scrollWidth ?? 0),
+        maxScrollSize = Math.round(isVertical ? scroller.scrollHeight ?? 0 : scroller.scrollWidth ?? 0),
         scrollSize = isVertical ? scroller.scrollTop ?? 0 : scroller.scrollLeft ?? 0,
         actualScrollSize = Math.round(scrollSize);
       if (this._readyForShow && !this._isLoading) {
-        const isScrollEnd = (actualScrollSize >= (maNtScrollSize - MIN_PIXELS_FOR_PREVENT_SNAPPING)) || !scroller.scrollable || this._trackBox.isScrollEnd;
+        const isScrollEnd = (actualScrollSize >= (maxScrollSize - MIN_PIXELS_FOR_PREVENT_SNAPPING)) || !scroller.scrollable || this._trackBox.isScrollEnd;
         if (isScrollEnd) {
           this._isScrollStart.set(false);
           this._isScrollEnd.set(true);
@@ -3406,7 +3406,7 @@ export class NtVirtualListComponent implements OnDestroy {
     const scrollerEl = this._scroller()?.nativeElement, scrollerComponent = this._scrollerComponent();
     if (scrollerEl && scrollerComponent) {
       const isVertical = this._isVertical, scrollSize = (isVertical ? scrollerComponent.scrollTop : scrollerComponent.scrollLeft),
-        maNtScrollSize = (isVertical ? scrollerComponent.scrollHeight : scrollerComponent.scrollWidth),
+        maxScrollSize = (isVertical ? scrollerComponent.scrollHeight : scrollerComponent.scrollWidth),
         bounds = this._bounds() || { x: 0, y: 0, width: DEFAULT_LIST_SIZE, height: DEFAULT_LIST_SIZE };
       const itemsRange = formatActualDisplayItems(this._service.displayItems, this._actualScrollStartOffset(), this._actualScrollEndOffset(),
         scrollSize, isVertical, bounds),
@@ -3416,7 +3416,7 @@ export class NtVirtualListComponent implements OnDestroy {
           deltaOfNewItems: this._trackBox.deltaOfNewItems, isVertical,
           scrollSize,
           itemsRange,
-          isEnd: !scrollerComponent.scrollable || this._trackBox.isSnappedToEnd || (Math.round(scrollSize) === Math.round(maNtScrollSize)),
+          isEnd: !scrollerComponent.scrollable || this._trackBox.isSnappedToEnd || (Math.round(scrollSize) === Math.round(maxScrollSize)),
           userAction,
         });
       if (update) {
@@ -3661,8 +3661,8 @@ export class NtVirtualListComponent implements OnDestroy {
     if (!!scroller) {
       const isVertical = this.isVertical,
         scrollSize = isVertical ? scroller.scrollTop : scroller.scrollLeft,
-        maNtScrollSize = isVertical ? scroller.scrollHeight : scroller.scrollTop;
-      if (scrollSize === maNtScrollSize) {
+        maxScrollSize = isVertical ? scroller.scrollHeight : scroller.scrollTop;
+      if (scrollSize === maxScrollSize) {
         return;
       }
       scroller.stopScrolling();

@@ -27,7 +27,7 @@ import { Color, ISize, TextDirection, TextDirections } from '../../../../common'
  * @email djonnyx@gmail.com
  */
 @Component({
-  selector: 'x-base-virtual-list-item',
+  selector: 'nt-base-virtual-list-item',
   template: '',
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,

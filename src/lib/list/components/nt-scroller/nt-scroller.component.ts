@@ -298,10 +298,10 @@ export class NtScrollerComponent extends NtScrollView {
     const isVertical = this.isVertical(),
       inverted = this._horizontalAxisInvertion(),
       scrollSize = (isVertical ? this.scrollTop : this.scrollLeft) - this._startLayoutOffset,
-      maNtScrollSize = isVertical ? this.scrollHeight : this.scrollWidth,
+      maxScrollSize = isVertical ? this.scrollHeight : this.scrollWidth,
       { width, height } = this.viewportBounds();
     this.listStyles.set({
-      perspectiveOrigin: `${isVertical ? width * .5 : (inverted ? ((maNtScrollSize - scrollSize) + width * .5 - this.startOffset()) : (scrollSize + width * .5))}${PX} ${isVertical ? (inverted ? ((maNtScrollSize - scrollSize) + height * .5) : (scrollSize + height * .5)) : height * .5}${PX}`
+      perspectiveOrigin: `${isVertical ? width * .5 : (inverted ? ((maxScrollSize - scrollSize) + width * .5 - this.startOffset()) : (scrollSize + width * .5))}${PX} ${isVertical ? (inverted ? ((maxScrollSize - scrollSize) + height * .5) : (scrollSize + height * .5)) : height * .5}${PX}`
     });
   }
 

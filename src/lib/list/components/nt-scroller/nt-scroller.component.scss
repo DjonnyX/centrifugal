@@ -4,7 +4,7 @@
     user-select: none;
 }
 
-.cnvl__container {
+.ntvl__container {
     position: relative;
     overflow: hidden;
     display: grid;
@@ -36,11 +36,11 @@
             }
         }
 
-        .cnvl__list {
+        .ntvl__list {
             display: inline-flex;
         }
 
-        .cnvl__scroller-wrapper {
+        .ntvl__scroller-wrapper {
 
             /** For motion blur correction */
             &.filtered {
@@ -48,7 +48,7 @@
             }
         }
 
-        .cnvl__scroller {
+        .ntvl__scroller {
             overflow: unset;
         }
     }
@@ -68,20 +68,20 @@
             }
         }
 
-        .cnvl__scroller-wrapper {
+        .ntvl__scroller-wrapper {
             &.filtered {
                 /** For motion blur correction */
                 overflow: unset;
             }
         }
 
-        .cnvl__scroller {
+        .ntvl__scroller {
             overflow: unset;
         }
     }
 
-    .cnvl__scroller-wrapper,
-    .cnvl__scroller {
+    .ntvl__scroller-wrapper,
+    .ntvl__scroller {
         display: block;
         position: relative;
         overflow: hidden;
@@ -89,7 +89,7 @@
         height: 100%;
     }
 
-    .cnvl__list {
+    .ntvl__list {
         position: absolute;
         list-style: none;
         padding: 0;
