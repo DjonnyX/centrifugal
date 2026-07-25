@@ -118,7 +118,7 @@ Inputs
 | clickDistance | number? = 40 | The maximum scroll distance at which a click event is triggered. |
 | collapsedIds | Array<[Id](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/id.ts)> | Sets the collapsed items. |
 | collapseByClick | boolean? = true | If `false`, the element is collapsed using the config.collapse method passed to the template; if `true`, the element is collapsed by clicking on it. The default value is `true`. |
-| collapsingMode | [CollapsingMode](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/enums/collapsing-modes.ts) |  Mode for collapsing list items. Default value is `none`. `none` - List items are not selectable. `multi-collapse` - List items are collapsed one by one. 'accordion' - Accordion collapsible list items. Default value is `multi-collapse`. |
+| collapsingMode | [CollapsingMode](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/enums/collapsing-modes.ts) |  Mode for collapsing list items. Default value is `none`. `none` - List items are not selectable. `multi-collapse` - List items are collapsed one by one. 'accordion' - Accordion collapsible list items. Default value is `none`. |
 | collectionMode | [CollectionMode? = 'normal'](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/enums/collection-mode.ts) | Determines the action modes for collection elements. Default value is `normal`. |
 | divides | number = 1 | Column or row numbers. The default value is `1`. |
 | direction | [Direction? = 'vertical'](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/enums/direction.ts) | Determines the direction in which elements are placed. Default value is "vertical". |

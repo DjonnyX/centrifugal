@@ -1203,7 +1203,7 @@ export class NtVirtualListComponent implements OnDestroy {
    * `none` - List items are not selectable.
    * `multi-collapse` - List items are collapsed one by one.
    * 'accordion' - Accordion collapsible list items.
-   * Default value is `multi-collapse
+   * Default value is `none`
    */
   collapsingMode = input<CollapsingMode>(DEFAULT_COLLAPSING_MODES, { ...this._collapsingModeOptions });
 

@@ -113,7 +113,7 @@ export const MAX_SCROLL_TO_ITERATIONS = 5;
 
 export const DEFAULT_SNAPPING_METHOD = SnappingMethods.STANDART;
 
-export const DEFAULT_COLLAPSING_MODES = CollapsingModes.MULTI_COLLAPSE;
+export const DEFAULT_COLLAPSING_MODES = CollapsingModes.NONE;
 
 export const DEFAULT_SELECTING_MODES = SelectingModes.NONE;
 
