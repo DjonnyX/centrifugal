@@ -53,7 +53,7 @@ import { SelectingModesTypes } from './enums/selecting-modes-types';
 import { CMap } from '../common/utils/cmap';
 import {
   validateArray, validateBoolean, validateFloat, validateFunction, validateInt, validateObject, validateString,
-} from './utils/validation';
+} from '../common/utils/validation';
 import { isCollectionMode } from './utils/is-collection-mode';
 import { NtScrollerComponent } from './components/nt-scroller/nt-scroller.component';
 import { IScrollToParams } from './components/nt-scroll-view';
@@ -105,21 +105,21 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   get id() { return this._id; }
 
-  private _service = inject<S>(SCROLL_VIEW_SERVICE);
+  protected _service = inject<S>(SCROLL_VIEW_SERVICE);
 
-  private _prerender = viewChild<NtPrerenderContainer>('prerender');
+  protected _prerender = viewChild<NtPrerenderContainer>('prerender');
 
   @ViewChild('renderersContainer', { read: ViewContainerRef })
-  private _listContainerRef: ViewContainerRef | undefined;
+  protected _listContainerRef: ViewContainerRef | undefined;
 
   @ViewChild('snapRendererContainer', { read: ViewContainerRef })
-  private _snapContainerRef: ViewContainerRef | undefined;
+  protected _snapContainerRef: ViewContainerRef | undefined;
 
-  private _scrollerComponent = viewChild<NtScrollerComponent>('scroller');
+  protected _scrollerComponent = viewChild<NtScrollerComponent>('scroller');
 
-  private _scroller: Signal<ElementRef<HTMLDivElement> | undefined>;
+  protected _scroller: Signal<ElementRef<HTMLDivElement> | undefined>;
 
-  private _list: Signal<ElementRef<HTMLDivElement> | undefined>;
+  protected _list: Signal<ElementRef<HTMLDivElement> | undefined>;
 
   /**
    * Fires when the list has been scrolled.
@@ -172,7 +172,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
   private _$initialized = new BehaviorSubject<boolean>(false);
   readonly $initialized = this._$initialized.asObservable();
 
-  private _scrollbarThickness = {
+  protected _scrollbarThickness = {
     transform: (v: number) => {
       const valid = validateInt(v);
 
@@ -189,7 +189,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   scrollbarThickness = input<number>(DEFAULT_SCROLLBAR_THICKNESS, { ...this._scrollbarThickness });
 
-  private _scrollbarMinSize = {
+  protected _scrollbarMinSize = {
     transform: (v: number) => {
       const valid = validateInt(v);
 
@@ -206,7 +206,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   scrollbarMinSize = input<number>(DEFAULT_SCROLLBAR_MIN_SIZE, { ...this._scrollbarMinSize });
 
-  private _scrollbarThumbRenderer = {
+  protected _scrollbarThumbRenderer = {
     transform: (v: TemplateRef<any> | null) => {
       const valid = validateObject(v, true, true);
 
@@ -223,7 +223,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   scrollbarThumbRenderer = input<TemplateRef<any> | null>(null, { ...this._scrollbarThumbRenderer });
 
-  private _scrollbarThumbParams = {
+  protected _scrollbarThumbParams = {
     transform: (v: { [propName: string]: any } | null) => {
       const valid = validateObject(v, true, true);
 
@@ -240,7 +240,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   scrollbarThumbParams = input<{ [propName: string]: any } | null>({}, { ...this._scrollbarThumbParams });
 
-  private _loading = {
+  protected _loading = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v);
 
@@ -257,7 +257,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   loading = input<boolean>(false, { ...this._loading });
 
-  private _waitForPreparation = {
+  protected _waitForPreparation = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v);
 
@@ -274,7 +274,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   waitForPreparation = input<boolean>(DEFAULT_WAIT_FOR_PREPARATION, { ...this._waitForPreparation });
 
-  private _clickDistance = {
+  protected _clickDistance = {
     transform: (v: number) => {
       const valid = validateInt(v);
 
@@ -291,7 +291,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   clickDistance = input<number>(DEFAULT_CLICK_DISTANCE, { ...this._clickDistance });
 
-  private _itemsOptions = {
+  protected _itemsOptions = {
     transform: (v: IVirtualListCollection | undefined) => {
       let valid = validateArray(v, true, true);
       if (valid) {
@@ -325,7 +325,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
     ...this._itemsOptions,
   });
 
-  private _selectedIdsOptions = {
+  protected _selectedIdsOptions = {
     transform: (v: Array<Id> | Id | undefined) => {
       let valid = validateArray(v as any, true, true) || validateString(v as any, true, true) || validateFloat(v as any, true);
       if (valid) {
@@ -355,7 +355,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   selectedIds = input<Array<Id> | Id | null>(null, { ...this._selectedIdsOptions });
 
-  private _collapsedIdsOptions = {
+  protected _collapsedIdsOptions = {
     transform: (v: Array<Id>) => {
       let valid = validateArray(v as any, true, true);
       if (valid) {
@@ -383,7 +383,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   collapsedIds = input<Array<Id>>([], { ...this._collapsedIdsOptions });
 
-  private _selectByClickOptions = {
+  protected _selectByClickOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v);
 
@@ -401,7 +401,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   selectByClick = input<boolean>(DEFAULT_SELECT_BY_CLICK, { ...this._selectByClickOptions });
 
-  private _collapseByClickOptions = {
+  protected _collapseByClickOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v);
 
@@ -419,19 +419,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   collapseByClick = input<boolean>(DEFAULT_COLLAPSE_BY_CLICK, { ...this._collapseByClickOptions });
 
-  private _snapOptions = {
-    transform: (v: boolean) => {
-      throw Error(`Property snap is deprecated. Use the \`stickyEnabled\` property instead.`);
-    },
-  } as any;
-
-  /**
-   * @deprecated
-   * Use the `stickyEnabled` property instead.
-   */
-  snap = input<boolean>(false, { ...this._snapOptions });
-
-  private _stickyEnabledOptions = {
+  protected _stickyEnabledOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v);
 
@@ -448,7 +436,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   stickyEnabled = input<boolean>(DEFAULT_STICKY_ENABLED, { ...this._stickyEnabledOptions });
 
-  private _snapToEndTransitionInstantOffsetOptions = {
+  protected _snapToEndTransitionInstantOffsetOptions = {
     transform: (v: number) => {
       const valid = validateFloat(v, true);
 
@@ -465,7 +453,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   snapToEndTransitionInstantOffset = input<number>(DEFAULT_SNAP_TO_END_TRANSITION_INSTANT_OFFSET, { ...this._snapToEndTransitionInstantOffsetOptions });
 
-  private _scrollStartOffsetOptions = {
+  protected _scrollStartOffsetOptions = {
     transform: (v: number) => {
       const valid = validateFloat(v, true) || isPercentageValue(v);
 
@@ -483,7 +471,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   scrollStartOffset = input<ArithmeticExpression>(0, { ...this._scrollStartOffsetOptions });
 
-  private _scrollEndOffsetOptions = {
+  protected _scrollEndOffsetOptions = {
     transform: (v: number) => {
       const valid = validateFloat(v, true) || isPercentageValue(v);
 
@@ -501,7 +489,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   scrollEndOffset = input<ArithmeticExpression>(0, { ...this._scrollEndOffsetOptions });
 
-  private _snapScrollToStartOptions = {
+  protected _snapScrollToStartOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
 
@@ -525,7 +513,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   snapScrollToStart = input<boolean>(DEFAULT_SNAP_SCROLLTO_START, { ...this._snapScrollToStartOptions });
 
-  private _snapScrollToEndOptions = {
+  protected _snapScrollToEndOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
 
@@ -548,19 +536,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   snapScrollToEnd = input<boolean>(DEFAULT_SNAP_SCROLLTO_END, { ...this._snapScrollToEndOptions });
 
-  private _snapScrollToBottomOptions = {
-    transform: () => {
-      throw Error('The stopSnappingScrollToEnd property is deprecated. Use the snapScrollToEnd property.');
-    },
-  } as any;
-
-  /**
-   * @deprecated
-   * The stopSnappingScrollToEnd property is deprecated. Use the snapScrollToEnd property.
-   */
-  snapScrollToBottom = input<boolean>('deprecated' as any, { ...this._snapScrollToBottomOptions });
-
-  private _scrollbarEnabledOptions = {
+  protected _scrollbarEnabledOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
 
@@ -577,7 +553,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   scrollbarEnabled = input<boolean>(DEFAULT_SCROLLBAR_ENABLED, { ...this._scrollbarEnabledOptions });
 
-  private _scrollbarInteractiveOptions = {
+  protected _scrollbarInteractiveOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
 
@@ -594,7 +570,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   scrollbarInteractive = input<boolean>(DEFAULT_SCROLLBAR_INTERACTIVE, { ...this._scrollbarInteractiveOptions });
 
-  private _overlappingScrollbarOptions = {
+  protected _overlappingScrollbarOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
 
@@ -611,7 +587,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   overlappingScrollbar = input<boolean>(DEFAULT_OVERLAPPING_SCROLLBAR, { ...this._overlappingScrollbarOptions });
 
-  private _scrollBehaviorOptions = {
+  protected _scrollBehaviorOptions = {
     transform: (v: ScrollBehavior) => {
       const valid = validateString(v, true, true);
 
@@ -628,7 +604,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   scrollBehavior = input<ScrollBehavior>(DEFAULT_SCROLL_BEHAVIOR, { ...this._scrollBehaviorOptions });
 
-  private _scrollingSettingsOptions = {
+  protected _scrollingSettingsOptions = {
     transform: (v: IScrollingSettings): IScrollingSettings | null => {
       let valid = validateObject(v, true, true);
       if (valid && !!v) {
@@ -690,7 +666,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   scrollingSettings = input<IScrollingSettings>(DEFAULT_SCROLLING_SETTINGS, { ...this._scrollingSettingsOptions });
 
-  private _itemTransformOptions = {
+  protected _itemTransformOptions = {
     transform: (v: any) => {
       let valid = validateFunction(v, true, true);
       if (!valid) {
@@ -706,7 +682,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   itemTransform = input<ItemTransform | null>(null, { ...this._itemTransformOptions });
 
-  private _snapToItemOptions = {
+  protected _snapToItemOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v);
 
@@ -723,7 +699,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   snapToItem = input<boolean>(DEFAULT_SNAP_TO_ITEM, { ...this._snapToItemOptions });
 
-  private _snapToItemAlignOptions = {
+  protected _snapToItemAlignOptions = {
     transform: (v: SnapToItemAlign) => {
       const valid = validateString(v) && (v === 'start' || v === 'center' || v === 'end');
 
@@ -740,7 +716,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   snapToItemAlign = input<SnapToItemAlign>(DEFAULT_SNAP_TO_ITEM_ALIGN, { ...this._snapToItemAlignOptions });
 
-  private _snappingDistanceOptions = {
+  protected _snappingDistanceOptions = {
     transform: (v: SnappingDistance | any) => {
       const valid = validateString(v) || validateFloat(v);
 
@@ -758,7 +734,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   snappingDistance = input<SnappingDistance>(DEFAULT_SNAPPING_DISTANCE, { ...this._snappingDistanceOptions });
 
-  private _scrollingOneByOneOptions = {
+  protected _scrollingOneByOneOptions = {
     transform: (v: any) => {
       const valid = validateBoolean(v);
 
@@ -775,7 +751,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   scrollingOneByOne = input<boolean>(DEFAULT_SCROLLING_ONE_BY_ONE, { ...this._scrollingOneByOneOptions });
 
-  private _alignmentOptions = {
+  protected _alignmentOptions = {
     transform: (v: Alignment) => {
       const valid = validateString(v) && (v === 'none' || v === 'center');
 
@@ -793,7 +769,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   alignment = input<Alignment>(DEFAULT_ALIGNMENT, { ...this._alignmentOptions });
 
-  private _zIndexWhenSelectingOptions = {
+  protected _zIndexWhenSelectingOptions = {
     transform: (v: string | null) => {
       const valid = validateString(v, true, true);
 
@@ -810,7 +786,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   zIndexWhenSelecting = input<string | null>(DEFAULT_ZINDEX_WHEN_SELECTING, { ...this._zIndexWhenSelectingOptions });
 
-  private _spreadingModeOptions = {
+  protected _spreadingModeOptions = {
     transform: (v: SpreadingMode) => {
       const valid = validateString(v) && (v === 'normal' || v === 'infinity');
 
@@ -831,7 +807,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   spreadingMode = input<SpreadingMode>(DEFAULT_SPREADING_MODE, { ...this._spreadingModeOptions });
 
-  private _dividesOptions = {
+  protected _dividesOptions = {
     transform: (v: number) => {
       const valid = validateFloat(v);
 
@@ -848,7 +824,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   divides = input<number>(DEFAULT_DIVIDES, { ...this._dividesOptions });
 
-  private _motionBlurOptions = {
+  protected _motionBlurOptions = {
     transform: (v: number) => {
       const valid = validateFloat(v);
 
@@ -865,7 +841,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   motionBlur = input<number>(DEFAULT_MOTION_BLUR, { ...this._motionBlurOptions });
 
-  private _maxMotionBlurOptions = {
+  protected _maxMotionBlurOptions = {
     transform: (v: number) => {
       const valid = validateFloat(v);
 
@@ -882,7 +858,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   maxMotionBlur = input<number>(DEFAULT_MAX_MOTION_BLUR, { ...this._maxMotionBlurOptions });
 
-  private _motionBlurEnabledOptions = {
+  protected _motionBlurEnabledOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v);
 
@@ -899,7 +875,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   motionBlurEnabled = input<boolean>(DEFAULT_MOTION_BLUR_ENABLED, { ...this._motionBlurEnabledOptions });
 
-  private _animationParamsOptions = {
+  protected _animationParamsOptions = {
     transform: (v: IAnimationParams) => {
       const valid = validateObject(v, true, true);
 
@@ -932,7 +908,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   animationParams = input<IAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
 
-  private _overscrollEnabledOptions = {
+  protected _overscrollEnabledOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
 
@@ -949,7 +925,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   overscrollEnabled = input<boolean>(DEFAULT_OVERSCROLL_ENABLED, { ...this._overscrollEnabledOptions });
 
-  private _enabledBufferOptimizationOptions = {
+  protected _enabledBufferOptimizationOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v);
 
@@ -969,7 +945,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   enabledBufferOptimization = input<boolean>(DEFAULT_ENABLED_BUFFER_OPTIMIZATION, { ...this._enabledBufferOptimizationOptions });
 
-  private _itemRendererOptions = {
+  protected _itemRendererOptions = {
     transform: (v: TemplateRef<any>) => {
       let valid = validateObject(v);
       if (v && !(typeof v.elementRef === 'object' && typeof v.createEmbeddedView === 'function')) {
@@ -988,9 +964,9 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   itemRenderer = input.required<TemplateRef<any>>({ ...this._itemRendererOptions });
 
-  private _itemRenderer = signal<TemplateRef<any> | undefined>(undefined);
+  protected _itemRenderer = signal<TemplateRef<any> | undefined>(undefined);
 
-  private _itemConfigMapOptions = {
+  protected _itemConfigMapOptions = {
     transform: (v: IVirtualListItemConfigMap) => {
       let valid = validateObject(v);
       if (valid) {
@@ -1030,7 +1006,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   itemConfigMap = input<IVirtualListItemConfigMap>({}, { ...this._itemConfigMapOptions });
 
-  private _itemSizeOptions = {
+  protected _itemSizeOptions = {
     transform: (v: any) => {
       const valid = validateFloat(v) || v === VIEWPORT;
       if (!valid) {
@@ -1049,7 +1025,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   itemSize = input<number | 'viewport'>(DEFAULT_ITEM_SIZE, { ...this._itemSizeOptions });
 
-  private _minItemSizeOptions = {
+  protected _minItemSizeOptions = {
     transform: (v: any) => {
       const valid = validateFloat(v) || v === VIEWPORT;
       if (!valid) {
@@ -1066,7 +1042,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   minItemSize = input<number | 'viewport'>(DEFAULT_MIN_ITEM_SIZE, { ...this._minItemSizeOptions });
 
-  private _maxItemSizeOptions = {
+  protected _maxItemSizeOptions = {
     transform: (v: any) => {
       const valid = validateFloat(v) || v === VIEWPORT;
       if (!valid) {
@@ -1083,7 +1059,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   maxItemSize = input<number | 'viewport'>(DEFAULT_MAX_ITEM_SIZE, { ...this._maxItemSizeOptions });
 
-  private _dynamicSizeOptions = {
+  protected _dynamicSizeOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v);
       if (!valid) {
@@ -1101,7 +1077,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   dynamicSize = input(DEFAULT_DYNAMIC_SIZE, { ...this._dynamicSizeOptions });
 
-  private _directionOptions = {
+  protected _directionOptions = {
     transform: (v: Direction) => {
       const valid = validateString(v) && (v === 'horizontal' || v === 'vertical');
       if (!valid) {
@@ -1117,7 +1093,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   direction = input<Direction>(DEFAULT_DIRECTION, { ...this._directionOptions });
 
-  private _collectionModeOptions = {
+  protected _collectionModeOptions = {
     transform: (v: CollectionMode) => {
       const valid = validateString(v) && (v === 'normal' || v === 'lazy');
       if (!valid) {
@@ -1133,7 +1109,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   collectionMode = input<CollectionMode>(DEFAULT_COLLECTION_MODE, { ...this._collectionModeOptions });
 
-  private _bufferSizeOptions = {
+  protected _bufferSizeOptions = {
     transform: (v: number) => {
       const valid = validateInt(v);
       if (!valid) {
@@ -1149,7 +1125,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   bufferSize = input<number>(DEFAULT_BUFFER_SIZE, { ...this._bufferSizeOptions });
 
-  private _maxBufferSizeTransform = {
+  protected _maxBufferSizeTransform = {
     transform: (v: number | undefined) => {
       let val = v;
       const valid = validateInt(v, true);
@@ -1173,7 +1149,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   maxBufferSize = input<number>(DEFAULT_MAX_BUFFER_SIZE, { ...this._maxBufferSizeTransform });
 
-  private _snappingMethodOptions = {
+  protected _snappingMethodOptions = {
     transform: (v: SnappingMethod) => {
       const valid = validateString(v) && (v === SnappingMethods.ADVANCED || v === SnappingMethods.STANDART);
       if (!valid) {
@@ -1191,7 +1167,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   snappingMethod = input<SnappingMethod>(DEFAULT_SNAPPING_METHOD, { ...this._snappingMethodOptions });
 
-  private _collapsingModeOptions = {
+  protected _collapsingModeOptions = {
     transform: (v: CollapsingMode) => {
       const valid = validateString(v) && (v === CollapsingModes.NONE || v === CollapsingModes.MULTI_COLLAPSE || v === CollapsingModes.ACCORDION);
       if (!valid) {
@@ -1211,19 +1187,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   collapsingMode = input<CollapsingMode>(DEFAULT_COLLAPSING_MODES, { ...this._collapsingModeOptions });
 
-  private _methodForSelectingOptions = {
-    transform: (v: SelectingMode) => {
-      throw new Error('The "methodForSelecting" property is deprecated. Use the "selectMode" property instead.');
-    },
-  } as any;
-
-  /**
-   * @deprecated
-   * The "methodForSelecting" property is deprecated. Use the "selectMode" property.
-   */
-  methodForSelecting = input<SelectingMode>(DEFAULT_SELECTING_MODES, { ...this._methodForSelectingOptions });
-
-  private _selectingModeOptions = {
+  protected _selectingModeOptions = {
     transform: (v: SelectingMode) => {
       const valid = validateString(v) && (v === 'none' || v === 'select' || v === 'multi-select');
       if (!valid) {
@@ -1242,7 +1206,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   selectingMode = input<SelectingMode>(DEFAULT_SELECTING_MODES, { ...this._selectingModeOptions });
 
-  private _trackByOptions = {
+  protected _trackByOptions = {
     transform: (v: string) => {
       const valid = validateString(v);
       if (!valid) {
@@ -1258,7 +1222,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
    */
   trackBy = input<string>(TRACK_BY_PROPERTY_NAME, { ...this._trackByOptions });
 
-  private _screenReaderMessageOptions = {
+  protected _screenReaderMessageOptions = {
     transform: (v: string) => {
       const valid = validateString(v);
       if (!valid) {
@@ -1279,7 +1243,7 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
 
   protected readonly screenReaderFormattedMessage = signal<string>(this.screenReaderMessage());
 
-  private _langTextDir = {
+  protected _langTextDir = {
     transform: (v: TextDirection) => {
       const valid = validateString(v);
       if (!valid) {
@@ -3684,14 +3648,6 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
   }
 
   /**
-   * @deprecated
-   * The scrollToEndItem method is deprecated. Use the scrollToEnd method.
-   */
-  scrollToEndItem(cb?: () => void, options?: IScrollOptions) {
-    throw Error('The scrollToEndItem method is deprecated. Use the scrollToEnd method.');
-  }
-
-  /**
    * Scrolls the list to the end of the content size.
    */
   scrollToEnd(cb: (() => void) | null = null, options: IScrollOptions | null = null) {
@@ -3775,14 +3731,6 @@ export class NtVirtualListComponent<S extends IVirtualListService> implements On
     if (!!scroller) {
       scroller.reset();
     }
-  }
-
-  /**
-   * @deprecated
-   * The stopSnappingScrollToEnd method is deprecated. Use the preventSnapping method.
-   */
-  stopSnappingScrollToEnd() {
-    throw Error('The stopSnappingScrollToEnd method is deprecated. Use the preventSnapping method.');
   }
 
   /**

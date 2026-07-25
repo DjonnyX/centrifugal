@@ -27,14 +27,14 @@ import {
 import { ScrollEvent } from './utils';
 import { isDirection } from './utils/is-direction';
 import { NtVirtualScrollViewService } from './nt-virtual-scroll-view.service';
-import {
-  validateBoolean, validateFloat, validateInt, validateObject, validateString,
-} from './utils/validation';
 import { objectAsReadonly } from '../common/utils/object';
 import { NtScrollerComponent } from './components/nt-scroller/nt-scroller.component';
 import { IScrollToParams } from './components/nt-scroll-view';
 import { ArithmeticExpression, Id, ISize, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../common';
-import { isPercentageValue, parseArithmeticExpression, toggleClassName } from '../common/utils';
+import {
+  isPercentageValue, parseArithmeticExpression, toggleClassName,
+  validateBoolean, validateFloat, validateInt, validateObject, validateString,
+} from '../common/utils';
 
 /**
  * NtVirtualScrollViewComponent
@@ -107,13 +107,13 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   onScrollReachBottom = output<void>();
 
-  private _$show = new BehaviorSubject<boolean>(false);
+  protected _$show = new BehaviorSubject<boolean>(false);
   readonly $show = this._$show.asObservable();
 
-  private _$initialized = new BehaviorSubject<boolean>(false);
+  protected _$initialized = new BehaviorSubject<boolean>(false);
   readonly $initialized = this._$initialized.asObservable();
 
-  private _scrollbarThickness = {
+  protected _scrollbarThickness = {
     transform: (v: number) => {
       const valid = validateInt(v);
 
@@ -130,7 +130,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   scrollbarThickness = input<number>(DEFAULT_SCROLLBAR_THICKNESS, { ...this._scrollbarThickness });
 
-  private _scrollbarMinSize = {
+  protected _scrollbarMinSize = {
     transform: (v: number) => {
       const valid = validateInt(v);
 
@@ -147,7 +147,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   scrollbarMinSize = input<number>(DEFAULT_SCROLLBAR_MIN_SIZE, { ...this._scrollbarMinSize });
 
-  private _scrollbarThumbRenderer = {
+  protected _scrollbarThumbRenderer = {
     transform: (v: TemplateRef<any> | null) => {
       const valid = validateObject(v, true, true);
 
@@ -164,7 +164,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   scrollbarThumbRenderer = input<TemplateRef<any> | null>(null, { ...this._scrollbarThumbRenderer });
 
-  private _scrollbarThumbParams = {
+  protected _scrollbarThumbParams = {
     transform: (v: { [propName: string]: any } | null) => {
       const valid = validateObject(v, true, true);
 
@@ -181,7 +181,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   scrollbarThumbParams = input<{ [propName: string]: any } | null>({}, { ...this._scrollbarThumbParams });
 
-  private _clickDistance = {
+  protected _clickDistance = {
     transform: (v: number) => {
       const valid = validateInt(v);
 
@@ -198,7 +198,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   clickDistance = input<number>(DEFAULT_CLICK_DISTANCE, { ...this._clickDistance });
 
-  private _scrollLeftOffsetOptions = {
+  protected _scrollLeftOffsetOptions = {
     transform: (v: number) => {
       const valid = validateFloat(v, true) || isPercentageValue(v);
 
@@ -216,7 +216,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   scrollLeftOffset = input<ArithmeticExpression>(0, { ...this._scrollLeftOffsetOptions });
 
-  private _scrollTopOffsetOptions = {
+  protected _scrollTopOffsetOptions = {
     transform: (v: number) => {
       const valid = validateFloat(v, true) || isPercentageValue(v);
 
@@ -234,7 +234,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   scrollTopOffset = input<ArithmeticExpression>(0, { ...this._scrollTopOffsetOptions });
 
-  private _scrollRightOffsetOptions = {
+  protected _scrollRightOffsetOptions = {
     transform: (v: number) => {
       const valid = validateFloat(v, true) || isPercentageValue(v);
 
@@ -252,7 +252,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   scrollRightOffset = input<ArithmeticExpression>(0, { ...this._scrollRightOffsetOptions });
 
-  private _scrollBottomOffsetOptions = {
+  protected _scrollBottomOffsetOptions = {
     transform: (v: number) => {
       const valid = validateFloat(v, true) || isPercentageValue(v);
 
@@ -270,7 +270,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   scrollBottomOffset = input<ArithmeticExpression>(0, { ...this._scrollBottomOffsetOptions });
 
-  private _snapScrollToLeftOptions = {
+  protected _snapScrollToLeftOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
 
@@ -292,7 +292,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   snapScrollToLeft = input<boolean>(DEFAULT_SNAP_SCROLLTO_LEFT, { ...this._snapScrollToLeftOptions });
 
-  private _snapScrollToTopOptions = {
+  protected _snapScrollToTopOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
 
@@ -314,7 +314,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   snapScrollToTop = input<boolean>(DEFAULT_SNAP_SCROLLTO_TOP, { ...this._snapScrollToTopOptions });
 
-  private _snapScrollToRightOptions = {
+  protected _snapScrollToRightOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
 
@@ -336,7 +336,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   snapScrollToRight = input<boolean>(DEFAULT_SNAP_SCROLLTO_RIGHT, { ...this._snapScrollToRightOptions });
 
-  private _snapScrollToBottomOptions = {
+  protected _snapScrollToBottomOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
 
@@ -358,7 +358,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   snapScrollToBottom = input<boolean>(DEFAULT_SNAP_SCROLLTO_BOTTOM, { ...this._snapScrollToBottomOptions });
 
-  private _scrollableOptions = {
+  protected _scrollableOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
 
@@ -375,7 +375,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   scrollable = input<boolean>(DEFAULT_SCROLLABLE, { ...this._scrollableOptions });
 
-  private _scrollbarEnabledOptions = {
+  protected _scrollbarEnabledOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
 
@@ -392,7 +392,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   scrollbarEnabled = input<boolean>(DEFAULT_SCROLLBAR_ENABLED, { ...this._scrollbarEnabledOptions });
 
-  private _scrollbarInteractiveOptions = {
+  protected _scrollbarInteractiveOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
 
@@ -409,7 +409,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   scrollbarInteractive = input<boolean>(DEFAULT_SCROLLBAR_INTERACTIVE, { ...this._scrollbarInteractiveOptions });
 
-  private _overlappingScrollbarOptions = {
+  protected _overlappingScrollbarOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
 
@@ -426,7 +426,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   overlappingScrollbar = input<boolean>(DEFAULT_OVERLAPPING_SCROLLBAR, { ...this._overlappingScrollbarOptions });
 
-  private _scrollBehaviorOptions = {
+  protected _scrollBehaviorOptions = {
     transform: (v: ScrollBehavior) => {
       const valid = validateString(v, true, true);
 
@@ -443,7 +443,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   scrollBehavior = input<ScrollBehavior>(DEFAULT_SCROLL_BEHAVIOR, { ...this._scrollBehaviorOptions });
 
-  private _scrollingSettingsOptions = {
+  protected _scrollingSettingsOptions = {
     transform: (v: IScrollingSettings): IScrollingSettings | null => {
       let valid = validateObject(v, true, true);
       if (valid && !!v) {
@@ -505,7 +505,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   scrollingSettings = input<IScrollingSettings>(DEFAULT_SCROLLING_SETTINGS, { ...this._scrollingSettingsOptions });
 
-  private _motionBlurOptions = {
+  protected _motionBlurOptions = {
     transform: (v: number) => {
       const valid = validateFloat(v);
 
@@ -522,7 +522,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   motionBlur = input<number>(DEFAULT_MOTION_BLUR, { ...this._motionBlurOptions });
 
-  private _maxMotionBlurOptions = {
+  protected _maxMotionBlurOptions = {
     transform: (v: number) => {
       const valid = validateFloat(v);
 
@@ -539,7 +539,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   maxMotionBlur = input<number>(DEFAULT_MAX_MOTION_BLUR, { ...this._maxMotionBlurOptions });
 
-  private _motionBlurEnabledOptions = {
+  protected _motionBlurEnabledOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v);
 
@@ -556,7 +556,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   motionBlurEnabled = input<boolean>(DEFAULT_MOTION_BLUR_ENABLED, { ...this._motionBlurEnabledOptions });
 
-  private _animationParamsOptions = {
+  protected _animationParamsOptions = {
     transform: (v: IAnimationParams) => {
       const valid = validateObject(v, true, true);
 
@@ -577,7 +577,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   animationParams = input<IAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
 
-  private _overscrollEnabledOptions = {
+  protected _overscrollEnabledOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
 
@@ -594,7 +594,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   overscrollEnabled = input<boolean>(DEFAULT_OVERSCROLL_ENABLED, { ...this._overscrollEnabledOptions });
 
-  private _directionOptions = {
+  protected _directionOptions = {
     transform: (v: Direction) => {
       const valid = validateString(v) && (v === 'horizontal' || v === 'vertical' || v === 'both');
       if (!valid) {
@@ -610,7 +610,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   direction = input<Direction>(DEFAULT_DIRECTION, { ...this._directionOptions });
 
-  private _loading = {
+  protected _loading = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v);
 
@@ -627,7 +627,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
    */
   loading = input<boolean>(false, { ...this._loading });
 
-  private _langTextDir = {
+  protected _langTextDir = {
     transform: (v: TextDirection) => {
       const valid = validateString(v) && (v === TextDirections.LTR || v === TextDirections.RTL);
       if (!valid) {
@@ -648,22 +648,22 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
 
   protected readonly classes = signal<{ [cName: string]: boolean }>({ prepared: true });
 
-  private _bounds = signal<ISize | null>(null);
+  protected _bounds = signal<ISize | null>(null);
   protected get bounds() { return this._bounds; }
 
-  private _scrollerBounds = signal<ISize | null>(null);
+  protected _scrollerBounds = signal<ISize | null>(null);
 
-  private _$scrollSizeX = new BehaviorSubject<number>(0);
+  protected _$scrollSizeX = new BehaviorSubject<number>(0);
 
-  private _$scrollSizeY = new BehaviorSubject<number>(0);
+  protected _$scrollSizeY = new BehaviorSubject<number>(0);
 
-  private _isScrollLeft = signal<boolean>(true);
+  protected _isScrollLeft = signal<boolean>(true);
 
-  private _isScrollRight = signal<boolean>(false);
+  protected _isScrollRight = signal<boolean>(false);
 
-  private _isScrollTop = signal<boolean>(true);
+  protected _isScrollTop = signal<boolean>(true);
 
-  private _isScrollBottom = signal<boolean>(false);
+  protected _isScrollBottom = signal<boolean>(false);
 
   protected _precalculatedScrollLeftOffset = signal<number>(0);
 
@@ -678,7 +678,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
     return this._elementRef.nativeElement;
   }
 
-  private _$scroll = new Subject<IScrollEvent>();
+  protected _$scroll = new Subject<IScrollEvent>();
   readonly $scroll = this._$scroll.asObservable();
 
   get $grabbing() { return this._service.$grabbing };
@@ -699,7 +699,7 @@ export class NtVirtualScrollViewComponent<S extends IScrollViewService> implemen
   private _animationIds: Array<number> | null = null;
 
   private _$viewInit = new BehaviorSubject<boolean>(false);
-  private readonly $viewInit = this._$viewInit.asObservable();
+  protected readonly $viewInit = this._$viewInit.asObservable();
 
   protected _injector = inject(Injector);
 
