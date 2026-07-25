@@ -43,7 +43,7 @@ export const validateBoolean = (value: boolean | undefined, undefinable = false)
  * @param value Array
  */
 export const validateArray = <T = any>(value: Array<T> | undefined | null, undefinable = false, nullable = false) => {
-    return (undefinable && isUndefinable(value)) || (nullable && isNullable(value)) || Array.isArray(value);
+    return (undefinable && isUndefinable(value)) || (nullable && isNullable(value)) || value instanceof Array;
 };
 
 /**

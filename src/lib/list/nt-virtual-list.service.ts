@@ -277,7 +277,7 @@ export class NtVirtualListService {
             break;
           }
           case SelectingModesTypes.MULTI_SELECT: {
-            if (!Array.isArray(this._$selectedIds.getValue())) {
+            if (!(this._$selectedIds.getValue() instanceof Array)) {
               this._$selectedIds.next([]);
             }
             break;

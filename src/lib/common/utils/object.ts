@@ -21,7 +21,7 @@ export const copyValueAsReadonly = <T = any>(source: T) => {
         return source;
     }
 
-    if (Array.isArray(source)) {
+    if (source instanceof Array) {
         return Object.freeze([...source]) as T;
     }
 

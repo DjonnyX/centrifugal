@@ -30,7 +30,7 @@ describe('EventEmitter', () => {
         let isCorrect = false;
         const emitter = new EventEmitter();
         emitter.addEventListener('event', (arg1, arg2, arg3) => {
-            if (arg1 === true && arg2 === 1 && Array.isArray(arg3)) {
+            if (arg1 === true && arg2 === 1 && arg3 instanceof Array) {
                 isCorrect = true;
             }
         });

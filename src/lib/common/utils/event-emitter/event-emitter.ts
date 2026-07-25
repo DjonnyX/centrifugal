@@ -21,7 +21,7 @@ export class EventEmitter<E = string, H = TEventHandler> {
     dispatch(event: E, ...args: Array<any>): void {
         const ctx = this;
         const listeners = this._listeners[event as string];
-        if (Array.isArray(listeners)) {
+        if (listeners instanceof Array) {
             for (let i = 0, l = listeners.length; i < l; i++) {
                 const listener = listeners[i];
                 if (listener) {
@@ -96,7 +96,7 @@ export class EventEmitter<E = string, H = TEventHandler> {
             const event = events.pop();
             if (event) {
                 const listeners = this._listeners[event];
-                if (Array.isArray(listeners)) {
+                if (listeners instanceof Array) {
                     while (listeners.length > 0) {
                         const listener = listeners.pop();
                         if (listener) {
