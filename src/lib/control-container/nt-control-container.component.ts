@@ -105,7 +105,7 @@ export class NtControlContainerComponent extends NtVirtualScrollViewComponent<IS
       takeUntilDestroyed(this._destroyRef),
       filter(v => !!v),
       switchMap(content => {
-        return fromEvent<MouseEvent>(content, TOUCH_START, { passive: false }).pipe(
+        return fromEvent<TouchEvent>(content, TOUCH_START, { passive: false }).pipe(
           takeUntilDestroyed(this._destroyRef),
           tap(e => {
             if (e.cancelable) {
@@ -120,7 +120,7 @@ export class NtControlContainerComponent extends NtVirtualScrollViewComponent<IS
       takeUntilDestroyed(this._destroyRef),
       filter(v => !!v),
       switchMap(content => {
-        return fromEvent<MouseEvent>(content, TOUCH_MOVE, { passive: false }).pipe(
+        return fromEvent<TouchEvent>(content, TOUCH_MOVE, { passive: false }).pipe(
           takeUntilDestroyed(this._destroyRef),
           tap(e => {
             if (e.cancelable) {
@@ -135,7 +135,7 @@ export class NtControlContainerComponent extends NtVirtualScrollViewComponent<IS
       takeUntilDestroyed(this._destroyRef),
       filter(v => !!v),
       switchMap(content => {
-        return fromEvent<MouseEvent>(content, TOUCH_END, { passive: false }).pipe(
+        return fromEvent<TouchEvent>(content, TOUCH_END, { passive: false }).pipe(
           takeUntilDestroyed(this._destroyRef),
           tap(e => {
             if (e.cancelable) {
