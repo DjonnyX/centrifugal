@@ -68,8 +68,9 @@ import { CollapsingModes } from './enums';
 import { isSpreadingMode } from './utils/is-spreading-mode';
 import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interfaces';
 import { getScrollStateVersion } from './utils/get-scroll-state-version';
-import { ArithmeticExpression, Id, ISize, TextDirection, TextDirections } from '../common';
+import { ArithmeticExpression, Id, ISize, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../common';
 import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, parseArithmeticExpression, toggleClassName } from '../common/utils';
+import { IVirtualListService } from './interfaces';
 
 /**
  * Virtual list component.
@@ -89,7 +90,7 @@ import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, par
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.ShadowDom,
-  providers: [NtVirtualListService, NtVirtualListPublicService],
+  providers: [{ provide: SCROLL_VIEW_SERVICE, useClass: NtVirtualListService }, NtVirtualListPublicService],
 })
 export class NtVirtualListComponent implements OnDestroy {
   private static __nextId: number = 0;
@@ -101,7 +102,7 @@ export class NtVirtualListComponent implements OnDestroy {
    */
   get id() { return this._id; }
 
-  private _service = inject(NtVirtualListService);
+  private _service = inject<IVirtualListService>(SCROLL_VIEW_SERVICE);
 
   private _prerender = viewChild<NtPrerenderContainer>('prerender');
 

@@ -3,8 +3,8 @@ import {
 } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ScrollerDirection, ScrollerDirections } from '../enums';
-import { SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE } from '../const';
-import { ISize, TextDirection, TextDirections } from '../../../../common';
+import { ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../../../../common';
+import { IScrollViewService } from '../../../interfaces';
 
 /**
  * BaseScrollView
@@ -63,7 +63,7 @@ export class BaseScrollView {
 
     protected _destroyRef = inject(DestroyRef);
 
-    protected _service = inject(SCROLL_VIEW_SERVICE);
+    protected _service = inject<IScrollViewService>(SCROLL_VIEW_SERVICE);
 
     protected _isMoving = false;
     get isMoving() {

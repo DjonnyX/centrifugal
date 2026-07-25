@@ -1,7 +1,6 @@
 import { Directive, ElementRef, inject, input } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { combineLatest, tap } from 'rxjs';
-import { ScrollerDirection, ScrollerDirections } from '../../../list/components/nt-scroller/enums';
+import { tap } from 'rxjs';
 import { TextDirection } from '../../types';
 import { TextDirections } from '../../enums';
 
@@ -24,17 +23,13 @@ const LEFT = 'left',
 export class NtLocaleSensitiveDirective {
   langTextDir = input<TextDirection>(TextDirections.LTR);
 
-  listDir = input<ScrollerDirections>(ScrollerDirection.VERTICAL);
-
   private _elementRef = inject(ElementRef<HTMLElement>);
 
   constructor() {
-    const $langTextDir = toObservable(this.langTextDir),
-      $listDir = toObservable(this.listDir);
-
-    combineLatest([$langTextDir, $listDir]).pipe(
+    const $langTextDir = toObservable(this.langTextDir);
+    $langTextDir.pipe(
       takeUntilDestroyed(),
-      tap(([dir, listDir]) => {
+      tap(dir => {
         const element = this._elementRef.nativeElement as HTMLElement;
         element.setAttribute(DIR, dir);
         if (dir === TextDirections.RTL) {

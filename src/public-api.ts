@@ -6,7 +6,9 @@ export {
     NtVirtualListModule,
     NtVirtualListComponent,
     NtVirtualListPublicService,
-    NtVirtualListService,
+} from './lib/list';
+export type {
+    IVirtualListService,
 } from './lib/list';
 /*
  * Public API Surface of scroll-view
@@ -18,6 +20,9 @@ export {
     NtVirtualScrollViewModule,
     NtVirtualScrollViewComponent,
     NtVirtualScrollViewService
+} from './lib/scroll-view';
+export type {
+    IScrollViewService,
 } from './lib/scroll-view';
 /*
  * Public API Surface of common

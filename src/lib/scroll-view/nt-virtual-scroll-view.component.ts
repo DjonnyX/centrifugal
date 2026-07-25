@@ -16,6 +16,7 @@ import {
 } from './const';
 import {
   IScrollEvent, IAnimationParams, IScrollingSettings, IScrollOptions,
+  IScrollViewService,
 } from './interfaces';
 import {
   Direction,
@@ -32,8 +33,7 @@ import {
 import { objectAsReadonly } from '../common/utils/object';
 import { NtScrollerComponent } from './components/nt-scroller/nt-scroller.component';
 import { IScrollToParams } from './components/nt-scroll-view';
-import { SCROLL_VIEW_SERVICE } from './components/nt-scroll-view/const';
-import { ArithmeticExpression, Id, ISize, TextDirection, TextDirections } from '../common';
+import { ArithmeticExpression, Id, ISize, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../common';
 import { isPercentageValue, parseArithmeticExpression, toggleClassName } from '../common/utils';
 
 /**
@@ -68,7 +68,7 @@ export class NtVirtualScrollViewComponent implements OnDestroy {
    */
   get id() { return this._id; }
 
-  private _service = inject(SCROLL_VIEW_SERVICE);
+  private _service = inject<IScrollViewService>(SCROLL_VIEW_SERVICE);
 
   private _scrollerComponent = viewChild<NtScrollerComponent>('scroller');
 

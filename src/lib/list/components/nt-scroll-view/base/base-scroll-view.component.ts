@@ -3,8 +3,7 @@ import {
 } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ScrollerDirection, ScrollerDirections } from '../enums';
-import { SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED } from '../const';
-import { ISize, TextDirection, TextDirections } from '../../../../common';
+import { ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, TextDirection, TextDirections } from '../../../../common';
 
 /**
  * BaseScrollView

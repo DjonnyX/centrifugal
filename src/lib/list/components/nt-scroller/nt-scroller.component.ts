@@ -7,10 +7,9 @@ import {
   BEHAVIOR_INSTANT, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
   DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, LEFT_PROP_NAME, PX, SCROLLER_SCROLL, TOP_PROP_NAME,
 } from '../../const';
-import { IScrollToParams, NtScrollView, SCROLL_VIEW_INVERSION } from '../nt-scroll-view';
+import { IScrollToParams, NtScrollView } from '../nt-scroll-view';
 import { IScrollBarDragEvent } from '../nt-scroll-bar/interfaces';
-import { SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED } from '../nt-scroll-view/const';
-import { GradientColorPositions, Id, ISize } from '../../../common';
+import { GradientColorPositions, Id, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED } from '../../../common';
 
 const TOP = 'top',
   LEFT = 'left',

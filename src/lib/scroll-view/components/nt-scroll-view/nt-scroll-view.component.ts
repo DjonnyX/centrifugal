@@ -12,7 +12,7 @@ import {
 import { IScrollToParams, IWheelEvent } from './interfaces';
 import {
     ACCELERATION_SCALE, ANIMATION_DURATION, AUTO, DURATION, FRICTION_FORCE, INSTANT, LEFT, MASS, MAX_DIST, MAX_DURATION, MAX_ITERATIONS_FOR_AVERAGE_CALCULATIONS,
-    MAX_VELOCITY_TIMESTAMP, MAX_VELOCITIES_LENGTH, OVERSCROLL_START_ITERATION, SCROLL_EVENT, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SMOOTH, SPEED_SCALE, TOP,
+    MAX_VELOCITY_TIMESTAMP, MAX_VELOCITIES_LENGTH, OVERSCROLL_START_ITERATION, SCROLL_EVENT, SMOOTH, SPEED_SCALE, TOP,
     MIN_ACCELERATION, MIN_DELTA,
 } from './const';
 import { calculateDirection, matrix3d } from './utils';
@@ -21,7 +21,7 @@ import { IAnimationParams, IScrollingSettings } from '../../interfaces';
 import { ScrollDirection } from '../../types';
 import { calculateVelocity } from './utils/calculate-velocity';
 import { ScrollerDirection } from './enums';
-import { Id, TextDirections } from '../../../common';
+import { Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, TextDirections } from '../../../common';
 
 /**
  * NtScrollView

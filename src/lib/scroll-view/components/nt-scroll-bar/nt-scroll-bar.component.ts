@@ -1,7 +1,7 @@
 import { Component, computed, effect, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild } from '@angular/core';
 import { combineLatest, debounceTime, filter, fromEvent, of, startWith, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { NtScrollView, SCROLL_VIEW_INVERSION } from '../nt-scroll-view';
+import { NtScrollView } from '../nt-scroll-view';
 import { IScrollBarDragEvent, IScrollBarTemplateContext } from './interfaces';
 import {
   DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE, LEFT, POSITION, POSITION_ABSOLUTE,
@@ -10,12 +10,11 @@ import {
 import {
   DEFAULT_SIZE, DEFAULT_THICKNESS, HEIGHT, NONE, OPACITY, OPACITY_0, OPACITY_1, PX, TRANSITION, TRANSITION_FADE_IN, WIDTH,
 } from './const';
-import { SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED } from '../nt-scroll-view/const';
 import { NtScrollBarService } from './nt-scroll-bar.service';
 import { NtScrollBarPublicService } from './nt-scroll-bar-public.service';
 import { ScrollbarStates } from './enums';
 import { ScrollerDirection } from '../nt-scroll-view/enums';
-import { GradientColorPositions, TextDirections } from '../../../common';
+import { GradientColorPositions, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED, TextDirections } from '../../../common';
 
 /**
  * ScrollBar component.
