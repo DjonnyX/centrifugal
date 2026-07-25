@@ -9,7 +9,9 @@ import { NtLocaleSensitiveModule, SCROLL_VIEW_SERVICE } from '../common';
   declarations: [NtVirtualScrollViewComponent],
   exports: [NtVirtualScrollViewComponent],
   imports: [CommonModule, NtScrollerModule, NtLocaleSensitiveModule],
-  providers: [{ provide: SCROLL_VIEW_SERVICE, useClass: NtVirtualScrollViewService }],
+  providers: [
+    { provide: SCROLL_VIEW_SERVICE, useClass: NtVirtualScrollViewService },
+  ],
   schemas: [NO_ERRORS_SCHEMA],
 })
 export class NtVirtualScrollViewModule { }

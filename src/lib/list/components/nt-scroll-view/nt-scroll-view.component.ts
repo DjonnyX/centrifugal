@@ -6,8 +6,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest, debounceTime, delay, filter, fromEvent, map, of, race, startWith, Subject, switchMap, takeUntil, tap } from 'rxjs';
 import {
     BEHAVIOR_INSTANT, DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_ONE_BY_ONE,
-    DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, DEFAULT_SNAPPING_DISTANCE, INTERACTIVE, MOUSE_DOWN,
-    MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL,
+    DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, DEFAULT_SNAPPING_DISTANCE, INTERACTIVE,
 } from '../../const';
 import { IScrollToParams } from './interfaces';
 import {
@@ -22,13 +21,13 @@ import { SnapToItemAligns } from '../../enums';
 import { SnappingDistance, SnapToItemAlign } from '../../types';
 import { ScrollingDirection } from '../../utils/scrolling-direction';
 import { calculateVelocity } from './utils/calculate-velocity';
-import { Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_SERVICE, TextDirections } from '../../../common';
+import { CONTROL_CONTAINER_SERVICE, Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_SERVICE, TextDirections } from '../../../common';
 import { Animator, ANIMATOR_MIN_TIMESTAMP, easeOutQuad, Easing, isPercentageValue, parseFloatOrPersentageValue } from '../../../common/utils';
+import { IControlContainerService } from '../../../control-container/interfaces';
+import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL, } from '../../../common/const/event-names';
 
 /**
  * NtScrollView
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-scroll-view/nt-scroll-view.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -42,6 +41,8 @@ export class NtScrollView extends BaseScrollView {
     readonly cdkScrollable: CdkScrollable | undefined;
 
     protected _service = inject<IVirtualListService>(SCROLL_VIEW_SERVICE);
+
+    protected _controlContainerService = inject<IControlContainerService>(CONTROL_CONTAINER_SERVICE);
 
     readonly scrollBehavior = input<ScrollBehavior>(DEFAULT_SCROLL_BEHAVIOR);
 
@@ -218,7 +219,8 @@ export class NtScrollView extends BaseScrollView {
             return !isVertical && langTextDir === TextDirections.RTL;
         });
 
-        const $viewportBounds = toObservable(this.viewportBounds);
+        const root = this._controlContainerService?.emitter ?? window,
+            $viewportBounds = toObservable(this.viewportBounds);
         $viewportBounds.pipe(
             takeUntilDestroyed(),
             debounceTime(0),
@@ -284,7 +286,7 @@ export class NtScrollView extends BaseScrollView {
         ).subscribe();
 
         const $mouseUp = race([
-            fromEvent<MouseEvent>(window, MOUSE_UP, { passive: true }).pipe(
+            fromEvent<MouseEvent>(root, MOUSE_UP, { passive: true }).pipe(
                 takeUntilDestroyed(this._destroyRef),
             ),
             $content.pipe(
@@ -317,9 +319,9 @@ export class NtScrollView extends BaseScrollView {
                     takeUntilDestroyed(this._destroyRef),
                     filter(() => this._interactive),
                     switchMap(e => {
-                        return race([fromEvent<MouseEvent>(window, MOUSE_UP, { passive: false }), fromEvent<MouseEvent>(content, MOUSE_UP, { passive: false })]).pipe(
+                        return race([fromEvent<MouseEvent>(root, MOUSE_UP, { passive: false }), fromEvent<MouseEvent>(content, MOUSE_UP, { passive: false })]).pipe(
                             takeUntilDestroyed(this._destroyRef),
-                            takeUntil(fromEvent<MouseEvent>(window, MOUSE_MOVE, { passive: false })),
+                            takeUntil(fromEvent<MouseEvent>(root, MOUSE_MOVE, { passive: false })),
                             tap(e => {
                                 this._isMoving = false;
                                 this.grabbing.set(false);
@@ -374,7 +376,7 @@ export class NtScrollView extends BaseScrollView {
                             velocitiesX = new Array<[number, number]>(),
                             velocitiesY = new Array<[number, number]>(),
                             startTime = Date.now();
-                        return fromEvent<MouseEvent>(window, MOUSE_MOVE, { passive: false }).pipe(
+                        return fromEvent<MouseEvent>(root, MOUSE_MOVE, { passive: false }).pipe(
                             takeUntilDestroyed(this._destroyRef),
                             takeUntil($mouseDragCancel),
                             tap(e => {
@@ -404,7 +406,7 @@ export class NtScrollView extends BaseScrollView {
                                     }
                                 }
                                 startTime = endTime;
-                                return race([fromEvent<MouseEvent>(window, MOUSE_UP, { passive: false }), fromEvent<MouseEvent>(content, MOUSE_UP, { passive: false })]).pipe(
+                                return race([fromEvent<MouseEvent>(root, MOUSE_UP, { passive: false }), fromEvent<MouseEvent>(content, MOUSE_UP, { passive: false })]).pipe(
                                     takeUntilDestroyed(this._destroyRef),
                                     takeUntil($mouseDragCancel),
                                     tap(e => {
@@ -433,7 +435,7 @@ export class NtScrollView extends BaseScrollView {
 
         const $touchUp = race(
             [
-                fromEvent<TouchEvent>(window, TOUCH_END, { passive: false }).pipe(
+                fromEvent<TouchEvent>(root, TOUCH_END, { passive: false }).pipe(
                     takeUntilDestroyed(this._destroyRef),
                 ),
                 $content.pipe(
@@ -441,7 +443,7 @@ export class NtScrollView extends BaseScrollView {
                     switchMap(content => fromEvent<TouchEvent>(content, TOUCH_END, { passive: false })),
                 ),
             ]
-        ), $touchMove = fromEvent<TouchEvent>(window, TOUCH_MOVE, { passive: false }).pipe(
+        ), $touchMove = fromEvent<TouchEvent>(root, TOUCH_MOVE, { passive: false }).pipe(
             takeUntilDestroyed(this._destroyRef),
         ),
             $touchCanceler = race([$touchUp.pipe(
@@ -483,9 +485,9 @@ export class NtScrollView extends BaseScrollView {
                     takeUntilDestroyed(this._destroyRef),
                     filter(() => this._interactive),
                     switchMap(e => {
-                        return race([fromEvent<TouchEvent>(window, TOUCH_END, { passive: false }), fromEvent<TouchEvent>(content, TOUCH_END, { passive: false })]).pipe(
+                        return race([fromEvent<TouchEvent>(root, TOUCH_END, { passive: false }), fromEvent<TouchEvent>(content, TOUCH_END, { passive: false })]).pipe(
                             takeUntilDestroyed(this._destroyRef),
-                            takeUntil(fromEvent<TouchEvent>(window, TOUCH_MOVE, { passive: false })),
+                            takeUntil(fromEvent<TouchEvent>(root, TOUCH_MOVE, { passive: false })),
                             tap(e => {
                                 this._touchId = -1;
                                 this._isMoving = false;
@@ -546,7 +548,7 @@ export class NtScrollView extends BaseScrollView {
                             velocitiesX = new Array<[number, number]>(),
                             velocitiesY = new Array<[number, number]>(),
                             startTime = Date.now();
-                        return combineLatest([fromEvent<TouchEvent>(window, TOUCH_MOVE, { passive: false }).pipe(
+                        return combineLatest([fromEvent<TouchEvent>(root, TOUCH_MOVE, { passive: false }).pipe(
                             takeUntilDestroyed(this._destroyRef),
                             startWith(null),
                         ), fromEvent<TouchEvent>(content, TOUCH_MOVE, { passive: false }).pipe(
@@ -584,7 +586,7 @@ export class NtScrollView extends BaseScrollView {
                                     }
                                 }
                                 startTime = endTime;
-                                return race([fromEvent<TouchEvent>(window, TOUCH_END, { passive: false }), fromEvent<TouchEvent>(content, TOUCH_END, { passive: false })]).pipe(
+                                return race([fromEvent<TouchEvent>(root, TOUCH_END, { passive: false }), fromEvent<TouchEvent>(content, TOUCH_END, { passive: false })]).pipe(
                                     takeUntilDestroyed(this._destroyRef),
                                     takeUntil($touchCanceler),
                                     tap(e => {

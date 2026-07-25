@@ -19,14 +19,13 @@ import {
 const TOP = 'top',
   LEFT = 'left',
   INSTANT = 'instant',
-  MOTION_BLUR = 'motion-blur';
+  MOTION_BLUR = 'motion-blur',
+  FULL_SIZE = 'full-size';
 
 export const SCROLL_EVENT = new Event(SCROLLER_SCROLL);
 
 /**
  * The scroller for the NtVirtualScrollView item component
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/scroller/nt-scroller.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -52,6 +51,8 @@ export class NtScrollerComponent extends NtScrollView {
   readonly filter = viewChild<ElementRef<SVGFEGaussianBlurElement>>('filter');
 
   readonly onScrollbarVisible = output<boolean>();
+
+  readonly fullSize = input<boolean>(false);
 
   readonly scrollbarEnabled = input<boolean>(DEFAULT_SCROLLBAR_ENABLED);
 
@@ -298,8 +299,8 @@ export class NtScrollerComponent extends NtScrollView {
     });
 
     this.actualClasses = computed(() => {
-      const classes = this.classes(), direction = this.direction(), filtered = this.motionBlurEnabled();
-      return { ...classes, [direction]: true, grabbing: this.grabbing(), filtered };
+      const classes = this.classes(), direction = this.direction(), filtered = this.motionBlurEnabled(), fullSize = this.fullSize();
+      return { ...classes, [direction]: true, grabbing: this.grabbing(), filtered, [FULL_SIZE]: fullSize };
     });
 
     this.containerClasses = computed(() => {

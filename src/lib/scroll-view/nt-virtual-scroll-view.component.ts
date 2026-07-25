@@ -37,9 +37,7 @@ import { ArithmeticExpression, Id, ISize, SCROLL_VIEW_SERVICE, TextDirection, Te
 import { isPercentageValue, parseArithmeticExpression, toggleClassName } from '../common/utils';
 
 /**
- * Virtual list component.
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
+ * NtVirtualScrollViewComponent
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/nt-virtual-scroll-view.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -58,21 +56,21 @@ import { isPercentageValue, parseArithmeticExpression, toggleClassName } from '.
     { provide: SCROLL_VIEW_SERVICE, useClass: NtVirtualScrollViewService },
   ],
 })
-export class NtVirtualScrollViewComponent implements OnDestroy {
+export class NtVirtualScrollViewComponent<S extends IScrollViewService> implements OnDestroy {
   private static __nextId: number = 0;
 
-  private _id: number = NtVirtualScrollViewComponent.__nextId;
+  protected _id: number = NtVirtualScrollViewComponent.__nextId;
 
   /**
    * Readonly. Returns the unique identifier of the component.
    */
   get id() { return this._id; }
 
-  private _service = inject<IScrollViewService>(SCROLL_VIEW_SERVICE);
+  protected _service = inject<S>(SCROLL_VIEW_SERVICE);
 
-  private _scrollerComponent = viewChild<NtScrollerComponent>('scroller');
+  protected _scrollerComponent = viewChild<NtScrollerComponent>('scroller');
 
-  private _scroller: Signal<ElementRef<HTMLDivElement> | undefined>;
+  protected _scroller: Signal<ElementRef<HTMLDivElement> | undefined>;
 
   /**
    * Fires when the list has been scrolled.
@@ -676,6 +674,9 @@ export class NtVirtualScrollViewComponent implements OnDestroy {
   protected _precalculatedScrollBottomOffset = signal<number>(0);
 
   private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+  get host() {
+    return this._elementRef.nativeElement;
+  }
 
   private _$scroll = new Subject<IScrollEvent>();
   readonly $scroll = this._$scroll.asObservable();
@@ -691,7 +692,7 @@ export class NtVirtualScrollViewComponent implements OnDestroy {
   private _$preventScrollSnapping = new BehaviorSubject<boolean>(false);
   protected readonly $preventScrollSnapping = this._$preventScrollSnapping.asObservable();
 
-  private _destroyRef = inject(DestroyRef);
+  protected _destroyRef = inject(DestroyRef);
 
   private _isLoading = false;
 
@@ -700,7 +701,7 @@ export class NtVirtualScrollViewComponent implements OnDestroy {
   private _$viewInit = new BehaviorSubject<boolean>(false);
   private readonly $viewInit = this._$viewInit.asObservable();
 
-  private _injector = inject(Injector);
+  protected _injector = inject(Injector);
 
   constructor() {
     NtVirtualScrollViewComponent.__nextId = NtVirtualScrollViewComponent.__nextId + 1 === Number.MAX_SAFE_INTEGER
@@ -722,6 +723,7 @@ export class NtVirtualScrollViewComponent implements OnDestroy {
     ).subscribe();
 
     this._service.initialize(this._id);
+
 
     const $animationParams = toObservable(this.animationParams);
     $animationParams.pipe(

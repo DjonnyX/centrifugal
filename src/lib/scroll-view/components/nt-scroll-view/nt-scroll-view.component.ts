@@ -7,7 +7,7 @@ import { BehaviorSubject, combineLatest, debounceTime, delay, filter, fromEvent,
 import { ANIMATOR_MIN_TIMESTAMP, Animator, Easing, easeOutQuad } from '../../../common/utils/animator';
 import {
     BEHAVIOR_INSTANT, DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLABLE,
-    DEFAULT_SCROLLING_SETTINGS, INTERACTIVE, MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL,
+    DEFAULT_SCROLLING_SETTINGS, INTERACTIVE,
 } from '../../const';
 import { IScrollToParams, IWheelEvent } from './interfaces';
 import {
@@ -22,11 +22,10 @@ import { ScrollDirection } from '../../types';
 import { calculateVelocity } from './utils/calculate-velocity';
 import { ScrollerDirection } from './enums';
 import { Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, TextDirections } from '../../../common';
+import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL, } from '../../../common/const/event-names';
 
 /**
  * NtScrollView
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/nt-scroll-view/nt-scroll-view.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com

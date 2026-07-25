@@ -1,4 +1,3 @@
-import { InjectionToken } from "@angular/core";
 import { SCROLLER_SCROLL } from "../../../const";
 
 export const TOP = 'top',

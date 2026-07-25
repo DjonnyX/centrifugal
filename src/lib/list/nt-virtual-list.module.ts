@@ -12,7 +12,9 @@ import { SCROLL_VIEW_SERVICE } from '../common';
   declarations: [NtVirtualListComponent],
   exports: [NtVirtualListComponent],
   imports: [CommonModule, NtVirtualListItemModule, NtScrollerModule, NtPrerenderContainerModule, NtLocaleSensitiveModule],
-  providers: [{ provide: SCROLL_VIEW_SERVICE, useClass: NtVirtualListService }],
+  providers: [
+    { provide: SCROLL_VIEW_SERVICE, useClass: NtVirtualListService },
+  ],
   schemas: [NO_ERRORS_SCHEMA],
 })
 export class NtVirtualListModule { }

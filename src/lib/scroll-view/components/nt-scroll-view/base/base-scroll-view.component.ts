@@ -3,13 +3,12 @@ import {
 } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ScrollerDirection, ScrollerDirections } from '../enums';
-import { ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../../../../common';
+import { CONTROL_CONTAINER_SERVICE, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../../../../common';
 import { IScrollViewService } from '../../../interfaces';
+import { IControlContainerService } from '../../../../control-container/interfaces';
 
 /**
  * BaseScrollView
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/nt-scroll-view/base/base-scroll-view.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -64,6 +63,8 @@ export class BaseScrollView {
     protected _destroyRef = inject(DestroyRef);
 
     protected _service = inject<IScrollViewService>(SCROLL_VIEW_SERVICE);
+
+    protected _controlContainerService = inject<IControlContainerService>(CONTROL_CONTAINER_SERVICE);
 
     protected _isMoving = false;
     get isMoving() {
