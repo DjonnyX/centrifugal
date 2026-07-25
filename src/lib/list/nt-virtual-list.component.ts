@@ -5,7 +5,7 @@ import {
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
   BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, fromEvent, map,
-  of, skip, Subject, switchMap, take, takeUntil, tap,
+  of, skip, startWith, Subject, switchMap, take, takeUntil, tap, timer,
 } from 'rxjs';
 import { NtVirtualListItemComponent } from './components/nt-list-item/nt-virtual-list-item.component';
 import {
@@ -325,7 +325,7 @@ export class NtVirtualListComponent implements OnDestroy {
     transform: (v: Array<Id> | Id | undefined) => {
       let valid = validateArray(v as any, true, true) || validateString(v as any, true, true) || validateFloat(v as any, true);
       if (valid) {
-        if (v && Array.isArray(v)) {
+        if (v && v instanceof Array) {
           for (let i = 0, l = v.length; i < l; i++) {
             const item = v[i];
             valid = validateString(item as any) || validateFloat(item as any);
@@ -355,7 +355,7 @@ export class NtVirtualListComponent implements OnDestroy {
     transform: (v: Array<Id>) => {
       let valid = validateArray(v as any, true, true);
       if (valid) {
-        if (v && Array.isArray(v)) {
+        if (v && !!v) {
           for (let i = 0, l = v.length; i < l; i++) {
             const item = v[i];
             valid = validateString(item as any) || validateFloat(item as any);
@@ -1480,7 +1480,7 @@ export class NtVirtualListComponent implements OnDestroy {
   private _$scrollTo = new Subject<IScrollParams>();
   protected $scrollTo = this._$scrollTo.asObservable();
 
-  private _$scrollToExecutor = new Subject<IScrollParams>();
+  private _$scrollToExecutor = new Subject<IScrollParams | null>();
   protected readonly $scrollToExecutor = this._$scrollToExecutor.asObservable();
 
   private _$scrollingTo = new BehaviorSubject<boolean>(false);
@@ -1547,12 +1547,8 @@ export class NtVirtualListComponent implements OnDestroy {
         switchMap(scroller => scroller.$resizeContent),
       );
 
-    combineLatest([$created, this.$show, $resizeContent, $resizeViewport]).pipe(
+    combineLatest([$created, this.$show]).pipe(
       takeUntilDestroyed(),
-      takeUntil(this.$initialized.pipe(
-        takeUntilDestroyed(),
-        filter(v => ((!!this.snapToItem() && !this.dynamicSize()) || this.collapsingMode() === CollapsingModes.NONE) ? false : !!v),
-      )),
       filter(([created, shown]) => created && shown),
       debounceTime(1),
       tap(v => {
@@ -2245,6 +2241,7 @@ export class NtVirtualListComponent implements OnDestroy {
       skip(1),
       distinctUntilChanged(),
       debounceTime(0),
+      takeUntilDestroyed(this._destroyRef),
       filter(v => !!v && this._readyForShow),
       tap(v => {
         if (this._scrollerComponent()?.scrollable) {
@@ -2318,11 +2315,11 @@ export class NtVirtualListComponent implements OnDestroy {
       $selectedIds = toObservable(this.selectedIds),
       $collapsedIds = toObservable(this.collapsedIds).pipe(
         distinctUntilChanged(),
-        map(v => Array.isArray(v) ? v : []),
+        map(v => !!v ? v : []),
       ),
       $collapsedItemIds = toObservable(this._collapsedItemIds).pipe(
         distinctUntilChanged(),
-        map(v => Array.isArray(v) ? v : []),
+        map(v => !!v ? v : []),
       ),
       $langTextDir = toObservable(this.langTextDir),
       $itemTransform = toObservable(this.itemTransform),
@@ -2354,12 +2351,14 @@ export class NtVirtualListComponent implements OnDestroy {
       }),
     ).subscribe();
 
-    combineLatest([$actualItems, $scrollerComponent, this.$initialized]).pipe(
+    combineLatest([$actualItems, $scrollerComponent, this.$initialized, $resizeViewport]).pipe(
       takeUntilDestroyed(),
-      takeUntil(this.$scrollTo),
       filter(([, c, i]) => !!c && !!i),
       debounceTime(0),
       tap(() => {
+        if (this._$scrollingTo.getValue()) {
+          return;
+        }
         this._scrollerComponent()?.snapIfNeed(false, false);
       }),
     ).subscribe();
@@ -3006,7 +3005,38 @@ export class NtVirtualListComponent implements OnDestroy {
       }),
     ).subscribe();
 
-    combineLatest([this.$initialized, $scrollerComponent, $scrollToExecutor]).pipe(
+    const $scrollToInitialize = combineLatest([$itemTransform, $dynamicSize]).pipe(
+      takeUntilDestroyed(this._destroyRef),
+      switchMap(([i, d]) => {
+        if (!!i && !d) {
+          return this.$initialized.pipe(
+            takeUntilDestroyed(this._destroyRef),
+            filter(v => !v),
+            switchMap(v => {
+              return combineLatest([$resizeContent.pipe(
+                takeUntilDestroyed(this._destroyRef),
+                startWith(true),
+                switchMap(() => of(true)),
+              ), $resizeViewport.pipe(
+                takeUntilDestroyed(this._destroyRef),
+                startWith(true),
+                switchMap(() => of(true)),
+              )]).pipe(
+                takeUntilDestroyed(this._destroyRef),
+                debounceTime(1),
+                switchMap(() => of(true)),
+              ).pipe(
+                takeUntilDestroyed(this._destroyRef),
+                takeUntil(timer(1000)),
+              );
+            }),
+          );
+        }
+        return this.$initialized;
+      }),
+    );
+
+    combineLatest([$scrollToInitialize, $scrollerComponent, $scrollToExecutor]).pipe(
       takeUntilDestroyed(),
       filter(([i, c, e]) => !!i && !!c && !!e),
       debounceTime(0),
