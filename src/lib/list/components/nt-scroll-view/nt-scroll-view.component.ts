@@ -17,13 +17,12 @@ import {
 } from './const';
 import { calculateDirection, matrix3d } from './utils';
 import { BaseScrollView } from './base/base-scroll-view.component';
-import { IAnimationParams, IScrollingSettings } from '../../interfaces';
+import { IAnimationParams, IScrollingSettings, IVirtualListService } from '../../interfaces';
 import { SnapToItemAligns } from '../../enums';
-import { NtVirtualListService } from '../../nt-virtual-list.service';
 import { SnappingDistance, SnapToItemAlign } from '../../types';
 import { ScrollingDirection } from '../../utils/scrolling-direction';
 import { calculateVelocity } from './utils/calculate-velocity';
-import { Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, TextDirections } from '../../../common';
+import { Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_SERVICE, TextDirections } from '../../../common';
 import { Animator, ANIMATOR_MIN_TIMESTAMP, easeOutQuad, Easing, isPercentageValue, parseFloatOrPersentageValue } from '../../../common/utils';
 
 /**
@@ -42,7 +41,7 @@ export class NtScrollView extends BaseScrollView {
     @ViewChild('scrollViewport', { read: CdkScrollable })
     readonly cdkScrollable: CdkScrollable | undefined;
 
-    protected _service = inject(NtVirtualListService);
+    protected _service = inject<IVirtualListService>(SCROLL_VIEW_SERVICE);
 
     readonly scrollBehavior = input<ScrollBehavior>(DEFAULT_SCROLL_BEHAVIOR);
 

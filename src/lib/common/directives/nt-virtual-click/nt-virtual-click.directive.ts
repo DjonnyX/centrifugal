@@ -4,6 +4,7 @@ import { BehaviorSubject, combineLatest, fromEvent, of, race } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { NtVirtualListService } from '../../../list/nt-virtual-list.service';
 import { DEFAULT_CLICK_DISTANCE } from '../../../list/const';
+import { SCROLL_VIEW_SERVICE } from '../../injection';
 
 /**
  * VirtualClickDirective
@@ -36,7 +37,7 @@ export class NtVirtualClickDirective {
 
     onVirtualClickCancel = output<void>();
 
-    private _service = inject(NtVirtualListService);
+    private _service = inject(SCROLL_VIEW_SERVICE);
 
     private _elementRef = inject(ElementRef);
 

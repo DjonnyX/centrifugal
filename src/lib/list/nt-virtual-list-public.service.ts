@@ -1,12 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { IRenderVirtualListItem } from './models';
-import { IScrollOptions } from './interfaces';
+import { IScrollOptions, IVirtualListService } from './interfaces';
 import { FocusAlignment } from './types';
 import { FocusItemParams } from './types/focus-item-params';
-import { NtVirtualListService } from './nt-virtual-list.service';
 import { FocusAlignments } from './enums';
-import { Id } from '../common';
+import { Id, SCROLL_VIEW_SERVICE } from '../common';
 
 /**
  * NtVirtualListPublicService
@@ -20,7 +19,7 @@ import { Id } from '../common';
   providedIn: 'root'
 })
 export class NtVirtualListPublicService {
-  private _internalService = inject(NtVirtualListService);
+  private _internalService = inject<IVirtualListService>(SCROLL_VIEW_SERVICE);
 
   /**
    * Unique list identifier.

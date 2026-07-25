@@ -24,8 +24,6 @@ import { Id, IRect, ISize, TextDirection, TextDirections } from '../common';
 
 /**
  * NtVirtualListService
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/nt-virtual-list.service.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com

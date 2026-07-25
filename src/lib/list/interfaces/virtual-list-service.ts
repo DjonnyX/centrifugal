@@ -127,6 +127,8 @@ export interface IVirtualListService extends IBaseScrollViewService {
 
     get collapsedIds(): Array<Id>;
 
+    update(immediately?: boolean): void;
+
     initialize(id: number, trackBox: TrackBox): void;
 
     generateComponentId(): number;
