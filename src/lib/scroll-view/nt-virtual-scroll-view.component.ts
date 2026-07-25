@@ -30,7 +30,7 @@ import { NtVirtualScrollViewService } from './nt-virtual-scroll-view.service';
 import { objectAsReadonly } from '../common/utils/object';
 import { NtScrollerComponent } from './components/nt-scroller/nt-scroller.component';
 import { IScrollToParams } from './components/nt-scroll-view';
-import { ArithmeticExpression, Id, ISize, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../common';
+import { ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections } from '../common';
 import {
   isPercentageValue, parseArithmeticExpression, toggleClassName,
   validateBoolean, validateFloat, validateInt, validateObject, validateString,
@@ -53,6 +53,8 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.ShadowDom,
   providers: [
+    { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
+    { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtVirtualScrollViewService },
   ],
 })

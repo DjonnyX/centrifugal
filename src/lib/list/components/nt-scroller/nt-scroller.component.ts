@@ -9,7 +9,7 @@ import {
 } from '../../const';
 import { IScrollToParams, NtScrollView } from '../nt-scroll-view';
 import { IScrollBarDragEvent } from '../nt-scroll-bar/interfaces';
-import { GradientColorPositions, Id, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED } from '../../../common';
+import { GradientColorPositions, Id, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO } from '../../../common';
 
 const TOP = 'top',
   LEFT = 'left',
@@ -31,7 +31,6 @@ export const SCROLL_EVENT = new Event(SCROLLER_SCROLL);
   providers: [
     { provide: SCROLL_VIEW_INVERSION, useValue: false },
     { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: true },
-    { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
   ],
   standalone: false,
   templateUrl: './nt-scroller.component.html',

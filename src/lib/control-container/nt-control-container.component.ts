@@ -1,6 +1,6 @@
 import { Component, inject, input, ViewEncapsulation } from "@angular/core";
 import { IScrollViewService, NtVirtualScrollViewComponent, NtVirtualScrollViewService } from "../scroll-view";
-import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from "../common";
+import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED } from "../common";
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
 import { NtControlContainerService } from "./nt-control-container.service";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
@@ -24,6 +24,8 @@ import { validateBoolean } from "../common/utils/validation";
   standalone: false,
   encapsulation: ViewEncapsulation.ShadowDom,
   providers: [
+    { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: false },
+    { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: false },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtVirtualScrollViewService },
     { provide: CONTROL_CONTAINER_SERVICE, useClass: NtControlContainerService },
   ],

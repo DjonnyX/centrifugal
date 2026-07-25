@@ -68,7 +68,7 @@ import { CollapsingModes } from './enums';
 import { isSpreadingMode } from './utils/is-spreading-mode';
 import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interfaces';
 import { getScrollStateVersion } from './utils/get-scroll-state-version';
-import { ArithmeticExpression, Id, ISize, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../common';
+import { ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections } from '../common';
 import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, parseArithmeticExpression, toggleClassName } from '../common/utils';
 import { IVirtualListService } from './interfaces';
 import { KEY_DOWN, MOUSE_DOWN, TOUCH_START } from '../common/const/event-names';
@@ -91,6 +91,8 @@ import { KEY_TAB } from '../common/const/key-names';
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.ShadowDom,
   providers: [
+    { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
+    { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtVirtualListService },
     NtVirtualListPublicService,
   ],
