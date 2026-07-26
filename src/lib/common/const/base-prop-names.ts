@@ -40,6 +40,8 @@ export const HIDDEN_ZINDEX = '-1';
 
 export const DEFAULT_ZINDEX = '0';
 
+export const ZERO = '0';
+
 export const ZERO_PX = '0';
 
 export const LEFT_PROP_NAME = 'left';

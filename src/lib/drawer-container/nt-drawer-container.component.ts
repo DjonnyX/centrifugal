@@ -5,6 +5,11 @@ import {
   SCROLL_VIEW_USER_INTERACTION_ENABLED,
 } from "../common";
 import { NtDrawerContainerService } from "./nt-drawer-container.service";
+import { delay, fromEvent, tap } from "rxjs";
+import { CLICK } from "../common/const/event-names";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { TABINDEX } from "../common/const/attribute-names";
+import { ZERO } from "../common/const/base-prop-names";
 
 /**
  * NtDrawerContainerComponent
@@ -127,5 +132,15 @@ export class NtDrawerContainerComponent<S extends INtScrollViewService,
     super();
 
     this._controlService.initialize(this._id, this.host);
+
+    this.host.setAttribute(TABINDEX, ZERO);
+
+    const $click = fromEvent(this.host, CLICK);
+    $click.pipe(
+      takeUntilDestroyed(),
+      tap(() => {
+        this.host.focus({ preventScroll: true });
+      }),
+    ).subscribe();
   }
 }
