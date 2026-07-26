@@ -1,4 +1,4 @@
-import { DestroyRef, Directive, ElementRef, inject, input, Input, output } from '@angular/core';
+import { DestroyRef, Directive, ElementRef, inject, input, Input, output, SecurityContext } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest, fromEvent, of, race } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -10,6 +10,7 @@ import { ANCHOR, DEFAULT_INTERACTIVE_ELEMETNS } from './const';
 import { CLICK, POINTER_DOWN, POINTER_LEAVE, POINTER_MOVE, POINTER_UP } from '../../const/event-names';
 import { INtBaseControlContainerService, INtBaseScrollViewService } from '../../interfaces';
 import { GRABBING, NOT_GRABBING } from '../../const/class-names';
+import { DomSanitizer } from '@angular/platform-browser';
 
 /**
  * VirtualClickDirective
@@ -108,6 +109,8 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
 
     private _elementRef = inject(ElementRef);
 
+    private _sanitizer = inject(DomSanitizer);
+
     private _destroyRef = inject(DestroyRef);
 
     constructor() {
@@ -202,8 +205,12 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                                     targetTagName = target.tagName.toLocaleLowerCase();
                                 if (!!targetTagName && allowedNativeInteractiveElements.indexOf(targetTagName) > -1) {
                                     if (targetTagName === ANCHOR) {
-                                        const aTarget = target as HTMLAnchorElement;
-                                        window.open(aTarget.href, aTarget.target);
+                                        const aTarget = target as HTMLAnchorElement,
+                                            url = String(aTarget.href),
+                                            sanitizedUrl = this._sanitizer.sanitize(SecurityContext.URL, url);
+                                        if (sanitizedUrl !== null) {
+                                            window.open(sanitizedUrl, aTarget.target);
+                                        }
                                     } else {
                                         if (this._focusElement) {
                                             if (target.focus instanceof Function) {
