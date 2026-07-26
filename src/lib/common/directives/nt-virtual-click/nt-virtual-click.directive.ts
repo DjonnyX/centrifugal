@@ -2,14 +2,11 @@ import { DestroyRef, Directive, ElementRef, inject, Input, output } from '@angul
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest, fromEvent, of, race } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { NtVirtualListService } from '../../../list/nt-virtual-list.service';
 import { DEFAULT_CLICK_DISTANCE } from '../../../list/const';
 import { SCROLL_VIEW_SERVICE } from '../../injection';
 
 /**
  * VirtualClickDirective
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/directives/nt-item-click/nt-item-click.directive.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -29,6 +26,15 @@ export class NtVirtualClickDirective {
         const value = (v !== null || v !== undefined) ? Number(v) : null;
         this._maxDistance = value;
         this._$maxDistance.next(value);
+    }
+
+    private _emitNativeClick: boolean = true;
+
+    @Input('emitNativeClick')
+    set emitNativeClick(v: boolean) {
+        if (this._emitNativeClick !== v) {
+            this._emitNativeClick = v;
+        }
     }
 
     onVirtualClick = output<PointerEvent | TouchEvent>();
@@ -99,8 +105,15 @@ export class NtVirtualClickDirective {
                     ),
                     takeUntilDestroyed(this._destroyRef),
                     tap(e => {
-                        if (e) {
+                        if (!!e) {
                             this.onVirtualClick.emit(e);
+
+                            if (this._emitNativeClick) {
+                                const target = e.target as HTMLElement;
+                                if (target.click instanceof Function) {
+                                    target.click();
+                                }
+                            }
                         }
                     }),
                 );
