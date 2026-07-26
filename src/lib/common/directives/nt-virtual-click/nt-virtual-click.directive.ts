@@ -37,6 +37,15 @@ export class NtVirtualClickDirective {
         }
     }
 
+    private _focusElement: boolean = true;
+
+    @Input('focusElement')
+    set focusElement(v: boolean) {
+        if (this._focusElement !== v) {
+            this._focusElement = v;
+        }
+    }
+
     onVirtualClick = output<PointerEvent | TouchEvent>();
 
     onVirtualClickPress = output<PointerEvent | TouchEvent>();
@@ -112,6 +121,11 @@ export class NtVirtualClickDirective {
                                 const target = e.target as HTMLElement;
                                 if (target.click instanceof Function) {
                                     target.click();
+                                    if (this._focusElement) {
+                                        if (target.focus instanceof Function) {
+                                            target.focus();
+                                        }
+                                    }
                                 }
                             }
                         }
