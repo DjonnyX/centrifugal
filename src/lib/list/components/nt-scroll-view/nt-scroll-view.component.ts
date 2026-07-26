@@ -252,6 +252,9 @@ export class NtScrollView extends BaseScrollView {
                     this.snapWithInitialForceIfNecessary(v);
                     this._overscrollIteration = this._overscrollStartIteration = 0;
                     this._overscrollApplied = false;
+                    if (!!this._controlContainerService) {
+                        this._controlContainerService.overscrollXApplied = this._controlContainerService.overscrollYApplied = false;
+                    }
                     this._scrollDirection.clear();
                     this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
                 }),
@@ -355,6 +358,9 @@ export class NtScrollView extends BaseScrollView {
                             mouseCanceled = false;
                             this._overscrollStartIteration = 0;
                             this._overscrollApplied = false;
+                            if (!!this._controlContainerService) {
+                                this._controlContainerService.overscrollXApplied = this._controlContainerService.overscrollYApplied = false;
+                            }
                             this._scrollDirection.clear();
                             this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
                             this.cancelOverscroll();
@@ -522,6 +528,9 @@ export class NtScrollView extends BaseScrollView {
                             touchCanceled = false;
                             this._overscrollStartIteration = 0;
                             this._overscrollApplied = false;
+                            if (!!this._controlContainerService) {
+                                this._controlContainerService.overscrollXApplied = this._controlContainerService.overscrollYApplied = false;
+                            }
                             this._scrollDirection.clear();
                             this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
                             this.cancelOverscroll();
@@ -750,13 +759,19 @@ export class NtScrollView extends BaseScrollView {
             return;
         }
         if (this._overscrollEnabled) {
+            const controlContainerService = this._controlContainerService,
+                overscrollXApplied = controlContainerService?.overscrollXApplied ?? this._overscrollApplied,
+                overscrollYApplied = controlContainerService?.overscrollYApplied ?? this._overscrollApplied;
             if (this.isVertical()) {
                 if (this._overscrollStartIteration < OVERSCROLL_START_ITERATION) {
                     this._overscrollStartIteration++;
                     this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
                 } else {
-                    if (wheel || this._overscrollApplied || this._scrollDirectionValueY > this._scrollDirectionValueX) {
+                    if (wheel || overscrollYApplied || this._scrollDirectionValueY > this._scrollDirectionValueX) {
                         this._overscrollApplied = true;
+                        if (!!controlContainerService) {
+                            this._controlContainerService.overscrollYApplied = true;
+                        }
                         this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
                     }
                 }
@@ -765,8 +780,11 @@ export class NtScrollView extends BaseScrollView {
                     this._overscrollStartIteration++;
                     this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
                 } else {
-                    if (wheel || this._overscrollApplied || this._scrollDirectionValueX > this._scrollDirectionValueY) {
+                    if (wheel || overscrollXApplied || this._scrollDirectionValueX > this._scrollDirectionValueY) {
                         this._overscrollApplied = true;
+                        if (!!controlContainerService) {
+                            this._controlContainerService.overscrollXApplied = true;
+                        }
                         this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
                     }
                 }

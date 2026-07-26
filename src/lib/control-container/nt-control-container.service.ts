@@ -1,4 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import { Id, IRect } from '../common';
 import { INtControlContainerService } from './interfaces';
 
@@ -20,7 +21,29 @@ export class NtControlContainerService implements INtControlContainerService, On
   private _emitter: HTMLElement = window as unknown as HTMLElement;
   get emitter() {
     return this._emitter;
-  };
+  }
+
+  private _$overscrollXApplied = new BehaviorSubject<boolean>(false);
+  readonly $overscrollXApplied = this._$overscrollXApplied.asObservable();
+  set overscrollXApplied(v: boolean) {
+    if (this._$overscrollXApplied.getValue() !== v) {
+      this._$overscrollXApplied.next(v);
+    }
+  }
+  get overscrollXApplied() {
+    return this._$overscrollXApplied.getValue();
+  }
+
+  private _$overscrollYApplied = new BehaviorSubject<boolean>(false);
+  readonly $overscrollYApplied = this._$overscrollYApplied.asObservable();
+  set overscrollYApplied(v: boolean) {
+    if (this._$overscrollYApplied.getValue() !== v) {
+      this._$overscrollYApplied.next(v);
+    }
+  }
+  get overscrollYApplied() {
+    return this._$overscrollYApplied.getValue();
+  }
 
   constructor() { }
 

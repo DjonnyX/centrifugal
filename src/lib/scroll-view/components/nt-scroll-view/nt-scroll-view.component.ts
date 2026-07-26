@@ -132,6 +132,14 @@ export class NtScrollView extends BaseScrollView {
 
     protected _interactive = true;
 
+    private _overscrollXIteration = 0;
+
+    private _overscrollYIteration = 0;
+
+    private _overscrollXApplied = false;
+
+    private _overscrollYApplied = false;
+
     private _overscrollIteration: number = 0;
 
     override set x(v: number) {
@@ -248,7 +256,8 @@ export class NtScrollView extends BaseScrollView {
         });
 
         if (this._userInteraction) {
-            const $viewportBounds = toObservable(this.viewportBounds);
+            const root = this._controlContainerService?.emitter ?? window,
+                $viewportBounds = toObservable(this.viewportBounds);
             $viewportBounds.pipe(
                 takeUntilDestroyed(),
                 debounceTime(0),
@@ -269,7 +278,11 @@ export class NtScrollView extends BaseScrollView {
                 switchMap(v => of({ v0X: this.averageVelocityX, v0Y: this.averageVelocityY })),
                 debounceTime(100),
                 tap(({ v0X, v0Y }) => {
-                    this._overscrollIteration = 0;
+                    this._overscrollIteration = this._overscrollXIteration = this._overscrollYIteration = 0;
+                    this._overscrollXApplied = this._overscrollYApplied = false;
+                    if (!!this._controlContainerService) {
+                        this._controlContainerService.overscrollXApplied = this._controlContainerService.overscrollYApplied = false;
+                    }
                     this.scrollDirectionX = this.scrollDirectionY = this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
                 }),
             ).subscribe();
@@ -319,7 +332,7 @@ export class NtScrollView extends BaseScrollView {
             ).subscribe();
 
             const $mouseUp = race([
-                fromEvent<MouseEvent>(window, MOUSE_UP, { passive: true }).pipe(
+                fromEvent<MouseEvent>(root, MOUSE_UP, { passive: true }).pipe(
                     takeUntilDestroyed(this._destroyRef),
                 ),
                 $content.pipe(
@@ -348,9 +361,9 @@ export class NtScrollView extends BaseScrollView {
                         takeUntilDestroyed(this._destroyRef),
                         filter(() => this._interactive),
                         switchMap(e => {
-                            return race([fromEvent<MouseEvent>(window, MOUSE_UP, { passive: false }), fromEvent<MouseEvent>(content, MOUSE_UP, { passive: false })]).pipe(
+                            return race([fromEvent<MouseEvent>(root, MOUSE_UP, { passive: false }), fromEvent<MouseEvent>(content, MOUSE_UP, { passive: false })]).pipe(
                                 takeUntilDestroyed(this._destroyRef),
-                                takeUntil(fromEvent<MouseEvent>(window, MOUSE_MOVE, { passive: false })),
+                                takeUntil(fromEvent<MouseEvent>(root, MOUSE_MOVE, { passive: false })),
                                 takeUntil($scrollDisabled),
                                 tap(e => {
                                     this._isMoving = false;
@@ -375,6 +388,11 @@ export class NtScrollView extends BaseScrollView {
                         filter(v => this._interactive),
                         switchMap(e => {
                             mouseCanceled = false;
+                            this._overscrollXIteration = this._overscrollYIteration = 0;
+                            this._overscrollXApplied = this._overscrollYApplied = false;
+                            if (!!this._controlContainerService) {
+                                this._controlContainerService.overscrollXApplied = this._controlContainerService.overscrollYApplied = false;
+                            }
                             this.scrollDirectionX = this.scrollDirectionY = this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
                             this.cancelOverscroll();
                             this.onDragStart();
@@ -400,7 +418,7 @@ export class NtScrollView extends BaseScrollView {
                                 velocitiesY = new Array<[number, number]>(),
                                 startTimeX = dt,
                                 startTimeY = dt;
-                            return fromEvent<MouseEvent>(window, MOUSE_MOVE, { passive: false }).pipe(
+                            return fromEvent<MouseEvent>(root, MOUSE_MOVE, { passive: false }).pipe(
                                 takeUntilDestroyed(this._destroyRef),
                                 takeUntil($mouseDragCancel),
                                 takeUntil($scrollDisabled),
@@ -419,7 +437,7 @@ export class NtScrollView extends BaseScrollView {
                                     this.move(positionX, positionY, true, true, true);
                                     startTimeX = endTimeX;
                                     startTimeY = endTimeY;
-                                    return race([fromEvent<MouseEvent>(window, MOUSE_UP, { passive: false }), fromEvent<MouseEvent>(content, MOUSE_UP, { passive: false })]).pipe(
+                                    return race([fromEvent<MouseEvent>(root, MOUSE_UP, { passive: false }), fromEvent<MouseEvent>(content, MOUSE_UP, { passive: false })]).pipe(
                                         takeUntilDestroyed(this._destroyRef),
                                         takeUntil($mouseDragCancel),
                                         takeUntil($scrollDisabled),
@@ -456,7 +474,7 @@ export class NtScrollView extends BaseScrollView {
 
             const $touchUp = race(
                 [
-                    fromEvent<TouchEvent>(window, TOUCH_END, { passive: false }).pipe(
+                    fromEvent<TouchEvent>(root, TOUCH_END, { passive: false }).pipe(
                         takeUntilDestroyed(this._destroyRef),
                     ),
                     $content.pipe(
@@ -465,7 +483,7 @@ export class NtScrollView extends BaseScrollView {
                     ),
                 ]
             ),
-                $touchMove = fromEvent<TouchEvent>(window, TOUCH_MOVE, { passive: false }).pipe(
+                $touchMove = fromEvent<TouchEvent>(root, TOUCH_MOVE, { passive: false }).pipe(
                     takeUntilDestroyed(this._destroyRef),
                 ),
                 $touchCanceler = race([$touchUp.pipe(
@@ -503,9 +521,9 @@ export class NtScrollView extends BaseScrollView {
                         takeUntilDestroyed(this._destroyRef),
                         filter(() => this._interactive),
                         switchMap(e => {
-                            return race([fromEvent<TouchEvent>(window, TOUCH_END, { passive: false }), fromEvent<TouchEvent>(content, TOUCH_END, { passive: false })]).pipe(
+                            return race([fromEvent<TouchEvent>(root, TOUCH_END, { passive: false }), fromEvent<TouchEvent>(content, TOUCH_END, { passive: false })]).pipe(
                                 takeUntilDestroyed(this._destroyRef),
-                                takeUntil(fromEvent<TouchEvent>(window, TOUCH_MOVE, { passive: false })),
+                                takeUntil(fromEvent<TouchEvent>(root, TOUCH_MOVE, { passive: false })),
                                 takeUntil($scrollDisabled),
                                 tap(e => {
                                     this._touchId = -1;
@@ -530,7 +548,11 @@ export class NtScrollView extends BaseScrollView {
                         takeUntilDestroyed(this._destroyRef),
                         filter(v => this._interactive),
                         switchMap(e => {
-                            touchCanceled = false;
+                            this._overscrollXIteration = this._overscrollYIteration = 0;
+                            this._overscrollXApplied = this._overscrollYApplied = false;
+                            if (!!this._controlContainerService) {
+                                this._controlContainerService.overscrollXApplied = this._controlContainerService.overscrollYApplied = false;
+                            }
                             this.scrollDirectionX = this.scrollDirectionY = this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
                             this.cancelOverscroll();
                             this.onDragStart();
@@ -560,7 +582,7 @@ export class NtScrollView extends BaseScrollView {
                                 velocitiesY = new Array<[number, number]>(),
                                 startTimeX = dt,
                                 startTimeY = dt;
-                            return combineLatest([fromEvent<TouchEvent>(window, TOUCH_MOVE, { passive: false }).pipe(
+                            return combineLatest([fromEvent<TouchEvent>(root, TOUCH_MOVE, { passive: false }).pipe(
                                 takeUntilDestroyed(this._destroyRef),
                                 startWith(null),
                             ), fromEvent<TouchEvent>(content, TOUCH_MOVE, { passive: false }).pipe(
@@ -586,7 +608,7 @@ export class NtScrollView extends BaseScrollView {
                                     this.move(positionX, positionY, true, true, true);
                                     startTimeX = endTimeX;
                                     startTimeY = endTimeY;
-                                    return race([fromEvent<TouchEvent>(window, TOUCH_END, { passive: false }), fromEvent<TouchEvent>(content, TOUCH_END, { passive: false })]).pipe(
+                                    return race([fromEvent<TouchEvent>(root, TOUCH_END, { passive: false }), fromEvent<TouchEvent>(content, TOUCH_END, { passive: false })]).pipe(
                                         takeUntilDestroyed(this._destroyRef),
                                         takeUntil($touchCanceler),
                                         takeUntil($scrollDisabled),
@@ -756,10 +778,6 @@ export class NtScrollView extends BaseScrollView {
         return false;
     }
 
-    private _overscrollXIteration = 0;
-
-    private _overscrollYIteration = 0;
-
     private checkOverscroll(e: Event, wheel: boolean = false) {
         if (!this._overscrollEnabled || !this.overscrollEnabled()) {
             if (e.cancelable) {
@@ -768,25 +786,39 @@ export class NtScrollView extends BaseScrollView {
             }
             return;
         }
+
         if (this._overscrollEnabled) {
+            const controlContainerService = this._controlContainerService,
+                overscrollXApplied = controlContainerService?.overscrollXApplied ?? this._overscrollXApplied,
+                overscrollYApplied = controlContainerService?.overscrollYApplied ?? this._overscrollYApplied;
             if (this._scrollDirectionValueX > this._scrollDirectionValueY) {
-                if (wheel || (this._horizontalScrollRatio > 0 && this._horizontalScrollRatio < 1) || !this.scrollableX) {
-                    this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
-                    this._overscrollXIteration = 0;
-                } else {
+                if (!overscrollYApplied) {
                     if (this._overscrollXIteration < OVERSCROLL_START_ITERATION) {
                         this._overscrollXIteration++;
                         this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
+                    } else {
+                        if (wheel || this._overscrollXApplied || this._scrollDirectionValueX > this._scrollDirectionValueY) {
+                            this._overscrollXApplied = true;
+                            if (!!controlContainerService) {
+                                this._controlContainerService.overscrollXApplied = true;
+                            }
+                            this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
+                        }
                     }
                 }
             } else {
-                if (wheel || (this._verticalScrollRatio > 0 && this._verticalScrollRatio < 1) || !this.scrollableY) {
-                    this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
-                    this._overscrollYIteration = 0;
-                } else {
-                    if (this._overscrollXIteration < OVERSCROLL_START_ITERATION) {
+                if (!overscrollXApplied) {
+                    if (this._overscrollYIteration < OVERSCROLL_START_ITERATION) {
                         this._overscrollYIteration++;
                         this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
+                    } else {
+                        if (wheel || this._overscrollYApplied || this._scrollDirectionValueY > this._scrollDirectionValueX) {
+                            this._overscrollYApplied = true;
+                            if (!!controlContainerService) {
+                                this._controlContainerService.overscrollYApplied = true;
+                            }
+                            this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
+                        }
                     }
                 }
             }

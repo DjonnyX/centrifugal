@@ -3,7 +3,9 @@ import {
 } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ScrollerDirection, ScrollerDirections } from '../enums';
-import { CONTROL_CONTAINER_SERVICE, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../../../../common';
+import {
+    CONTROL_CONTAINER_SERVICE, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, TextDirection, TextDirections,
+} from '../../../../common';
 import { INtScrollViewService } from '../../../interfaces';
 import { INtControlContainerService } from '../../../../control-container/interfaces';
 

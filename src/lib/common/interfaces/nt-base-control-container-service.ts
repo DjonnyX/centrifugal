@@ -9,5 +9,13 @@ export interface INtBaseControlContainerService {
 
     get emitter(): HTMLElement;
 
+    set overscrollXApplied(v: boolean);
+
+    get overscrollXApplied(): boolean;
+
+    set overscrollYApplied(v: boolean);
+
+    get overscrollYApplied(): boolean;
+
     initialize: (id: number, emitter: HTMLElement) => void;
 }
