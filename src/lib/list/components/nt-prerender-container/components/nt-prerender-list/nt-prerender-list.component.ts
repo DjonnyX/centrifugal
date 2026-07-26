@@ -6,7 +6,7 @@ import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
 import { combineLatest, filter, Observable, Subject, Subscription, tap } from "rxjs";
 import {
     CLASS_LIST_HORIZONTAL, CLASS_LIST_VERTICAL, DEFAULT_DIRECTION, DEFAULT_DIVIDES, DEFAULT_DYNAMIC_SIZE, DEFAULT_ITEM_SIZE,
-    DEFAULT_SCROLLBAR_ENABLED, PX, TRACK_BY_PROPERTY_NAME,
+    DEFAULT_SCROLLBAR_ENABLED, TRACK_BY_PROPERTY_NAME,
 } from "../../../../const";
 import { IVirtualListCollection } from "../../../../models";
 import { PrerenderCache } from "../../types/cache";
@@ -18,11 +18,10 @@ import { NtPrerenderVirtualListItemComponent } from "../nt-prerender-list-item/n
 import { Direction } from "../../../../types";
 import { ISize } from "../../../../../common";
 import { toggleClassName } from "../../../../../common/utils";
+import { PX } from "../../../../../common/const/base-prop-names";
 
 /**
  * NtPrerenderList
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-prerender-container/components/nt-prerender-list/nt-prerender-list.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com

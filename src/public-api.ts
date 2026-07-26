@@ -9,11 +9,11 @@ export {
 export type {
     INtVirtualListService,
 } from './lib/list';
+
 /*
  * Public API Surface of scroll-view
  */
 export {
-    NtScrollBarPublicService,
     NtScrollerModule,
     NtScrollerComponent,
     NtVirtualScrollViewModule,
@@ -23,6 +23,14 @@ export {
 export type {
     INtScrollViewService,
 } from './lib/scroll-view';
+
+/*
+ * Public API Surface of scroll-bar
+ */
+export {
+    NtScrollBarPublicService,
+} from './lib/scroll-bar';
+
 /*
  * Public API Surface of drawer-container
  */
@@ -33,6 +41,7 @@ export {
 export type {
     INtDrawerContainerService
 } from './lib/drawer-container';
+
 /*
  * Public API Surface of control-container
  */
@@ -43,6 +52,7 @@ export {
 export type {
     INtControlContainerService
 } from './lib/control-container';
+
 /*
  * Public API Surface of common
  */

@@ -1,4 +1,4 @@
-import { HEIGHT_PROP_NAME, WIDTH_PROP_NAME } from "../../const";
+import { HEIGHT_PROP_NAME, WIDTH_PROP_NAME } from "../../../common/const/base-prop-names";
 import { ItemTransform, SnapToItemAlign } from "../../types";
 import { IItem } from "./item";
 

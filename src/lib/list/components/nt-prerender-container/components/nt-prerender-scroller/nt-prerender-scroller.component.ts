@@ -2,15 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, input, Signal, signal, Vi
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, from, tap } from 'rxjs';
 import { BaseScrollView } from '../../../nt-scroll-view/base/base-scroll-view.component';
-import { BEHAVIOR_INSTANT, DEFAULT_SCROLLBAR_ENABLED, LEFT_PROP_NAME, TOP_PROP_NAME } from '../../../../const';
-import { NtScrollBarComponent } from '../../../nt-scroll-bar/nt-scroll-bar.component';
+import { BEHAVIOR_INSTANT, DEFAULT_SCROLLBAR_ENABLED } from '../../../../const';
 import { ScrollBox } from '../../../nt-scroller/utils';
 import { SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED } from '../../../../../common';
+import { LEFT_PROP_NAME, TOP_PROP_NAME } from '../../../../../common/const/base-prop-names';
+import { NtBaseScrollBarComponent } from '../../../../../scroll-bar/components/nt-base-scroll-bar/nt-base-scroll-bar.component';
 
 /**
  * NtPrerenderScrollerComponent
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-prerender-container/components/nt-prerender-scroller/nt-prerender-scroller.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -28,8 +27,8 @@ import { SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VI
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NtPrerenderScrollerComponent extends BaseScrollView {
-    @ViewChild('scrollBar', { read: NtScrollBarComponent })
-    scrollBar: NtScrollBarComponent | undefined;
+    @ViewChild('scrollBar', { read: NtBaseScrollBarComponent })
+    scrollBar: NtBaseScrollBarComponent | undefined;
 
     scrollbarEnabled = input<boolean>(DEFAULT_SCROLLBAR_ENABLED);
 

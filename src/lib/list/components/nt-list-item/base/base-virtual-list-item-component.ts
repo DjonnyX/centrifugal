@@ -1,14 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, Signal, signal, TemplateRef, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, Signal, signal, TemplateRef, viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { map, tap } from 'rxjs';
 import { IRenderVirtualListItem } from '../../../models/render-item.model';
 import { IDisplayObjectConfig, IDisplayObjectMeasures } from '../../../models';
 import {
-  DEFAULT_ZINDEX, DISPLAY_BLOCK, DISPLAY_NONE, HIDDEN_ZINDEX, PART_DEFAULT_ITEM, PART_ITEM_COLLAPSED, PART_ITEM_EVEN,
-  PART_ITEM_FOCUSED, PART_ITEM_NEW, PART_ITEM_ODD, PART_ITEM_SELECTED, PART_ITEM_SNAPPED, PART_DEFAULT_ITEM_FX, PART_ITEM_FX_COLLAPSED,
-  PART_ITEM_FX_EVEN, PART_ITEM_FX_FOCUSED, PART_ITEM_FX_NEW, PART_ITEM_FX_ODD, PART_ITEM_FX_SELECTED, PART_ITEM_FX_SNAPPED,
-  PX, SIZE_100_PERSENT, SIZE_AUTO, TRANSLATE_3D, VISIBILITY_HIDDEN, VISIBILITY_VISIBLE, PART_ITEM_ROW_ODD, PART_ITEM_ROW_EVEN,
-  PART_ITEM_ROW_FX_ODD, PART_ITEM_ROW_FX_EVEN, INVISIBLE_TRANSLATE_3D,
+  PART_DEFAULT_ITEM, PART_ITEM_COLLAPSED, PART_ITEM_EVEN, PART_ITEM_FOCUSED, PART_ITEM_NEW, PART_ITEM_ODD, PART_ITEM_SELECTED, PART_ITEM_SNAPPED,
+  PART_DEFAULT_ITEM_FX, PART_ITEM_FX_COLLAPSED, PART_ITEM_FX_EVEN, PART_ITEM_FX_FOCUSED, PART_ITEM_FX_NEW, PART_ITEM_FX_ODD, PART_ITEM_FX_SELECTED,
+  PART_ITEM_FX_SNAPPED, PART_ITEM_ROW_ODD, PART_ITEM_ROW_EVEN, PART_ITEM_ROW_FX_ODD, PART_ITEM_ROW_FX_EVEN,
 } from '../../../const';
 import { ITemplateContext } from '../interfaces';
 import {
@@ -19,6 +19,10 @@ import { createDisplayId, matrix3d } from '../utils';
 import { IBaseVirtualListItemComponent } from '../../../interfaces/base-virtual-list-item-component';
 import { Color, ISize, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../../../../common';
 import { INtVirtualListService } from '../../../interfaces/nt-virtual-list-service';
+import {
+  DEFAULT_ZINDEX, DISPLAY_BLOCK, DISPLAY_NONE, HIDDEN_ZINDEX, PX, SIZE_100_PERSENT, SIZE_AUTO, TRANSLATE_3D, VISIBILITY_HIDDEN, VISIBILITY_VISIBLE,
+  INVISIBLE_TRANSLATE_3D,
+} from '../../../../common/const/base-prop-names';
 
 /**
  * BaseVirtualListItemComponent

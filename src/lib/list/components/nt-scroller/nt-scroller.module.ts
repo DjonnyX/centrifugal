@@ -2,13 +2,13 @@ import { NgModule, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NtScrollerComponent } from './nt-scroller.component';
 import { NtLocaleSensitiveModule } from '../../../common/directives';
-import { NtScrollBarModule } from '../nt-scroll-bar/nt-scroll-bar.module';
 import { CdkScrollableModule } from '@angular/cdk/scrolling';
+import { NtBaseScrollBarModule } from '../../../scroll-bar/components/nt-base-scroll-bar/nt-base-scroll-bar.module';
 
 @NgModule({
   declarations: [NtScrollerComponent],
   exports: [NtScrollerComponent],
-  imports: [CommonModule, NtScrollBarModule, NtLocaleSensitiveModule, CdkScrollableModule],
+  imports: [CommonModule, NtBaseScrollBarModule, NtLocaleSensitiveModule, CdkScrollableModule],
   schemas: [NO_ERRORS_SCHEMA],
 })
 export class NtScrollerModule { }

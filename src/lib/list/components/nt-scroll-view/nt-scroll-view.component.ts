@@ -6,7 +6,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest, debounceTime, delay, filter, fromEvent, map, of, race, startWith, Subject, switchMap, takeUntil, tap } from 'rxjs';
 import {
     BEHAVIOR_INSTANT, DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_ONE_BY_ONE,
-    DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, DEFAULT_SNAPPING_DISTANCE, INTERACTIVE,
+    DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, DEFAULT_SNAPPING_DISTANCE,
 } from '../../const';
 import { IScrollToParams } from './interfaces';
 import {
@@ -25,6 +25,7 @@ import { CONTROL_CONTAINER_SERVICE, Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, S
 import { Animator, ANIMATOR_MIN_TIMESTAMP, easeOutQuad, Easing, isPercentageValue, parseFloatOrPersentageValue } from '../../../common/utils';
 import { INtControlContainerService } from '../../../control-container/interfaces';
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL, } from '../../../common/const/event-names';
+import { INTERACTIVE } from '../../../common/const/class-names';
 
 /**
  * NtScrollView

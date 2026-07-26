@@ -1,15 +1,12 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { NtVirtualListItemComponent } from '../../../nt-list-item/nt-virtual-list-item.component';
-import {
-    DEFAULT_ZINDEX, DISPLAY_BLOCK, DISPLAY_NONE, HIDDEN_ZINDEX, PX, SIZE_AUTO,
-    VISIBILITY_HIDDEN, VISIBILITY_VISIBLE,
-} from '../../../../const';
 import { ID, POSITION, POSITION_ZERO } from '../../../nt-list-item/const';
+import {
+    DEFAULT_ZINDEX, DISPLAY_BLOCK, DISPLAY_NONE, HIDDEN_ZINDEX, PX, SIZE_AUTO, VISIBILITY_HIDDEN, VISIBILITY_VISIBLE,
+} from '../../../../../common/const/base-prop-names';
 
 /**
  * NtPrerenderVirtualListItemComponent
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-prerender-container/components/nt-prerender-list-item/nt-prerender-list-item.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -28,7 +25,7 @@ import { ID, POSITION, POSITION_ZERO } from '../../../nt-list-item/const';
 export class NtPrerenderVirtualListItemComponent extends NtVirtualListItemComponent {
     protected override update() {
         const data = this._data, regular = this.regular, length = this._regularLength, el = this._elementRef.nativeElement,
-        itemElement = this._item()?.nativeElement, containerElement = this._container()?.nativeElement;
+            itemElement = this._item()?.nativeElement, containerElement = this._container()?.nativeElement;
         if (!!data && !!el && !!itemElement && !!containerElement) {
             const styles = el.style, itemElementStyles = itemElement.style;
             el.setAttribute(ID, `${data.id}`);
@@ -45,17 +42,17 @@ export class NtPrerenderVirtualListItemComponent extends NtVirtualListItemCompon
                 itemElementStyles.maxWidth = styles.maxWidth = `${data.measures.maxWidth}${PX}`;
                 itemElementStyles.minHeight = styles.minHeight = `${data.measures.minHeight}${PX}`;
                 itemElementStyles.maxHeight = styles.maxHeight = `${data.measures.maxHeight}${PX}`;
-        
+
                 itemElementStyles.height = data.config.isVertical ? data.config.dynamic ? SIZE_AUTO : `${data.measures.height}${PX}` : regular ? length : `${data.measures.height}${PX}`;
                 itemElementStyles.width = data.config.isVertical ? regular ? length : `${data.measures.width}${PX}` : data.config.dynamic ? SIZE_AUTO : `${data.measures.width}${PX}`;
-              } else {
+            } else {
                 styles.height = data.config.isVertical ? data.config.dynamic ? SIZE_AUTO : `${data.measures.height}${PX}` : regular ? length : `${data.measures.height}${PX}`;
                 styles.width = data.config.isVertical ? regular ? length : `${data.measures.width}${PX}` : data.config.dynamic ? SIZE_AUTO : `${data.measures.width}${PX}`;
                 styles.minWidth = `${data.measures.minWidth}${PX}`;
                 styles.maxWidth = `${data.measures.maxWidth}${PX}`;
                 styles.minHeight = `${data.measures.minHeight}${PX}`;
                 styles.maxHeight = `${data.measures.maxHeight}${PX}`;
-              }
+            }
             // styles.height = data.config.isVertical ? data.config.dynamic ? SIZE_AUTO : `${data.measures.height}${PX}` : regular ? length : SIZE_100_PERSENT;
             // styles.width = data.config.isVertical ? regular ? length : SIZE_100_PERSENT : data.config.dynamic ? SIZE_AUTO : `${data.measures.width}${PX}`;
         } else {

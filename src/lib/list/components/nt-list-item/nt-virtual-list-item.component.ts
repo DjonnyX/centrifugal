@@ -3,7 +3,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { map, tap, combineLatest, fromEvent, switchMap, of, Observable, debounceTime } from 'rxjs';
 import { IRenderVirtualListItem } from '../../models/render-item.model';
 import {
-  DEFAULT_CLICK_DISTANCE, NAVIGATION_BY_KEYBOARD_TIMER, VISIBILITY_HIDDEN,
+  DEFAULT_CLICK_DISTANCE, NAVIGATION_BY_KEYBOARD_TIMER,
 } from '../../const';
 import { BaseVirtualListItemComponent } from './base';
 import { SelectingModesTypes } from '../../enums/selecting-modes-types';
@@ -14,6 +14,7 @@ import {
   KEY_ARR_RIGHT, KEY_ARR_UP, KEY_SPACE, NTVL_VISIBILITY,
 } from './const';
 import { Id } from '../../../common';
+import { VISIBILITY_HIDDEN } from '../../../common/const/base-prop-names';
 
 /**
  * Virtual list component.

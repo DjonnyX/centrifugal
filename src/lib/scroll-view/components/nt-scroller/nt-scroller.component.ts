@@ -2,19 +2,19 @@ import { Component, computed, effect, ElementRef, input, output, Signal, signal,
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, debounceTime, filter, from, Subject, tap } from 'rxjs';
 import { ScrollBox } from './utils';
-import { NtScrollBarComponent } from "../nt-scroll-bar/nt-scroll-bar.component";
 import {
   BEHAVIOR_INSTANT, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR,
-  DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, LEFT_PROP_NAME,
-  PX, SCROLLER_SCROLL, TOP_PROP_NAME,
+  DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, SCROLLER_SCROLL,
 } from '../../const';
 import { IScrollToParams, NtScrollView } from '../nt-scroll-view';
-import { IScrollBarDragEvent } from '../nt-scroll-bar/interfaces';
 import { ScrollerDirection } from '../nt-scroll-view/enums';
 import {
   GradientColorPositions, Id, ISize,
   SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_INVERSION,
 } from '../../../common';
+import { NtBaseScrollBarComponent } from '../../../scroll-bar/components/nt-base-scroll-bar/nt-base-scroll-bar.component';
+import { LEFT_PROP_NAME, PX, TOP_PROP_NAME } from '../../../common/const/base-prop-names';
+import { IScrollBarDragEvent } from '../../../scroll-bar/components/nt-base-scroll-bar/interfaces';
 
 const TOP = 'top',
   LEFT = 'left',
@@ -41,11 +41,11 @@ export const SCROLL_EVENT = new Event(SCROLLER_SCROLL);
   styleUrl: './nt-scroller.component.scss'
 })
 export class NtScrollerComponent extends NtScrollView {
-  @ViewChild('scrollBarHorizontal', { read: NtScrollBarComponent })
-  readonly scrollBarHorizontal: NtScrollBarComponent | undefined;
+  @ViewChild('scrollBarHorizontal', { read: NtBaseScrollBarComponent })
+  readonly scrollBarHorizontal: NtBaseScrollBarComponent | undefined;
 
-  @ViewChild('scrollBarVertical', { read: NtScrollBarComponent })
-  readonly scrollBarVertical: NtScrollBarComponent | undefined;
+  @ViewChild('scrollBarVertical', { read: NtBaseScrollBarComponent })
+  readonly scrollBarVertical: NtBaseScrollBarComponent | undefined;
 
   readonly filter = viewChild<ElementRef<SVGFEGaussianBlurElement>>('filter');
 

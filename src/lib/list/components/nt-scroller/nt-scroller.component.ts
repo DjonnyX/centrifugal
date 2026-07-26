@@ -2,14 +2,15 @@ import { Component, computed, effect, ElementRef, input, output, Signal, signal,
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, debounceTime, filter, from, Subject, switchMap, take, tap } from 'rxjs';
 import { ScrollBox } from './utils';
-import { NtScrollBarComponent } from "../nt-scroll-bar/nt-scroll-bar.component";
 import {
-  BEHAVIOR_INSTANT, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
-  DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, LEFT_PROP_NAME, PX, SCROLLER_SCROLL, TOP_PROP_NAME,
+  BEHAVIOR_INSTANT, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR,
+  DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, SCROLLER_SCROLL,
 } from '../../const';
 import { IScrollToParams, NtScrollView } from '../nt-scroll-view';
-import { IScrollBarDragEvent } from '../nt-scroll-bar/interfaces';
 import { GradientColorPositions, Id, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO } from '../../../common';
+import { TOP_PROP_NAME, LEFT_PROP_NAME, PX } from '../../../common/const/base-prop-names';
+import { NtBaseScrollBarComponent } from '../../../scroll-bar/components/nt-base-scroll-bar/nt-base-scroll-bar.component';
+import { IScrollBarDragEvent } from '../../../scroll-bar/components/nt-base-scroll-bar/interfaces';
 
 const TOP = 'top',
   LEFT = 'left',
@@ -19,9 +20,7 @@ const TOP = 'top',
 export const SCROLL_EVENT = new Event(SCROLLER_SCROLL);
 
 /**
- * The scroller for the NtVirtualList item component
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
+ * NtScrollerComponent
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-scroller/nt-scroller.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -37,8 +36,8 @@ export const SCROLL_EVENT = new Event(SCROLLER_SCROLL);
   styleUrl: './nt-scroller.component.scss'
 })
 export class NtScrollerComponent extends NtScrollView {
-  @ViewChild('scrollBar', { read: NtScrollBarComponent })
-  readonly scrollBar: NtScrollBarComponent | undefined;
+  @ViewChild('scrollBar', { read: NtBaseScrollBarComponent })
+  readonly scrollBar: NtBaseScrollBarComponent | undefined;
 
   readonly filter = viewChild<ElementRef<SVGFEGaussianBlurElement>>('filter');
 

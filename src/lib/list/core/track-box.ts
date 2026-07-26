@@ -4,14 +4,11 @@ import { IRenderVirtualListItem } from "../models/render-item.model";
 import { CACHE_BOX_CHANGE_EVENT_NAME, CacheMap } from "./cache-map";
 import { Tracker } from "./tracker";
 import {
-    DEFAULT_DIVIDES, HEIGHT_PROP_NAME, SERVICE_PROP_DUMMY, SERVICE_PROP_DUMMY_ENABLED, TRACK_BY_PROPERTY_NAME, TRANSFORMED_X_PROP_NAME,
-    TRANSFORMED_Y_PROP_NAME, WIDTH_PROP_NAME, X_PROP_NAME, Y_PROP_NAME,
+    DEFAULT_DIVIDES, SERVICE_PROP_DUMMY, SERVICE_PROP_DUMMY_ENABLED, TRACK_BY_PROPERTY_NAME,
 } from "../const";
 import { IRenderVirtualListItemConfig, IRenderVirtualListItemMeasures, IVirtualListItemConfigMap } from "../models";
 import { CMap } from '../../common/utils/cmap';
 import { bufferInterpolation } from "../utils/buffer-interpolation";
-import { BaseVirtualListItemComponent } from "../components/nt-list-item/base";
-import { PrerenderCache } from "../components/nt-prerender-container/types/cache";
 import { ScrollDirection } from "../types";
 import { getServiceIdProp } from "./utils";
 import {
@@ -29,6 +26,11 @@ import { ItemDisplayMethods } from "./enums";
 import { Alignments } from "../enums";
 import { Id, IRect, ISize } from "../../common";
 import { debounce, objectAsReadonly } from "../../common/utils";
+import {
+    HEIGHT_PROP_NAME, TRANSFORMED_X_PROP_NAME, TRANSFORMED_Y_PROP_NAME, WIDTH_PROP_NAME, X_PROP_NAME, Y_PROP_NAME,
+} from "../../common/const/base-prop-names";
+import { BaseVirtualListItemComponent } from "../components/nt-list-item/base";
+import { PrerenderCache } from "../components/nt-prerender-container/types";
 
 /**
  * An object that performs tracking, calculations and caching.

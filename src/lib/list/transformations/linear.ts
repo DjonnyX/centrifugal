@@ -1,5 +1,5 @@
 import { Color } from '../../common';
-import { PX } from '../const';
+import { PX } from '../../common/const/base-prop-names';
 import { IItemTransformation } from '../interfaces';
 import { IRenderVirtualListItemConfig, IRenderVirtualListItemMeasures } from '../models';
 import { ItemTransform } from '../types';

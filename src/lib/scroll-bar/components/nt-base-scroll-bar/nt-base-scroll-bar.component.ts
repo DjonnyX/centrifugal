@@ -3,21 +3,23 @@ import { combineLatest, debounceTime, filter, fromEvent, of, startWith, Subject,
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { IScrollBarDragEvent, IScrollBarTemplateContext } from './interfaces';
 import {
-  DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE, LEFT, POSITION, POSITION_ABSOLUTE,
-  POSITION_RELATIVE, RIGHT, SIZE_100_PERSENT, SIZE_AUTO, UNSET,
-} from '../../const';
-import {
   DEFAULT_SIZE, DEFAULT_THICKNESS, HEIGHT, NONE, OPACITY, OPACITY_0, OPACITY_1, PX, TRANSITION, TRANSITION_FADE_IN, WIDTH,
 } from './const';
-import { NtScrollBarService } from './nt-scroll-bar.service';
-import { NtScrollBarPublicService } from './nt-scroll-bar-public.service';
+import { NtBaseScrollBarService } from './nt-base-scroll-bar.service';
+import { NtScrollBarPublicService } from './nt-base-scroll-bar-public.service';
 import { ScrollbarStates } from './enums';
-import { GradientColorPositions, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED, TextDirections } from '../../../common';
-import { NtScrollView } from '../nt-scroll-view';
+import {
+  GradientColorPositions, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED, TextDirections,
+} from '../../../common';
+import { NtScrollView, ScrollerDirection } from '../../../scroll-view';
+import { DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE } from '../../../scroll-view/const';
+import {
+  LEFT, POSITION, POSITION_ABSOLUTE, POSITION_RELATIVE, RIGHT, TOP, BOTTOM, ZERO_PX, UNSET, SIZE_AUTO, SIZE_100_PERSENT,
+} from '../../../common/const/base-prop-names';
 
 /**
- * ScrollBar component.
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-scroll-bar/nt-scroll-bar.component.ts
+ * NtBaseScrollBarComponent
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/nt-scroll-bar/nt-scroll-bar.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
@@ -27,17 +29,17 @@ import { NtScrollView } from '../nt-scroll-view';
     { provide: SCROLL_VIEW_INVERSION, useValue: true },
     { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: false },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: false },
-    NtScrollBarService,
+    NtBaseScrollBarService,
     NtScrollBarPublicService,
   ],
   standalone: false,
-  templateUrl: './nt-scroll-bar.component.html',
-  styleUrl: './nt-scroll-bar.component.scss'
+  templateUrl: './nt-base-scroll-bar.component.html',
+  styleUrl: './nt-base-scroll-bar.component.scss'
 })
-export class NtScrollBarComponent extends NtScrollView {
+export class NtBaseScrollBarComponent extends NtScrollView {
   protected _defaultRenderer = viewChild<TemplateRef<any>>('defaultRenderer');
 
-  protected _scrollBarService = inject(NtScrollBarService);
+  protected _scrollBarService = inject(NtBaseScrollBarService);
 
   private _apiService = inject(NtScrollBarPublicService);
 
@@ -81,6 +83,8 @@ export class NtScrollBarComponent extends NtScrollView {
 
   protected readonly thumbHeight: Signal<number>;
 
+  protected readonly isVertical: Signal<boolean>;
+
   private _$scrollingCancel = new Subject<void>();
   protected readonly $scrollingCancel = this._$scrollingCancel.asObservable();
 
@@ -88,6 +92,11 @@ export class NtScrollBarComponent extends NtScrollView {
 
   constructor() {
     super();
+
+    this.isVertical = computed(() => {
+      const dir = this.direction();
+      return dir === ScrollerDirection.VERTICAL || dir === ScrollerDirection.BOTH;
+    });
 
     this.templateContext = computed(() => {
       const context: IScrollBarTemplateContext = {
@@ -200,7 +209,9 @@ export class NtScrollBarComponent extends NtScrollView {
     });
 
     effect(() => {
-      this.totalSize = this.size();
+      const isVertical = this.isVertical(), size = this.size();
+      this.totalWidth = !isVertical ? size : 0;
+      this.totalHeight = isVertical ? size : 0;
     });
 
     effect(() => {
@@ -218,11 +229,19 @@ export class NtScrollBarComponent extends NtScrollView {
     effect(() => {
       const el = this._elementRef.nativeElement;
       if (!!el) {
-        const overlapping = this.overlapping(), langTextDir = this.langTextDir();
+        const overlapping = this.overlapping(), langTextDir = this.langTextDir(), isVertical = this.isVertical();
         el.style[POSITION] = overlapping ? POSITION_ABSOLUTE : POSITION_RELATIVE;
-        el.style[LEFT] = overlapping && langTextDir === TextDirections.RTL ? '0' : UNSET;
-        el.style[RIGHT] = overlapping && langTextDir === TextDirections.LTR ? '0' : UNSET;
-        el.style[WIDTH] = overlapping ? SIZE_AUTO : SIZE_100_PERSENT;
+        el.style[LEFT] = overlapping && langTextDir === TextDirections.RTL ? ZERO_PX : UNSET;
+        el.style[RIGHT] = overlapping && langTextDir === TextDirections.LTR ? ZERO_PX : UNSET;
+        if (isVertical) {
+          el.style[TOP] = ZERO_PX;
+          el.style[WIDTH] = overlapping ? SIZE_AUTO : SIZE_100_PERSENT;
+          el.style[BOTTOM] = UNSET;
+        } else {
+          el.style[TOP] = UNSET;
+          el.style[BOTTOM] = ZERO_PX;
+          el.style[HEIGHT] = overlapping ? SIZE_AUTO : SIZE_100_PERSENT;
+        }
       }
     });
 
@@ -250,8 +269,9 @@ export class NtScrollBarComponent extends NtScrollView {
 
   private createDragEvent(userAction: boolean) {
     const isVertical = this.isVertical(), scrollSize = isVertical ? this.scrollHeight : this.scrollWidth,
-      scrollPosition = isVertical ? this.y : this.x,
-      startOffset = this.startOffset(), endOffset = this.endOffset(),
+      scrollPosition = isVertical ? this.scrollTop : this.scrollLeft,
+      startOffset = isVertical ? this.topOffset() : this.leftOffset(),
+      endOffset = isVertical ? this.bottomOffset() : this.rightOffset(),
       scrollContent = this.scrollContent()?.nativeElement as HTMLElement,
       scrollViewport = this.scrollViewport()?.nativeElement as HTMLDivElement;
     if (!!scrollViewport && !!scrollContent) {
@@ -266,6 +286,7 @@ export class NtScrollBarComponent extends NtScrollView {
         min: scrollSize !== 0 ? (startOffset / scrollSize) : 0,
         max: scrollSize !== 0 ? ((viewportSize - endOffset - contentSize) / scrollSize) : 0,
         animation: !this._isMoving,
+        isVertical,
         userAction,
       };
       return event;

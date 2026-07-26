@@ -7,8 +7,8 @@ import {
   BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, map, skip, Subject, switchMap, take, tap,
 } from 'rxjs';
 import {
-  BEHAVIOR_INSTANT, CLASS_SCROLL_VIEW_HORIZONTAL, CLASS_SCROLL_VIEW_VERTICAL, DEFAULT_DIRECTION, DEFAULT_LIST_SIZE, LEFT_PROP_NAME,
-  TOP_PROP_NAME, MIN_PIXELS_FOR_PREVENT_SNAPPING, DEFAULT_LANG_TEXT_DIR, DEFAULT_CLICK_DISTANCE, DEFAULT_SCROLLBAR_THICKNESS,
+  BEHAVIOR_INSTANT, CLASS_SCROLL_VIEW_HORIZONTAL, CLASS_SCROLL_VIEW_VERTICAL, DEFAULT_DIRECTION, DEFAULT_LIST_SIZE,
+  MIN_PIXELS_FOR_PREVENT_SNAPPING, DEFAULT_LANG_TEXT_DIR, DEFAULT_CLICK_DISTANCE, DEFAULT_SCROLLBAR_THICKNESS,
   DEFAULT_SCROLLBAR_MIN_SIZE, BEHAVIOR_AUTO, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_OVERSCROLL_ENABLED,
   DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_SETTINGS, DEFAULT_MOTION_BLUR, DEFAULT_MAX_MOTION_BLUR,
   DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SNAP_SCROLLTO_LEFT, DEFAULT_SNAP_SCROLLTO_TOP,
@@ -30,11 +30,15 @@ import { NtVirtualScrollViewService } from './nt-virtual-scroll-view.service';
 import { objectAsReadonly } from '../common/utils/object';
 import { NtScrollerComponent } from './components/nt-scroller/nt-scroller.component';
 import { IScrollToParams } from './components/nt-scroll-view';
-import { ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections } from '../common';
+import {
+  ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
+  TextDirection, TextDirections,
+} from '../common';
 import {
   isPercentageValue, parseArithmeticExpression, toggleClassName,
   validateBoolean, validateFloat, validateInt, validateObject, validateString,
 } from '../common/utils';
+import { LEFT_PROP_NAME, TOP_PROP_NAME } from '../common/const/base-prop-names';
 
 /**
  * NtVirtualScrollViewComponent

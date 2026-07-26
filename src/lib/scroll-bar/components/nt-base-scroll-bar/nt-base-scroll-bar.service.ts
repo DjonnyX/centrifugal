@@ -4,17 +4,15 @@ import { ScrollbarState } from './types';
 import { ScrollbarStates } from './enums';
 
 /**
- * NtScrollBarService
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-scroll-bar/nt-scroll-bar.service.ts
+ * NtBaseScrollBarService
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-bar/components/nt-base-scroll-bar/nt-base-scroll-bar.service.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
 @Injectable({
   providedIn: 'root'
 })
-export class NtScrollBarService {
+export class NtBaseScrollBarService {
   private _$click = new Subject<PointerEvent | MouseEvent>();
   readonly $click = this._$click.asObservable();
 

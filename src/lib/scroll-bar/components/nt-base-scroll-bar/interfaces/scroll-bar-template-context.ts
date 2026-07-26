@@ -1,5 +1,5 @@
 import { GradientColorPositions } from "../../../../common";
-import { NtScrollBarPublicService } from "../nt-scroll-bar-public.service";
+import { NtScrollBarPublicService } from "../nt-base-scroll-bar-public.service";
 
 export interface IScrollBarTemplateContext {
     /**
