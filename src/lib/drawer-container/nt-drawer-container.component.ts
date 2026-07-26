@@ -1,15 +1,17 @@
 import { Component, inject, input, TemplateRef, ViewEncapsulation } from "@angular/core";
 import { INtScrollViewService, NtVirtualScrollViewComponent, NtVirtualScrollViewService } from "../scroll-view";
 import {
-  CONTROL_CONTAINER_SERVICE, INtBaseControlContainerService, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
+  CONTROL_CONTAINER_SERVICE, ElementNames, INtBaseControlContainerService, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
   SCROLL_VIEW_USER_INTERACTION_ENABLED,
 } from "../common";
 import { NtDrawerContainerService } from "./nt-drawer-container.service";
-import { delay, fromEvent, tap } from "rxjs";
+import { fromEvent, tap } from "rxjs";
 import { CLICK } from "../common/const/event-names";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { TABINDEX } from "../common/const/attribute-names";
 import { ZERO } from "../common/const/base-prop-names";
+import { validateString } from "../common/utils";
+import { DEFAULT_EXCLUDE_ELEMETN_LIST } from "./const";
 
 /**
  * NtDrawerContainerComponent
@@ -128,6 +130,31 @@ export class NtDrawerContainerComponent<S extends INtScrollViewService,
    */
   override overlappingScrollbar = input<boolean>(false, { ...this._overlappingScrollbarOptions });
 
+  protected _excludeElementList = {
+    transform: (v: ElementNames) => {
+      let valid = !!v;
+      if (!!v) {
+        for (const name of v) {
+          valid = validateString(name);
+          if (!valid) {
+            break;
+          }
+        }
+      }
+
+      if (!valid) {
+        console.error('The "excludeElementList" parameter must be of type `Array<string>`.');
+        return DEFAULT_EXCLUDE_ELEMETN_LIST;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Allowed native interactive elements for user interaction.
+   */
+  allowedNativeInteractiveElements = input<ElementNames>(DEFAULT_EXCLUDE_ELEMETN_LIST, { ...this._excludeElementList });
+
   constructor() {
     super();
 
@@ -138,7 +165,13 @@ export class NtDrawerContainerComponent<S extends INtScrollViewService,
     const $click = fromEvent(this.host, CLICK);
     $click.pipe(
       takeUntilDestroyed(),
-      tap(() => {
+      tap(e => {
+        const target = e.currentTarget as HTMLElement,
+          allowedNativeInteractiveElements: Array<string> = this.allowedNativeInteractiveElements(),
+          targetTagName = target?.tagName;
+        if (!!targetTagName && allowedNativeInteractiveElements.indexOf(targetTagName) > -1) {
+          return;
+        }
         this.host.focus({ preventScroll: true });
       }),
     ).subscribe();

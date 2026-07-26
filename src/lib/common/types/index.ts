@@ -5,6 +5,8 @@ import { FloatOrPersentageValue } from './float-or-persentage-value';
 import { GradientColorPosition } from './gradient-color-position';
 import { GradientColorPositions } from './gradient-color-positions';
 import { TextDirection } from "./text-direction";
+import { ElementNames } from './exclude-names';
+import { ElementName } from './element-name';
 
 export type {
     ArithmeticExpression,
@@ -14,4 +16,6 @@ export type {
     FloatOrPersentageValue,
     Id,
     TextDirection,
+    ElementNames,
+    ElementName,
 }
