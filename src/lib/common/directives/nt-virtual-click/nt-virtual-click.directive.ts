@@ -1,9 +1,15 @@
-import { DestroyRef, Directive, ElementRef, inject, Input, output } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DestroyRef, Directive, ElementRef, inject, input, Input, output } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest, fromEvent, of, race } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { DEFAULT_CLICK_DISTANCE } from '../../../list/const';
-import { SCROLL_VIEW_SERVICE } from '../../injection';
+import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from '../../injection';
+import { ElementNames } from '../../types';
+import { toggleClassName, validateBoolean, validateString } from '../../utils';
+import { ANCHOR, DEFAULT_INTERACTIVE_ELEMETNS } from './const';
+import { CLICK, POINTER_DOWN, POINTER_LEAVE, POINTER_MOVE, POINTER_UP } from '../../const/event-names';
+import { INtBaseControlContainerService, INtBaseScrollViewService } from '../../interfaces';
+import { GRABBING, NOT_GRABBING } from '../../const/class-names';
 
 /**
  * VirtualClickDirective
@@ -15,7 +21,11 @@ import { SCROLL_VIEW_SERVICE } from '../../injection';
     selector: '[virtualClick]',
     standalone: false,
 })
-export class NtVirtualClickDirective {
+export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C extends INtBaseControlContainerService> {
+    protected _service = inject<S>(SCROLL_VIEW_SERVICE);
+
+    protected _controlService = inject<C>(CONTROL_CONTAINER_SERVICE);
+
     private _$maxDistance = new BehaviorSubject<number | null>(null);
     protected $maxDistance = this._$maxDistance.asObservable();
 
@@ -46,20 +56,87 @@ export class NtVirtualClickDirective {
         }
     }
 
+    protected _allowedNativeInteractiveElementsTransform = {
+        transform: (v: ElementNames) => {
+            let valid = !!v;
+            if (!!v) {
+                for (const name of v) {
+                    valid = validateString(name);
+                    if (!valid) {
+                        break;
+                    }
+                }
+            }
+
+            if (!valid) {
+                console.error('The "excludeElementList" parameter must be of type `Array<string>`.');
+                return DEFAULT_INTERACTIVE_ELEMETNS;
+            }
+            return v.map(v => v.toLocaleLowerCase());
+        },
+    } as any;
+
+    /**
+     * Allowed native interactive elements for user interaction.
+     */
+    allowedNativeInteractiveElements = input<ElementNames>(DEFAULT_INTERACTIVE_ELEMETNS, { ...this._allowedNativeInteractiveElementsTransform });
+
+    protected _allowedAnchorDraggableTransform = {
+        transform: (v: boolean) => {
+            const valid = validateBoolean(v);
+            if (!valid) {
+                console.error('The "allowedAnchorDraggable" parameter must be of type `boolean`.');
+                return false;
+            }
+            return v;
+        },
+    } as any;
+
+    /**
+     * Determines whether anchors can be moved by dragging. Default value is `false`.
+     */
+    allowedAnchorDraggable = input<boolean>(false, { ...this._allowedAnchorDraggableTransform });
+
     onVirtualClick = output<PointerEvent | TouchEvent>();
 
     onVirtualClickPress = output<PointerEvent | TouchEvent>();
 
     onVirtualClickCancel = output<void>();
 
-    private _service = inject(SCROLL_VIEW_SERVICE);
+    private _$elementTarget = new BehaviorSubject<HTMLElement | null>(null);
+    protected $elementTarget = this._$elementTarget.asObservable();
 
     private _elementRef = inject(ElementRef);
 
     private _destroyRef = inject(DestroyRef);
 
     constructor() {
+        const root = this._controlService?.emitter ?? window,
+            host = this._elementRef.nativeElement,
+            targetTagName = host.tagName.toLocaleLowerCase();
+
+        const $allowedAnchorDraggable = toObservable(this.allowedAnchorDraggable);
+        $allowedAnchorDraggable.pipe(
+            takeUntilDestroyed(),
+            tap(v => {
+                if (targetTagName === ANCHOR) {
+                    const aTarget = host as HTMLAnchorElement;
+                    aTarget.draggable = v;
+                }
+            }),
+        ).subscribe();
+
         let maxDistance = this._maxDistance ?? DEFAULT_CLICK_DISTANCE;
+
+        combineLatest([this._service.$grabbing, this.$elementTarget]).pipe(
+            takeUntilDestroyed(),
+            tap(([v, t]) => {
+                if (!!t) {
+                    toggleClassName(t, v ? GRABBING : NOT_GRABBING, [v ? NOT_GRABBING : GRABBING]);
+                }
+            }),
+        ).subscribe();
+
         combineLatest([this._service.$clickDistance, this.$maxDistance]).pipe(
             takeUntilDestroyed(),
             tap(([clickDistance, distance]) => {
@@ -67,20 +144,21 @@ export class NtVirtualClickDirective {
             }),
         ).subscribe();
 
-        const $pointerPressed = fromEvent<PointerEvent>(this._elementRef.nativeElement, 'pointerdown'),
+        const $pointerPressed = fromEvent<PointerEvent>(host, POINTER_DOWN),
             $pointerCancel = race([
-                fromEvent(window, 'pointerup').pipe(
+                fromEvent(root, POINTER_UP).pipe(
                     takeUntilDestroyed(),
                 ),
-                fromEvent<PointerEvent>(window, 'pointerleave').pipe(
+                fromEvent<PointerEvent>(root, POINTER_LEAVE).pipe(
                     takeUntilDestroyed(),
                 ),
             ]),
-            $pointerRelease = fromEvent<PointerEvent>(this._elementRef.nativeElement, 'pointerup', { passive: false });
+            $pointerRelease = fromEvent<PointerEvent>(host, POINTER_UP, { passive: false });
 
         $pointerPressed.pipe(
             takeUntilDestroyed(),
             switchMap(e => {
+                this._$elementTarget.next(e.target as HTMLElement);
                 const x = Math.abs(e.clientX),
                     y = Math.abs(e.clientY);
                 this.onVirtualClickPress.emit(e);
@@ -92,9 +170,10 @@ export class NtVirtualClickDirective {
                                 takeUntilDestroyed(this._destroyRef),
                                 tap(() => {
                                     this.onVirtualClickCancel.emit();
+                                    this._$elementTarget.next(null);
                                 }),
                             ),
-                            fromEvent<PointerEvent>(window, 'pointermove').pipe(
+                            fromEvent<PointerEvent>(root, POINTER_MOVE).pipe(
                                 takeUntilDestroyed(this._destroyRef),
                                 switchMap(e => {
                                     const xx = x - Math.abs(e.clientX),
@@ -118,19 +197,33 @@ export class NtVirtualClickDirective {
                             this.onVirtualClick.emit(e);
 
                             if (this._emitNativeClick) {
-                                const target = e.target as HTMLElement;
-                                if (target.click instanceof Function) {
-                                    target.click();
-                                    if (this._focusElement) {
-                                        if (target.focus instanceof Function) {
-                                            target.focus();
+                                const allowedNativeInteractiveElements: Array<string> = this.allowedNativeInteractiveElements(),
+                                    target = e.target as HTMLElement,
+                                    targetTagName = target.tagName.toLocaleLowerCase();
+                                if (!!targetTagName && allowedNativeInteractiveElements.indexOf(targetTagName) > -1) {
+                                    if (targetTagName === ANCHOR) {
+                                        const aTarget = target as HTMLAnchorElement;
+                                        window.open(aTarget.href, aTarget.target);
+                                    } else {
+                                        if (this._focusElement) {
+                                            if (target.focus instanceof Function) {
+                                                target.focus();
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+                        this._$elementTarget.next(null);
                     }),
                 );
+            }),
+        ).subscribe();
+
+        fromEvent<PointerEvent>(host, CLICK, { passive: false }).pipe(
+            takeUntilDestroyed(),
+            tap(e => {
+                e.preventDefault();
             }),
         ).subscribe();
     }

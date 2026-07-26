@@ -1,1 +1,3 @@
-export const INTERACTIVE = 'interactive';
+export const INTERACTIVE = 'interactive',
+    GRABBING = 'grabbing',
+    NOT_GRABBING = 'not-grabbing';

@@ -45,12 +45,6 @@ export interface INtScrollViewService extends INtBaseScrollViewService {
 
     set langTextDir(v: TextDirection);
 
-    readonly $clickDistance: Observable<number>;
-
-    get clickDistance(): number;
-
-    set clickDistance(v: number);
-
     readonly $grabbing: Observable<boolean>;
 
     get grabbing(): boolean;
