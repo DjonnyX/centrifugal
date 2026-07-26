@@ -47,8 +47,6 @@ export class NtDrawerContainerService implements INtDrawerContainerService, OnDe
 
   animationParams: IAnimationParams = DEFAULT_ANIMATION_PARAMS;
 
-  listElement: HTMLDivElement | null = null;
-
   direction: Direction = Directions.BOTH;
 
   private _$overscrollXApplied = new BehaviorSubject<boolean>(false);
@@ -170,13 +168,6 @@ export class NtDrawerContainerService implements INtDrawerContainerService, OnDe
     this._tickerId = requestAnimationFrame(() => {
       this.tick();
     });
-  }
-
-  focusList() {
-    const element = this.listElement;
-    if (!!element) {
-      element.focus({ preventScroll: true });
-    }
   }
 
   initialize(id: number, emitter: HTMLElement) {

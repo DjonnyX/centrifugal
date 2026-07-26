@@ -48,8 +48,6 @@ export class NtVirtualScrollViewService implements INtScrollViewService, OnDestr
 
   animationParams: IAnimationParams = DEFAULT_ANIMATION_PARAMS;
 
-  listElement: HTMLDivElement | null = null;
-
   direction: Direction = Directions.BOTH;
 
   private _$langTextDir = new BehaviorSubject<TextDirection>(TextDirections.LTR);
@@ -144,13 +142,6 @@ export class NtVirtualScrollViewService implements INtScrollViewService, OnDestr
     this._tickerId = requestAnimationFrame(() => {
       this.tick();
     });
-  }
-
-  focusList() {
-    const element = this.listElement;
-    if (!!element) {
-      element.focus({ preventScroll: true });
-    }
   }
 
   initialize(id: number) {
