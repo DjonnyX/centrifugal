@@ -2,22 +2,21 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { combineLatest, distinctUntilChanged, Subject, tap } from 'rxjs';
-import { IAnimationParams, IScrollOptions, INtScrollViewService } from './interfaces';
-import { Directions } from './enums';
-import { Direction } from './types';
-import { DEFAULT_ANIMATION_PARAMS, DEFAULT_CLICK_DISTANCE } from './const';
 import { Id, IRect, TextDirection, TextDirections } from '../common';
+import { INtDrawerContainerService } from './interfaces/drawer-container-service';
+import { DEFAULT_ANIMATION_PARAMS, DEFAULT_CLICK_DISTANCE } from '../scroll-view/const';
+import { Direction, Directions, IAnimationParams, IScrollOptions } from '../scroll-view';
 
 /**
- * NtVirtualScrollViewService
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/nt-virtual-scroll-view.service.ts
+ * NtDrawerContainerService
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/nt-drawer-container.service.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
 @Injectable({
   providedIn: 'root'
 })
-export class NtVirtualScrollViewService implements INtScrollViewService, OnDestroy {
+export class NtDrawerContainerService implements INtDrawerContainerService, OnDestroy {
   private _id: number = 0;
   get id() { return this._id; }
 
@@ -120,6 +119,11 @@ export class NtVirtualScrollViewService implements INtScrollViewService, OnDestr
 
   private _tickerId: number | null = null;
 
+  private _emitter: HTMLElement = window as unknown as HTMLElement;
+  get emitter() {
+    return this._emitter;
+  };
+
   constructor() {
     const $grabbing = this.$grabbing.pipe(
       takeUntilDestroyed(),
@@ -153,8 +157,9 @@ export class NtVirtualScrollViewService implements INtScrollViewService, OnDestr
     }
   }
 
-  initialize(id: number) {
+  initialize(id: number, emitter: HTMLElement) {
     this._id = id;
+    this._emitter = emitter;
   }
 
   generateComponentId() {

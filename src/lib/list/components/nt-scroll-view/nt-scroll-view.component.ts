@@ -16,14 +16,14 @@ import {
 } from './const';
 import { calculateDirection, matrix3d } from './utils';
 import { BaseScrollView } from './base/base-scroll-view.component';
-import { IAnimationParams, IScrollingSettings, IVirtualListService } from '../../interfaces';
+import { IAnimationParams, IScrollingSettings, INtVirtualListService } from '../../interfaces';
 import { SnapToItemAligns } from '../../enums';
 import { SnappingDistance, SnapToItemAlign } from '../../types';
 import { ScrollingDirection } from '../../utils/scrolling-direction';
 import { calculateVelocity } from './utils/calculate-velocity';
 import { CONTROL_CONTAINER_SERVICE, Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirections } from '../../../common';
 import { Animator, ANIMATOR_MIN_TIMESTAMP, easeOutQuad, Easing, isPercentageValue, parseFloatOrPersentageValue } from '../../../common/utils';
-import { IControlContainerService } from '../../../control-container/interfaces';
+import { INtControlContainerService } from '../../../control-container/interfaces';
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL, } from '../../../common/const/event-names';
 
 /**
@@ -40,9 +40,9 @@ export class NtScrollView extends BaseScrollView {
     @ViewChild('scrollViewport', { read: CdkScrollable })
     readonly cdkScrollable: CdkScrollable | undefined;
 
-    protected _service = inject<IVirtualListService>(SCROLL_VIEW_SERVICE);
+    protected _service = inject<INtVirtualListService>(SCROLL_VIEW_SERVICE);
 
-    protected _controlContainerService = inject<IControlContainerService>(CONTROL_CONTAINER_SERVICE);
+    protected _controlContainerService = inject<INtControlContainerService>(CONTROL_CONTAINER_SERVICE);
 
     readonly scrollBehavior = input<ScrollBehavior>(DEFAULT_SCROLL_BEHAVIOR);
 

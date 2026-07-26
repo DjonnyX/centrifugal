@@ -4,8 +4,8 @@ import {
 import { Subject } from 'rxjs';
 import { ScrollerDirection, ScrollerDirections } from '../enums';
 import { CONTROL_CONTAINER_SERVICE, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../../../../common';
-import { IScrollViewService } from '../../../interfaces';
-import { IControlContainerService } from '../../../../control-container/interfaces';
+import { INtScrollViewService } from '../../../interfaces';
+import { INtControlContainerService } from '../../../../control-container/interfaces';
 
 /**
  * BaseScrollView
@@ -62,9 +62,9 @@ export class BaseScrollView {
 
     protected _destroyRef = inject(DestroyRef);
 
-    protected _service = inject<IScrollViewService>(SCROLL_VIEW_SERVICE);
+    protected _service = inject<INtScrollViewService>(SCROLL_VIEW_SERVICE);
 
-    protected _controlContainerService = inject<IControlContainerService>(CONTROL_CONTAINER_SERVICE);
+    protected _controlContainerService = inject<INtControlContainerService>(CONTROL_CONTAINER_SERVICE);
 
     protected _isMoving = false;
     get isMoving() {

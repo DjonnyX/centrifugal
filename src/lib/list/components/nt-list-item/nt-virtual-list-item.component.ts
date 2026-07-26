@@ -17,8 +17,6 @@ import { Id } from '../../../common';
 
 /**
  * Virtual list component.
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-list-item/nt-virtual-list-item.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com

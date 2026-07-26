@@ -2,15 +2,15 @@ import { Observable } from "rxjs";
 import { IAnimationParams } from "./animation-params";
 import { Direction } from "../types";
 import { IScrollOptions } from "./scroll-options";
-import { IBaseScrollViewService, Id, IRect, TextDirection } from "../../common";
+import { INtBaseScrollViewService, Id, IRect, TextDirection } from "../../common";
 
 /**
- * IScrollViewService
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/scroll-view-service.ts
+ * INtScrollViewService
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/nt-scroll-view-service.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface IScrollViewService extends IBaseScrollViewService {
+export interface INtScrollViewService extends INtBaseScrollViewService {
     initialize: (id: number) => void;
 
     animationParams: IAnimationParams;

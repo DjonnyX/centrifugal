@@ -2,12 +2,12 @@ import { Observable } from "rxjs";
 import { TextDirection } from "../types/text-direction";
 
 /**
- * INtScrollViewService
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/base-scroll-view-service.ts
+ * INtBaseScrollViewService
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/nt-base-scroll-view-service.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface IBaseScrollViewService {
+export interface INtBaseScrollViewService {
     get id(): number;
 
     readonly $langTextDir: Observable<TextDirection>;

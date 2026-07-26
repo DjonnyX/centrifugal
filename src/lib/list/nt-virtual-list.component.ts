@@ -70,7 +70,7 @@ import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interf
 import { getScrollStateVersion } from './utils/get-scroll-state-version';
 import { ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections } from '../common';
 import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, parseArithmeticExpression, toggleClassName } from '../common/utils';
-import { IVirtualListService } from './interfaces';
+import { INtVirtualListService } from './interfaces';
 import { KEY_DOWN, MOUSE_DOWN, TOUCH_START } from '../common/const/event-names';
 import { KEY_TAB } from '../common/const/key-names';
 
@@ -97,7 +97,7 @@ import { KEY_TAB } from '../common/const/key-names';
     NtVirtualListPublicService,
   ],
 })
-export class NtVirtualListComponent<S extends IVirtualListService> implements OnDestroy {
+export class NtVirtualListComponent<S extends INtVirtualListService> implements OnDestroy {
   private static __nextId: number = 0;
 
   private _id: number = NtVirtualListComponent.__nextId;

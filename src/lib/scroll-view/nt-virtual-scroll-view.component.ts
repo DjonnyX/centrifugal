@@ -16,7 +16,7 @@ import {
 } from './const';
 import {
   IScrollEvent, IAnimationParams, IScrollingSettings, IScrollOptions,
-  IScrollViewService,
+  INtScrollViewService,
 } from './interfaces';
 import {
   Direction,
@@ -58,7 +58,7 @@ import {
     { provide: SCROLL_VIEW_SERVICE, useClass: NtVirtualScrollViewService },
   ],
 })
-export class NtVirtualScrollViewComponent<S extends IScrollViewService> implements OnDestroy {
+export class NtVirtualScrollViewComponent<S extends INtScrollViewService> implements OnDestroy {
   private static __nextId: number = 0;
 
   protected _id: number = NtVirtualScrollViewComponent.__nextId;

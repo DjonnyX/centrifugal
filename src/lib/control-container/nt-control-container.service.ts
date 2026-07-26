@@ -1,9 +1,6 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
-import { combineLatest, distinctUntilChanged, Subject, tap } from 'rxjs';
-import { Id, IRect, TextDirection, TextDirections } from '../common';
-import { IControlContainerService } from './interfaces';
+import { Id, IRect } from '../common';
+import { INtControlContainerService } from './interfaces';
 
 /**
  * NtControlContainerService
@@ -14,15 +11,11 @@ import { IControlContainerService } from './interfaces';
 @Injectable({
   providedIn: 'root'
 })
-export class NtControlContainerService implements IControlContainerService, OnDestroy {
+export class NtControlContainerService implements INtControlContainerService, OnDestroy {
   private _id: number = 0;
   get id() { return this._id; }
 
   private _nextComponentId: number = 0;
-
-  get preventControlEvents() {
-    return true;
-  };
 
   private _emitter: HTMLElement = window as unknown as HTMLElement;
   get emitter() {

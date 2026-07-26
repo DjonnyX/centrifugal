@@ -7,16 +7,16 @@ import { IRenderVirtualListCollection } from "../models/render-collection.model"
 import { FocusAlignment } from "../types";
 import { IScrollToParams } from "./scroll-to-params";
 import { IAnimationParams } from "./animation-params";
-import { IBaseScrollViewService, Id, IRect, ISize, TextDirection } from "../../common";
+import { INtBaseScrollViewService, Id, IRect, ISize, TextDirection } from "../../common";
 import { IScrollOptions } from "./scroll-options";
 
 /**
- * IVirtualListService
+ * INtVirtualListService
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/nt-virtual-list/interfaces/nt-virtual-list-service.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface IVirtualListService extends IBaseScrollViewService {
+export interface INtVirtualListService extends INtBaseScrollViewService {
     readonly $virtualClick: Observable<IRenderVirtualListItem<any> | null>;
 
     readonly $selectedIds: Observable<Array<Id> | Id | null>;

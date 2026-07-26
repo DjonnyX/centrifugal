@@ -1,7 +1,6 @@
 import { Component, computed, effect, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild } from '@angular/core';
 import { combineLatest, debounceTime, filter, fromEvent, of, startWith, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { NtScrollView } from '../nt-scroll-view';
 import { IScrollBarDragEvent, IScrollBarTemplateContext } from './interfaces';
 import {
   DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE, LEFT, POSITION, POSITION_ABSOLUTE,
@@ -14,11 +13,10 @@ import { NtScrollBarService } from './nt-scroll-bar.service';
 import { NtScrollBarPublicService } from './nt-scroll-bar-public.service';
 import { ScrollbarStates } from './enums';
 import { GradientColorPositions, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED, TextDirections } from '../../../common';
+import { NtScrollView } from '../nt-scroll-view';
 
 /**
  * ScrollBar component.
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-scroll-bar/nt-scroll-bar.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com

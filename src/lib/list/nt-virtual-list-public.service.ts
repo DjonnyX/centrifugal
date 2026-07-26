@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { IRenderVirtualListItem } from './models';
-import { IScrollOptions, IVirtualListService } from './interfaces';
+import { INtVirtualListService, IScrollOptions } from './interfaces';
 import { FocusAlignment } from './types';
 import { FocusItemParams } from './types/focus-item-params';
 import { FocusAlignments } from './enums';
@@ -9,8 +9,6 @@ import { Id, SCROLL_VIEW_SERVICE } from '../common';
 
 /**
  * NtVirtualListPublicService
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/nt-virtual-list-publick.service.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -19,7 +17,7 @@ import { Id, SCROLL_VIEW_SERVICE } from '../common';
   providedIn: 'root'
 })
 export class NtVirtualListPublicService {
-  private _internalService = inject<IVirtualListService>(SCROLL_VIEW_SERVICE);
+  private _internalService = inject<INtVirtualListService>(SCROLL_VIEW_SERVICE);
 
   /**
    * Unique list identifier.

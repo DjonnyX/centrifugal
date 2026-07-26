@@ -18,7 +18,7 @@ import { NtVirtualListPublicService } from '../../../nt-virtual-list-public.serv
 import { createDisplayId, matrix3d } from '../utils';
 import { IBaseVirtualListItemComponent } from '../../../interfaces/base-virtual-list-item-component';
 import { Color, ISize, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../../../../common';
-import { IVirtualListService } from '../../../interfaces/virtual-list-service';
+import { INtVirtualListService } from '../../../interfaces/nt-virtual-list-service';
 
 /**
  * BaseVirtualListItemComponent
@@ -39,7 +39,7 @@ export class BaseVirtualListItemComponent implements IBaseVirtualListItemCompone
 
   private _apiService = inject(NtVirtualListPublicService);
 
-  protected _service = inject<IVirtualListService>(SCROLL_VIEW_SERVICE);
+  protected _service = inject<INtVirtualListService>(SCROLL_VIEW_SERVICE);
 
   protected _id!: number;
   get id() {

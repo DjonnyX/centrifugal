@@ -5,7 +5,7 @@ import { IScrollOptions } from './scroll-options';
 import { IScrollParams } from './scroll-params';
 import { IScrollingSettings } from './scrolling-settings';
 import { IItemTransformation } from './item-transformation';
-import { IVirtualListService } from './virtual-list-service';
+import { INtVirtualListService } from './nt-virtual-list-service';
 
 export type {
     IAnimationParams,
@@ -15,5 +15,5 @@ export type {
     IScrollOptions,
     IScrollParams,
     IScrollingSettings,
-    IVirtualListService,
+    INtVirtualListService,
 }
