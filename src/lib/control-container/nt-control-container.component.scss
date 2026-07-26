@@ -6,6 +6,14 @@
     overflow: hidden;
 }
 
+.ntcc__container {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
 .ntcc__scroller {
     -webkit-tap-highlight-color: transparent;
     position: absolute;
@@ -14,4 +22,14 @@
     width: 100%;
     height: 100%;
     z-index: 0;
+}
+
+.ntcc__keyboard {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 200px;
+    background-color: rgb(38, 30, 49);
+    color: white;
 }

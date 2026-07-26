@@ -137,6 +137,17 @@ export class NtDrawerContainerService implements INtDrawerContainerService, OnDe
     this._$clickDistance.next(v);
   }
 
+  private _$focusedElement = new BehaviorSubject<HTMLElement | null>(null);
+  readonly $focusedElement = this._$focusedElement.asObservable();
+  set focusedElement(v: HTMLElement | null) {
+    if (this._$focusedElement.getValue() !== v) {
+      this._$focusedElement.next(v);
+    }
+  }
+  get focusedElement() {
+    return this._$focusedElement.getValue();
+  }
+
   private _tickerId: number | null = null;
 
   private _emitter: HTMLElement = window as unknown as HTMLElement;
@@ -212,6 +223,12 @@ export class NtDrawerContainerService implements INtDrawerContainerService, OnDe
    * Scrolls the list to the end of the content size.
    */
   scrollToBottom(options?: IScrollOptions) { }
+
+  focus(element: HTMLElement) {
+    if (!!element) {
+      this._$focusedElement.next(element);
+    }
+  }
 
   ngOnDestroy() {
     if (this._tickerId !== null) {

@@ -1,1 +1,1 @@
-export type ElementName = keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap;
+export type ElementName = keyof HTMLElementTagNameMap | keyof SVGElementTagNameMap | string;

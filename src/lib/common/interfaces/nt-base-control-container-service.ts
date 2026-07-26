@@ -1,3 +1,5 @@
+import { Observable } from "rxjs";
+
 /**
  * INtBaseControlContainerService
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/nt-base-control-container-service.ts
@@ -17,5 +19,9 @@ export interface INtBaseControlContainerService {
 
     get overscrollYApplied(): boolean;
 
+    readonly $focusedElement: Observable<HTMLElement | null>;
+
     initialize: (id: number, emitter: HTMLElement) => void;
+
+    focus: (element: HTMLElement) => void;
 }

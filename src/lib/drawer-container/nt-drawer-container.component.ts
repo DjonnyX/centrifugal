@@ -5,13 +5,12 @@ import {
   SCROLL_VIEW_USER_INTERACTION_ENABLED,
 } from "../common";
 import { NtDrawerContainerService } from "./nt-drawer-container.service";
-import { fromEvent, tap } from "rxjs";
-import { CLICK } from "../common/const/event-names";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { TABINDEX } from "../common/const/attribute-names";
 import { ZERO } from "../common/const/base-prop-names";
 import { validateString } from "../common/utils";
 import { DEFAULT_EXCLUDE_ELEMETN_LIST } from "./const";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { tap } from "rxjs";
 
 /**
  * NtDrawerContainerComponent
@@ -162,17 +161,17 @@ export class NtDrawerContainerComponent<S extends INtScrollViewService,
 
     this.host.setAttribute(TABINDEX, ZERO);
 
-    const $click = fromEvent(this.host, CLICK);
-    $click.pipe(
+    let currentFocusedElement: HTMLElement | null = null;
+    this._controlService.$focusedElement.pipe(
       takeUntilDestroyed(),
       tap(e => {
-        const target = e.currentTarget as HTMLElement,
-          allowedNativeInteractiveElements: Array<string> = this.allowedNativeInteractiveElements(),
-          targetTagName = target?.tagName;
-        if (!!targetTagName && allowedNativeInteractiveElements.indexOf(targetTagName) > -1) {
-          return;
+        if (!!currentFocusedElement && currentFocusedElement.blur instanceof Function) {
+          currentFocusedElement.blur();
         }
-        this.host.focus({ preventScroll: true });
+        if (!!e && e.focus instanceof Function) {
+          e.focus();
+        }
+        currentFocusedElement = e ?? null;
       }),
     ).subscribe();
   }

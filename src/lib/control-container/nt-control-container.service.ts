@@ -45,6 +45,17 @@ export class NtControlContainerService implements INtControlContainerService, On
     return this._$overscrollYApplied.getValue();
   }
 
+  private _$focusedElement = new BehaviorSubject<HTMLElement | null>(null);
+  readonly $focusedElement = this._$focusedElement.asObservable();
+  set focusedElement(v: HTMLElement | null) {
+    if (this._$focusedElement.getValue() !== v) {
+      this._$focusedElement.next(v);
+    }
+  }
+  get focusedElement() {
+    return this._$focusedElement.getValue();
+  }
+
   constructor() { }
 
   initialize(id: number, emitter: HTMLElement) {
@@ -60,6 +71,12 @@ export class NtControlContainerService implements INtControlContainerService, On
   getComponentBoundsByIntersectionPosition(positionX: number, positionY: number, maxPositionX: number | null = null, maxPositionY: number | null = null):
     (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null {
     return null;
+  }
+
+  focus(element: HTMLElement) {
+    if (!!element) {
+      this._$focusedElement.next(element);
+    }
   }
 
   ngOnDestroy() {

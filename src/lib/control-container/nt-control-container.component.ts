@@ -1,12 +1,13 @@
-import { Component, input, ViewEncapsulation } from "@angular/core";
+import { Component, ElementRef, input, signal, viewChild, ViewEncapsulation } from "@angular/core";
 import { INtScrollViewService, NtVirtualScrollViewService } from "../scroll-view";
 import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED } from "../common";
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
 import { NtControlContainerService } from "./nt-control-container.service";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { filter, fromEvent, map, switchMap, tap } from "rxjs";
+import { combineLatest, filter, fromEvent, map, switchMap, tap } from "rxjs";
 import { INtControlContainerService } from "./interfaces";
 import { NtDrawerContainerComponent } from "../drawer-container";
+import { DEFAULT_INPUT_ELEMETNS } from "../common/directives/nt-virtual-click/const";
 
 /**
  * NtVirtualScrollViewComponent
@@ -31,6 +32,8 @@ import { NtDrawerContainerComponent } from "../drawer-container";
   ],
 })
 export class NtControlContainerComponent extends NtDrawerContainerComponent<INtScrollViewService, INtControlContainerService> {
+  protected _containerComponent = viewChild<ElementRef<HTMLDivElement>>('container');
+
   protected override _clickDistance = {
     transform: (v: number) => {
       console.error('The "clickDistance" property is not available.');
@@ -57,16 +60,22 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
    */
   override overscrollEnabled = input<boolean>(false, { ...this._overscrollEnabledOptions });
 
+  readonly keyboardShown = signal<boolean>(false);
+
+  readonly contentOffset = signal<number>(0);
+
   constructor() {
     super();
-
     this._controlService.initialize(this._id, this.host);
 
-    const $content = toObservable(this._scrollerComponent).pipe(
+    const $scroller = toObservable(this._scrollerComponent).pipe(
       takeUntilDestroyed(this._destroyRef),
       filter(v => !!v),
-      map(v => v.host),
-    ), $wheelEmitter = $content;
+    ),
+      $content = $scroller.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        map(v => v.host),
+      ), $wheelEmitter = $content;
 
     $wheelEmitter.pipe(
       takeUntilDestroyed(this._destroyRef),
@@ -168,6 +177,40 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
             if (e.cancelable) {
               e.preventDefault();
             }
+          }),
+        );
+      }),
+    ).subscribe();
+
+    const $resizeViewport = $scroller.pipe(
+      takeUntilDestroyed(),
+      switchMap(s => s.$resizeViewport),
+    );
+    combineLatest([this._controlService.$focusedElement, $resizeViewport]).pipe(
+      takeUntilDestroyed(),
+      tap(([e]) => {
+        if (!!e) {
+          const targetTagName = e.tagName?.toLocaleLowerCase();
+          if (!!targetTagName && DEFAULT_INPUT_ELEMETNS.indexOf(targetTagName) > -1) {
+            if (e.blur instanceof Function) {
+              e.blur();
+            }
+            this.keyboardShown.set(true);
+            this.scrollTo({ top: 200, behavior: 'auto', duration: 250 });
+          } else {
+            this.keyboardShown.set(false);
+            this.scrollTo({ top: 0, behavior: 'auto', duration: 250 });
+          }
+        }
+      }),
+    ).subscribe();
+
+    $scroller.pipe(
+      takeUntilDestroyed(),
+      switchMap(scroller => {
+        return combineLatest([scroller.$scroll, scroller.$resizeContent, scroller.$resizeViewport]).pipe(
+          tap(() => {
+            this.contentOffset.set(scroller.verticalScrollRatio * 200 * .9);
           }),
         );
       }),

@@ -197,13 +197,18 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                     takeUntilDestroyed(this._destroyRef),
                     tap(e => {
                         if (!!e) {
+                            if (e.cancelable) {
+                                e.stopImmediatePropagation();
+                                e.preventDefault();
+                            }
+
                             this.onVirtualClick.emit(e);
 
                             if (this._emitNativeClick) {
                                 const allowedNativeInteractiveElements: Array<string> = this.allowedNativeInteractiveElements(),
                                     target = e.target as HTMLElement,
                                     targetTagName = target.tagName.toLocaleLowerCase();
-                                if (!!targetTagName && allowedNativeInteractiveElements.indexOf(targetTagName) > -1) {
+                                if (!!targetTagName /*&& allowedNativeInteractiveElements.indexOf(targetTagName) > -1*/) {
                                     if (targetTagName === ANCHOR) {
                                         const aTarget = target as HTMLAnchorElement,
                                             url = String(aTarget.href),
@@ -213,9 +218,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                                         }
                                     } else {
                                         if (this._focusElement) {
-                                            if (target.focus instanceof Function) {
-                                                target.focus();
-                                            }
+                                            this._controlService.focus(target);
                                         }
                                     }
                                 }
