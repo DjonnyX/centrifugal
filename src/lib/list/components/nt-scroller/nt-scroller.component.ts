@@ -201,7 +201,7 @@ export class NtScrollerComponent extends NtScrollView {
       }),
     ).subscribe();
 
-    combineLatest([this.$resizeViewport, this.$resizeContent]).pipe(
+    this.$resizeViewport.pipe(
       takeUntilDestroyed(),
       debounceTime(1),
       tap(() => {
