@@ -15,8 +15,9 @@
         [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()"
         [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()">
         <ng-container #renderersContainer>
+            @let contentOffset = _contentOffset();
             <div class="ntcc__content"
-                [ngStyle]="{width: container.offsetWidth + 'px', height: container.offsetHeight - contentOffset() + 'px', paddingTop: contentOffset() + 'px'}">
+                [ngStyle]="{width: container.offsetWidth + 'px', height: container.offsetHeight - contentOffset + 'px', paddingTop: contentOffset + 'px'}">
                 <ng-content></ng-content>
             </div>
             <div class="ntcc__keyboard">

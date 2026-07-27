@@ -4,7 +4,7 @@ import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
 import { NtControlContainerService } from "./nt-control-container.service";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { filter, fromEvent, map, switchMap, tap } from "rxjs";
+import { combineLatest, filter, fromEvent, map, switchMap, tap } from "rxjs";
 import { INtControlContainerService } from "./interfaces";
 import { NtDrawerContainerComponent } from "../drawer-container";
 import { DEFAULT_INPUT_ELEMETNS } from "../common/directives/nt-virtual-click/const";
@@ -60,9 +60,9 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
    */
   override overscrollEnabled = input<boolean>(false, { ...this._overscrollEnabledOptions });
 
-  readonly keyboardShown = signal<boolean>(false);
+  protected _keyboardShown = signal<boolean>(false);
 
-  readonly contentOffset = signal<number>(0);
+  protected _contentOffset = signal<number>(0);
 
   constructor() {
     super();
@@ -191,13 +191,24 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
             if (e.blur instanceof Function) {
               e.blur();
             }
-            this.keyboardShown.set(true);
+            this._keyboardShown.set(true);
             this.scrollTo({ top: 200, behavior: 'auto', duration: 250 });
           } else {
-            this.keyboardShown.set(false);
+            this._keyboardShown.set(false);
             this.scrollTo({ top: 0, behavior: 'auto', duration: 250 });
           }
         }
+      }),
+    ).subscribe();
+
+    $scroller.pipe(
+      takeUntilDestroyed(),
+      switchMap(scroller => {
+        return combineLatest([scroller.$scroll, scroller.$resizeContent, scroller.$resizeViewport]).pipe(
+          tap(() => {
+            this._contentOffset.set(scroller.verticalScrollRatio * 200 * .9);
+          }),
+        );
       }),
     ).subscribe();
   }
