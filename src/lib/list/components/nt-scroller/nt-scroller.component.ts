@@ -207,13 +207,13 @@ export class NtScrollerComponent extends NtScrollView {
       tap(() => {
         if (this.scrollable) {
           const isVertical = this.isVertical();
+          let position: number;
           if (isVertical) {
-            const position = this._scrollRatio * this.scrollHeight;
-            this.setX(position);
+            position = this._scrollRatio * this.scrollHeight;
           } else {
-            const position = this._scrollRatio * this.scrollHeight;
-            this.setY(position);
+            position = this._scrollRatio * this.scrollHeight;
           }
+          this.move(isVertical, position, true, false, false);
         }
       }),
     ).subscribe();

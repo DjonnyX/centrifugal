@@ -217,14 +217,14 @@ export class NtScrollerComponent extends NtScrollView {
       takeUntilDestroyed(),
       debounceTime(1),
       tap(() => {
+        let x = this.scrollLeft, y = this.scrollTop;
         if (this.scrollableX) {
-          const position = this._horizontalScrollRatio * this.scrollWidth;
-          this.setX(position);
+          x = this._horizontalScrollRatio * this.scrollWidth;
         }
         if (this.scrollableY) {
-          const position = this._verticalScrollRatio * this.scrollHeight;
-          this.setY(position);
+          y = this._verticalScrollRatio * this.scrollHeight;
         }
+        this.move(x, y, true, false, false);
       }),
     ).subscribe();
 
