@@ -4,7 +4,7 @@ import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
 import { NtControlContainerService } from "./nt-control-container.service";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { combineLatest, filter, fromEvent, map, switchMap, tap } from "rxjs";
+import { filter, fromEvent, map, switchMap, tap } from "rxjs";
 import { INtControlContainerService } from "./interfaces";
 import { NtDrawerContainerComponent } from "../drawer-container";
 import { DEFAULT_INPUT_ELEMETNS } from "../common/directives/nt-virtual-click/const";
@@ -182,13 +182,9 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
       }),
     ).subscribe();
 
-    const $resizeViewport = $scroller.pipe(
+    this._controlService.$focusedElement.pipe(
       takeUntilDestroyed(),
-      switchMap(s => s.$resizeViewport),
-    );
-    combineLatest([this._controlService.$focusedElement, $resizeViewport]).pipe(
-      takeUntilDestroyed(),
-      tap(([e]) => {
+      tap(e => {
         if (!!e) {
           const targetTagName = e.tagName?.toLocaleLowerCase();
           if (!!targetTagName && DEFAULT_INPUT_ELEMETNS.indexOf(targetTagName) > -1) {
@@ -202,17 +198,6 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
             this.scrollTo({ top: 0, behavior: 'auto', duration: 250 });
           }
         }
-      }),
-    ).subscribe();
-
-    $scroller.pipe(
-      takeUntilDestroyed(),
-      switchMap(scroller => {
-        return combineLatest([scroller.$scroll, scroller.$resizeContent, scroller.$resizeViewport]).pipe(
-          tap(() => {
-            this.contentOffset.set(scroller.verticalScrollRatio * 200 * .9);
-          }),
-        );
       }),
     ).subscribe();
   }

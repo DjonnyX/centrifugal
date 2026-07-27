@@ -130,6 +130,9 @@ export class NtScrollView extends BaseScrollView {
 
     protected _horizontalAxisInvertion: Signal<boolean>;
 
+    protected _scrollRatio: number = 0;
+    get scrollRatio() { return this._scrollRatio; }
+
     get inverted() { return this._horizontalAxisInvertion(); }
 
     private _overscrollIteration: number = 0;
@@ -786,8 +789,8 @@ export class NtScrollView extends BaseScrollView {
             }
             if (this._userScrollDirectionIsHorizontal) {
                 if (!overscrollYApplied && this._parentService?.scrollableY) {
-                    if (this._overscrollIteration < OVERSCROLL_START_ITERATION) {
-                        this._overscrollIteration++;
+                    if (this._overscrollStartIteration < OVERSCROLL_START_ITERATION) {
+                        this._overscrollStartIteration++;
                         this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
                     } else {
                         this._overscrollApplied = true;
@@ -804,8 +807,8 @@ export class NtScrollView extends BaseScrollView {
                 }
             } else {
                 if (!overscrollXApplied && this._parentService?.scrollableX) {
-                    if (this._overscrollIteration < OVERSCROLL_START_ITERATION) {
-                        this._overscrollIteration++;
+                    if (this._overscrollStartIteration < OVERSCROLL_START_ITERATION) {
+                        this._overscrollStartIteration++;
                         this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
                     } else {
                         this._overscrollApplied = true;
@@ -1223,6 +1226,11 @@ export class NtScrollView extends BaseScrollView {
             if (isVertical) {
                 if (this._y !== y || force) {
                     this.setY(y, snap, normalize);
+                    if (userAction) {
+                        const scrollHeight = Math.abs(this.scrollHeight),
+                            yy = Math.abs(this._y);
+                        this._scrollRatio = scrollHeight !== 0 ? yy / scrollHeight : 0;
+                    }
                     this.emitScrollableEvent();
                     if (fireUpdate) {
                         this.fireScrollEvent(userAction);
@@ -1231,6 +1239,11 @@ export class NtScrollView extends BaseScrollView {
             } else {
                 if (this._x !== x || force) {
                     this.setX(x, snap, normalize);
+                    if (userAction) {
+                        const scrollWidth = Math.abs(this.scrollWidth),
+                            xx = Math.abs(this._x);
+                        this._scrollRatio = scrollWidth !== 0 ? xx / scrollWidth : 0;
+                    }
                     this.emitScrollableEvent();
                     if (fireUpdate) {
                         this.fireScrollEvent(userAction);

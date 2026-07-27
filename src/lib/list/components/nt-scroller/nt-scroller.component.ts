@@ -201,6 +201,23 @@ export class NtScrollerComponent extends NtScrollView {
       }),
     ).subscribe();
 
+    combineLatest([this.$resizeViewport, this.$resizeContent]).pipe(
+      takeUntilDestroyed(),
+      debounceTime(1),
+      tap(() => {
+        if (this.scrollable) {
+          const isVertical = this.isVertical();
+          if (isVertical) {
+            const position = this._scrollRatio * this.scrollHeight;
+            this.setX(position);
+          } else {
+            const position = this._scrollRatio * this.scrollHeight;
+            this.setY(position);
+          }
+        }
+      }),
+    ).subscribe();
+
     const $filter = toObservable(this.filter),
       $motionBlur = toObservable(this.motionBlur),
       $maxMotionBlur = toObservable(this.maxMotionBlur),
@@ -407,10 +424,6 @@ export class NtScrollerComponent extends NtScrollView {
   }
 
   refresh(fireUpdate: boolean = false, updateScrollbar: boolean = true) {
-    if (updateScrollbar) {
-      this.stopScrolling();
-    }
-
     this.scrollLimits();
 
     this.refreshCoordinate(this._x, this._y);

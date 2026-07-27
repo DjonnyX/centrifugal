@@ -213,6 +213,21 @@ export class NtScrollerComponent extends NtScrollView {
       $maxMotionBlur = toObservable(this.maxMotionBlur),
       $motionBlurEnabled = toObservable(this.motionBlurEnabled);
 
+    combineLatest([this.$resizeViewport, this.$resizeContent]).pipe(
+      takeUntilDestroyed(),
+      debounceTime(1),
+      tap(() => {
+        if (this.scrollableX) {
+          const position = this._horizontalScrollRatio * this.scrollWidth;
+          this.setX(position);
+        }
+        if (this.scrollableY) {
+          const position = this._verticalScrollRatio * this.scrollHeight;
+          this.setY(position);
+        }
+      }),
+    ).subscribe();
+
     const $scrollbarScroll = this.$scrollbarScroll;
     $scrollbarScroll.pipe(
       takeUntilDestroyed(),
@@ -481,10 +496,6 @@ export class NtScrollerComponent extends NtScrollView {
   }
 
   refresh(fireUpdate: boolean = false, updateScrollbar: boolean = true) {
-    if (updateScrollbar) {
-      this.stopScrolling();
-    }
-
     this.scrollLimits();
 
     this.refreshCoordinate(this._x, this._y);
