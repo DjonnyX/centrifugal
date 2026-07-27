@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
-import { combineLatest, distinctUntilChanged, Subject, tap } from 'rxjs';
+import { Subject, tap } from 'rxjs';
 import { TrackBox } from './core/track-box';
 import { TrackBoxEvents } from './core/events';
 import { IRenderVirtualListItem, IVirtualListCollection, IVirtualListItem, IVirtualListItemConfigMap } from './models';
@@ -10,7 +10,7 @@ import { IRenderVirtualListCollection } from './models/render-collection.model';
 import { FocusAlignments } from './enums';
 import { SelectingModesTypes } from './enums/selecting-modes-types';
 import {
-  BEHAVIOR_AUTO, BEHAVIOR_INSTANT, DEFAULT_ANIMATION_PARAMS, DEFAULT_CLICK_DISTANCE, DEFAULT_COLLAPSE_BY_CLICK,
+  BEHAVIOR_AUTO, BEHAVIOR_INSTANT, DEFAULT_ANIMATION_PARAMS, DEFAULT_COLLAPSE_BY_CLICK,
   DEFAULT_ITEM_SIZE, DEFAULT_SELECT_BY_CLICK, DEFAULT_SNAP_TO_ITEM, DEFAULT_ZINDEX_WHEN_SELECTING, ITEM_CONTAINER,
   TRACK_BY_PROPERTY_NAME,
 } from './const';
@@ -20,7 +20,9 @@ import { FocusItemParams } from './types/focus-item-params';
 import { validateFocusAlignment, validateId } from './utils/list-validators';
 import { getSelectorByItemId } from './utils/get-selector-by-item-id';
 import { IScrollToParams } from './interfaces/scroll-to-params';
-import { Id, IRect, ISize, TextDirection, TextDirections } from '../common';
+import { Id, IRect, ISize } from '../common';
+import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
+import { IBaseScrollViewService } from '../common/interfaces/base-scroll-view-service';
 
 /**
  * NtVirtualListService
@@ -31,10 +33,7 @@ import { Id, IRect, ISize, TextDirection, TextDirections } from '../common';
 @Injectable({
   providedIn: 'root'
 })
-export class NtVirtualListService {
-  private _id: number = 0;
-  get id() { return this._id; }
-
+export class NtVirtualListService extends NtBaseScrollViewService implements IBaseScrollViewService, OnDestroy {
   private _nextComponentId: number = 0;
 
   private _$virtualClick = new Subject<IRenderVirtualListItem<any> | null>();
@@ -142,55 +141,6 @@ export class NtVirtualListService {
   }
   get collection() { return this._collection; }
 
-  private _$langTextDir = new BehaviorSubject<TextDirection>(TextDirections.LTR);
-  readonly $langTextDir = this._$langTextDir.asObservable();
-  get langTextDir() { return this._$langTextDir.getValue(); }
-
-  private _langTextDir: TextDirection = TextDirections.LTR;
-  set langTextDir(v: TextDirection) {
-    if (this._langTextDir === v) {
-      return;
-    }
-
-    this._langTextDir = v;
-
-    this._$langTextDir.next(v);
-  }
-
-  private _$grabbing = new BehaviorSubject<boolean>(false);
-  readonly $grabbing = this._$grabbing.asObservable();
-  get grabbing() { return this._$grabbing.getValue(); }
-
-  private _grabbing: boolean = false;
-  set grabbing(v: boolean) {
-    if (this._grabbing === v) {
-      return;
-    }
-
-    this._grabbing = v;
-
-    this._$grabbing.next(v);
-  }
-
-  private _$clickPressed = new BehaviorSubject<boolean>(false);
-  readonly $clickPressed = this._$clickPressed.asObservable();
-  get clickPressed() { return this._$clickPressed.getValue(); }
-
-  private _clickPressed: boolean = false;
-  set clickPressed(v: boolean) {
-    if (this._clickPressed === v) {
-      return;
-    }
-
-    this._clickPressed = v;
-
-    this._$clickPressed.next(v);
-  }
-
-  private _$isGrabbing = new BehaviorSubject<boolean>(false);
-  readonly $isGrabbing = this._$isGrabbing.asObservable();
-  get isGrabbing() { return this._$isGrabbing.getValue(); }
-
   get scrollBarSize() { return this._$scrollBarSize.getValue(); }
 
   private _scrollBarSize: number = 0;
@@ -208,45 +158,6 @@ export class NtVirtualListService {
 
   private _$intersectionElementBySnapToItemAlign = new BehaviorSubject<Id | null>(null);
   readonly $intersectionElementBySnapToItemAlign = this._$intersectionElementBySnapToItemAlign.asObservable();
-
-  private _$clickDistance = new BehaviorSubject<number>(DEFAULT_CLICK_DISTANCE);
-  readonly $clickDistance = this._$clickDistance.asObservable();
-  get clickDistance() { return this._$clickDistance.getValue(); }
-
-  private _clickDistance: number = DEFAULT_CLICK_DISTANCE;
-  set clickDistance(v: number) {
-    if (this._clickDistance === v) {
-      return;
-    }
-
-    this._clickDistance = v;
-
-    this._$clickDistance.next(v);
-  }
-
-  private _$scrollableX = new BehaviorSubject<boolean>(false);
-  readonly $scrollableX = this._$scrollableX.asObservable();
-  get scrollableX() { return this._$scrollableX.getValue(); }
-
-  set scrollableX(v: boolean) {
-    if (this.scrollableX === v) {
-      return;
-    }
-
-    this._$scrollableX.next(v);
-  }
-
-  private _$scrollableY = new BehaviorSubject<boolean>(false);
-  readonly $scrollableY = this._$scrollableY.asObservable();
-  get scrollableY() { return this._$scrollableY.getValue(); }
-
-  set scrollableY(v: boolean) {
-    if (this.scrollableY === v) {
-      return;
-    }
-
-    this._$scrollableY.next(v);
-  }
 
   private _onTickHandler = () => {
     this._$tick.next();
@@ -273,19 +184,7 @@ export class NtVirtualListService {
   get collapsedIds() { return this._$collapsedIds.getValue(); }
 
   constructor() {
-    const $grabbing = this.$grabbing.pipe(
-      takeUntilDestroyed(),
-      distinctUntilChanged(),
-    ), $clickPressed = this.$clickPressed.pipe(
-      takeUntilDestroyed(),
-      distinctUntilChanged(),
-    );
-    combineLatest([$grabbing, $clickPressed]).pipe(
-      takeUntilDestroyed(),
-      tap(([grabbing, clickPressed]) => {
-        this._$isGrabbing.next(grabbing && !clickPressed);
-      }),
-    ).subscribe();
+    super();
 
     this._$selectingMode.pipe(
       takeUntilDestroyed(),
@@ -570,5 +469,9 @@ export class NtVirtualListService {
    */
   scrollToEnd(options?: IScrollOptions) {
     this._$scrollToEnd.next(options);
+  }
+
+  override ngOnDestroy(): void {
+    super.ngOnDestroy();
   }
 }

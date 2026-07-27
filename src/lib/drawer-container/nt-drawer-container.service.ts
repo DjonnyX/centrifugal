@@ -1,11 +1,12 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
-import { combineLatest, distinctUntilChanged, Subject, tap } from 'rxjs';
-import { Id, IRect, TextDirection, TextDirections } from '../common';
+import { Subject } from 'rxjs';
+import { Id, IRect } from '../common';
 import { INtDrawerContainerService } from './interfaces/drawer-container-service';
-import { DEFAULT_ANIMATION_PARAMS, DEFAULT_CLICK_DISTANCE } from '../scroll-view/const';
+import { DEFAULT_ANIMATION_PARAMS } from '../scroll-view/const';
 import { Direction, Directions, IAnimationParams, IScrollOptions } from '../scroll-view';
+import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
+import { IBaseScrollViewService } from '../common/interfaces/base-scroll-view-service';
 
 /**
  * NtDrawerContainerService
@@ -16,10 +17,7 @@ import { Direction, Directions, IAnimationParams, IScrollOptions } from '../scro
 @Injectable({
   providedIn: 'root'
 })
-export class NtDrawerContainerService implements INtDrawerContainerService, OnDestroy {
-  private _id: number = 0;
-  get id() { return this._id; }
-
+export class NtDrawerContainerService extends NtBaseScrollViewService implements IBaseScrollViewService, INtDrawerContainerService, OnDestroy {
   private _nextComponentId: number = 0;
 
   private _$tick = new Subject<void>();
@@ -49,67 +47,6 @@ export class NtDrawerContainerService implements INtDrawerContainerService, OnDe
 
   direction: Direction = Directions.BOTH;
 
-  private _$overscrollXApplied = new BehaviorSubject<boolean>(false);
-  readonly $overscrollXApplied = this._$overscrollXApplied.asObservable();
-  set overscrollXApplied(v: boolean) {
-    if (this._$overscrollXApplied.getValue() !== v) {
-      this._$overscrollXApplied.next(v);
-    }
-  }
-  get overscrollXApplied() {
-    return this._$overscrollXApplied.getValue();
-  }
-
-  private _$overscrollYApplied = new BehaviorSubject<boolean>(false);
-  readonly $overscrollYApplied = this._$overscrollYApplied.asObservable();
-  set overscrollYApplied(v: boolean) {
-    if (this._$overscrollYApplied.getValue() !== v) {
-      this._$overscrollYApplied.next(v);
-    }
-  }
-  get overscrollYApplied() {
-    return this._$overscrollYApplied.getValue();
-  }
-
-  private _$langTextDir = new BehaviorSubject<TextDirection>(TextDirections.LTR);
-  readonly $langTextDir = this._$langTextDir.asObservable();
-  get langTextDir() { return this._$langTextDir.getValue(); }
-
-  set langTextDir(v: TextDirection) {
-    if (this.langTextDir === v) {
-      return;
-    }
-
-    this._$langTextDir.next(v);
-  }
-
-  private _$grabbing = new BehaviorSubject<boolean>(false);
-  readonly $grabbing = this._$grabbing.asObservable();
-  get grabbing() { return this._$grabbing.getValue(); }
-
-  set grabbing(v: boolean) {
-    if (this.grabbing === v) {
-      return;
-    }
-    this._$grabbing.next(v);
-  }
-
-  private _$clickPressed = new BehaviorSubject<boolean>(false);
-  readonly $clickPressed = this._$clickPressed.asObservable();
-  get clickPressed() { return this._$clickPressed.getValue(); }
-
-  set clickPressed(v: boolean) {
-    if (this.clickPressed === v) {
-      return;
-    }
-
-    this._$clickPressed.next(v);
-  }
-
-  private _$isGrabbing = new BehaviorSubject<boolean>(false);
-  readonly $isGrabbing = this._$isGrabbing.asObservable();
-  get isGrabbing() { return this._$isGrabbing.getValue(); }
-
   private _$scrollBarSize = new BehaviorSubject<number>(0);
   readonly $scrollBarSize = this._$scrollBarSize.asObservable();
   get scrollBarSize() { return this._$scrollBarSize.getValue(); }
@@ -124,18 +61,6 @@ export class NtDrawerContainerService implements INtDrawerContainerService, OnDe
 
   private _$intersectionElementBySnapToItemAlign = new BehaviorSubject<Id | null>(null);
   readonly $intersectionElementBySnapToItemAlign = this._$intersectionElementBySnapToItemAlign.asObservable();
-
-  private _$clickDistance = new BehaviorSubject<number>(DEFAULT_CLICK_DISTANCE);
-  readonly $clickDistance = this._$clickDistance.asObservable();
-  get clickDistance() { return this._$clickDistance.getValue(); }
-
-  set clickDistance(v: number) {
-    if (this.clickDistance === v) {
-      return;
-    }
-
-    this._$clickDistance.next(v);
-  }
 
   private _$focusedElement = new BehaviorSubject<HTMLElement | null>(null);
   readonly $focusedElement = this._$focusedElement.asObservable();
@@ -156,19 +81,7 @@ export class NtDrawerContainerService implements INtDrawerContainerService, OnDe
   };
 
   constructor() {
-    const $grabbing = this.$grabbing.pipe(
-      takeUntilDestroyed(),
-      distinctUntilChanged(),
-    ), $clickPressed = this.$clickPressed.pipe(
-      takeUntilDestroyed(),
-      distinctUntilChanged(),
-    );
-    combineLatest([$grabbing, $clickPressed]).pipe(
-      takeUntilDestroyed(),
-      tap(([grabbing, clickPressed]) => {
-        this._$isGrabbing.next(grabbing && !clickPressed);
-      }),
-    ).subscribe();
+    super();
 
     this.tick();
   }
@@ -230,7 +143,9 @@ export class NtDrawerContainerService implements INtDrawerContainerService, OnDe
     }
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
+    super.ngOnDestroy();
+
     if (this._tickerId !== null) {
       cancelAnimationFrame(this._tickerId);
       this._tickerId = null;

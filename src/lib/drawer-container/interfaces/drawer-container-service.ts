@@ -1,6 +1,7 @@
 import { Observable } from "rxjs";
-import { INtBaseControlContainerService, Id, IRect, TextDirection } from "../../common";
+import { INtBaseControlContainerService, Id, IRect } from "../../common";
 import { Direction, IAnimationParams, IScrollOptions } from "../../scroll-view";
+import { IBaseScrollViewService } from "../../common/interfaces/base-scroll-view-service";
 
 /**
  * INtDrawerContainerService
@@ -8,7 +9,7 @@ import { Direction, IAnimationParams, IScrollOptions } from "../../scroll-view";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface INtDrawerContainerService extends INtBaseControlContainerService {
+export interface INtDrawerContainerService extends IBaseScrollViewService, INtBaseControlContainerService {
     initialize: (id: number, emitter: HTMLElement) => void;
 
     animationParams: IAnimationParams;
@@ -36,24 +37,6 @@ export interface INtDrawerContainerService extends INtBaseControlContainerServic
     set scrollBarSize(v: number);
 
     readonly $scrollBarSize: Observable<number>;
-
-    readonly $langTextDir: Observable<TextDirection>;
-
-    get langTextDir(): TextDirection;
-
-    set langTextDir(v: TextDirection);
-
-    readonly $clickDistance: Observable<number>;
-
-    get clickDistance(): number;
-
-    set clickDistance(v: number);
-
-    readonly $grabbing: Observable<boolean>;
-
-    get grabbing(): boolean;
-
-    set grabbing(v: boolean);
 
     readonly $tick: Observable<void>;
 

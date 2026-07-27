@@ -2,9 +2,7 @@ import { TextDirections } from "../../common";
 import { Directions } from "../enums/directions";
 import { IAnimationParams, IScrollingSettings } from '../interfaces';
 
-export const DEFAULT_LIST_SIZE = 400;
-
-export const DEFAULT_CLICK_DISTANCE = 40;
+export const DEFAULT_SCROLLER_SIZE = 400;
 
 export const DEFAULT_SCROLLABLE = true;
 

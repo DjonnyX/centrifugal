@@ -2,11 +2,10 @@ import { DestroyRef, Directive, ElementRef, inject, input, Input, output, Securi
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest, fromEvent, of, race } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { DEFAULT_CLICK_DISTANCE } from '../../../list/const';
 import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from '../../injection';
 import { ElementNames } from '../../types';
 import { toggleClassName, validateBoolean, validateString } from '../../utils';
-import { ANCHOR, DEFAULT_INTERACTIVE_ELEMETNS } from './const';
+import { ANCHOR, DEFAULT_CLICK_DISTANCE, DEFAULT_INTERACTIVE_ELEMETNS } from './const';
 import { CLICK, POINTER_DOWN, POINTER_LEAVE, POINTER_MOVE, POINTER_UP } from '../../const/event-names';
 import { INtBaseControlContainerService, INtBaseScrollViewService } from '../../interfaces';
 import { GRABBING, NOT_GRABBING } from '../../const/class-names';

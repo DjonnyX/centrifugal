@@ -1,5 +1,7 @@
 import { Observable } from "rxjs";
 import { TextDirection } from "../types/text-direction";
+import { IScrollable } from "./scrollable";
+import { IOverscroll } from "./overscroll";
 
 /**
  * INtScrollViewService
@@ -16,9 +18,42 @@ export interface IBaseScrollViewService {
 
     set langTextDir(v: TextDirection);
 
+    readonly $clickDistance: Observable<number>;
+
+    get clickDistance(): number;
+
+    set clickDistance(v: number);
+
     readonly $grabbing: Observable<boolean>;
 
     get grabbing(): boolean;
 
     set grabbing(v: boolean);
+
+    readonly $isGrabbing: Observable<boolean>;
+    get isGrabbing(): boolean;
+
+    readonly $scrollable: Observable<IScrollable>;
+
+    get scrollable(): IScrollable;
+
+    set scrollable(v: IScrollable);
+
+    readonly $overscroll: Observable<IOverscroll>;
+
+    get overscroll(): IOverscroll;
+
+    set overscroll(v: IOverscroll);
+
+    readonly $parentScrollable: Observable<IScrollable>;
+
+    get parentScrollable(): IScrollable;
+
+    set parentScrollable(v: IScrollable);
+
+    readonly $parentOverscroll: Observable<IOverscroll>;
+
+    get parentOverscroll(): IOverscroll;
+
+    set parentOverscroll(v: IOverscroll);
 }

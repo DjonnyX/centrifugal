@@ -2,6 +2,8 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { Id, IRect } from '../common';
 import { INtControlContainerService } from './interfaces';
+import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
+import { IBaseScrollViewService } from '../common/interfaces/base-scroll-view-service';
 
 /**
  * NtControlContainerService
@@ -12,37 +14,12 @@ import { INtControlContainerService } from './interfaces';
 @Injectable({
   providedIn: 'root'
 })
-export class NtControlContainerService implements INtControlContainerService, OnDestroy {
-  private _id: number = 0;
-  get id() { return this._id; }
-
+export class NtControlContainerService extends NtBaseScrollViewService implements IBaseScrollViewService, INtControlContainerService, OnDestroy {
   private _nextComponentId: number = 0;
 
   private _emitter: HTMLElement = window as unknown as HTMLElement;
   get emitter() {
     return this._emitter;
-  }
-
-  private _$overscrollXApplied = new BehaviorSubject<boolean>(false);
-  readonly $overscrollXApplied = this._$overscrollXApplied.asObservable();
-  set overscrollXApplied(v: boolean) {
-    if (this._$overscrollXApplied.getValue() !== v) {
-      this._$overscrollXApplied.next(v);
-    }
-  }
-  get overscrollXApplied() {
-    return this._$overscrollXApplied.getValue();
-  }
-
-  private _$overscrollYApplied = new BehaviorSubject<boolean>(false);
-  readonly $overscrollYApplied = this._$overscrollYApplied.asObservable();
-  set overscrollYApplied(v: boolean) {
-    if (this._$overscrollYApplied.getValue() !== v) {
-      this._$overscrollYApplied.next(v);
-    }
-  }
-  get overscrollYApplied() {
-    return this._$overscrollYApplied.getValue();
   }
 
   private _$focusedElement = new BehaviorSubject<HTMLElement | null>(null);
@@ -56,7 +33,9 @@ export class NtControlContainerService implements INtControlContainerService, On
     return this._$focusedElement.getValue();
   }
 
-  constructor() { }
+  constructor() {
+    super();
+  }
 
   initialize(id: number, emitter: HTMLElement) {
     this._id = id;
@@ -79,7 +58,7 @@ export class NtControlContainerService implements INtControlContainerService, On
     }
   }
 
-  ngOnDestroy() {
-
+  override ngOnDestroy() {
+    super.ngOnDestroy();
   }
 }

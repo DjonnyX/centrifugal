@@ -7,12 +7,13 @@ import {
   BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, map, skip, Subject, switchMap, take, tap,
 } from 'rxjs';
 import {
-  BEHAVIOR_INSTANT, CLASS_SCROLL_VIEW_HORIZONTAL, CLASS_SCROLL_VIEW_VERTICAL, DEFAULT_DIRECTION, DEFAULT_LIST_SIZE,
-  MIN_PIXELS_FOR_PREVENT_SNAPPING, DEFAULT_LANG_TEXT_DIR, DEFAULT_CLICK_DISTANCE, DEFAULT_SCROLLBAR_THICKNESS,
+  BEHAVIOR_INSTANT, CLASS_SCROLL_VIEW_HORIZONTAL, CLASS_SCROLL_VIEW_VERTICAL, DEFAULT_DIRECTION,
+  MIN_PIXELS_FOR_PREVENT_SNAPPING, DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLLBAR_THICKNESS,
   DEFAULT_SCROLLBAR_MIN_SIZE, BEHAVIOR_AUTO, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_OVERSCROLL_ENABLED,
   DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_SETTINGS, DEFAULT_MOTION_BLUR, DEFAULT_MAX_MOTION_BLUR,
   DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SNAP_SCROLLTO_LEFT, DEFAULT_SNAP_SCROLLTO_TOP,
   DEFAULT_SNAP_SCROLLTO_RIGHT, DEFAULT_SNAP_SCROLLTO_BOTTOM, CLASS_SCROLL_VIEW_BOTH, DEFAULT_SCROLLABLE,
+  DEFAULT_SCROLLER_SIZE,
 } from './const';
 import {
   IScrollEvent, IAnimationParams, IScrollingSettings, IScrollOptions,
@@ -39,6 +40,7 @@ import {
   validateBoolean, validateFloat, validateInt, validateObject, validateString,
 } from '../common/utils';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from '../common/const/base-prop-names';
+import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-virtual-click/const';
 
 /**
  * NtVirtualScrollViewComponent
@@ -73,6 +75,8 @@ export class NtVirtualScrollViewComponent<S extends INtScrollViewService> implem
   get id() { return this._id; }
 
   protected _service = inject<S>(SCROLL_VIEW_SERVICE);
+
+  protected _parentService: S;
 
   protected _scrollerComponent = viewChild<NtScrollerComponent>('scroller');
 
@@ -710,6 +714,8 @@ export class NtVirtualScrollViewComponent<S extends INtScrollViewService> implem
   protected _injector = inject(Injector);
 
   constructor() {
+    this._parentService = this._injector.get<S>(SCROLL_VIEW_SERVICE, undefined, { skipSelf: true });
+
     NtVirtualScrollViewComponent.__nextId = NtVirtualScrollViewComponent.__nextId + 1 === Number.MAX_SAFE_INTEGER
       ? 0 : NtVirtualScrollViewComponent.__nextId + 1;
     this._id = NtVirtualScrollViewComponent.__nextId;
@@ -730,6 +736,21 @@ export class NtVirtualScrollViewComponent<S extends INtScrollViewService> implem
 
     this._service.initialize(this._id);
 
+    if (!!this._parentService) {
+      this._parentService.$scrollable.pipe(
+        takeUntilDestroyed(),
+        tap(v => {
+          this._service.parentScrollable = v;
+        }),
+      ).subscribe();
+
+      this._parentService.$overscroll.pipe(
+        takeUntilDestroyed(),
+        tap(v => {
+          this._service.parentOverscroll = v;
+        }),
+      ).subscribe();
+    }
 
     const $animationParams = toObservable(this.animationParams);
     $animationParams.pipe(
@@ -1420,7 +1441,7 @@ export class NtVirtualScrollViewComponent<S extends INtScrollViewService> implem
         scrollHeight = scrollerComponent.scrollTop,
         maxScrollWidth = scrollerComponent.scrollWidth,
         maxScrollHeight = scrollerComponent.scrollHeight,
-        bounds = this._bounds() || { x: 0, y: 0, width: DEFAULT_LIST_SIZE, height: DEFAULT_LIST_SIZE };
+        bounds = this._bounds() || { x: 0, y: 0, width: DEFAULT_SCROLLER_SIZE, height: DEFAULT_SCROLLER_SIZE };
 
       const event = new ScrollEvent({
         directionX: scrollerComponent.scrollDirectionX,

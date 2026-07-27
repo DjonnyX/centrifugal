@@ -1,5 +1,4 @@
-import { Observable } from "rxjs";
-import { TextDirection } from "../types/text-direction";
+import { IBaseScrollViewService } from "./base-scroll-view-service";
 
 /**
  * INtBaseScrollViewService
@@ -7,36 +6,4 @@ import { TextDirection } from "../types/text-direction";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface INtBaseScrollViewService {
-    get id(): number;
-
-    readonly $langTextDir: Observable<TextDirection>;
-
-    get langTextDir(): TextDirection;
-
-    set langTextDir(v: TextDirection);
-
-    readonly $clickDistance: Observable<number>;
-
-    get clickDistance(): number;
-
-    set clickDistance(v: number);
-
-    readonly $grabbing: Observable<boolean>;
-
-    get grabbing(): boolean;
-
-    set grabbing(v: boolean);
-
-    readonly $scrollableX: Observable<boolean>;
-
-    get scrollableX(): boolean;
-
-    set scrollableX(v: boolean);
-
-    readonly $scrollableY: Observable<boolean>;
-
-    get scrollableY(): boolean;
-
-    set scrollableY(v: boolean);
-}
+export interface INtBaseScrollViewService extends IBaseScrollViewService { }

@@ -139,8 +139,6 @@ export class NtScrollView extends BaseScrollView {
 
     private _overscrollStartIteration = 0;
 
-    private _overscrollApplied = false;
-
     override set x(v: number) {
         this.setX(v);
     }
@@ -231,8 +229,6 @@ export class NtScrollView extends BaseScrollView {
             return !isVertical && langTextDir === TextDirections.RTL;
         });
 
-        this._parentService = this._injector.get(SCROLL_VIEW_SERVICE, undefined, { skipSelf: true });
-
         const $isVertical = toObservable(this.isVertical),
             $viewportBounds = toObservable(this.viewportBounds),
             $contentBounds = toObservable(this.contentBounds);
@@ -257,8 +253,7 @@ export class NtScrollView extends BaseScrollView {
         combineLatest([$isVertical, $viewportBounds, $contentBounds]).pipe(
             takeUntilDestroyed(),
             tap(([isVertical]) => {
-                this._service.scrollableX = !isVertical && this.scrollable;
-                this._service.scrollableY = isVertical && this.scrollable;
+                this._service.scrollable = { x: !isVertical && this.scrollable, y: isVertical && this.scrollable };
             }),
         ).subscribe();
 
@@ -273,9 +268,8 @@ export class NtScrollView extends BaseScrollView {
                 tap(v => {
                     this.snapWithInitialForceIfNecessary(v);
                     this._overscrollIteration = this._overscrollStartIteration = 0;
-                    this._overscrollApplied = false;
-                    if (!!this._controlContainerService) {
-                        this._controlContainerService.overscrollXApplied = this._controlContainerService.overscrollYApplied = false;
+                    if (!!this._service) {
+                        this._service.overscroll = { x: false, y: false };
                     }
                     this._scrollDirection.clear();
                     this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
@@ -379,10 +373,7 @@ export class NtScrollView extends BaseScrollView {
                         switchMap(e => {
                             mouseCanceled = false;
                             this._overscrollStartIteration = 0;
-                            this._overscrollApplied = false;
-                            if (!!this._controlContainerService) {
-                                this._controlContainerService.overscrollXApplied = this._controlContainerService.overscrollYApplied = false;
-                            }
+                            this._service.overscroll = { x: false, y: false };
                             this._scrollDirection.clear();
                             this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
                             this.cancelOverscroll();
@@ -549,10 +540,7 @@ export class NtScrollView extends BaseScrollView {
                         switchMap(e => {
                             touchCanceled = false;
                             this._overscrollStartIteration = 0;
-                            this._overscrollApplied = false;
-                            if (!!this._controlContainerService) {
-                                this._controlContainerService.overscrollXApplied = this._controlContainerService.overscrollYApplied = false;
-                            }
+                            this._service.overscroll = { x: false, y: false };
                             this._scrollDirection.clear();
                             this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
                             this.cancelOverscroll();
@@ -781,22 +769,18 @@ export class NtScrollView extends BaseScrollView {
             return;
         }
         if (this._overscrollEnabled) {
-            const controlContainerService = this._controlContainerService,
-                overscrollXApplied = controlContainerService?.overscrollXApplied ?? this._overscrollApplied,
-                overscrollYApplied = controlContainerService?.overscrollYApplied ?? this._overscrollApplied;
-            if (!overscrollXApplied && !overscrollYApplied) {
+            const overscrollX = this._service.overscroll.x,
+                overscrollY = this._service.overscroll.y;
+            if (!overscrollX && !overscrollY) {
                 this._userScrollDirectionIsHorizontal = this._scrollDirectionValueX > this._scrollDirectionValueY;
             }
             if (this._userScrollDirectionIsHorizontal) {
-                if (!overscrollYApplied && this._parentService?.scrollableY) {
+                if (!overscrollY && this._service.parentScrollable.x) {
                     if (this._overscrollStartIteration < OVERSCROLL_START_ITERATION) {
                         this._overscrollStartIteration++;
                         this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
                     } else {
-                        this._overscrollApplied = true;
-                        if (!!controlContainerService) {
-                            this._controlContainerService.overscrollXApplied = true;
-                        }
+                        this._service.overscroll = { ...this._service.overscroll, x: true };
                         this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
                     }
                 } else {
@@ -806,15 +790,12 @@ export class NtScrollView extends BaseScrollView {
                     }
                 }
             } else {
-                if (!overscrollXApplied && this._parentService?.scrollableX) {
+                if (!overscrollX && this._service.parentScrollable.y) {
                     if (this._overscrollStartIteration < OVERSCROLL_START_ITERATION) {
                         this._overscrollStartIteration++;
                         this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
                     } else {
-                        this._overscrollApplied = true;
-                        if (!!controlContainerService) {
-                            this._controlContainerService.overscrollYApplied = true;
-                        }
+                        this._service.overscroll = { ...this._service.overscroll, y: true };
                         this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
                     }
                 } else {

@@ -1,4 +1,5 @@
 import { Observable } from "rxjs";
+import { IBaseScrollViewService } from "./base-scroll-view-service";
 
 /**
  * INtBaseControlContainerService
@@ -6,18 +7,8 @@ import { Observable } from "rxjs";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface INtBaseControlContainerService {
-    get id(): number;
-
+export interface INtBaseControlContainerService extends IBaseScrollViewService {
     get emitter(): HTMLElement;
-
-    set overscrollXApplied(v: boolean);
-
-    get overscrollXApplied(): boolean;
-
-    set overscrollYApplied(v: boolean);
-
-    get overscrollYApplied(): boolean;
 
     readonly $focusedElement: Observable<HTMLElement | null>;
 

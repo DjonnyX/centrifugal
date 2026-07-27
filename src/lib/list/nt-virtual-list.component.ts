@@ -1,5 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, ComponentRef, computed, DestroyRef, effect, ElementRef, inject, input,
+  ChangeDetectionStrategy, Component, ComponentRef, computed, DestroyRef, effect, ElementRef, inject, Injector, input,
   OnDestroy, output, Signal, signal, TemplateRef, ViewChild, viewChild, ViewContainerRef, ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -13,7 +13,7 @@ import {
   DEFAULT_ITEM_SIZE, DEFAULT_BUFFER_SIZE, DEFAULT_LIST_SIZE, DEFAULT_STICKY_ENABLED, DEFAULT_SNAPPING_METHOD, MAX_SCROLL_TO_ITERATIONS, FOCUS,
   TRACK_BY_PROPERTY_NAME, DEFAULT_MAX_BUFFER_SIZE, DEFAULT_SELECTING_MODES, DEFAULT_SELECT_BY_CLICK, DEFAULT_COLLAPSE_BY_CLICK,
   DEFAULT_COLLECTION_MODE, DEFAULT_SCREEN_READER_MESSAGE, DEFAULT_SNAP_TO_END_TRANSITION_INSTANT_OFFSET, DEFAULT_SNAP_SCROLLTO_END,
-  MIN_PIXELS_FOR_PREVENT_SNAPPING, DEFAULT_LANG_TEXT_DIR, DEFAULT_CLICK_DISTANCE, DEFAULT_WAIT_FOR_PREPARATION, DEFAULT_SCROLLBAR_THICKNESS,
+  MIN_PIXELS_FOR_PREVENT_SNAPPING, DEFAULT_LANG_TEXT_DIR, DEFAULT_WAIT_FOR_PREPARATION, DEFAULT_SCROLLBAR_THICKNESS,
   DEFAULT_SCROLLBAR_MIN_SIZE, BEHAVIOR_AUTO, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_OVERSCROLL_ENABLED,
   DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SNAP_SCROLLTO_START, EMPTY_SCROLL_STATE_VERSION, MAX_REGULAR_SNAPED_COMPONENTS,
   PREPARE_ITERATIONS, PREPARATION_REUPDATE_LENGTH, ROLE_LIST_BOX, ROLE_LIST, MAX_VELOCITY_FOR_SCROLL_QUALITY_OPTIMIZATION_LVL1,
@@ -73,6 +73,7 @@ import { INtVirtualListService } from './interfaces';
 import { KEY_DOWN, MOUSE_DOWN, TOUCH_START } from '../common/const/event-names';
 import { KEY_TAB } from '../common/const/key-names';
 import { HEIGHT_PROP_NAME, LEFT_PROP_NAME, PX, TOP_PROP_NAME, WIDTH_PROP_NAME } from '../common/const/base-prop-names';
+import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-virtual-click/const';
 
 /**
  * Virtual list component.
@@ -108,6 +109,8 @@ export class NtVirtualListComponent<S extends INtVirtualListService> implements 
   get id() { return this._id; }
 
   protected _service = inject<S>(SCROLL_VIEW_SERVICE);
+
+  protected _parentService: S;
 
   protected _prerender = viewChild<NtPrerenderContainer>('prerender');
 
@@ -1496,7 +1499,11 @@ export class NtVirtualListComponent<S extends INtVirtualListService> implements 
   private _$destroy = new Subject<void>();
   private readonly $destroy = this._$destroy.asObservable();
 
+  private _injector = inject(Injector);
+
   constructor() {
+    this._parentService = this._injector.get<S>(SCROLL_VIEW_SERVICE, undefined, { skipSelf: true });
+
     NtVirtualListComponent.__nextId = NtVirtualListComponent.__nextId + 1 === Number.MAX_SAFE_INTEGER
       ? 0 : NtVirtualListComponent.__nextId + 1;
     this._id = NtVirtualListComponent.__nextId;
@@ -1527,6 +1534,29 @@ export class NtVirtualListComponent<S extends INtVirtualListService> implements 
     ).subscribe();
 
     this._service.initialize(this._id, this._trackBox);
+
+    if (!!this._parentService) {
+      this._parentService.$scrollable.pipe(
+        takeUntilDestroyed(),
+        tap(v => {
+          this._service.parentScrollable = v;
+        }),
+      ).subscribe();
+
+      this._service.$overscroll.pipe(
+        takeUntilDestroyed(),
+        tap(v => {
+          this._parentService.overscroll = v;
+        }),
+      ).subscribe();
+
+      this._parentService.$overscroll.pipe(
+        takeUntilDestroyed(),
+        tap(v => {
+          this._service.parentOverscroll = v;
+        }),
+      ).subscribe();
+    }
 
     const $animationParams = toObservable(this.animationParams);
     $animationParams.pipe(
