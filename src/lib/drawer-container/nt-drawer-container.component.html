@@ -3,16 +3,16 @@
 @let scrollTopOffset = _precalculatedScrollTopOffset();
 @let scrollBottomOffset = _precalculatedScrollBottomOffset();
 
-<nt-scroller #scroller virtualClick class="ntcc__scroller" [fullSize]="true" [classes]="classes()" [scrollable]="scrollable()"
-  [langTextDir]="langTextDir()" [leftOffset]="scrollLeftOffset" [rightOffset]="scrollRightOffset"
-  [topOffset]="scrollTopOffset" [bottomOffset]="scrollBottomOffset" [direction]="direction()"
-  [scrollbarThumbRenderer]="scrollbarThumbRenderer()" [scrollbarThickness]="scrollbarThickness()"
-  [scrollbarThumbParams]="scrollbarThumbParams()" [animationParams]="animationParams()"
-  [focusedElement]="focusedElement()" [loading]="loading()" [overscrollEnabled]="overscrollEnabled()"
-  [overlappingScrollbar]="overlappingScrollbar()" [scrollbarEnabled]="scrollbarEnabled()"
-  [scrollbarInteractive]="scrollbarInteractive()" [scrollbarMinSize]="scrollbarMinSize()"
-  [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()"
-  [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()">
+<nt-scroller #scroller virtualClick class="ntcc__scroller" [fullSize]="true" [classes]="classes()"
+  [scrollable]="scrollable()" [langTextDir]="langTextDir()" [leftOffset]="scrollLeftOffset"
+  [rightOffset]="scrollRightOffset" [topOffset]="scrollTopOffset" [bottomOffset]="scrollBottomOffset"
+  [direction]="direction()" [scrollbarThumbRenderer]="scrollbarThumbRenderer()"
+  [scrollbarThickness]="scrollbarThickness()" [scrollbarThumbParams]="scrollbarThumbParams()"
+  [animationParams]="animationParams()" [focusedElement]="focusedElement()" [loading]="loading()"
+  [overscrollEnabled]="overscrollEnabled()" [overlappingScrollbar]="overlappingScrollbar()"
+  [scrollbarEnabled]="scrollbarEnabled()" [scrollbarInteractive]="scrollbarInteractive()"
+  [scrollbarMinSize]="scrollbarMinSize()" [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()"
+  [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()">
   <ng-container #renderersContainer>
     <ng-content></ng-content>
   </ng-container>

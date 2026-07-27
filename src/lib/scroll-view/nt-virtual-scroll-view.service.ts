@@ -116,6 +116,30 @@ export class NtVirtualScrollViewService implements INtScrollViewService, OnDestr
     this._$clickDistance.next(v);
   }
 
+  private _$scrollableX = new BehaviorSubject<boolean>(false);
+  readonly $scrollableX = this._$scrollableX.asObservable();
+  get scrollableX() { return this._$scrollableX.getValue(); }
+
+  set scrollableX(v: boolean) {
+    if (this.scrollableX === v) {
+      return;
+    }
+
+    this._$scrollableX.next(v);
+  }
+
+  private _$scrollableY = new BehaviorSubject<boolean>(false);
+  readonly $scrollableY = this._$scrollableY.asObservable();
+  get scrollableY() { return this._$scrollableY.getValue(); }
+
+  set scrollableY(v: boolean) {
+    if (this.scrollableY === v) {
+      return;
+    }
+
+    this._$scrollableY.next(v);
+  }
+
   private _tickerId: number | null = null;
 
   constructor() {

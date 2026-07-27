@@ -66,6 +66,8 @@ export class BaseScrollView {
 
     protected _service = inject<INtScrollViewService>(SCROLL_VIEW_SERVICE);
 
+    protected _parentService = inject<INtScrollViewService>(SCROLL_VIEW_SERVICE);
+
     protected _controlContainerService = inject<INtControlContainerService>(CONTROL_CONTAINER_SERVICE);
 
     protected _isMoving = false;

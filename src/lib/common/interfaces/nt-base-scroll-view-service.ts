@@ -27,4 +27,16 @@ export interface INtBaseScrollViewService {
     get grabbing(): boolean;
 
     set grabbing(v: boolean);
+
+    readonly $scrollableX: Observable<boolean>;
+
+    get scrollableX(): boolean;
+
+    set scrollableX(v: boolean);
+
+    readonly $scrollableY: Observable<boolean>;
+
+    get scrollableY(): boolean;
+
+    set scrollableY(v: boolean);
 }

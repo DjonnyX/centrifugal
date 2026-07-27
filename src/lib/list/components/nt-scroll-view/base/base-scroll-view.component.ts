@@ -3,7 +3,11 @@ import {
 } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ScrollerDirection, ScrollerDirections } from '../enums';
-import { ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, TextDirection, TextDirections } from '../../../../common';
+import {
+    ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, TextDirection, TextDirections,
+} from '../../../../common';
+import { INtVirtualListService } from '../../../interfaces';
+import { INtScrollViewService } from '../../../../scroll-view';
 
 /**
  * BaseScrollView
@@ -18,6 +22,10 @@ import { ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, TextDirec
     template: '',
 })
 export class BaseScrollView {
+    protected _service = inject<INtVirtualListService>(SCROLL_VIEW_SERVICE);
+
+    protected _parentService: INtScrollViewService | null = null;
+
     readonly scrollContent = viewChild<ElementRef<HTMLDivElement>>('scrollContent');
 
     readonly scrollViewport = viewChild<ElementRef<HTMLDivElement>>('scrollViewport');

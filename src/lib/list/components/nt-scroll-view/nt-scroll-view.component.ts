@@ -1,5 +1,5 @@
 import {
-    Component, computed, inject, input, Signal, ViewChild,
+    Component, computed, inject, Injector, input, Signal, ViewChild,
 } from '@angular/core';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -16,12 +16,16 @@ import {
 } from './const';
 import { calculateDirection, matrix3d } from './utils';
 import { BaseScrollView } from './base/base-scroll-view.component';
-import { IAnimationParams, IScrollingSettings, INtVirtualListService } from '../../interfaces';
+import { IAnimationParams, IScrollingSettings } from '../../interfaces';
 import { SnapToItemAligns } from '../../enums';
 import { SnappingDistance, SnapToItemAlign } from '../../types';
 import { ScrollingDirection } from '../../utils/scrolling-direction';
 import { calculateVelocity } from './utils/calculate-velocity';
-import { CONTROL_CONTAINER_SERVICE, Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirections } from '../../../common';
+import {
+    CONTROL_CONTAINER_SERVICE, Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO,
+    SCROLL_VIEW_SERVICE,
+    SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirections,
+} from '../../../common';
 import { Animator, ANIMATOR_MIN_TIMESTAMP, easeOutQuad, Easing, isPercentageValue, parseFloatOrPersentageValue } from '../../../common/utils';
 import { INtControlContainerService } from '../../../control-container/interfaces';
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL, } from '../../../common/const/event-names';
@@ -40,8 +44,6 @@ import { INTERACTIVE } from '../../../common/const/class-names';
 export class NtScrollView extends BaseScrollView {
     @ViewChild('scrollViewport', { read: CdkScrollable })
     readonly cdkScrollable: CdkScrollable | undefined;
-
-    protected _service = inject<INtVirtualListService>(SCROLL_VIEW_SERVICE);
 
     protected _controlContainerService = inject<INtControlContainerService>(CONTROL_CONTAINER_SERVICE);
 
@@ -205,11 +207,15 @@ export class NtScrollView extends BaseScrollView {
 
     private _scrollDirectionValueY: number = 0;
 
+    private _userScrollDirectionIsHorizontal: boolean = false;
+
     protected _intersectionComponentId: Id | null = null;
 
     protected _isAlignmentAnimation = false;
 
     get animated() { return this._animator?.isAnimated ?? false; }
+
+    protected _injector = inject(Injector);
 
     constructor() {
         super();
@@ -222,26 +228,39 @@ export class NtScrollView extends BaseScrollView {
             return !isVertical && langTextDir === TextDirections.RTL;
         });
 
+        this._parentService = this._injector.get(SCROLL_VIEW_SERVICE, undefined, { skipSelf: true });
+
+        const $isVertical = toObservable(this.isVertical),
+            $viewportBounds = toObservable(this.viewportBounds),
+            $contentBounds = toObservable(this.contentBounds);
+        $viewportBounds.pipe(
+            takeUntilDestroyed(),
+            debounceTime(0),
+            tap(() => {
+                this._isMoving = false;
+                this.grabbing.set(false);
+                if (!mouseCanceled || !touchCanceled) {
+                    this.stopMoving();
+                }
+                mouseCanceled = touchCanceled = true;
+                if (this.snapToItem() || this.scrollingOneByOne()) {
+                    this.stopScrolling(true);
+                    this.alignPosition(true, true);
+                }
+                this._$scrollEnd.next(false);
+            }),
+        ).subscribe();
+
+        combineLatest([$isVertical, $viewportBounds, $contentBounds]).pipe(
+            takeUntilDestroyed(),
+            tap(([isVertical]) => {
+                this._service.scrollableX = !isVertical && this.scrollable;
+                this._service.scrollableY = isVertical && this.scrollable;
+            }),
+        ).subscribe();
+
         if (this._userInteraction) {
-            const root = this._controlContainerService?.emitter ?? window,
-                $viewportBounds = toObservable(this.viewportBounds);
-            $viewportBounds.pipe(
-                takeUntilDestroyed(),
-                debounceTime(0),
-                tap(() => {
-                    this._isMoving = false;
-                    this.grabbing.set(false);
-                    if (!mouseCanceled || !touchCanceled) {
-                        this.stopMoving();
-                    }
-                    mouseCanceled = touchCanceled = true;
-                    if (this.snapToItem() || this.scrollingOneByOne()) {
-                        this.stopScrolling(true);
-                        this.alignPosition(true, true);
-                    }
-                    this._$scrollEnd.next(false);
-                }),
-            ).subscribe();
+            const root = this._controlContainerService?.emitter ?? window;
 
             const $wheel = this.$wheel;
             $wheel.pipe(
@@ -762,30 +781,43 @@ export class NtScrollView extends BaseScrollView {
             const controlContainerService = this._controlContainerService,
                 overscrollXApplied = controlContainerService?.overscrollXApplied ?? this._overscrollApplied,
                 overscrollYApplied = controlContainerService?.overscrollYApplied ?? this._overscrollApplied;
-            if (this.isVertical()) {
-                if (this._overscrollStartIteration < OVERSCROLL_START_ITERATION) {
-                    this._overscrollStartIteration++;
-                    this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
+            if (!overscrollXApplied && !overscrollYApplied) {
+                this._userScrollDirectionIsHorizontal = this._scrollDirectionValueX > this._scrollDirectionValueY;
+            }
+            if (this._userScrollDirectionIsHorizontal) {
+                if (!overscrollYApplied && this._parentService?.scrollableY) {
+                    if (this._overscrollIteration < OVERSCROLL_START_ITERATION) {
+                        this._overscrollIteration++;
+                        this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
+                    } else {
+                        this._overscrollApplied = true;
+                        if (!!controlContainerService) {
+                            this._controlContainerService.overscrollXApplied = true;
+                        }
+                        this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
+                    }
                 } else {
-                    if (wheel || overscrollYApplied || this._scrollDirectionValueY > this._scrollDirectionValueX) {
+                    if (e.cancelable) {
+                        e.stopImmediatePropagation();
+                        e.preventDefault();
+                    }
+                }
+            } else {
+                if (!overscrollXApplied && this._parentService?.scrollableX) {
+                    if (this._overscrollIteration < OVERSCROLL_START_ITERATION) {
+                        this._overscrollIteration++;
+                        this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
+                    } else {
                         this._overscrollApplied = true;
                         if (!!controlContainerService) {
                             this._controlContainerService.overscrollYApplied = true;
                         }
                         this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
                     }
-                }
-            } else {
-                if (this._overscrollStartIteration < OVERSCROLL_START_ITERATION) {
-                    this._overscrollStartIteration++;
-                    this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
                 } else {
-                    if (wheel || overscrollXApplied || this._scrollDirectionValueX > this._scrollDirectionValueY) {
-                        this._overscrollApplied = true;
-                        if (!!controlContainerService) {
-                            this._controlContainerService.overscrollXApplied = true;
-                        }
-                        this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
+                    if (e.cancelable) {
+                        e.stopImmediatePropagation();
+                        e.preventDefault();
                     }
                 }
             }
