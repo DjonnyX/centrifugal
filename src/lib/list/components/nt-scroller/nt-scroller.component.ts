@@ -203,7 +203,7 @@ export class NtScrollerComponent extends NtScrollView {
 
     this.$resizeViewport.pipe(
       takeUntilDestroyed(),
-      debounceTime(1),
+      debounceTime(50),
       tap(() => {
         if (this.scrollable) {
           const isVertical = this.isVertical();
@@ -211,7 +211,7 @@ export class NtScrollerComponent extends NtScrollView {
           if (isVertical) {
             position = this._scrollRatio * this.scrollHeight;
           } else {
-            position = this._scrollRatio * this.scrollHeight;
+            position = this._scrollRatio * this.scrollWidth;
           }
           this.move(isVertical, position, true, false, false);
         }
