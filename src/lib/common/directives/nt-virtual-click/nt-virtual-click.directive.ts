@@ -1,10 +1,10 @@
-import { DestroyRef, Directive, ElementRef, inject, input, Input, output, SecurityContext } from '@angular/core';
+import { DestroyRef, Directive, ElementRef, inject, input, output, SecurityContext } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest, fromEvent, of, race } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from '../../injection';
 import { ElementNames } from '../../types';
-import { toggleClassName, validateBoolean, validateString } from '../../utils';
+import { toggleClassName, validateBoolean, validateFloat, validateString } from '../../utils';
 import { ANCHOR, DEFAULT_CLICK_DISTANCE, DEFAULT_INTERACTIVE_ELEMETNS } from './const';
 import { CLICK, POINTER_DOWN, POINTER_LEAVE, POINTER_MOVE, POINTER_UP } from '../../const/event-names';
 import { INtBaseControlContainerService, INtBaseScrollViewService } from '../../interfaces';
@@ -26,35 +26,44 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
 
     protected _controlService = inject<C>(CONTROL_CONTAINER_SERVICE);
 
-    private _$maxDistance = new BehaviorSubject<number | null>(null);
-    protected $maxDistance = this._$maxDistance.asObservable();
+    protected _maxClickDistanceTransform = {
+        transform: (v: number) => {
+            const valid = validateFloat(v);
+            if (!valid) {
+                console.error('The "maxClickDistance" parameter must be of type `number`.');
+                return DEFAULT_CLICK_DISTANCE;
+            }
+            return v;
+        },
+    } as any;
 
-    private _maxDistance: number | null = null;
+    maxClickDistance = input<number>(DEFAULT_CLICK_DISTANCE, { ...this._maxClickDistanceTransform });
 
-    @Input('maxClickDistance')
-    set maxDistance(v: number | string) {
-        const value = (v !== null || v !== undefined) ? Number(v) : null;
-        this._maxDistance = value;
-        this._$maxDistance.next(value);
-    }
+    protected _emitNativeClickTransform = {
+        transform: (v: boolean) => {
+            const valid = validateBoolean(v);
+            if (!valid) {
+                console.error('The "emitNativeClick" parameter must be of type `boolean`.');
+                return true;
+            }
+            return v;
+        },
+    } as any;
 
-    private _emitNativeClick: boolean = true;
+    emitNativeClick = input<boolean>(true, { ...this._emitNativeClickTransform });
 
-    @Input('emitNativeClick')
-    set emitNativeClick(v: boolean) {
-        if (this._emitNativeClick !== v) {
-            this._emitNativeClick = v;
-        }
-    }
+    protected _focusElementTransform = {
+        transform: (v: boolean) => {
+            const valid = validateBoolean(v);
+            if (!valid) {
+                console.error('The "focusElement" parameter must be of type `boolean`.');
+                return true;
+            }
+            return v;
+        },
+    } as any;
 
-    private _focusElement: boolean = true;
-
-    @Input('focusElement')
-    set focusElement(v: boolean) {
-        if (this._focusElement !== v) {
-            this._focusElement = v;
-        }
-    }
+    focusElement = input<boolean>(true, { ...this._focusElementTransform });
 
     protected _allowedNativeInteractiveElementsTransform = {
         transform: (v: ElementNames) => {
@@ -69,7 +78,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
             }
 
             if (!valid) {
-                console.error('The "excludeElementList" parameter must be of type `Array<string>`.');
+                console.error('The "allowedNativeInteractiveElements" parameter must be of type `Array<string>`.');
                 return DEFAULT_INTERACTIVE_ELEMETNS;
             }
             return v.map(v => v.toLocaleLowerCase());
@@ -128,7 +137,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
             }),
         ).subscribe();
 
-        let maxDistance = this._maxDistance ?? DEFAULT_CLICK_DISTANCE;
+        let maxDistance = this.maxClickDistance() ?? DEFAULT_CLICK_DISTANCE;
 
         combineLatest([this._service.$grabbing, this.$elementTarget]).pipe(
             takeUntilDestroyed(),
@@ -139,7 +148,9 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
             }),
         ).subscribe();
 
-        combineLatest([this._service.$clickDistance, this.$maxDistance]).pipe(
+        const $maxDistance = toObservable(this.maxClickDistance);
+
+        combineLatest([this._service.$clickDistance, $maxDistance]).pipe(
             takeUntilDestroyed(),
             tap(([clickDistance, distance]) => {
                 maxDistance = distance === null ? clickDistance : distance;
@@ -203,7 +214,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
 
                             this.onVirtualClick.emit(e);
 
-                            if (this._emitNativeClick) {
+                            if (this.emitNativeClick()) {
                                 const allowedNativeInteractiveElements: Array<string> = this.allowedNativeInteractiveElements(),
                                     target = e.target as HTMLElement,
                                     targetTagName = target.tagName.toLocaleLowerCase();
@@ -216,7 +227,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                                             window.open(sanitizedUrl, aTarget.target);
                                         }
                                     } else {
-                                        if (this._focusElement) {
+                                        if (this.focusElement()) {
                                             this._controlService.focus(target);
                                         }
                                     }

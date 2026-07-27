@@ -10,8 +10,6 @@ const LEFT = 'left',
 
 /**
  * LocaleSensitiveDirective
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/directives/nt-locale-sensitive/nt-locale-sensitive.directive.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -21,7 +19,18 @@ const LEFT = 'left',
   standalone: false,
 })
 export class NtLocaleSensitiveDirective {
-  langTextDir = input<TextDirection>(TextDirections.LTR);
+  protected _langTextDirTransform = {
+    transform: (v: TextDirection) => {
+      const valid = v === TextDirections.LTR || v === TextDirections.RTL;
+      if (!valid) {
+        console.error('The "langTextDir" parameter must be one of type `ltr` or `rtl`.');
+        return TextDirections.LTR;
+      }
+      return v;
+    },
+  } as any;
+
+  langTextDir = input<TextDirection>(TextDirections.LTR, { ...this._langTextDirTransform });
 
   private _elementRef = inject(ElementRef<HTMLElement>);
 
