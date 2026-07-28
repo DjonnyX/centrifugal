@@ -25,7 +25,7 @@ const TOP = 'top',
 export const SCROLL_EVENT = new Event(SCROLLER_SCROLL);
 
 /**
- * The scroller for the NtVirtualScrollView item component
+ * The scroller for the NtScrollView item component
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/scroller/nt-scroller.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com

@@ -23,7 +23,7 @@ import { ISize } from "../../../common";
 @Component({
     selector: 'nt-prerender-container',
     templateUrl: './nt-prerender-container.component.html',
-    styleUrls: ['../../nt-virtual-list.component.scss', './nt-prerender-container.component.scss'],
+    styleUrls: ['../../nt-list.component.scss', './nt-prerender-container.component.scss'],
     host: {
         'style': 'position: relative;'
     },

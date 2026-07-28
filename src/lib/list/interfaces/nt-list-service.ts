@@ -11,12 +11,12 @@ import { INtBaseScrollViewService, Id, IRect, ISize, TextDirection } from "../..
 import { IScrollOptions } from "./scroll-options";
 
 /**
- * INtVirtualListService
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/nt-virtual-list/interfaces/nt-virtual-list-service.ts
+ * INtListService
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/nt-list/interfaces/nt-list-service.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface INtVirtualListService extends INtBaseScrollViewService {
+export interface INtListService extends INtBaseScrollViewService {
     readonly $virtualClick: Observable<IRenderVirtualListItem<any> | null>;
 
     readonly $selectedIds: Observable<Array<Id> | Id | null>;

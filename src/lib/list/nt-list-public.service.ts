@@ -1,23 +1,23 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { IRenderVirtualListItem } from './models';
-import { INtVirtualListService, IScrollOptions } from './interfaces';
+import { INtListService, IScrollOptions } from './interfaces';
 import { FocusAlignment } from './types';
 import { FocusItemParams } from './types/focus-item-params';
 import { FocusAlignments } from './enums';
 import { Id, SCROLL_VIEW_SERVICE } from '../common';
 
 /**
- * NtVirtualListPublicService
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/nt-virtual-list-publick.service.ts
+ * NtListPublicService
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/nt-list-publick.service.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
 @Injectable({
   providedIn: 'root'
 })
-export class NtVirtualListPublicService {
-  private _internalService = inject<INtVirtualListService>(SCROLL_VIEW_SERVICE);
+export class NtListPublicService {
+  private _internalService = inject<INtListService>(SCROLL_VIEW_SERVICE);
 
   /**
    * Unique list identifier.

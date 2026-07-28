@@ -7,7 +7,7 @@ import {
   BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, fromEvent, map,
   of, skip, startWith, Subject, switchMap, take, takeUntil, tap, timer,
 } from 'rxjs';
-import { NtVirtualListItemComponent } from './components/nt-list-item/nt-virtual-list-item.component';
+import { NtListItemComponent } from './components/nt-list-item/nt-list-item.component';
 import {
   BEHAVIOR_INSTANT, CLASS_LIST_HORIZONTAL, CLASS_LIST_VERTICAL, DEFAULT_DIRECTION, DEFAULT_DYNAMIC_SIZE, DEFAULT_ENABLED_BUFFER_OPTIMIZATION,
   DEFAULT_ITEM_SIZE, DEFAULT_BUFFER_SIZE, DEFAULT_LIST_SIZE, DEFAULT_STICKY_ENABLED, DEFAULT_SNAPPING_METHOD, MAX_SCROLL_TO_ITERATIONS, FOCUS,
@@ -45,7 +45,7 @@ import { isSnappingMethodAdvenced } from './utils/snapping-method';
 import { BaseVirtualListItemComponent } from './components/nt-list-item/base';
 import { Component$1 } from './models/component.model';
 import { isDirection } from './utils/is-direction';
-import { NtVirtualListService } from './nt-virtual-list.service';
+import { NtListService } from './nt-list.service';
 import { isSelectMode } from './utils/is-select-mode';
 import { isCollapseMode } from './utils/is-collapse-mode';
 import { SelectingModesTypes } from './enums/selecting-modes-types';
@@ -61,7 +61,7 @@ import { IScrollParams } from './interfaces';
 import { formatActualDisplayItems, formatScreenReaderMessage } from './utils/screen-reader-formatter';
 import { validateId, validateIteration, validateScrollBehavior, validateScrollIteration } from './utils/list-validators';
 import { EVENT_KEY_DOWN, KEY_ARR_DOWN, KEY_ARR_LEFT, KEY_ARR_RIGHT, KEY_ARR_UP } from './components/nt-list-item/const';
-import { NtVirtualListPublicService } from './nt-virtual-list-public.service';
+import { NtListPublicService } from './nt-list-public.service';
 import { normalizeCollection } from './utils/normalize-collection';
 import { CollapsingModes } from './enums';
 import { isSpreadingMode } from './utils/is-spreading-mode';
@@ -69,22 +69,25 @@ import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interf
 import { getScrollStateVersion } from './utils/get-scroll-state-version';
 import { ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections } from '../common';
 import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, parseArithmeticExpression, toggleClassName } from '../common/utils';
-import { INtVirtualListService } from './interfaces';
+import { INtListService } from './interfaces';
 import { KEY_DOWN, MOUSE_DOWN, TOUCH_START } from '../common/const/event-names';
 import { KEY_TAB } from '../common/const/key-names';
 import { HEIGHT_PROP_NAME, LEFT_PROP_NAME, PX, TOP_PROP_NAME, WIDTH_PROP_NAME } from '../common/const/base-prop-names';
 import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-virtual-click/const';
+import { NtBaseScrollComponent } from '../common/components/nt-base-scroll-component';
+import { IBaseScrollViewService } from '../common/interfaces/base-scroll-view-service';
+import { INtScrollViewService } from '../scroll-view';
 
 /**
  * Virtual list component.
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/nt-virtual-list.component.ts
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/nt-list.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
 @Component({
-  selector: 'nt-virtual-list',
-  templateUrl: './nt-virtual-list.component.html',
-  styleUrl: './nt-virtual-list.component.scss',
+  selector: 'nt-list',
+  templateUrl: './nt-list.component.html',
+  styleUrl: './nt-list.component.scss',
   host: {
     'style': 'position: relative;'
   },
@@ -94,24 +97,11 @@ import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-virtual-click/co
   providers: [
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
-    { provide: SCROLL_VIEW_SERVICE, useClass: NtVirtualListService },
-    NtVirtualListPublicService,
+    { provide: SCROLL_VIEW_SERVICE, useClass: NtListService },
+    NtListPublicService,
   ],
 })
-export class NtVirtualListComponent<S extends INtVirtualListService> implements OnDestroy {
-  private static __nextId: number = 0;
-
-  private _id: number = NtVirtualListComponent.__nextId;
-
-  /**
-   * Readonly. Returns the unique identifier of the component.
-   */
-  get id() { return this._id; }
-
-  protected _service = inject<S>(SCROLL_VIEW_SERVICE);
-
-  protected _parentService = inject<S>(SCROLL_VIEW_SERVICE, { skipSelf: true });
-
+export class NtListComponent<S extends INtListService> extends NtBaseScrollComponent<S> implements OnDestroy {
   protected _prerender = viewChild<NtPrerenderContainer>('prerender');
 
   @ViewChild('renderersContainer', { read: ViewContainerRef })
@@ -1446,7 +1436,7 @@ export class NtVirtualListComponent<S extends INtVirtualListService> implements 
   /**
    * Base class of the element component
    */
-  private _itemComponentClass: Component$1<BaseVirtualListItemComponent> = NtVirtualListItemComponent;
+  private _itemComponentClass: Component$1<BaseVirtualListItemComponent> = NtListItemComponent;
   protected get itemComponentClass() { return this._itemComponentClass; }
 
   /**
@@ -1512,9 +1502,7 @@ export class NtVirtualListComponent<S extends INtVirtualListService> implements 
   private readonly $destroy = this._$destroy.asObservable();
 
   constructor() {
-    NtVirtualListComponent.__nextId = NtVirtualListComponent.__nextId + 1 === Number.MAX_SAFE_INTEGER
-      ? 0 : NtVirtualListComponent.__nextId + 1;
-    this._id = NtVirtualListComponent.__nextId;
+    super();
 
     let readyForAnimations = false;
 

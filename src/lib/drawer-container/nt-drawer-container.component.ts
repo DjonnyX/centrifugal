@@ -1,5 +1,5 @@
 import { Component, inject, input, TemplateRef, ViewEncapsulation } from "@angular/core";
-import { INtScrollViewService, NtVirtualScrollViewComponent, NtVirtualScrollViewService } from "../scroll-view";
+import { INtScrollViewService, NtScrollViewComponent, NtScrollViewService } from "../scroll-view";
 import {
   CONTROL_CONTAINER_SERVICE, ElementNames, INtBaseControlContainerService, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
   SCROLL_VIEW_USER_INTERACTION_ENABLED,
@@ -30,12 +30,12 @@ import { tap } from "rxjs";
   providers: [
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
-    { provide: SCROLL_VIEW_SERVICE, useClass: NtVirtualScrollViewService },
+    { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
     { provide: CONTROL_CONTAINER_SERVICE, useClass: NtDrawerContainerService },
   ],
 })
 export class NtDrawerContainerComponent<S extends INtScrollViewService,
-  C extends INtBaseControlContainerService> extends NtVirtualScrollViewComponent<S> {
+  C extends INtBaseControlContainerService> extends NtScrollViewComponent<S> {
   protected _controlService = inject<C>(CONTROL_CONTAINER_SERVICE);
 
   protected override _scrollbarThickness = {

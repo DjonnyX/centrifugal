@@ -2,12 +2,12 @@
  * Public API Surface of list
  */
 export {
-    NtVirtualListModule,
-    NtVirtualListComponent,
-    NtVirtualListPublicService,
+    NtListModule,
+    NtListComponent,
+    NtListPublicService,
 } from './lib/list';
 export type {
-    INtVirtualListService,
+    INtListService,
 } from './lib/list';
 
 /*
@@ -16,9 +16,9 @@ export type {
 export {
     NtScrollerModule,
     NtScrollerComponent,
-    NtVirtualScrollViewModule,
-    NtVirtualScrollViewComponent,
-    NtVirtualScrollViewService
+    NtScrollViewModule,
+    NtScrollViewComponent,
+    NtScrollViewService
 } from './lib/scroll-view';
 export type {
     INtScrollViewService,
