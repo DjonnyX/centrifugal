@@ -14,6 +14,8 @@
   [scrollbarMinSize]="scrollbarMinSize()" [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()"
   [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()">
   <ng-container #renderersContainer>
-    <ng-content></ng-content>
+    <nt-drawer-layout>
+      <ng-content></ng-content>
+    </nt-drawer-layout>
   </ng-container>
 </nt-scroller>
