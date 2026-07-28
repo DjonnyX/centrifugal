@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { NtVirtualListItemComponent } from '../../../nt-list-item/nt-virtual-list-item.component';
+import { NtListItemComponent } from '../../../nt-list-item/nt-list-item.component';
 import { ID, POSITION, POSITION_ZERO } from '../../../nt-list-item/const';
 import {
     DEFAULT_ZINDEX, DISPLAY_BLOCK, DISPLAY_NONE, HIDDEN_ZINDEX, PX, SIZE_AUTO, VISIBILITY_HIDDEN, VISIBILITY_VISIBLE,
@@ -13,8 +13,8 @@ import {
  */
 @Component({
     selector: 'nt-prerender-virtual-list-item',
-    templateUrl: '../../../nt-list-item/nt-virtual-list-item.component.html',
-    styleUrls: ['../../../nt-list-item/nt-virtual-list-item.component.scss', './nt-prerender-list-item.component.scss'],
+    templateUrl: '../../../nt-list-item/nt-list-item.component.html',
+    styleUrls: ['../../../nt-list-item/nt-list-item.component.scss', './nt-prerender-list-item.component.scss'],
     host: {
         'class': 'ntvl__item',
         'role': 'listitem',
@@ -22,7 +22,7 @@ import {
     standalone: false,
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NtPrerenderVirtualListItemComponent extends NtVirtualListItemComponent {
+export class NtPrerenderVirtualListItemComponent extends NtListItemComponent {
     protected override update() {
         const data = this._data, regular = this.regular, length = this._regularLength, el = this._elementRef.nativeElement,
             itemElement = this._item()?.nativeElement, containerElement = this._container()?.nativeElement;

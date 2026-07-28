@@ -14,11 +14,11 @@ import { ITemplateContext } from '../interfaces';
 import {
   CLASS_NAME_FOCUS, CLASS_NAME_SNAPPED, CLASS_NAME_SNAPPED_OUT, ID, ITEM_ID, POSITION, POSITION_ZERO,
 } from '../const';
-import { NtVirtualListPublicService } from '../../../nt-virtual-list-public.service';
+import { NtListPublicService } from '../../../nt-list-public.service';
 import { createDisplayId, matrix3d } from '../utils';
 import { IBaseVirtualListItemComponent } from '../../../interfaces/base-virtual-list-item-component';
 import { Color, ISize, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../../../../common';
-import { INtVirtualListService } from '../../../interfaces/nt-virtual-list-service';
+import { INtListService } from '../../../interfaces/nt-list-service';
 import {
   DEFAULT_ZINDEX, DISPLAY_BLOCK, DISPLAY_NONE, HIDDEN_ZINDEX, PX, SIZE_100_PERSENT, SIZE_AUTO, TRANSLATE_3D, VISIBILITY_HIDDEN, VISIBILITY_VISIBLE,
   INVISIBLE_TRANSLATE_3D,
@@ -41,9 +41,9 @@ export class BaseVirtualListItemComponent implements IBaseVirtualListItemCompone
 
   protected _container = viewChild<ElementRef<HTMLDivElement>>('container');
 
-  private _apiService = inject(NtVirtualListPublicService);
+  private _apiService = inject(NtListPublicService);
 
-  protected _service = inject<INtVirtualListService>(SCROLL_VIEW_SERVICE);
+  protected _service = inject<INtListService>(SCROLL_VIEW_SERVICE);
 
   protected _id!: number;
   get id() {

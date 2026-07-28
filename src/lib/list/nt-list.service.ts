@@ -25,15 +25,15 @@ import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.
 import { IBaseScrollViewService } from '../common/interfaces/base-scroll-view-service';
 
 /**
- * NtVirtualListService
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/nt-virtual-list.service.ts
+ * NtListService
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/nt-list.service.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
 @Injectable({
   providedIn: 'root'
 })
-export class NtVirtualListService extends NtBaseScrollViewService implements IBaseScrollViewService, OnDestroy {
+export class NtListService extends NtBaseScrollViewService implements IBaseScrollViewService, OnDestroy {
   private _nextComponentId: number = 0;
 
   private _$virtualClick = new Subject<IRenderVirtualListItem<any> | null>();

@@ -6,7 +6,7 @@ import { ScrollerDirection, ScrollerDirections } from '../enums';
 import {
     ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, TextDirection, TextDirections,
 } from '../../../../common';
-import { INtVirtualListService } from '../../../interfaces';
+import { INtListService } from '../../../interfaces';
 
 /**
  * BaseScrollView
@@ -21,7 +21,7 @@ import { INtVirtualListService } from '../../../interfaces';
     template: '',
 })
 export class BaseScrollView {
-    protected _service = inject<INtVirtualListService>(SCROLL_VIEW_SERVICE);
+    protected _service = inject<INtListService>(SCROLL_VIEW_SERVICE);
 
     readonly scrollContent = viewChild<ElementRef<HTMLDivElement>>('scrollContent');
 

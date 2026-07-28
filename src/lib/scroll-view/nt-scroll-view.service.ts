@@ -9,15 +9,15 @@ import { Id, IRect } from '../common';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
 
 /**
- * NtVirtualScrollViewService
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/nt-virtual-scroll-view.service.ts
+ * NtScrollViewService
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/nt-scroll-view.service.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
 @Injectable({
   providedIn: 'root'
 })
-export class NtVirtualScrollViewService extends NtBaseScrollViewService implements INtScrollViewService, OnDestroy {
+export class NtScrollViewService extends NtBaseScrollViewService implements INtScrollViewService, OnDestroy {
   private _nextComponentId: number = 0;
 
   private _$tick = new Subject<void>();

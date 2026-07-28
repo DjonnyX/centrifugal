@@ -1,5 +1,5 @@
 /*
- * Public API Surface of nt-virtual-scroll-view
+ * Public API Surface of nt-scroll-view
  */
 export * from './components/nt-base-scroll-bar/types/scrollbar-state';
 export * from './components/nt-base-scroll-bar/enums/scrollbar-states';

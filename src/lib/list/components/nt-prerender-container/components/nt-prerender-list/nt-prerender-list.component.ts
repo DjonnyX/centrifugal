@@ -29,7 +29,7 @@ import { PX } from "../../../../../common/const/base-prop-names";
 @Component({
     selector: 'nt-prerender-list',
     templateUrl: './nt-prerender-list.component.html',
-    styleUrls: ['../../../../nt-virtual-list.component.scss', './nt-prerender-list.component.scss'],
+    styleUrls: ['../../../../nt-list.component.scss', './nt-prerender-list.component.scss'],
     host: {
         'style': 'position: relative;'
     },

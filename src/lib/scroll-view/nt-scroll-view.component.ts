@@ -41,6 +41,7 @@ import {
 } from '../common/utils';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from '../common/const/base-prop-names';
 import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-virtual-click/const';
+import { NtBaseScrollComponent } from '../common/components/nt-base-scroll-component';
 
 /**
  * NtScrollViewComponent
@@ -64,20 +65,7 @@ import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-virtual-click/co
     { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
   ],
 })
-export class NtScrollViewComponent<S extends INtScrollViewService> implements OnDestroy {
-  private static __nextId: number = 0;
-
-  protected _id: number = NtScrollViewComponent.__nextId;
-
-  /**
-   * Readonly. Returns the unique identifier of the component.
-   */
-  get id() { return this._id; }
-
-  protected _service = inject<S>(SCROLL_VIEW_SERVICE);
-
-  protected _parentService = inject<S>(SCROLL_VIEW_SERVICE, { skipSelf: true });
-
+export class NtScrollViewComponent<S extends INtScrollViewService> extends NtBaseScrollComponent<S> implements OnDestroy {
   protected _scrollerComponent = viewChild<NtScrollerComponent>('scroller');
 
   protected _scroller: Signal<ElementRef<HTMLDivElement> | undefined>;
@@ -714,9 +702,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService> implements On
   protected _injector = inject(Injector);
 
   constructor() {
-    NtScrollViewComponent.__nextId = NtScrollViewComponent.__nextId + 1 === Number.MAX_SAFE_INTEGER
-      ? 0 : NtScrollViewComponent.__nextId + 1;
-    this._id = NtScrollViewComponent.__nextId;
+    super();
 
     let hasUserAction = false;
 

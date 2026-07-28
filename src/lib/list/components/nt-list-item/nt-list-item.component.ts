@@ -19,14 +19,14 @@ import { DEFAULT_CLICK_DISTANCE } from '../../../common/directives/nt-virtual-cl
 
 /**
  * Virtual list component.
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-list-item/nt-virtual-list-item.component.ts
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-list-item/nt-list-item.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
 @Component({
-  selector: 'nt-virtual-list-item',
-  templateUrl: './nt-virtual-list-item.component.html',
-  styleUrl: './nt-virtual-list-item.component.scss',
+  selector: 'nt-list-item',
+  templateUrl: './nt-list-item.component.html',
+  styleUrl: './nt-list-item.component.scss',
   host: {
     'class': 'ntvl__item',
     'role': 'listitem',
@@ -34,7 +34,7 @@ import { DEFAULT_CLICK_DISTANCE } from '../../../common/directives/nt-virtual-cl
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NtVirtualListItemComponent extends BaseVirtualListItemComponent implements OnInit {
+export class NtListItemComponent extends BaseVirtualListItemComponent implements OnInit {
   protected readonly maxClickDistance = signal<number>(DEFAULT_CLICK_DISTANCE);
 
   protected _injector = inject(Injector);

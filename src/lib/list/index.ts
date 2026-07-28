@@ -1,10 +1,10 @@
 /*
- * Public API Surface of nt-virtual-list
+ * Public API Surface of nt-list
  */
-export * from './components/nt-list-item/nt-virtual-list-item.component';
-export * from './nt-virtual-list-public.service';
-export * from './nt-virtual-list.component';
-export * from './nt-virtual-list.module';
+export * from './components/nt-list-item/nt-list-item.component';
+export * from './nt-list-public.service';
+export * from './nt-list.component';
+export * from './nt-list.module';
 export * from './transformations';
 export * from './interfaces';
 export * from './enums';
