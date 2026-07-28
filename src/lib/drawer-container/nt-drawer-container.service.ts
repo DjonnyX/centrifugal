@@ -94,8 +94,9 @@ export class NtDrawerContainerService extends NtBaseScrollViewService implements
     });
   }
 
-  initialize(id: number, emitter: HTMLElement) {
+  initialize(id: number, parentId: number, emitter: HTMLElement) {
     this._id = id;
+    this._parentId = parentId;
     this._emitter = emitter;
   }
 

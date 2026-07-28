@@ -428,8 +428,9 @@ export class NtVirtualListService extends NtBaseScrollViewService implements IBa
     }
   }
 
-  initialize(id: number, trackBox: TrackBox) {
+  initialize(id: number, parentId: number, trackBox: TrackBox) {
     this._id = id;
+    this._parentId = parentId;
     this._trackBox = trackBox;
     this._trackBox.addEventListener(TrackBoxEvents.TICK, this._onTickHandler);
     this._trackBox.addEventListener(TrackBoxEvents.CHANGE, this._onTrackBoxChangeHandler);

@@ -21,6 +21,9 @@ import { IOverscroll } from '../interfaces/overscroll';
 export class NtBaseScrollViewService implements INtBaseScrollViewService, OnDestroy {
   protected _id: number = 0;
   get id() { return this._id; }
+  
+  protected _parentId: number = -1;
+  get parentId() { return this._parentId; }
 
   protected _$langTextDir = new BehaviorSubject<TextDirection>(TextDirections.LTR);
   readonly $langTextDir = this._$langTextDir.asObservable();

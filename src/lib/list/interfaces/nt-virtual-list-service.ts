@@ -129,7 +129,7 @@ export interface INtVirtualListService extends INtBaseScrollViewService {
 
     update(immediately?: boolean): void;
 
-    initialize(id: number, trackBox: TrackBox): void;
+    initialize(id: number, parentId: number, trackBox: TrackBox): void;
 
     generateComponentId(): number;
 

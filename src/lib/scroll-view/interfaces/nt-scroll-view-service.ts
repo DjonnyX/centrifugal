@@ -11,7 +11,7 @@ import { INtBaseScrollViewService, Id, IRect, TextDirection } from "../../common
  * @email djonnyx@gmail.com
  */
 export interface INtScrollViewService extends INtBaseScrollViewService {
-    initialize: (id: number) => void;
+    initialize: (id: number, parentId: number) => void;
 
     animationParams: IAnimationParams;
 

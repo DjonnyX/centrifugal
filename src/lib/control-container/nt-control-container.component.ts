@@ -66,7 +66,7 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
 
   constructor() {
     super();
-    this._controlService.initialize(this._id, this.host);
+    this._controlService.initialize(this._id, this._parentService.id, this.host);
 
     const $scroller = toObservable(this._scrollerComponent).pipe(
       takeUntilDestroyed(this._destroyRef),

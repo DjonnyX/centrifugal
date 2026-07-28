@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { NtVirtualScrollViewComponent } from './nt-virtual-scroll-view.component';
 import { NtScrollerModule } from './components/nt-scroller/nt-scroller.module';
 import { NtVirtualScrollViewService } from './nt-virtual-scroll-view.service';
-import { NtLocaleSensitiveModule, SCROLL_VIEW_SERVICE } from '../common';
+import { CONTROL_CONTAINER_SERVICE, NtLocaleSensitiveModule, SCROLL_VIEW_SERVICE } from '../common';
 
 @NgModule({
   declarations: [NtVirtualScrollViewComponent],
@@ -11,6 +11,7 @@ import { NtLocaleSensitiveModule, SCROLL_VIEW_SERVICE } from '../common';
   imports: [CommonModule, NtScrollerModule, NtLocaleSensitiveModule],
   providers: [
     { provide: SCROLL_VIEW_SERVICE, useClass: NtVirtualScrollViewService },
+    { provide: CONTROL_CONTAINER_SERVICE, useValue: null, },
   ],
   schemas: [NO_ERRORS_SCHEMA],
 })

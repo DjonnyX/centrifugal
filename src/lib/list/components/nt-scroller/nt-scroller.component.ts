@@ -203,18 +203,12 @@ export class NtScrollerComponent extends NtScrollView {
 
     this.$resizeViewport.pipe(
       takeUntilDestroyed(),
+      tap(() => {
+        this.resizeViewport();
+      }),
       debounceTime(50),
       tap(() => {
-        if (this.scrollable) {
-          const isVertical = this.isVertical();
-          let position: number;
-          if (isVertical) {
-            position = this._scrollRatio * this.scrollHeight;
-          } else {
-            position = this._scrollRatio * this.scrollWidth;
-          }
-          this.move(isVertical, position, true, false, false);
-        }
+        this.resizeViewport();
       }),
     ).subscribe();
 
@@ -306,6 +300,19 @@ export class NtScrollerComponent extends NtScrollView {
         this.updateScrollBarHandler();
       }
     });
+  }
+
+  private resizeViewport() {
+    if (this.scrollable) {
+      const isVertical = this.isVertical();
+      let position: number;
+      if (isVertical) {
+        position = this._scrollRatio * this.scrollHeight;
+      } else {
+        position = this._scrollRatio * this.scrollWidth;
+      }
+      this.move(isVertical, position, true, false, false);
+    }
   }
 
   private recalculatePerspective() {
