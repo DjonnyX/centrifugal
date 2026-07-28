@@ -330,6 +330,20 @@ export class NtVirtualListComponent<S extends INtVirtualListService> implements 
     ...this._itemsOptions,
   });
 
+  protected _defaultItemValueOptions = {
+    transform: (v: IVirtualListItem) => {
+      const valid = validateObject(v, true);
+
+      if (!valid) {
+        console.error('The "defaultItemValue" parameter must be one of type `IVirtualListItem` or `null`.');
+        return null;
+      }
+      return v;
+    },
+  } as any;
+
+  defaultItemValue = input<IVirtualListItem | null>(null, { ...this._defaultItemValueOptions });
+
   protected _selectedIdsOptions = {
     transform: (v: Array<Id> | Id | undefined) => {
       let valid = validateArray(v as any, true, true) || validateString(v as any, true, true) || validateFloat(v as any, true);
@@ -352,8 +366,6 @@ export class NtVirtualListComponent<S extends INtVirtualListService> implements 
       return v;
     },
   } as any;
-
-  defaultItemValue = input<IVirtualListItem | null>(null);
 
   /**
    * Sets the selected items.
