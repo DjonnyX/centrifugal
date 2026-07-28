@@ -7,17 +7,15 @@ import {
   BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, map, skip, Subject, switchMap, take, tap,
 } from 'rxjs';
 import {
-  BEHAVIOR_INSTANT, CLASS_SCROLL_VIEW_HORIZONTAL, CLASS_SCROLL_VIEW_VERTICAL, DEFAULT_DIRECTION,
-  MIN_PIXELS_FOR_PREVENT_SNAPPING, DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLLBAR_THICKNESS,
-  DEFAULT_SCROLLBAR_MIN_SIZE, BEHAVIOR_AUTO, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_OVERSCROLL_ENABLED,
-  DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_SETTINGS, DEFAULT_MOTION_BLUR, DEFAULT_MAX_MOTION_BLUR,
-  DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SNAP_SCROLLTO_LEFT, DEFAULT_SNAP_SCROLLTO_TOP,
-  DEFAULT_SNAP_SCROLLTO_RIGHT, DEFAULT_SNAP_SCROLLTO_BOTTOM, CLASS_SCROLL_VIEW_BOTH, DEFAULT_SCROLLABLE,
+  BEHAVIOR_INSTANT, CLASS_SCROLL_VIEW_HORIZONTAL, CLASS_SCROLL_VIEW_VERTICAL, DEFAULT_DIRECTION, MIN_PIXELS_FOR_PREVENT_SNAPPING,
+  DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLLBAR_THICKNESS, DEFAULT_SCROLLBAR_MIN_SIZE, BEHAVIOR_AUTO, DEFAULT_SCROLLBAR_ENABLED,
+  DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_SETTINGS,
+  DEFAULT_MOTION_BLUR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SNAP_SCROLLTO_LEFT,
+  DEFAULT_SNAP_SCROLLTO_TOP, DEFAULT_SNAP_SCROLLTO_RIGHT, DEFAULT_SNAP_SCROLLTO_BOTTOM, CLASS_SCROLL_VIEW_BOTH, DEFAULT_SCROLLABLE,
   DEFAULT_SCROLLER_SIZE,
 } from './const';
 import {
-  IScrollEvent, IAnimationParams, IScrollingSettings, IScrollOptions,
-  INtScrollViewService,
+  IScrollEvent, IAnimationParams, IScrollingSettings, IScrollOptions, INtScrollViewService,
 } from './interfaces';
 import {
   Direction,
@@ -36,8 +34,7 @@ import {
   TextDirection, TextDirections,
 } from '../common';
 import {
-  isPercentageValue, parseArithmeticExpression, toggleClassName,
-  validateBoolean, validateFloat, validateInt, validateObject, validateString,
+  isPercentageValue, parseArithmeticExpression, toggleClassName, validateBoolean, validateFloat, validateInt, validateObject, validateString,
 } from '../common/utils';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from '../common/const/base-prop-names';
 import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-virtual-click/const';
@@ -104,9 +101,6 @@ export class NtScrollViewComponent<S extends INtScrollViewService> extends NtBas
    * Fires when the scroll reaches the bottom.
    */
   onScrollReachBottom = output<void>();
-
-  protected _$show = new BehaviorSubject<boolean>(false);
-  readonly $show = this._$show.asObservable();
 
   protected _$initialized = new BehaviorSubject<boolean>(false);
   readonly $initialized = this._$initialized.asObservable();
@@ -642,6 +636,54 @@ export class NtScrollViewComponent<S extends INtScrollViewService> extends NtBas
    */
   langTextDir = input<TextDirection>(DEFAULT_LANG_TEXT_DIR, { ...this._langTextDir });
 
+  get scrollLeft() {
+    return this._scrollerComponent()?.scrollLeft ?? 0;
+  }
+
+  get scrollTop() {
+    return this._scrollerComponent()?.scrollTop ?? 0;
+  }
+
+  get scrollWidth() {
+    return this._scrollerComponent()?.scrollWidth ?? 0;
+  }
+
+  get scrollHeight() {
+    return this._scrollerComponent()?.scrollHeight ?? 0;
+  }
+
+  get animatedX() {
+    return this._scrollerComponent()?.animatedX;
+  }
+
+  get animatedY() {
+    return this._scrollerComponent()?.animatedY;
+  }
+
+  get velocityX() {
+    return this._scrollerComponent()?.velocityX;
+  }
+
+  get velocityY() {
+    return this._scrollerComponent()?.velocityY;
+  }
+
+  get averageVelocityX() {
+    return this._scrollerComponent()?.averageVelocityX;
+  }
+
+  get averageVelocityY() {
+    return this._scrollerComponent()?.averageVelocityY;
+  }
+
+  get scrollableX() {
+    return this._scrollerComponent()?.scrollableX;
+  }
+
+  get scrollableY() {
+    return this._scrollerComponent()?.scrollableY;
+  }
+
   protected readonly focusedElement = signal<Id | null>(null);
 
   protected readonly classes = signal<{ [cName: string]: boolean }>({ prepared: true });
@@ -676,6 +718,9 @@ export class NtScrollViewComponent<S extends INtScrollViewService> extends NtBas
     return this._elementRef.nativeElement;
   }
 
+  private _$scrollTo = new Subject<IScrollOptions>();
+  protected $scrollTo = this._$scrollTo.asObservable();
+
   protected _$scroll = new Subject<IScrollEvent>();
   readonly $scroll = this._$scroll.asObservable();
 
@@ -709,9 +754,9 @@ export class NtScrollViewComponent<S extends INtScrollViewService> extends NtBas
     const _$created = new BehaviorSubject<boolean>(false),
       $created = _$created.asObservable();
 
-    combineLatest([$created, this.$show]).pipe(
+    $created.pipe(
       takeUntilDestroyed(),
-      filter(([created, shown]) => created && shown),
+      filter(v => !!v),
       debounceTime(1),
       tap(v => {
         this._$initialized.next(true);
@@ -1343,6 +1388,28 @@ export class NtScrollViewComponent<S extends INtScrollViewService> extends NtBas
         this.onViewportChange.emit(objectAsReadonly(size));
       }),
     ).subscribe();
+
+    const $scrollTo = this.$scrollTo;
+
+    const $scrollToInitialize = this.$initialized;
+
+    combineLatest([$scrollToInitialize, $scrollerComponent, $scrollTo]).pipe(
+      takeUntilDestroyed(),
+      filter(([i, c, e]) => !!i && !!c && !!e),
+      tap(([, s, e]) => {
+        const event = e!;
+        const behavior = event?.behavior ?? BEHAVIOR_INSTANT,
+          blending = event?.blending ?? false,
+          x = event?.x,
+          y = event?.y,
+          left = event?.left,
+          top = event?.top,
+          ease = event?.ease,
+          duration = event?.duration;
+        s!.stopScrolling();
+        s!.scroll({ x, y, left, top, behavior, blending, ease, duration, userAction: true });
+      }),
+    ).subscribe();
   }
 
   ngAfterViewInit() {
@@ -1455,20 +1522,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService> extends NtBas
    * if the behavior is set to auto, instant, or not set.
    */
   scrollTo(options: IScrollOptions) {
-    const behavior = options?.behavior ?? BEHAVIOR_INSTANT,
-      blending = options?.blending ?? false,
-      x = options?.x,
-      y = options?.y,
-      left = options?.left,
-      top = options?.top,
-      ease = options?.ease,
-      duration = options?.duration;
-    const scroller = this._scrollerComponent();
-    if (!!scroller) {
-      scroller.stopScrolling();
-      return scroller.scroll({ x, y, left, top, behavior, blending, ease, duration, userAction: true });
-    }
-    return null;
+    this._$scrollTo.next(options);
   }
 
   /**
