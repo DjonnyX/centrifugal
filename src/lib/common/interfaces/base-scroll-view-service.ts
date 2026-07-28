@@ -11,6 +11,8 @@ import { IOverscroll } from "./overscroll";
  */
 export interface IBaseScrollViewService {
     get id(): number;
+    
+    get parentId(): number;
 
     readonly $langTextDir: Observable<TextDirection>;
 

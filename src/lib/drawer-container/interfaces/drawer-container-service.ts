@@ -10,7 +10,7 @@ import { IBaseScrollViewService } from "../../common/interfaces/base-scroll-view
  * @email djonnyx@gmail.com
  */
 export interface INtDrawerContainerService extends IBaseScrollViewService, INtBaseControlContainerService {
-    initialize: (id: number, emitter: HTMLElement) => void;
+    initialize: (id: number, parentId: number, emitter: HTMLElement) => void;
 
     animationParams: IAnimationParams;
 

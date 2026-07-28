@@ -157,7 +157,7 @@ export class NtDrawerContainerComponent<S extends INtScrollViewService,
   constructor() {
     super();
 
-    this._controlService.initialize(this._id, this.host);
+    this._controlService.initialize(this._id, this._parentService.id, this.host);
 
     this.host.setAttribute(TABINDEX, ZERO);
 

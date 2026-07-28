@@ -6,7 +6,7 @@ import { NtVirtualListItemModule } from './components/nt-list-item/nt-virtual-li
 import { NtScrollerModule } from './components/nt-scroller/nt-scroller.module';
 import { NtPrerenderContainerModule } from './components/nt-prerender-container/nt-prerender-container.module';
 import { NtVirtualListService } from './nt-virtual-list.service';
-import { SCROLL_VIEW_SERVICE } from '../common';
+import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from '../common';
 
 @NgModule({
   declarations: [NtVirtualListComponent],
@@ -14,6 +14,7 @@ import { SCROLL_VIEW_SERVICE } from '../common';
   imports: [CommonModule, NtVirtualListItemModule, NtScrollerModule, NtPrerenderContainerModule, NtLocaleSensitiveModule, NtVirtualClickModule],
   providers: [
     { provide: SCROLL_VIEW_SERVICE, useClass: NtVirtualListService },
+    { provide: CONTROL_CONTAINER_SERVICE, useValue: null, },
   ],
   schemas: [NO_ERRORS_SCHEMA],
 })

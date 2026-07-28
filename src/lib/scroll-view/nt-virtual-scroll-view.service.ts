@@ -78,8 +78,9 @@ export class NtVirtualScrollViewService extends NtBaseScrollViewService implemen
     });
   }
 
-  initialize(id: number) {
+  initialize(id: number, parentId: number) {
     this._id = id;
+    this._parentId = parentId;
   }
 
   generateComponentId() {

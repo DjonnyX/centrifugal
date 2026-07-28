@@ -37,8 +37,9 @@ export class NtControlContainerService extends NtBaseScrollViewService implement
     super();
   }
 
-  initialize(id: number, emitter: HTMLElement) {
+  initialize(id: number, parentId: number, emitter: HTMLElement) {
     this._id = id;
+    this._parentId = parentId;
     this._emitter = emitter;
   }
 

@@ -3,9 +3,8 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest, fromEvent, of, race } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from '../../injection';
-import { ElementNames } from '../../types';
-import { toggleClassName, validateBoolean, validateFloat, validateString } from '../../utils';
-import { ANCHOR, DEFAULT_CLICK_DISTANCE, DEFAULT_INTERACTIVE_ELEMETNS } from './const';
+import { toggleClassName, validateBoolean, validateFloat } from '../../utils';
+import { ANCHOR, DEFAULT_CLICK_DISTANCE } from './const';
 import { CLICK, POINTER_DOWN, POINTER_LEAVE, POINTER_MOVE, POINTER_UP } from '../../const/event-names';
 import { INtBaseControlContainerService, INtBaseScrollViewService } from '../../interfaces';
 import { GRABBING, NOT_GRABBING } from '../../const/class-names';
@@ -65,31 +64,6 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
 
     focusElement = input<boolean>(true, { ...this._focusElementTransform });
 
-    protected _allowedNativeInteractiveElementsTransform = {
-        transform: (v: ElementNames) => {
-            let valid = !!v;
-            if (!!v) {
-                for (const name of v) {
-                    valid = validateString(name);
-                    if (!valid) {
-                        break;
-                    }
-                }
-            }
-
-            if (!valid) {
-                console.error('The "allowedNativeInteractiveElements" parameter must be of type `Array<string>`.');
-                return DEFAULT_INTERACTIVE_ELEMETNS;
-            }
-            return v.map(v => v.toLocaleLowerCase());
-        },
-    } as any;
-
-    /**
-     * Allowed native interactive elements for user interaction.
-     */
-    allowedNativeInteractiveElements = input<ElementNames>(DEFAULT_INTERACTIVE_ELEMETNS, { ...this._allowedNativeInteractiveElementsTransform });
-
     protected _allowedAnchorDraggableTransform = {
         transform: (v: boolean) => {
             const valid = validateBoolean(v);
@@ -139,23 +113,32 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
 
         let maxDistance = this.maxClickDistance() ?? DEFAULT_CLICK_DISTANCE;
 
-        combineLatest([this._service.$grabbing, this.$elementTarget]).pipe(
-            takeUntilDestroyed(),
-            tap(([v, t]) => {
-                if (!!t) {
-                    toggleClassName(t, v ? GRABBING : NOT_GRABBING, [v ? NOT_GRABBING : GRABBING]);
-                }
-            }),
-        ).subscribe();
-
         const $maxDistance = toObservable(this.maxClickDistance);
 
-        combineLatest([this._service.$clickDistance, $maxDistance]).pipe(
-            takeUntilDestroyed(),
-            tap(([clickDistance, distance]) => {
-                maxDistance = distance === null ? clickDistance : distance;
-            }),
-        ).subscribe();
+        if (!!this._service) {
+            combineLatest([this._service.$grabbing, this.$elementTarget]).pipe(
+                takeUntilDestroyed(),
+                tap(([v, t]) => {
+                    if (!!t) {
+                        toggleClassName(t, v ? GRABBING : NOT_GRABBING, [v ? NOT_GRABBING : GRABBING]);
+                    }
+                }),
+            ).subscribe();
+
+            combineLatest([this._service.$clickDistance, $maxDistance]).pipe(
+                takeUntilDestroyed(),
+                tap(([clickDistance, distance]) => {
+                    maxDistance = distance === null ? clickDistance : distance;
+                }),
+            ).subscribe();
+        } else {
+            $maxDistance.pipe(
+                takeUntilDestroyed(),
+                tap(distance => {
+                    maxDistance = distance === null ? DEFAULT_CLICK_DISTANCE : distance;
+                }),
+            ).subscribe();
+        }
 
         const $pointerPressed = fromEvent<PointerEvent>(host, POINTER_DOWN),
             $pointerCancel = race([
@@ -207,7 +190,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                     takeUntilDestroyed(this._destroyRef),
                     tap(e => {
                         if (!!e) {
-                            if (e.cancelable) {
+                            if (!!this._controlService && e.cancelable) {
                                 e.stopImmediatePropagation();
                                 e.preventDefault();
                             }
@@ -215,10 +198,9 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                             this.onVirtualClick.emit(e);
 
                             if (this.emitNativeClick()) {
-                                const allowedNativeInteractiveElements: Array<string> = this.allowedNativeInteractiveElements(),
-                                    target = e.target as HTMLElement,
+                                const target = e.target as HTMLElement,
                                     targetTagName = target.tagName.toLocaleLowerCase();
-                                if (!!targetTagName /*&& allowedNativeInteractiveElements.indexOf(targetTagName) > -1*/) {
+                                if (!!targetTagName) {
                                     if (targetTagName === ANCHOR) {
                                         const aTarget = target as HTMLAnchorElement,
                                             url = String(aTarget.href),
@@ -227,7 +209,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                                             window.open(sanitizedUrl, aTarget.target);
                                         }
                                     } else {
-                                        if (this.focusElement()) {
+                                        if (this.focusElement() && !!this._controlService) {
                                             this._controlService.focus(target);
                                         }
                                     }
@@ -240,11 +222,13 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
             }),
         ).subscribe();
 
-        fromEvent<PointerEvent>(host, CLICK, { passive: false }).pipe(
-            takeUntilDestroyed(),
-            tap(e => {
-                e.preventDefault();
-            }),
-        ).subscribe();
+        if (!!this._controlService) {
+            fromEvent<PointerEvent>(host, CLICK, { passive: false }).pipe(
+                takeUntilDestroyed(),
+                tap(e => {
+                    e.preventDefault();
+                }),
+            ).subscribe();
+        }
     }
 }

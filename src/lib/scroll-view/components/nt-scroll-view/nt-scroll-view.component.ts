@@ -793,8 +793,8 @@ export class NtScrollView extends BaseScrollView {
         }
 
         if (this._overscrollEnabled) {
-            const overscrollX = this._service?.overscroll.x,
-                overscrollY = this._service?.overscroll.y;
+            const overscrollX = this._service.overscroll.x,
+                overscrollY = this._service.overscroll.y;
             if (!overscrollX && !overscrollY) {
                 this._userScrollDirectionIsHorizontal = this._scrollDirectionValueX > this._scrollDirectionValueY;
             }

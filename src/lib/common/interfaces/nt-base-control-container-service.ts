@@ -12,7 +12,7 @@ export interface INtBaseControlContainerService extends IBaseScrollViewService {
 
     readonly $focusedElement: Observable<HTMLElement | null>;
 
-    initialize: (id: number, emitter: HTMLElement) => void;
+    initialize: (id: number, parentId: number, emitter: HTMLElement) => void;
 
     focus: (element: HTMLElement) => void;
 }

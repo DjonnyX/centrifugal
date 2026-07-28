@@ -1,5 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, ComponentRef, computed, DestroyRef, effect, ElementRef, inject, Injector, input,
+  ChangeDetectionStrategy, Component, ComponentRef, computed, DestroyRef, effect, ElementRef, inject, input,
   OnDestroy, output, Signal, signal, TemplateRef, ViewChild, viewChild, ViewContainerRef, ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -110,7 +110,7 @@ export class NtVirtualListComponent<S extends INtVirtualListService> implements 
 
   protected _service = inject<S>(SCROLL_VIEW_SERVICE);
 
-  protected _parentService: S;
+  protected _parentService = inject<S>(SCROLL_VIEW_SERVICE, { skipSelf: true });
 
   protected _prerender = viewChild<NtPrerenderContainer>('prerender');
 
@@ -1499,11 +1499,7 @@ export class NtVirtualListComponent<S extends INtVirtualListService> implements 
   private _$destroy = new Subject<void>();
   private readonly $destroy = this._$destroy.asObservable();
 
-  private _injector = inject(Injector);
-
   constructor() {
-    this._parentService = this._injector.get<S>(SCROLL_VIEW_SERVICE, undefined, { skipSelf: true });
-
     NtVirtualListComponent.__nextId = NtVirtualListComponent.__nextId + 1 === Number.MAX_SAFE_INTEGER
       ? 0 : NtVirtualListComponent.__nextId + 1;
     this._id = NtVirtualListComponent.__nextId;
@@ -1533,7 +1529,7 @@ export class NtVirtualListComponent<S extends INtVirtualListService> implements 
       }),
     ).subscribe();
 
-    this._service.initialize(this._id, this._trackBox);
+    this._service.initialize(this._id, this._parentService.id, this._trackBox);
 
     if (!!this._parentService) {
       this._parentService.$scrollable.pipe(

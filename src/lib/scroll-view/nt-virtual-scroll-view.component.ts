@@ -76,7 +76,7 @@ export class NtVirtualScrollViewComponent<S extends INtScrollViewService> implem
 
   protected _service = inject<S>(SCROLL_VIEW_SERVICE);
 
-  protected _parentService: S;
+  protected _parentService = inject<S>(SCROLL_VIEW_SERVICE, { skipSelf: true });
 
   protected _scrollerComponent = viewChild<NtScrollerComponent>('scroller');
 
@@ -714,8 +714,6 @@ export class NtVirtualScrollViewComponent<S extends INtScrollViewService> implem
   protected _injector = inject(Injector);
 
   constructor() {
-    this._parentService = this._injector.get<S>(SCROLL_VIEW_SERVICE, undefined, { skipSelf: true });
-
     NtVirtualScrollViewComponent.__nextId = NtVirtualScrollViewComponent.__nextId + 1 === Number.MAX_SAFE_INTEGER
       ? 0 : NtVirtualScrollViewComponent.__nextId + 1;
     this._id = NtVirtualScrollViewComponent.__nextId;
@@ -734,7 +732,7 @@ export class NtVirtualScrollViewComponent<S extends INtScrollViewService> implem
       }),
     ).subscribe();
 
-    this._service.initialize(this._id);
+    this._service.initialize(this._id, this._parentService.id);
 
     if (!!this._parentService) {
       this._parentService.$scrollable.pipe(
