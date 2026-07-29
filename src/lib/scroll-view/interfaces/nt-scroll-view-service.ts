@@ -13,7 +13,7 @@ import { INtScroller } from "../../common/interfaces/nt-scroller";
  * @email djonnyx@gmail.com
  */
 export interface INtScrollViewService extends IBaseScrollViewService {
-    initialize: (id: number, component: INtScroller<IBaseScrollViewService>, parentService: IBaseScrollViewService) => void;
+    initialize: (id: number, component: INtScroller<IBaseScrollViewService>, parentService: IBaseScrollViewService | null) => void;
 
     animationParams: IAnimationParams;
 

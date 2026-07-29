@@ -65,8 +65,8 @@ import { isSpreadingMode } from './utils/is-spreading-mode';
 import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interfaces';
 import { getScrollStateVersion } from './utils/get-scroll-state-version';
 import {
-  ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
-  TextDirection, TextDirections,
+  ArithmeticExpression, Id, ISize, PARENT_SCROLL_VIEW_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
+  SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
 } from '../common';
 import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, parseArithmeticExpression, toggleClassName } from '../common/utils';
 import { INtListService } from './interfaces';
@@ -97,7 +97,9 @@ import { IListScrollToParams } from '../common/interfaces/list-scroll-to-params'
   providers: [
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
-    { provide: SCROLL_VIEW_SERVICE, useClass: NtListService },
+    { provide: NtListService, useClass: NtListService },
+    { provide: SCROLL_VIEW_SERVICE, useExisting: NtListService },
+    { provide: PARENT_SCROLL_VIEW_SERVICE, useExisting: NtListService },
     NtListPublicService,
   ],
 })
@@ -1544,7 +1546,9 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
       this._service.$overscroll.pipe(
         takeUntilDestroyed(),
         tap(v => {
-          this._parentService.overscroll = v;
+          if (!!this._parentService) {
+            this._parentService.overscroll = v;
+          }
         }),
       ).subscribe();
 

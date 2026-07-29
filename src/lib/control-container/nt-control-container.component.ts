@@ -1,10 +1,10 @@
 import { Component, ElementRef, input, signal, viewChild, ViewEncapsulation } from "@angular/core";
 import { INtScrollViewService, NtScrollViewService } from "../scroll-view";
-import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED } from "../common";
+import { CONTROL_CONTAINER_SERVICE, PARENT_SCROLL_VIEW_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED } from "../common";
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
 import { NtControlContainerService } from "./nt-control-container.service";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { combineLatest, debounceTime, filter, fromEvent, map, switchMap, tap } from "rxjs";
+import { combineLatest, filter, fromEvent, map, switchMap, tap } from "rxjs";
 import { INtControlContainerService } from "./interfaces";
 import { NtDrawerContainerComponent } from "../drawer-container";
 import { DEFAULT_INPUT_ELEMETNS } from "../common/directives/nt-virtual-click/const";
@@ -28,8 +28,10 @@ import { IBaseScrollViewService } from "../common/interfaces/base-scroll-view-se
   providers: [
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: false },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: false },
-    { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
     { provide: CONTROL_CONTAINER_SERVICE, useClass: NtControlContainerService },
+    { provide: NtScrollViewService, useClass: NtScrollViewService },
+    { provide: SCROLL_VIEW_SERVICE, useExisting: NtScrollViewService },
+    { provide: PARENT_SCROLL_VIEW_SERVICE, useExisting: NtScrollViewService },
   ],
 })
 export class NtControlContainerComponent extends NtDrawerContainerComponent<INtScrollViewService, INtScrollViewService, INtControlContainerService> {
@@ -67,7 +69,7 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
 
   constructor() {
     super();
-    this._controlService.initialize(this._id, this._parentService.id, this.host);
+    this._controlService.initialize(this._id, this._parentService?.id ?? -1, this.host);
 
     const $scroller = toObservable(this._scrollerComponent).pipe(
       takeUntilDestroyed(this._destroyRef),
@@ -195,7 +197,7 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
             this._keyboardShown.set(true);
             this.scrollTo({ top: 200 /* keyboard height */, behavior: 'auto', duration: 250 });
             const scroller = e.scroller;
-              console.log('scroller', scroller?.service.id, scroller?.type)
+            console.log('scroller', scroller?.service.id, scroller?.type)
             if (!!scroller) {
               const { height: targetHeight } = target.getBoundingClientRect(),
                 { height: scrollerViewportHeight } = scroller.viewportBounds(),

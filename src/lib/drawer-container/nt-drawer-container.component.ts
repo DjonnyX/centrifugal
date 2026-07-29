@@ -1,16 +1,14 @@
 import { Component, inject, input, TemplateRef, ViewEncapsulation } from "@angular/core";
 import { INtScrollViewService, NtScrollViewComponent, NtScrollViewService } from "../scroll-view";
 import {
-  CONTROL_CONTAINER_SERVICE, ElementNames, INtBaseControlContainerService, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
-  SCROLL_VIEW_USER_INTERACTION_ENABLED,
+  CONTROL_CONTAINER_SERVICE, ElementNames, INtBaseControlContainerService, PARENT_SCROLL_VIEW_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED,
+  SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
 } from "../common";
 import { NtDrawerContainerService } from "./nt-drawer-container.service";
 import { TABINDEX } from "../common/const/attribute-names";
 import { ZERO } from "../common/const/base-prop-names";
 import { validateString } from "../common/utils";
 import { DEFAULT_EXCLUDE_ELEMETN_LIST } from "./const";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { tap } from "rxjs";
 
 /**
  * NtDrawerContainerComponent
@@ -30,8 +28,10 @@ import { tap } from "rxjs";
   providers: [
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
-    { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
     { provide: CONTROL_CONTAINER_SERVICE, useClass: NtDrawerContainerService },
+    { provide: NtScrollViewService, useClass: NtScrollViewService },
+    { provide: SCROLL_VIEW_SERVICE, useExisting: NtScrollViewService },
+    { provide: PARENT_SCROLL_VIEW_SERVICE, useExisting: NtScrollViewService },
   ],
 })
 export class NtDrawerContainerComponent<S extends INtScrollViewService, P extends INtScrollViewService,
@@ -157,7 +157,7 @@ export class NtDrawerContainerComponent<S extends INtScrollViewService, P extend
   constructor() {
     super();
 
-    this._controlService.initialize(this._id, this._parentService.id, this.host);
+    this._controlService.initialize(this._id, this._parentService?.id ?? -1, this.host);
 
     this.host.setAttribute(TABINDEX, ZERO);
   }

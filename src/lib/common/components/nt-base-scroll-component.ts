@@ -1,7 +1,6 @@
-import { Component, inject, signal, Signal, viewChild } from "@angular/core";
-import { SCROLL_VIEW_SERVICE } from "../injection";
+import { Component, inject, signal, viewChild } from "@angular/core";
+import { PARENT_SCROLL_VIEW_SERVICE, SCROLL_VIEW_SERVICE } from "../injection";
 import { IBaseScrollViewService } from "../interfaces/base-scroll-view-service";
-import { NtScrollerComponent } from "../../scroll-view";
 import { IBaseScrollView } from "../interfaces/base-scroll-view";
 import { ISize } from "../interfaces";
 import { INtScroller } from "../interfaces/nt-scroller";
@@ -16,7 +15,7 @@ import { INtScroller } from "../interfaces/nt-scroller";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export class NtBaseScrollComponent<S extends IBaseScrollViewService, P extends IBaseScrollViewService, C = INtScroller<S>>
+export abstract class NtBaseScrollComponent<S extends IBaseScrollViewService, P extends IBaseScrollViewService, C = INtScroller<S>>
     implements IBaseScrollView<S, P, C> {
     private static __nextId: number = 0;
 
@@ -31,7 +30,7 @@ export class NtBaseScrollComponent<S extends IBaseScrollViewService, P extends I
 
     get service() { return this._service; }
 
-    protected _parentService = inject<P>(SCROLL_VIEW_SERVICE, { skipSelf: true });
+    protected _parentService = inject<P>(SCROLL_VIEW_SERVICE, { skipSelf: true, optional: true });
 
     get parentService() { return this._parentService; }
 

@@ -1,6 +1,6 @@
 import {
   ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, Injector, input,
-  OnDestroy, output, Signal, signal, TemplateRef, viewChild, ViewEncapsulation,
+  OnDestroy, output, Signal, signal, TemplateRef, ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
@@ -29,7 +29,7 @@ import { NtScrollViewService } from './nt-scroll-view.service';
 import { objectAsReadonly } from '../common/utils/object';
 import { NtScrollerComponent } from './components/nt-scroller/nt-scroller.component';
 import {
-  ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
+  ArithmeticExpression, Id, ISize, PARENT_SCROLL_VIEW_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
   TextDirection, TextDirections,
 } from '../common';
 import {
@@ -59,7 +59,9 @@ import { IScrollToParams } from '../common/interfaces/scroll-to-params';
   providers: [
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
-    { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
+    { provide: NtScrollViewService, useClass: NtScrollViewService },
+    { provide: SCROLL_VIEW_SERVICE, useExisting: NtScrollViewService },
+    { provide: PARENT_SCROLL_VIEW_SERVICE, useExisting: NtScrollViewService },
   ],
 })
 export class NtScrollViewComponent<S extends INtScrollViewService, P extends INtScrollViewService>

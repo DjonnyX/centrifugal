@@ -131,7 +131,7 @@ export interface INtListService extends IBaseScrollViewService {
 
     update(immediately?: boolean): void;
 
-    initialize(id: number, component: INtScroller<IBaseScrollViewService>, parent: IBaseScrollViewService, trackBox: TrackBox): void;
+    initialize(id: number, component: INtScroller<IBaseScrollViewService>, parent: IBaseScrollViewService | null, trackBox: TrackBox): void;
 
     generateComponentId(): number;
 

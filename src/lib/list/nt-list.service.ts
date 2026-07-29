@@ -429,12 +429,14 @@ export class NtListService extends NtBaseScrollViewService implements IBaseScrol
     }
   }
 
-  initialize(id: number, scrollView: INtScroller<IBaseScrollViewService>, parentService: IBaseScrollViewService, trackBox: TrackBox) {
+  initialize(id: number, scrollView: INtScroller<IBaseScrollViewService>, parentService: IBaseScrollViewService | null, trackBox: TrackBox) {
     this._id = id;
     this._scrollView = scrollView;
-    console.log('init lv', id , scrollView);
-    this._parent = parentService;
-    this._parentId = parentService.id;
+    console.log('init lv', parentService?.id, id, scrollView);
+    if (!!parentService) {
+      this._parent = parentService;
+      this._parentId = parentService.id;
+    }
     this._trackBox = trackBox;
     this._trackBox.addEventListener(TrackBoxEvents.TICK, this._onTickHandler);
     this._trackBox.addEventListener(TrackBoxEvents.CHANGE, this._onTrackBoxChangeHandler);
