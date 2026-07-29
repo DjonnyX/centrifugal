@@ -133,8 +133,6 @@ export const DISABLED = 'disabled';
 
 export const VIEWPORT = 'viewport';
 
-export const FOCUS = 'focus';
-
 export const SCROLL = 'scroll';
 
 export const SCROLLER_SCROLL = 'scroll';

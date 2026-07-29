@@ -1,5 +1,6 @@
 import { Component, inject } from "@angular/core";
 import { SCROLL_VIEW_SERVICE } from "../injection";
+import { IBaseScrollViewService } from "../interfaces/base-scroll-view-service";
 
 @Component({
     selector: 'nt-base-scroll-component',
@@ -11,7 +12,7 @@ import { SCROLL_VIEW_SERVICE } from "../injection";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export class NtBaseScrollComponent<S> {
+export class NtBaseScrollComponent<S extends IBaseScrollViewService, P extends IBaseScrollViewService> {
     private static __nextId: number = 0;
 
     protected _id: number = NtBaseScrollComponent.__nextId;
@@ -23,7 +24,7 @@ export class NtBaseScrollComponent<S> {
 
     protected _service = inject<S>(SCROLL_VIEW_SERVICE);
 
-    protected _parentService = inject<S>(SCROLL_VIEW_SERVICE, { skipSelf: true });
+    protected _parentService = inject<P>(SCROLL_VIEW_SERVICE, { skipSelf: true });
 
     constructor() {
         NtBaseScrollComponent.__nextId = NtBaseScrollComponent.__nextId + 1 === Number.MAX_SAFE_INTEGER

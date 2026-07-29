@@ -34,8 +34,8 @@ import { tap } from "rxjs";
     { provide: CONTROL_CONTAINER_SERVICE, useClass: NtDrawerContainerService },
   ],
 })
-export class NtDrawerContainerComponent<S extends INtScrollViewService,
-  C extends INtBaseControlContainerService> extends NtScrollViewComponent<S> {
+export class NtDrawerContainerComponent<S extends INtScrollViewService, P extends INtScrollViewService,
+  C extends INtBaseControlContainerService> extends NtScrollViewComponent<S, P> {
   protected _controlService = inject<C>(CONTROL_CONTAINER_SERVICE);
 
   protected override _scrollbarThickness = {
@@ -160,19 +160,5 @@ export class NtDrawerContainerComponent<S extends INtScrollViewService,
     this._controlService.initialize(this._id, this._parentService.id, this.host);
 
     this.host.setAttribute(TABINDEX, ZERO);
-
-    let currentFocusedElement: HTMLElement | null = null;
-    this._controlService.$focusedElement.pipe(
-      takeUntilDestroyed(),
-      tap(e => {
-        if (!!currentFocusedElement && currentFocusedElement.blur instanceof Function) {
-          currentFocusedElement.blur();
-        }
-        if (!!e && e.focus instanceof Function) {
-          e.focus();
-        }
-        currentFocusedElement = e ?? null;
-      }),
-    ).subscribe();
   }
 }

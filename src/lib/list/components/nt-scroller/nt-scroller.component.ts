@@ -6,11 +6,12 @@ import {
   BEHAVIOR_INSTANT, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR,
   DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, SCROLLER_SCROLL,
 } from '../../const';
-import { IScrollToParams, NtScrollView } from '../nt-scroll-view';
-import { GradientColorPositions, Id, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO } from '../../../common';
+import { NtScrollView } from '../nt-scroll-view';
+import { GradientColorPositions, Id, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_TYPE } from '../../../common';
 import { TOP_PROP_NAME, LEFT_PROP_NAME, PX } from '../../../common/const/base-prop-names';
 import { NtBaseScrollBarComponent } from '../../../scroll-bar/components/nt-base-scroll-bar/nt-base-scroll-bar.component';
 import { IScrollBarDragEvent } from '../../../scroll-bar/components/nt-base-scroll-bar/interfaces';
+import { IListScrollToParams } from '../../../common/interfaces/list-scroll-to-params';
 
 const TOP = 'top',
   LEFT = 'left',
@@ -28,6 +29,7 @@ export const SCROLL_EVENT = new Event(SCROLLER_SCROLL);
 @Component({
   selector: 'nt-scroller',
   providers: [
+    { provide: SCROLL_VIEW_TYPE, useValue: 'scroller' },
     { provide: SCROLL_VIEW_INVERSION, useValue: false },
     { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: true },
   ],
@@ -466,7 +468,7 @@ export class NtScrollerComponent extends NtScrollView {
     this.snapWithInitialForceIfNecessary(null, false, true, false);
   }
 
-  scrollTo(params: IScrollToParams): number {
+  scrollTo(params: IListScrollToParams): number {
     const userAction = params?.userAction ?? true;
     if (userAction) {
       this._isScrollbarUserAction = false;

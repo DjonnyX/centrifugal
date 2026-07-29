@@ -10,7 +10,7 @@ import {
 import { NtListItemComponent } from './components/nt-list-item/nt-list-item.component';
 import {
   BEHAVIOR_INSTANT, CLASS_LIST_HORIZONTAL, CLASS_LIST_VERTICAL, DEFAULT_DIRECTION, DEFAULT_DYNAMIC_SIZE, DEFAULT_ENABLED_BUFFER_OPTIMIZATION,
-  DEFAULT_ITEM_SIZE, DEFAULT_BUFFER_SIZE, DEFAULT_LIST_SIZE, DEFAULT_STICKY_ENABLED, DEFAULT_SNAPPING_METHOD, MAX_SCROLL_TO_ITERATIONS, FOCUS,
+  DEFAULT_ITEM_SIZE, DEFAULT_BUFFER_SIZE, DEFAULT_LIST_SIZE, DEFAULT_STICKY_ENABLED, DEFAULT_SNAPPING_METHOD, MAX_SCROLL_TO_ITERATIONS,
   TRACK_BY_PROPERTY_NAME, DEFAULT_MAX_BUFFER_SIZE, DEFAULT_SELECTING_MODES, DEFAULT_SELECT_BY_CLICK, DEFAULT_COLLAPSE_BY_CLICK,
   DEFAULT_COLLECTION_MODE, DEFAULT_SCREEN_READER_MESSAGE, DEFAULT_SNAP_TO_END_TRANSITION_INSTANT_OFFSET, DEFAULT_SNAP_SCROLLTO_END,
   MIN_PIXELS_FOR_PREVENT_SNAPPING, DEFAULT_LANG_TEXT_DIR, DEFAULT_WAIT_FOR_PREPARATION, DEFAULT_SCROLLBAR_THICKNESS,
@@ -30,9 +30,8 @@ import {
   IScrollEvent, IScrollOptions, IAnimationParams, IRenderStabilizerOptions, IScrollingSettings,
 } from './interfaces';
 import {
-  Alignment, FocusAlignment, ItemTransform, SnappingDistance, CollectionMode, Direction, SelectingMode,
-  SnappingMethod, SnapToItemAlign, CollapsingMode,
-  SpreadingMode,
+  Alignment, FocusAlignment, ItemTransform, SnappingDistance, CollectionMode, Direction, SelectingMode, SnappingMethod, SnapToItemAlign,
+  CollapsingMode, SpreadingMode,
 } from './types';
 import { IRenderVirtualListCollection } from './models/render-collection.model';
 import {
@@ -54,7 +53,6 @@ import {
 } from '../common/utils/validation';
 import { isCollectionMode } from './utils/is-collection-mode';
 import { NtScrollerComponent } from './components/nt-scroller/nt-scroller.component';
-import { IScrollToParams } from './components/nt-scroll-view';
 import { NtPrerenderContainer } from './components/nt-prerender-container/nt-prerender-container.component';
 import { IScrollParams } from './interfaces';
 import { formatActualDisplayItems, formatScreenReaderMessage } from './utils/screen-reader-formatter';
@@ -66,16 +64,19 @@ import { CollapsingModes } from './enums';
 import { isSpreadingMode } from './utils/is-spreading-mode';
 import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interfaces';
 import { getScrollStateVersion } from './utils/get-scroll-state-version';
-import { ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections } from '../common';
+import {
+  ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
+  TextDirection, TextDirections,
+} from '../common';
 import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, parseArithmeticExpression, toggleClassName } from '../common/utils';
 import { INtListService } from './interfaces';
-import { KEY_DOWN, MOUSE_DOWN, TOUCH_START } from '../common/const/event-names';
+import { FOCUS, KEY_DOWN, MOUSE_DOWN, TOUCH_START } from '../common/const/event-names';
 import { KEY_TAB } from '../common/const/key-names';
 import { HEIGHT_PROP_NAME, LEFT_PROP_NAME, PX, TOP_PROP_NAME, WIDTH_PROP_NAME } from '../common/const/base-prop-names';
 import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-virtual-click/const';
 import { NtBaseScrollComponent } from '../common/components/nt-base-scroll-component';
-import { IBaseScrollViewService } from '../common/interfaces/base-scroll-view-service';
 import { INtScrollViewService } from '../scroll-view';
+import { IListScrollToParams } from '../common/interfaces/list-scroll-to-params';
 
 /**
  * Virtual list component.
@@ -100,7 +101,8 @@ import { INtScrollViewService } from '../scroll-view';
     NtListPublicService,
   ],
 })
-export class NtListComponent<S extends INtListService> extends NtBaseScrollComponent<S> implements OnDestroy {
+export class NtListComponent<S extends INtListService, P extends INtScrollViewService>
+  extends NtBaseScrollComponent<S, P> implements OnDestroy {
   protected _prerender = viewChild<NtPrerenderContainer>('prerender');
 
   @ViewChild('renderersContainer', { read: ViewContainerRef })
@@ -1420,7 +1422,7 @@ export class NtListComponent<S extends INtListService> extends NtBaseScrollCompo
       }
       if (!Number.isNaN(pos)) {
         this._trackBox.preventScrollSnapping(true);
-        const params: IScrollToParams = {
+        const params: IListScrollToParams = {
           [this._isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: pos, behavior, snap: false, normalize: true,
           fireUpdate: true, blending: false, userAction: false,
           duration: this.snapToItem() ? Math.max(this.animationParams().scrollToItem, this.animationParams().navigateToItem) : this.animationParams().navigateToItem,
@@ -2740,7 +2742,7 @@ export class NtListComponent<S extends INtListService> extends NtBaseScrollCompo
                   this.emitScrollEvent(true, false, userAction);
                 }
                 this._trackBox.isScrollEnd;
-                const params: IScrollToParams = {
+                const params: IListScrollToParams = {
                   [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: 0, userAction,
                   fireUpdate: fireUpdateAtEdges, behavior: !useAnimations ? BEHAVIOR_INSTANT : ((this.animationParams().scrollToItem > 0 && this.scrollBehavior() !== BEHAVIOR_INSTANT) ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT),
                   blending: useAnimations && scroller.hasAnimation(this._animationId), duration: this.animationParams().scrollToItem,
@@ -2771,7 +2773,7 @@ export class NtListComponent<S extends INtListService> extends NtBaseScrollCompo
               if (this._readyForShow) {
                 this.emitScrollEvent(true, false, false);
               }
-              const params: IScrollToParams = {
+              const params: IListScrollToParams = {
                 [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: roundedMaxPositionAfterUpdate,
                 fireUpdate: fireUpdateAtEdges, behavior: !useAnimations ? BEHAVIOR_INSTANT : ((this.animationParams().scrollToItem > 0 && this.scrollBehavior() !== BEHAVIOR_INSTANT) ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT), userAction: false,
                 blending: useAnimations && scroller.hasAnimation(this._animationId) || cacheChanged, duration: this.animationParams().scrollToItem,
@@ -2801,7 +2803,7 @@ export class NtListComponent<S extends INtListService> extends NtBaseScrollCompo
               scroller.stopAnimation(this._animationId);
               this._animationId = -1;
             }
-            const params: IScrollToParams = {
+            const params: IListScrollToParams = {
               [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: scrollPositionAfterUpdate, blending: true, userAction,
               fireUpdate, behavior: BEHAVIOR_INSTANT, duration: 0,
             };
@@ -3114,7 +3116,7 @@ export class NtListComponent<S extends INtListService> extends NtBaseScrollCompo
               const notChanged = scrollSize === currentScrollSize;
               if (!notChanged && iteration < MAX_SCROLL_TO_ITERATIONS) {
                 this._trackBox.clearDelta();
-                const params: IScrollToParams = {
+                const params: IListScrollToParams = {
                   [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: scrollSize, behavior: BEHAVIOR_INSTANT as ScrollBehavior,
                   fireUpdate, blending, force: true, snap: false, normalize: false,
                 };
@@ -3189,7 +3191,7 @@ export class NtListComponent<S extends INtListService> extends NtBaseScrollCompo
 
                 this._$preventScrollSnapping.next(true);
 
-                const params: IScrollToParams = {
+                const params: IListScrollToParams = {
                   [this._isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: scrollSize, fireUpdate: false,
                   behavior: BEHAVIOR_INSTANT as ScrollBehavior, blending, force: true, snap: false, normalize: false,
                 };

@@ -3,11 +3,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { combineLatest, distinctUntilChanged, tap } from 'rxjs';
 import { IScrollable } from '../interfaces/scrollable';
-import { INtBaseScrollViewService } from '../interfaces';
 import { TextDirection } from '../types';
 import { TextDirections } from '../enums';
 import { DEFAULT_CLICK_DISTANCE } from '../directives/nt-virtual-click/const';
 import { IOverscroll } from '../interfaces/overscroll';
+import { IBaseScrollViewService } from '../interfaces/base-scroll-view-service';
 
 /**
  * NtBaseScrollViewService
@@ -18,10 +18,10 @@ import { IOverscroll } from '../interfaces/overscroll';
 @Injectable({
   providedIn: 'root'
 })
-export class NtBaseScrollViewService implements INtBaseScrollViewService, OnDestroy {
+export class NtBaseScrollViewService implements IBaseScrollViewService, OnDestroy {
   protected _id: number = 0;
   get id() { return this._id; }
-  
+
   protected _parentId: number = -1;
   get parentId() { return this._parentId; }
 

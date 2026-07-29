@@ -1,6 +1,6 @@
 /**
  * IWheelEvent
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/nt-scroll-view/interfaces/wheel-event.ts
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/wheel-event.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */

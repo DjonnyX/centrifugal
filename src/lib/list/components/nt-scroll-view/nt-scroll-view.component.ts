@@ -8,7 +8,6 @@ import {
     BEHAVIOR_INSTANT, DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_ONE_BY_ONE,
     DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, DEFAULT_SNAPPING_DISTANCE,
 } from '../../const';
-import { IScrollToParams } from './interfaces';
 import {
     ACCELERATION_SCALE, ANIMATION_DURATION, AUTO, DURATION, FRICTION_FORCE, INSTANT, LEFT, MASS, MAX_DIST, MAX_DURATION, MAX_ITERATIONS_FOR_AVERAGE_CALCULATIONS,
     MAX_VELOCITY_TIMESTAMP, MAX_VELOCITIES_LENGTH, OVERSCROLL_START_ITERATION, SCROLL_EVENT, SMOOTH, SPEED_SCALE, TOP,
@@ -22,14 +21,13 @@ import { SnappingDistance, SnapToItemAlign } from '../../types';
 import { ScrollingDirection } from '../../utils/scrolling-direction';
 import { calculateVelocity } from './utils/calculate-velocity';
 import {
-    CONTROL_CONTAINER_SERVICE, Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO,
-    SCROLL_VIEW_SERVICE,
-    SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirections,
+    CONTROL_CONTAINER_SERVICE, Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirections,
 } from '../../../common';
 import { Animator, ANIMATOR_MIN_TIMESTAMP, easeOutQuad, Easing, isPercentageValue, parseFloatOrPersentageValue } from '../../../common/utils';
 import { INtControlContainerService } from '../../../control-container/interfaces';
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL, } from '../../../common/const/event-names';
 import { INTERACTIVE } from '../../../common/const/class-names';
+import { IListScrollToParams } from '../../../common/interfaces/list-scroll-to-params';
 
 /**
  * NtScrollView
@@ -285,6 +283,19 @@ export class NtScrollView extends BaseScrollView {
                 filter(v => !!v),
                 map(v => v.nativeElement),
             ), $wheelEmitter = this._inversion ? $viewport : $content;
+
+
+            if (!!this._controlContainerService) {
+                this._controlContainerService.$prefocused.pipe(
+                    takeUntilDestroyed(this._destroyRef),
+                    filter(v => !!v),
+                    tap(e => {
+                        if (e.serviceId === this._service.id && this._type === 'scroller') {
+                            this._controlContainerService.focus({ element: e.element, scroller: this });
+                        }
+                    }),
+                ).subscribe();
+            }
 
             $wheelEmitter.pipe(
                 takeUntilDestroyed(this._destroyRef),
@@ -1175,7 +1186,7 @@ export class NtScrollView extends BaseScrollView {
         return false;
     }
 
-    scroll(params: IScrollToParams) {
+    override scroll(params: IListScrollToParams) {
         const posX = params.x || params.left || 0,
             posY = params.y || params.top || 0,
             userAction = params.userAction ?? false,

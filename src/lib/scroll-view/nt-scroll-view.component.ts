@@ -28,7 +28,6 @@ import { isDirection } from './utils/is-direction';
 import { NtScrollViewService } from './nt-scroll-view.service';
 import { objectAsReadonly } from '../common/utils/object';
 import { NtScrollerComponent } from './components/nt-scroller/nt-scroller.component';
-import { IScrollToParams } from './components/nt-scroll-view';
 import {
   ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
   TextDirection, TextDirections,
@@ -39,6 +38,7 @@ import {
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from '../common/const/base-prop-names';
 import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-virtual-click/const';
 import { NtBaseScrollComponent } from '../common/components/nt-base-scroll-component';
+import { IScrollToParams } from '../common/interfaces/scroll-to-params';
 
 /**
  * NtScrollViewComponent
@@ -62,7 +62,8 @@ import { NtBaseScrollComponent } from '../common/components/nt-base-scroll-compo
     { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
   ],
 })
-export class NtScrollViewComponent<S extends INtScrollViewService> extends NtBaseScrollComponent<S> implements OnDestroy {
+export class NtScrollViewComponent<S extends INtScrollViewService, P extends INtScrollViewService>
+  extends NtBaseScrollComponent<S, P> implements OnDestroy {
   protected _scrollerComponent = viewChild<NtScrollerComponent>('scroller');
 
   protected _scroller: Signal<ElementRef<HTMLDivElement> | undefined>;

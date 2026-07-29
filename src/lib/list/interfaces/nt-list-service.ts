@@ -7,8 +7,9 @@ import { IRenderVirtualListCollection } from "../models/render-collection.model"
 import { FocusAlignment } from "../types";
 import { IScrollToParams } from "./scroll-to-params";
 import { IAnimationParams } from "./animation-params";
-import { INtBaseScrollViewService, Id, IRect, ISize, TextDirection } from "../../common";
+import { Id, IRect, ISize, TextDirection } from "../../common";
 import { IScrollOptions } from "./scroll-options";
+import { IBaseScrollViewService } from "../../common/interfaces/base-scroll-view-service";
 
 /**
  * INtListService
@@ -16,7 +17,7 @@ import { IScrollOptions } from "./scroll-options";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface INtListService extends INtBaseScrollViewService {
+export interface INtListService extends IBaseScrollViewService {
     readonly $virtualClick: Observable<IRenderVirtualListItem<any> | null>;
 
     readonly $selectedIds: Observable<Array<Id> | Id | null>;
