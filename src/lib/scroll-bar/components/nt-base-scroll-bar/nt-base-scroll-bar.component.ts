@@ -26,7 +26,7 @@ import {
 @Component({
   selector: 'nt-scroll-bar',
   providers: [
-    { provide: SCROLL_VIEW_TYPE, useValue: 'scrollbar' },
+    { provide: SCROLL_VIEW_TYPE, useValue: 'scroll-bar' },
     { provide: SCROLL_VIEW_INVERSION, useValue: true },
     { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: false },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: false },

@@ -102,7 +102,7 @@ import { IListScrollToParams } from '../common/interfaces/list-scroll-to-params'
   ],
 })
 export class NtListComponent<S extends INtListService, P extends INtScrollViewService>
-  extends NtBaseScrollComponent<S, P> implements OnDestroy {
+  extends NtBaseScrollComponent<S, P, NtScrollerComponent> implements OnDestroy {
   protected _prerender = viewChild<NtPrerenderContainer>('prerender');
 
   @ViewChild('renderersContainer', { read: ViewContainerRef })
@@ -110,8 +110,6 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
 
   @ViewChild('snapRendererContainer', { read: ViewContainerRef })
   protected _snapContainerRef: ViewContainerRef | undefined;
-
-  protected _scrollerComponent = viewChild<NtScrollerComponent>('scroller');
 
   protected _scroller: Signal<ElementRef<HTMLDivElement> | undefined>;
 
@@ -1297,9 +1295,6 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
 
   private _snappedDisplayComponents: Array<ComponentRef<BaseVirtualListItemComponent>> = [];
 
-  private _bounds = signal<ISize | null>(null);
-  protected get bounds() { return this._bounds; }
-
   protected _actualScrollbarEnabled: Signal<boolean>;
 
   private _actualAlignment: Signal<Alignment>;
@@ -1530,13 +1525,19 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
       }),
     ).subscribe();
 
-    this._service.initialize(this._id, this._parentService.id, this._trackBox);
+    $scrollerComponent.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      tap(component => {
+        this._service.initialize(this._id, component, this._parentService, this._trackBox);
+      }),
+    ).subscribe()
 
     if (!!this._parentService) {
       this._parentService.$scrollable.pipe(
         takeUntilDestroyed(),
         tap(v => {
-          this._service.parentScrollable = v;
+          this._service.scrollable = v;
         }),
       ).subscribe();
 
@@ -1550,7 +1551,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
       this._parentService.$overscroll.pipe(
         takeUntilDestroyed(),
         tap(v => {
-          this._service.parentOverscroll = v;
+          this._service.overscroll = v;
         }),
       ).subscribe();
     }

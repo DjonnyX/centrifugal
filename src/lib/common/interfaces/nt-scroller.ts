@@ -12,6 +12,8 @@ import { IBaseScrollViewService } from "./base-scroll-view-service";
 export interface INtScroller<S extends IBaseScrollViewService> {
     get service(): S;
 
+    get type(): string | null;
+
     set scrollLeft(v: number);
     get scrollLeft(): number;
 

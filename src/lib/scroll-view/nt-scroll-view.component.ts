@@ -63,8 +63,7 @@ import { IScrollToParams } from '../common/interfaces/scroll-to-params';
   ],
 })
 export class NtScrollViewComponent<S extends INtScrollViewService, P extends INtScrollViewService>
-  extends NtBaseScrollComponent<S, P> implements OnDestroy {
-  protected _scrollerComponent = viewChild<NtScrollerComponent>('scroller');
+  extends NtBaseScrollComponent<S, P, NtScrollerComponent> implements OnDestroy {
 
   protected _scroller: Signal<ElementRef<HTMLDivElement> | undefined>;
 
@@ -637,60 +636,9 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
    */
   langTextDir = input<TextDirection>(DEFAULT_LANG_TEXT_DIR, { ...this._langTextDir });
 
-  get scrollLeft() {
-    return this._scrollerComponent()?.scrollLeft ?? 0;
-  }
-
-  get scrollTop() {
-    return this._scrollerComponent()?.scrollTop ?? 0;
-  }
-
-  get scrollWidth() {
-    return this._scrollerComponent()?.scrollWidth ?? 0;
-  }
-
-  get scrollHeight() {
-    return this._scrollerComponent()?.scrollHeight ?? 0;
-  }
-
-  get animatedX() {
-    return this._scrollerComponent()?.animatedX;
-  }
-
-  get animatedY() {
-    return this._scrollerComponent()?.animatedY;
-  }
-
-  get velocityX() {
-    return this._scrollerComponent()?.velocityX;
-  }
-
-  get velocityY() {
-    return this._scrollerComponent()?.velocityY;
-  }
-
-  get averageVelocityX() {
-    return this._scrollerComponent()?.averageVelocityX;
-  }
-
-  get averageVelocityY() {
-    return this._scrollerComponent()?.averageVelocityY;
-  }
-
-  get scrollableX() {
-    return this._scrollerComponent()?.scrollableX;
-  }
-
-  get scrollableY() {
-    return this._scrollerComponent()?.scrollableY;
-  }
-
   protected readonly focusedElement = signal<Id | null>(null);
 
   protected readonly classes = signal<{ [cName: string]: boolean }>({ prepared: true });
-
-  protected _bounds = signal<ISize | null>(null);
-  protected get bounds() { return this._bounds; }
 
   protected _scrollerBounds = signal<ISize | null>(null);
 
@@ -763,8 +711,16 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
         this._$initialized.next(true);
       }),
     ).subscribe();
+    
+    const $scrollerComponent = toObservable(this._scrollerComponent);
 
-    this._service.initialize(this._id, this._parentService.id);
+    $scrollerComponent.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      tap(component => {
+        this._service.initialize(this._id, component, this._parentService);
+      }),
+    ).subscribe()
 
     if (!!this._parentService) {
       this._parentService.$scrollable.pipe(
@@ -837,8 +793,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
       }),
     ).subscribe();
 
-    const $scrollerComponent = toObservable(this._scrollerComponent),
-      $resizeViewport = $scrollerComponent.pipe(
+    const $resizeViewport = $scrollerComponent.pipe(
         takeUntilDestroyed(),
         filter(v => !!v),
         switchMap(scroller => scroller.$resizeViewport),

@@ -8,6 +8,7 @@ import { combineLatest, debounceTime, filter, fromEvent, map, switchMap, tap } f
 import { INtControlContainerService } from "./interfaces";
 import { NtDrawerContainerComponent } from "../drawer-container";
 import { DEFAULT_INPUT_ELEMETNS } from "../common/directives/nt-virtual-click/const";
+import { IBaseScrollViewService } from "../common/interfaces/base-scroll-view-service";
 
 /**
  * NtScrollViewComponent
@@ -194,12 +195,25 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
             this._keyboardShown.set(true);
             this.scrollTo({ top: 200 /* keyboard height */, behavior: 'auto', duration: 250 });
             const scroller = e.scroller;
+              console.log('scroller', scroller?.service.id, scroller?.type)
             if (!!scroller) {
-              
               const { height: targetHeight } = target.getBoundingClientRect(),
                 { height: scrollerViewportHeight } = scroller.viewportBounds(),
                 y = (target.offsetTop + targetHeight) - (scrollerViewportHeight - 200) /* keyboard height */ - 20 /* gap */;
-              scroller.scroll({ x: scroller.scrollLeft, y, behavior: 'auto', duration: 250, userAction: true });
+              let s = scroller.service, hostService: IBaseScrollViewService | null = null;
+              while (true) {
+                // if (s === this._service) {
+                //   break;
+                // }
+                console.log('s', s.id)
+                hostService = s ?? null;
+                s = s.parent;
+                if (!s.scrollView) {
+                  break;
+                }
+              }
+              console.log('host', hostService?.id, hostService?.scrollView?.type)
+              hostService?.scrollView?.scroll({ x: scroller.scrollLeft, y, behavior: 'auto', duration: 250, userAction: true });
             }
           } else {
             this._keyboardShown.set(false);

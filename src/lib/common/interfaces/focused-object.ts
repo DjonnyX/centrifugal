@@ -8,6 +8,8 @@ import { INtScroller } from "./nt-scroller";
  * @email djonnyx@gmail.com
  */
 export interface IFocusedObject {
+    id: number;
+    type: string;
     element: HTMLElement;
     scroller: INtScroller<IBaseScrollViewService> | null;
 }

@@ -44,6 +44,7 @@ export abstract class BaseScrollView implements INtScroller<IBaseScrollViewServi
     readonly grabbing = signal<boolean>(false);
 
     protected _type = inject(SCROLL_VIEW_TYPE, { optional: true });
+    get type() { return this._type; }
 
     protected _inversion = inject(SCROLL_VIEW_INVERSION);
 

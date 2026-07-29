@@ -29,7 +29,7 @@ export const SCROLL_EVENT = new Event(SCROLLER_SCROLL);
 @Component({
   selector: 'nt-scroller',
   providers: [
-    { provide: SCROLL_VIEW_TYPE, useValue: 'scroller' },
+    { provide: SCROLL_VIEW_TYPE, useValue: 'list-scroller' },
     { provide: SCROLL_VIEW_INVERSION, useValue: false },
     { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: true },
   ],

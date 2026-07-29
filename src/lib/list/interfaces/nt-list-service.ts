@@ -10,6 +10,7 @@ import { IAnimationParams } from "./animation-params";
 import { Id, IRect, ISize, TextDirection } from "../../common";
 import { IScrollOptions } from "./scroll-options";
 import { IBaseScrollViewService } from "../../common/interfaces/base-scroll-view-service";
+import { INtScroller } from "../../common/interfaces/nt-scroller";
 
 /**
  * INtListService
@@ -130,7 +131,7 @@ export interface INtListService extends IBaseScrollViewService {
 
     update(immediately?: boolean): void;
 
-    initialize(id: number, parentId: number, trackBox: TrackBox): void;
+    initialize(id: number, component: INtScroller<IBaseScrollViewService>, parent: IBaseScrollViewService, trackBox: TrackBox): void;
 
     generateComponentId(): number;
 

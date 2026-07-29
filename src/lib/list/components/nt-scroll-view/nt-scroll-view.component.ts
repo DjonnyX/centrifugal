@@ -284,14 +284,13 @@ export class NtScrollView extends BaseScrollView {
                 map(v => v.nativeElement),
             ), $wheelEmitter = this._inversion ? $viewport : $content;
 
-
             if (!!this._controlContainerService) {
                 this._controlContainerService.$prefocused.pipe(
                     takeUntilDestroyed(this._destroyRef),
                     filter(v => !!v),
                     tap(e => {
-                        if (e.serviceId === this._service.id && this._type === 'scroller') {
-                            this._controlContainerService.focus({ element: e.element, scroller: this });
+                        if (e.serviceId === this._service.id && this._type === 'list-scroller') {
+                            this._controlContainerService.focus({ element: e.element, scroller: this, type: this._type, id: e.serviceId });
                         }
                     }),
                 ).subscribe();

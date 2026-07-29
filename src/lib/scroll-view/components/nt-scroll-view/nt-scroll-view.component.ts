@@ -320,7 +320,7 @@ export class NtScrollView extends BaseScrollView {
                     filter(v => !!v),
                     tap(e => {
                         if (e.serviceId === this._service.id && this._type === 'scroller') {
-                            this._controlContainerService.focus({ element: e.element, scroller: this });
+                            this._controlContainerService.focus({ element: e.element, scroller: this, type: this._type, id: e.serviceId });
                         }
                     }),
                 ).subscribe();

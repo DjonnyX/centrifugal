@@ -4,6 +4,7 @@ import { Direction } from "../types";
 import { IScrollOptions } from "./scroll-options";
 import { Id, IRect, TextDirection } from "../../common";
 import { IBaseScrollViewService } from "../../common/interfaces/base-scroll-view-service";
+import { INtScroller } from "../../common/interfaces/nt-scroller";
 
 /**
  * INtScrollViewService
@@ -12,7 +13,7 @@ import { IBaseScrollViewService } from "../../common/interfaces/base-scroll-view
  * @email djonnyx@gmail.com
  */
 export interface INtScrollViewService extends IBaseScrollViewService {
-    initialize: (id: number, parentId: number) => void;
+    initialize: (id: number, component: INtScroller<IBaseScrollViewService>, parentService: IBaseScrollViewService) => void;
 
     animationParams: IAnimationParams;
 

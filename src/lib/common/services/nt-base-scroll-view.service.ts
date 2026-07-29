@@ -8,6 +8,7 @@ import { TextDirections } from '../enums';
 import { DEFAULT_CLICK_DISTANCE } from '../directives/nt-virtual-click/const';
 import { IOverscroll } from '../interfaces/overscroll';
 import { IBaseScrollViewService } from '../interfaces/base-scroll-view-service';
+import { INtScroller } from '../interfaces/nt-scroller';
 
 /**
  * NtBaseScrollViewService
@@ -24,6 +25,12 @@ export class NtBaseScrollViewService implements IBaseScrollViewService, OnDestro
 
   protected _parentId: number = -1;
   get parentId() { return this._parentId; }
+
+  protected _parent!: IBaseScrollViewService;
+  get parent() { return this._parent; }
+
+  protected _scrollView!: INtScroller<IBaseScrollViewService>;
+  get scrollView() { return this._scrollView; }
 
   protected _$langTextDir = new BehaviorSubject<TextDirection>(TextDirections.LTR);
   readonly $langTextDir = this._$langTextDir.asObservable();
