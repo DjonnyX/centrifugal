@@ -1,5 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, Injector, input,
+  ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, forwardRef, inject, Injector, input,
   OnDestroy, output, Signal, signal, TemplateRef, ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -29,7 +29,7 @@ import { NtScrollViewService } from './nt-scroll-view.service';
 import { objectAsReadonly } from '../common/utils/object';
 import { NtScrollerComponent } from './components/nt-scroller/nt-scroller.component';
 import {
-  ArithmeticExpression, Id, ISize, PARENT_SCROLL_VIEW_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
+  ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
   TextDirection, TextDirections,
 } from '../common';
 import {
@@ -59,9 +59,7 @@ import { IScrollToParams } from '../common/interfaces/scroll-to-params';
   providers: [
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
-    { provide: NtScrollViewService, useClass: NtScrollViewService },
-    { provide: SCROLL_VIEW_SERVICE, useExisting: NtScrollViewService },
-    { provide: PARENT_SCROLL_VIEW_SERVICE, useExisting: NtScrollViewService },
+    { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
   ],
 })
 export class NtScrollViewComponent<S extends INtScrollViewService, P extends INtScrollViewService>
@@ -713,7 +711,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
         this._$initialized.next(true);
       }),
     ).subscribe();
-    
+
     const $scrollerComponent = toObservable(this._scrollerComponent);
 
     $scrollerComponent.pipe(
@@ -788,7 +786,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
       }),
     ).subscribe();
 
-    this._service.$tick.pipe(
+    this._service?.$tick?.pipe(
       takeUntilDestroyed(),
       tap(() => {
         this._scrollerComponent()?.tick();
@@ -796,10 +794,10 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
     ).subscribe();
 
     const $resizeViewport = $scrollerComponent.pipe(
-        takeUntilDestroyed(),
-        filter(v => !!v),
-        switchMap(scroller => scroller.$resizeViewport),
-      ),
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      switchMap(scroller => scroller.$resizeViewport),
+    ),
       $resizeContent = $scrollerComponent.pipe(
         takeUntilDestroyed(),
         filter(v => !!v),

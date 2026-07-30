@@ -14,6 +14,4 @@ export const SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO = new InjectionToken<boolean>
 
 export const SCROLL_VIEW_SERVICE = new InjectionToken<IBaseScrollViewService>('ScrollViewService');
 
-export const PARENT_SCROLL_VIEW_SERVICE = new InjectionToken<IBaseScrollViewService>('ParentScrollViewService');
-
 export const CONTROL_CONTAINER_SERVICE = new InjectionToken<INtControlContainerService | null>('ControlContainerService');

@@ -1,5 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, ComponentRef, computed, DestroyRef, effect, ElementRef, inject, input,
+  ChangeDetectionStrategy, Component, ComponentRef, computed, DestroyRef, effect, ElementRef, forwardRef, inject, input,
   OnDestroy, output, Signal, signal, TemplateRef, ViewChild, viewChild, ViewContainerRef, ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -65,7 +65,7 @@ import { isSpreadingMode } from './utils/is-spreading-mode';
 import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interfaces';
 import { getScrollStateVersion } from './utils/get-scroll-state-version';
 import {
-  ArithmeticExpression, Id, ISize, PARENT_SCROLL_VIEW_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
+  ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
   SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
 } from '../common';
 import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, parseArithmeticExpression, toggleClassName } from '../common/utils';
@@ -97,9 +97,7 @@ import { IListScrollToParams } from '../common/interfaces/list-scroll-to-params'
   providers: [
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
-    { provide: NtListService, useClass: NtListService },
-    { provide: SCROLL_VIEW_SERVICE, useExisting: NtListService },
-    { provide: PARENT_SCROLL_VIEW_SERVICE, useExisting: NtListService },
+    { provide: SCROLL_VIEW_SERVICE, useClass: NtListService },
     NtListPublicService,
   ],
 })
@@ -1611,7 +1609,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
       }),
     ).subscribe();
 
-    this._service.$intersectionElementBySnapToItemAlign.pipe(
+    this._service?.$intersectionElementBySnapToItemAlign?.pipe(
       takeUntilDestroyed(),
       filter(v => v !== null),
       tap(id => {
@@ -1619,7 +1617,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
       }),
     ).subscribe();
 
-    this._service.$tick.pipe(
+    this._service?.$tick?.pipe(
       takeUntilDestroyed(),
       tap(() => {
         if (this.dynamicSize() === true) {

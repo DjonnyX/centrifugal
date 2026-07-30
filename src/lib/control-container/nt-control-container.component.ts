@@ -1,6 +1,9 @@
-import { Component, ElementRef, input, signal, viewChild, ViewEncapsulation } from "@angular/core";
-import { INtScrollViewService, NtScrollViewService } from "../scroll-view";
-import { CONTROL_CONTAINER_SERVICE, PARENT_SCROLL_VIEW_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED } from "../common";
+import { Component, ElementRef, forwardRef, input, signal, viewChild, ViewEncapsulation } from "@angular/core";
+import { INtScrollViewService } from "../scroll-view";
+import {
+  CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
+  SCROLL_VIEW_USER_INTERACTION_ENABLED,
+} from "../common";
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
 import { NtControlContainerService } from "./nt-control-container.service";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
@@ -29,9 +32,7 @@ import { IBaseScrollViewService } from "../common/interfaces/base-scroll-view-se
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: false },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: false },
     { provide: CONTROL_CONTAINER_SERVICE, useClass: NtControlContainerService },
-    { provide: NtScrollViewService, useClass: NtScrollViewService },
-    { provide: SCROLL_VIEW_SERVICE, useExisting: NtScrollViewService },
-    { provide: PARENT_SCROLL_VIEW_SERVICE, useExisting: NtScrollViewService },
+    { provide: SCROLL_VIEW_SERVICE, useClass: NtControlContainerService },
   ],
 })
 export class NtControlContainerComponent extends NtDrawerContainerComponent<INtScrollViewService, INtScrollViewService, INtControlContainerService> {

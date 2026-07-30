@@ -1,5 +1,5 @@
 import { Component, inject, signal, viewChild } from "@angular/core";
-import { PARENT_SCROLL_VIEW_SERVICE, SCROLL_VIEW_SERVICE } from "../injection";
+import { SCROLL_VIEW_SERVICE } from "../injection";
 import { IBaseScrollViewService } from "../interfaces/base-scroll-view-service";
 import { IBaseScrollView } from "../interfaces/base-scroll-view";
 import { ISize } from "../interfaces";
