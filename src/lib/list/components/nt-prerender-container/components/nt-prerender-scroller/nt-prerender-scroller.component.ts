@@ -7,6 +7,7 @@ import { ScrollBox } from '../../../nt-scroller/utils';
 import { SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED } from '../../../../../common';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from '../../../../../common/const/base-prop-names';
 import { NtBaseScrollBarComponent } from '../../../../../scroll-bar/components/nt-base-scroll-bar/nt-base-scroll-bar.component';
+import { IScrollToParams } from '../../../../../common/interfaces/scroll-to-params';
 
 /**
  * NtPrerenderScrollerComponent
@@ -153,5 +154,9 @@ export class NtPrerenderScrollerComponent extends BaseScrollView {
 
     protected updateScrollBar() {
         this._$updateScrollBar.next();
+    }
+
+    override scroll(params: IScrollToParams): Array<number> | number | null {
+        throw new Error('Method not implemented.');
     }
 }

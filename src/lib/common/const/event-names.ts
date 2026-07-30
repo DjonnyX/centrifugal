@@ -1,3 +1,7 @@
+export const FOCUS = 'focus';
+
+export const BLUR = 'blur';
+
 export const WHEEL = 'wheel';
 
 export const SCROLLER_WHEEL = 'wheel';

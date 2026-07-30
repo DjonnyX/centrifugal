@@ -1,6 +1,8 @@
 import { InjectionToken } from "@angular/core";
-import { INtScrollViewService } from "../../scroll-view";
 import { INtControlContainerService } from "../../control-container/interfaces";
+import { IBaseScrollViewService } from "../interfaces/base-scroll-view-service";
+
+export const SCROLL_VIEW_TYPE = new InjectionToken<string>('ScrollViewType');
 
 export const SCROLL_VIEW_INVERSION = new InjectionToken<boolean>('ScrollViewInversion');
 
@@ -10,6 +12,6 @@ export const SCROLL_VIEW_USER_INTERACTION_ENABLED = new InjectionToken<boolean>(
 
 export const SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO = new InjectionToken<boolean>('ScrollViewNormalizeValueFromZero');
 
-export const SCROLL_VIEW_SERVICE = new InjectionToken<INtScrollViewService>('ScrollViewService');
+export const SCROLL_VIEW_SERVICE = new InjectionToken<IBaseScrollViewService>('ScrollViewService');
 
 export const CONTROL_CONTAINER_SERVICE = new InjectionToken<INtControlContainerService | null>('ControlContainerService');

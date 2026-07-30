@@ -1,6 +1,6 @@
 import {
-  ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, Injector, input,
-  OnDestroy, output, Signal, signal, TemplateRef, viewChild, ViewEncapsulation,
+  ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, forwardRef, inject, Injector, input,
+  OnDestroy, output, Signal, signal, TemplateRef, ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
@@ -28,7 +28,6 @@ import { isDirection } from './utils/is-direction';
 import { NtScrollViewService } from './nt-scroll-view.service';
 import { objectAsReadonly } from '../common/utils/object';
 import { NtScrollerComponent } from './components/nt-scroller/nt-scroller.component';
-import { IScrollToParams } from './components/nt-scroll-view';
 import {
   ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
   TextDirection, TextDirections,
@@ -39,6 +38,7 @@ import {
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from '../common/const/base-prop-names';
 import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-virtual-click/const';
 import { NtBaseScrollComponent } from '../common/components/nt-base-scroll-component';
+import { IScrollToParams } from '../common/interfaces/scroll-to-params';
 
 /**
  * NtScrollViewComponent
@@ -62,8 +62,8 @@ import { NtBaseScrollComponent } from '../common/components/nt-base-scroll-compo
     { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
   ],
 })
-export class NtScrollViewComponent<S extends INtScrollViewService> extends NtBaseScrollComponent<S> implements OnDestroy {
-  protected _scrollerComponent = viewChild<NtScrollerComponent>('scroller');
+export class NtScrollViewComponent<S extends INtScrollViewService, P extends INtScrollViewService>
+  extends NtBaseScrollComponent<S, P, NtScrollerComponent> implements OnDestroy {
 
   protected _scroller: Signal<ElementRef<HTMLDivElement> | undefined>;
 
@@ -636,60 +636,9 @@ export class NtScrollViewComponent<S extends INtScrollViewService> extends NtBas
    */
   langTextDir = input<TextDirection>(DEFAULT_LANG_TEXT_DIR, { ...this._langTextDir });
 
-  get scrollLeft() {
-    return this._scrollerComponent()?.scrollLeft ?? 0;
-  }
-
-  get scrollTop() {
-    return this._scrollerComponent()?.scrollTop ?? 0;
-  }
-
-  get scrollWidth() {
-    return this._scrollerComponent()?.scrollWidth ?? 0;
-  }
-
-  get scrollHeight() {
-    return this._scrollerComponent()?.scrollHeight ?? 0;
-  }
-
-  get animatedX() {
-    return this._scrollerComponent()?.animatedX;
-  }
-
-  get animatedY() {
-    return this._scrollerComponent()?.animatedY;
-  }
-
-  get velocityX() {
-    return this._scrollerComponent()?.velocityX;
-  }
-
-  get velocityY() {
-    return this._scrollerComponent()?.velocityY;
-  }
-
-  get averageVelocityX() {
-    return this._scrollerComponent()?.averageVelocityX;
-  }
-
-  get averageVelocityY() {
-    return this._scrollerComponent()?.averageVelocityY;
-  }
-
-  get scrollableX() {
-    return this._scrollerComponent()?.scrollableX;
-  }
-
-  get scrollableY() {
-    return this._scrollerComponent()?.scrollableY;
-  }
-
   protected readonly focusedElement = signal<Id | null>(null);
 
   protected readonly classes = signal<{ [cName: string]: boolean }>({ prepared: true });
-
-  protected _bounds = signal<ISize | null>(null);
-  protected get bounds() { return this._bounds; }
 
   protected _scrollerBounds = signal<ISize | null>(null);
 
@@ -763,7 +712,15 @@ export class NtScrollViewComponent<S extends INtScrollViewService> extends NtBas
       }),
     ).subscribe();
 
-    this._service.initialize(this._id, this._parentService.id);
+    const $scrollerComponent = toObservable(this._scrollerComponent);
+
+    $scrollerComponent.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      tap(component => {
+        this._service.initialize(this._id, component, this._parentService);
+      }),
+    ).subscribe()
 
     if (!!this._parentService) {
       this._parentService.$scrollable.pipe(
@@ -829,19 +786,18 @@ export class NtScrollViewComponent<S extends INtScrollViewService> extends NtBas
       }),
     ).subscribe();
 
-    this._service.$tick.pipe(
+    this._service?.$tick?.pipe(
       takeUntilDestroyed(),
       tap(() => {
         this._scrollerComponent()?.tick();
       }),
     ).subscribe();
 
-    const $scrollerComponent = toObservable(this._scrollerComponent),
-      $resizeViewport = $scrollerComponent.pipe(
-        takeUntilDestroyed(),
-        filter(v => !!v),
-        switchMap(scroller => scroller.$resizeViewport),
-      ),
+    const $resizeViewport = $scrollerComponent.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      switchMap(scroller => scroller.$resizeViewport),
+    ),
       $resizeContent = $scrollerComponent.pipe(
         takeUntilDestroyed(),
         filter(v => !!v),

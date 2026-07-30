@@ -7,6 +7,9 @@ import { Direction } from './types';
 import { DEFAULT_ANIMATION_PARAMS } from './const';
 import { Id, IRect } from '../common';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
+import { IBaseScrollViewService } from '../common/interfaces/base-scroll-view-service';
+import { IBaseScrollView } from '../common/interfaces/base-scroll-view';
+import { INtScroller } from '../common/interfaces/nt-scroller';
 
 /**
  * NtScrollViewService
@@ -78,9 +81,14 @@ export class NtScrollViewService extends NtBaseScrollViewService implements INtS
     });
   }
 
-  initialize(id: number, parentId: number) {
+  initialize(id: number, scrollView: INtScroller<IBaseScrollViewService>, parentService: IBaseScrollViewService | null) {
     this._id = id;
-    this._parentId = parentId;
+    this._scrollView = scrollView;
+    console.log('init sv', parentService?.id, id, scrollView);
+    if (!!parentService) {
+      this._parent = parentService;
+      this._parentId = parentService.id;
+    }
   }
 
   generateComponentId() {

@@ -23,6 +23,7 @@ import { IScrollToParams } from './interfaces/scroll-to-params';
 import { Id, IRect, ISize } from '../common';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
 import { IBaseScrollViewService } from '../common/interfaces/base-scroll-view-service';
+import { INtScroller } from '../common/interfaces/nt-scroller';
 
 /**
  * NtListService
@@ -428,9 +429,14 @@ export class NtListService extends NtBaseScrollViewService implements IBaseScrol
     }
   }
 
-  initialize(id: number, parentId: number, trackBox: TrackBox) {
+  initialize(id: number, scrollView: INtScroller<IBaseScrollViewService>, parentService: IBaseScrollViewService | null, trackBox: TrackBox) {
     this._id = id;
-    this._parentId = parentId;
+    this._scrollView = scrollView;
+    console.log('init lv', parentService?.id, id, scrollView);
+    if (!!parentService) {
+      this._parent = parentService;
+      this._parentId = parentService.id;
+    }
     this._trackBox = trackBox;
     this._trackBox.addEventListener(TrackBoxEvents.TICK, this._onTickHandler);
     this._trackBox.addEventListener(TrackBoxEvents.CHANGE, this._onTrackBoxChangeHandler);
