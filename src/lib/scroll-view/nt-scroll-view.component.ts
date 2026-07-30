@@ -4,7 +4,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-  BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, map, skip, Subject, switchMap, take, tap,
+  BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, map, skip, startWith, Subject, switchMap, take, tap,
 } from 'rxjs';
 import {
   BEHAVIOR_INSTANT, CLASS_SCROLL_VIEW_HORIZONTAL, CLASS_SCROLL_VIEW_VERTICAL, DEFAULT_DIRECTION, MIN_PIXELS_FOR_PREVENT_SNAPPING,
@@ -1098,18 +1098,20 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
       takeUntilDestroyed(),
       filter(v => !!v),
       switchMap(() => {
-        return combineLatest([$snapScrollToLeft, $snapScrollToRight, $snapScrollToTop, $snapScrollToBottom, $precalculatedScrollLeftOffset,
+        return combineLatest([$scrollerComponent, $snapScrollToLeft, $snapScrollToRight, $snapScrollToTop, $snapScrollToBottom, $precalculatedScrollLeftOffset,
           $precalculatedScrollRightOffset, $precalculatedScrollTopOffset, $precalculatedScrollBottomOffset, $bounds, $scrollerBounds,
           $scrollLeftOffset, $scrollRightOffset, $scrollTopOffset, $scrollBottomOffset, $scrollSizeX, $scrollSizeY, $direction,
-          this.$fireUpdate,
+          this.$fireUpdate.pipe(
+            takeUntilDestroyed(this._destroyRef),
+            startWith(false),
+          ),
         ]).pipe(
           takeUntilDestroyed(this._destroyRef),
           tap(([
-            snapScrollToLeft, snapScrollToRight, snapScrollToTop, snapScrollToBottom, precalculatedScrollLeftOffset, precalculatedScrollRightOffset,
+            scroller, snapScrollToLeft, snapScrollToRight, snapScrollToTop, snapScrollToBottom, precalculatedScrollLeftOffset, precalculatedScrollRightOffset,
             precalculatedScrollTopOffset, precalculatedScrollBottomOffset, bounds, scrollerBounds,
             scrollLeftOffset, scrollRightOffset, scrollTopOffset, scrollBottomOffset, scrollSizeX, scrollSizeY, direction,
           ]) => {
-            const scroller = this._scrollerComponent();
             if (!!scroller) {
               const userAction = hasUserAction, ready = _$created.getValue();
 
@@ -1351,8 +1353,10 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
 
     combineLatest([$scrollToInitialize, $scrollerComponent, $scrollTo]).pipe(
       takeUntilDestroyed(),
+      tap(([i, c, e]) => console.log(i, c, e)),
       filter(([i, c, e]) => !!i && !!c && !!e),
       tap(([, s, e]) => {
+        console.log('scroll', e)
         const event = e!;
         const behavior = event?.behavior ?? BEHAVIOR_INSTANT,
           blending = event?.blending ?? false,

@@ -196,6 +196,7 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
               target.blur();
             }
             this._keyboardShown.set(true);
+            console.log('this.scrollHeight', this.scrollHeight, this.scrollWidth)
             this.scrollTo({ top: 200 /* keyboard height */, behavior: 'auto', duration: 250 });
             const scroller = e.scroller;
             console.log('scroller', scroller?.service.id, scroller?.type)
