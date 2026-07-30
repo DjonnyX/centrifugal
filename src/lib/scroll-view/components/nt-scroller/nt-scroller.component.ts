@@ -6,17 +6,15 @@ import {
   BEHAVIOR_INSTANT, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR,
   DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, SCROLLER_SCROLL,
 } from '../../const';
-import { NtScrollView } from '../nt-scroll-view';
+import { IScrollToParams, NtScrollView } from '../nt-scroll-view';
 import { ScrollerDirection } from '../nt-scroll-view/enums';
 import {
   GradientColorPositions, Id, ISize,
   SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_INVERSION,
-  SCROLL_VIEW_TYPE,
 } from '../../../common';
 import { NtBaseScrollBarComponent } from '../../../scroll-bar/components/nt-base-scroll-bar/nt-base-scroll-bar.component';
 import { LEFT_PROP_NAME, PX, TOP_PROP_NAME } from '../../../common/const/base-prop-names';
 import { IScrollBarDragEvent } from '../../../scroll-bar/components/nt-base-scroll-bar/interfaces';
-import { IScrollToParams } from '../../../common/interfaces/scroll-to-params';
 
 const TOP = 'top',
   LEFT = 'left',
@@ -35,7 +33,6 @@ export const SCROLL_EVENT = new Event(SCROLLER_SCROLL);
 @Component({
   selector: 'nt-scroller',
   providers: [
-    { provide: SCROLL_VIEW_TYPE, useValue: 'scroller' },
     { provide: SCROLL_VIEW_INVERSION, useValue: false },
     { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: true },
   ],

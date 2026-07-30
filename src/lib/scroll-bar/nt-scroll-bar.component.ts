@@ -1,5 +1,4 @@
 import { Component, ViewEncapsulation } from "@angular/core";
-import { SCROLL_VIEW_TYPE } from "../common";
 
 /**
  * NtScrollBarComponent
@@ -16,9 +15,7 @@ import { SCROLL_VIEW_TYPE } from "../common";
   },
   standalone: false,
   encapsulation: ViewEncapsulation.ShadowDom,
-  providers: [
-    { provide: SCROLL_VIEW_TYPE, useValue: 'scrollbar' },
-  ],
+  providers: [],
 })
 export class NtScrollBarComponent {
 

@@ -2,9 +2,7 @@ import { Observable } from "rxjs";
 import { IAnimationParams } from "./animation-params";
 import { Direction } from "../types";
 import { IScrollOptions } from "./scroll-options";
-import { Id, IRect, TextDirection } from "../../common";
-import { IBaseScrollViewService } from "../../common/interfaces/base-scroll-view-service";
-import { INtScroller } from "../../common/interfaces/nt-scroller";
+import { INtBaseScrollViewService, Id, IRect, TextDirection } from "../../common";
 
 /**
  * INtScrollViewService
@@ -12,8 +10,8 @@ import { INtScroller } from "../../common/interfaces/nt-scroller";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface INtScrollViewService extends IBaseScrollViewService {
-    initialize: (id: number, component: INtScroller<IBaseScrollViewService>, parentService: IBaseScrollViewService | null) => void;
+export interface INtScrollViewService extends INtBaseScrollViewService {
+    initialize: (id: number, parentId: number) => void;
 
     animationParams: IAnimationParams;
 

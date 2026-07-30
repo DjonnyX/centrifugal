@@ -9,7 +9,7 @@
   {{ screenReaderFormattedMessage() }}
 </div>
 
-<nt-prerender-container #prerender [bounds]="bounds!" [direction]="direction()" [dynamic]="dynamicSize()"
+<nt-prerender-container #prerender [bounds]="bounds()!" [direction]="direction()" [dynamic]="dynamicSize()"
   [divides]="divides()" [isVertical]="isVertical" [itemSize]="actualItemSize()" [trackBy]="trackBy()"
   [itemRenderer]="itemRenderer()" [startOffset]="scrollStartOffset" [endOffset]="scrollEndOffset"
   [scrollbarEnabled]="scroller.scrollbarShow()" [enabled]="dynamicSize() && snapScrollToEnd()" />

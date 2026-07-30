@@ -7,10 +7,8 @@ import { IRenderVirtualListCollection } from "../models/render-collection.model"
 import { FocusAlignment } from "../types";
 import { IScrollToParams } from "./scroll-to-params";
 import { IAnimationParams } from "./animation-params";
-import { Id, IRect, ISize, TextDirection } from "../../common";
+import { INtBaseScrollViewService, Id, IRect, ISize, TextDirection } from "../../common";
 import { IScrollOptions } from "./scroll-options";
-import { IBaseScrollViewService } from "../../common/interfaces/base-scroll-view-service";
-import { INtScroller } from "../../common/interfaces/nt-scroller";
 
 /**
  * INtListService
@@ -18,7 +16,7 @@ import { INtScroller } from "../../common/interfaces/nt-scroller";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface INtListService extends IBaseScrollViewService {
+export interface INtListService extends INtBaseScrollViewService {
     readonly $virtualClick: Observable<IRenderVirtualListItem<any> | null>;
 
     readonly $selectedIds: Observable<Array<Id> | Id | null>;
@@ -131,7 +129,7 @@ export interface INtListService extends IBaseScrollViewService {
 
     update(immediately?: boolean): void;
 
-    initialize(id: number, component: INtScroller<IBaseScrollViewService>, parent: IBaseScrollViewService | null, trackBox: TrackBox): void;
+    initialize(id: number, parentId: number, trackBox: TrackBox): void;
 
     generateComponentId(): number;
 

@@ -1,5 +1,5 @@
 import { Observable } from "rxjs";
-import { Id, IRect } from "../../common";
+import { INtBaseControlContainerService, Id, IRect } from "../../common";
 import { Direction, IAnimationParams, IScrollOptions } from "../../scroll-view";
 import { IBaseScrollViewService } from "../../common/interfaces/base-scroll-view-service";
 
@@ -9,7 +9,7 @@ import { IBaseScrollViewService } from "../../common/interfaces/base-scroll-view
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface INtDrawerContainerService extends IBaseScrollViewService {
+export interface INtDrawerContainerService extends IBaseScrollViewService, INtBaseControlContainerService {
     initialize: (id: number, parentId: number, emitter: HTMLElement) => void;
 
     animationParams: IAnimationParams;

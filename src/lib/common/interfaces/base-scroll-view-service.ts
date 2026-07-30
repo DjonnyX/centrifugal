@@ -2,7 +2,6 @@ import { Observable } from "rxjs";
 import { TextDirection } from "../types/text-direction";
 import { IScrollable } from "./scrollable";
 import { IOverscroll } from "./overscroll";
-import { INtScroller } from "./nt-scroller";
 
 /**
  * INtScrollViewService
@@ -12,12 +11,8 @@ import { INtScroller } from "./nt-scroller";
  */
 export interface IBaseScrollViewService {
     get id(): number;
-
+    
     get parentId(): number;
-
-    get parent(): IBaseScrollViewService;
-
-    get scrollView(): INtScroller<IBaseScrollViewService>;
 
     readonly $langTextDir: Observable<TextDirection>;
 

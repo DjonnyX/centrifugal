@@ -1,14 +1,16 @@
 import { Component, inject, input, TemplateRef, ViewEncapsulation } from "@angular/core";
-import { INtScrollViewService, NtScrollViewComponent } from "../scroll-view";
+import { INtScrollViewService, NtScrollViewComponent, NtScrollViewService } from "../scroll-view";
 import {
-  CONTROL_CONTAINER_SERVICE, ElementNames, INtBaseControlContainerService, SCROLL_VIEW_OVERSCROLL_ENABLED,
-  SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
+  CONTROL_CONTAINER_SERVICE, ElementNames, INtBaseControlContainerService, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
+  SCROLL_VIEW_USER_INTERACTION_ENABLED,
 } from "../common";
 import { NtDrawerContainerService } from "./nt-drawer-container.service";
 import { TABINDEX } from "../common/const/attribute-names";
 import { ZERO } from "../common/const/base-prop-names";
 import { validateString } from "../common/utils";
 import { DEFAULT_EXCLUDE_ELEMETN_LIST } from "./const";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { tap } from "rxjs";
 
 /**
  * NtDrawerContainerComponent
@@ -28,12 +30,12 @@ import { DEFAULT_EXCLUDE_ELEMETN_LIST } from "./const";
   providers: [
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
+    { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
     { provide: CONTROL_CONTAINER_SERVICE, useClass: NtDrawerContainerService },
-    { provide: SCROLL_VIEW_SERVICE, useClass: NtDrawerContainerService },
   ],
 })
-export class NtDrawerContainerComponent<S extends INtScrollViewService, P extends INtScrollViewService,
-  C extends INtBaseControlContainerService> extends NtScrollViewComponent<S, P> {
+export class NtDrawerContainerComponent<S extends INtScrollViewService,
+  C extends INtBaseControlContainerService> extends NtScrollViewComponent<S> {
   protected _controlService = inject<C>(CONTROL_CONTAINER_SERVICE);
 
   protected override _scrollbarThickness = {
@@ -155,8 +157,22 @@ export class NtDrawerContainerComponent<S extends INtScrollViewService, P extend
   constructor() {
     super();
 
-    this._controlService.initialize(this._id, this._parentService?.id ?? -1, this.host);
+    this._controlService.initialize(this._id, this._parentService.id, this.host);
 
     this.host.setAttribute(TABINDEX, ZERO);
+
+    let currentFocusedElement: HTMLElement | null = null;
+    this._controlService.$focusedElement.pipe(
+      takeUntilDestroyed(),
+      tap(e => {
+        if (!!currentFocusedElement && currentFocusedElement.blur instanceof Function) {
+          currentFocusedElement.blur();
+        }
+        if (!!e && e.focus instanceof Function) {
+          e.focus();
+        }
+        currentFocusedElement = e ?? null;
+      }),
+    ).subscribe();
   }
 }
