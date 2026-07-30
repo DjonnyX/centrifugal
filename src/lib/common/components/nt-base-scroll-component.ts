@@ -15,7 +15,7 @@ import { INtScroller } from "../interfaces/nt-scroller";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export abstract class NtBaseScrollComponent<S extends IBaseScrollViewService, P extends IBaseScrollViewService, C = INtScroller<S>>
+export class NtBaseScrollComponent<S extends IBaseScrollViewService, P extends IBaseScrollViewService, C = INtScroller<S>>
     implements IBaseScrollView<S, P, C> {
     private static __nextId: number = 0;
 
@@ -30,7 +30,7 @@ export abstract class NtBaseScrollComponent<S extends IBaseScrollViewService, P 
 
     get service() { return this._service; }
 
-    protected _parentService = inject<P>(SCROLL_VIEW_SERVICE, { skipSelf: true, optional: true });
+    protected _parentService: P | null = null;
 
     get parentService() { return this._parentService; }
 

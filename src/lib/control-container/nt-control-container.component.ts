@@ -1,4 +1,4 @@
-import { Component, ElementRef, forwardRef, input, signal, viewChild, ViewEncapsulation } from "@angular/core";
+import { Component, ElementRef, input, signal, viewChild, ViewEncapsulation } from "@angular/core";
 import { INtScrollViewService } from "../scroll-view";
 import {
   CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
