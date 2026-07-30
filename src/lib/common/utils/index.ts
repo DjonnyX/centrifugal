@@ -8,3 +8,4 @@ export * from './toggle-class-name';
 export * from './browser';
 export * from './animator';
 export * from './event-emitter';
+export * from './validation';

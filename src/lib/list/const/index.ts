@@ -7,8 +7,6 @@ import { IAnimationParams, IScrollingSettings } from '../interfaces';
 import { SpreadingMode } from "../types";
 import { Alignment, SnappingDistance, SnapToItemAlign } from "../types";
 
-const INVISIBLE_POSITION = -10000;
-
 export const SERVICE_PROP_DUMMY_ID = '__service-dummy-id__';
 
 export const SERVICE_PROP_DUMMY = '__service-dummy__';
@@ -30,8 +28,6 @@ export const DEFAULT_BUFFER_SIZE = 2;
 export const DEFAULT_MAX_BUFFER_SIZE = 10;
 
 export const DEFAULT_LIST_SIZE = 400;
-
-export const DEFAULT_CLICK_DISTANCE = 40;
 
 export const DEFAULT_WAIT_FOR_PREPARATION = true;
 
@@ -113,7 +109,7 @@ export const MAX_SCROLL_TO_ITERATIONS = 5;
 
 export const DEFAULT_SNAPPING_METHOD = SnappingMethods.STANDART;
 
-export const DEFAULT_COLLAPSING_MODES = CollapsingModes.MULTI_COLLAPSE;
+export const DEFAULT_COLLAPSING_MODES = CollapsingModes.NONE;
 
 export const DEFAULT_SELECTING_MODES = SelectingModes.NONE;
 
@@ -136,108 +132,6 @@ export const BEHAVIOR_SMOOTH: ScrollBehavior = 'smooth';
 export const DISABLED = 'disabled';
 
 export const VIEWPORT = 'viewport';
-
-export const DISPLAY_BLOCK = 'block';
-
-export const DISPLAY_NONE = 'none';
-
-export const OPACITY_0 = '0';
-
-export const OPACITY_100 = '100';
-
-export const VISIBILITY_VISIBLE = 'visible';
-
-export const VISIBILITY_HIDDEN = 'hidden';
-
-export const SIZE_100_PERSENT = '100%';
-
-export const SIZE_AUTO = 'auto';
-
-export const UNSET = 'unset';
-
-export const LEFT = 'left';
-
-export const RIGHT = 'right';
-
-export const POSITION = 'position';
-
-export const POSITION_RELATIVE = 'relative';
-
-export const POSITION_ABSOLUTE = 'absolute';
-
-export const TRANSLATE_3D = 'translate3d';
-
-export const INVISIBLE_TRANSLATE_3D = `${TRANSLATE_3D}(${INVISIBLE_POSITION},${INVISIBLE_POSITION},0)`;
-
-export const HIDDEN_ZINDEX = '-1';
-
-export const DEFAULT_ZINDEX = '0';
-
-export const TOP_PROP_NAME = 'top';
-
-export const LEFT_PROP_NAME = 'left';
-
-export const X_PROP_NAME = 'x';
-
-export const Y_PROP_NAME = 'y';
-
-export const TRANSFORMED_X_PROP_NAME = 'transformedX';
-
-export const TRANSFORMED_Y_PROP_NAME = 'transformedY';
-
-export const WIDTH_PROP_NAME = 'width';
-
-export const HEIGHT_PROP_NAME = 'height';
-
-export const MARGIN_TOP = 'marginTop';
-
-export const MARGIN_LEFT = 'marginLeft';
-
-export const PX = 'px';
-
-export const INTERACTIVE = 'interactive';
-
-export const FOCUS = 'focus';
-
-export const WHEEL = 'wheel';
-
-export const SCROLLER_WHEEL = 'wheel';
-
-export const TOUCH_MOVE = 'touchmove';
-
-export const TOUCH_START = 'touchstart';
-
-export const TOUCH_END = 'touchend';
-
-export const TOUCH_LEAVE = 'touchleave';
-
-export const TOUCH_OUT = 'touchout';
-
-export const MOUSE_MOVE = 'mousemove';
-
-export const MOUSE_UP = 'mouseup';
-
-export const MOUSE_DOWN = 'mousedown';
-
-export const MOUSE_LEAVE = 'mouseleave';
-
-export const MOUSE_OUT = 'mouseout';
-
-export const POINTER_MOVE = 'pointermove';
-
-export const POINTER_UP = 'pointerup';
-
-export const POINTER_DOWN = 'pointerdown';
-
-export const POINTER_LEAVE = 'pointerleave';
-
-export const POINTER_OUT = 'pointerout';
-
-export const CLICK = 'click';
-
-export const KEY_DOWN = 'keydown';
-
-export const KEY_TAB = 'Tab';
 
 export const SCROLL = 'scroll';
 

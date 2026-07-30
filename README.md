@@ -26,11 +26,11 @@ npm i centrifugal
 
 ## 🚀 Quick Start
 ```html
-<nt-virtual-scroll-view #scrollView class="scroll-view" direction="both">
+<nt-scroll-view #scrollView class="scroll-view" direction="both">
   <div class="scroll-view__background" [style.width.px]="3000" [style.height.px]="3000" [class.grabbing]="scrollView.$grabbing | async"></div>
-</nt-virtual-scroll-view>
+</nt-scroll-view>
 
-<nt-virtual-list [items]="items" [bufferSize]="5" [itemRenderer]="itemRenderer" [dynamicSize]="false" [itemSize]="64"></nt-virtual-list>
+<nt-list [items]="items" [bufferSize]="5" [itemRenderer]="itemRenderer" [dynamicSize]="false" [itemSize]="64"></nt-list>
 
 <ng-template #itemRenderer let-data="data">
   @if (data) {
@@ -46,7 +46,7 @@ items = Array.from({ length: 100000 }, (_, i) => ({ id: i, name: `Item #${i}` })
 
 ## 📚 API
 
-### [NtVirtualSCrollViewComponent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/nt-virtual-scroll-view.component.ts)
+### [NtVirtualSCrollViewComponent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/nt-scroll-view.component.ts)
 
 Inputs
 
@@ -106,7 +106,7 @@ Methods
 <br/>
 <br/>
 
-### [NtVirtualListComponent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/nt-virtual-list.component.ts)
+### [NtListComponent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/nt-list.component.ts)
 
 Inputs
 
@@ -118,7 +118,7 @@ Inputs
 | clickDistance | number? = 40 | The maximum scroll distance at which a click event is triggered. |
 | collapsedIds | Array<[Id](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/id.ts)> | Sets the collapsed items. |
 | collapseByClick | boolean? = true | If `false`, the element is collapsed using the config.collapse method passed to the template; if `true`, the element is collapsed by clicking on it. The default value is `true`. |
-| collapsingMode | [CollapsingMode](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/enums/collapsing-modes.ts) |  Mode for collapsing list items. Default value is `none`. `none` - List items are not selectable. `multi-collapse` - List items are collapsed one by one. 'accordion' - Accordion collapsible list items. Default value is `multi-collapse`. |
+| collapsingMode | [CollapsingMode](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/enums/collapsing-modes.ts) |  Mode for collapsing list items. Default value is `none`. `none` - List items are not selectable. `multi-collapse` - List items are collapsed one by one. 'accordion' - Accordion collapsible list items. Default value is `none`. |
 | collectionMode | [CollectionMode? = 'normal'](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/enums/collection-mode.ts) | Determines the action modes for collection elements. Default value is `normal`. |
 | divides | number = 1 | Column or row numbers. The default value is `1`. |
 | direction | [Direction? = 'vertical'](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/enums/direction.ts) | Determines the direction in which elements are placed. Default value is "vertical". |
@@ -211,7 +211,7 @@ Properties
 
 | Property | Type | Description |
 |--|--|--|
-| api | [NtVirtualListPublicService](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/nt-virtual-list-public.service.ts) | List API Provider. |
+| api | [NtListPublicService](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/nt-list-public.service.ts) | List API Provider. |
 | data | {\[id: [Id](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/id.ts) \], [otherProps: string]: any;} | Collection item data. |
 | config | [IDisplayObjectConfig](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/models/display-object-config.model.ts) | Display object configuration. A set of `select`, `collapse`, `focus` and `grabbing` properties are also provided. |
 | measures | [IDisplayObjectMeasures](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/models/display-object-measures.model.ts) \| null | Display object metrics. |
@@ -225,11 +225,11 @@ Properties
 To correctly handle interactive elements within a list, such as buttons, you need to use the VirtualClick directive.
 
 ```ts
-import { NtVirtualListModule, NtVirtualClickModule } from 'centrifugal';
+import { NtListModule, NtVirtualClickModule } from 'centrifugal';
 
 @Component({
   selector: 'example',
-  imports: [NtVirtualListModule, NtVirtualClickModule],
+  imports: [NtListModule, NtVirtualClickModule],
 })
 ```
 

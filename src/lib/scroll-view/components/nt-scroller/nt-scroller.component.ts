@@ -2,29 +2,32 @@ import { Component, computed, effect, ElementRef, input, output, Signal, signal,
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, debounceTime, filter, from, Subject, tap } from 'rxjs';
 import { ScrollBox } from './utils';
-import { NtScrollBarComponent } from "../nt-scroll-bar/nt-scroll-bar.component";
 import {
   BEHAVIOR_INSTANT, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR,
-  DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, LEFT_PROP_NAME,
-  PX, SCROLLER_SCROLL, TOP_PROP_NAME,
+  DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, SCROLLER_SCROLL,
 } from '../../const';
-import { IScrollToParams, NtScrollView, SCROLL_VIEW_INVERSION } from '../nt-scroll-view';
-import { IScrollBarDragEvent } from '../nt-scroll-bar/interfaces';
-import { SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED } from '../nt-scroll-view/const';
+import { NtScrollView } from '../nt-scroll-view';
 import { ScrollerDirection } from '../nt-scroll-view/enums';
-import { GradientColorPositions, Id, ISize } from '../../../common';
+import {
+  GradientColorPositions, Id, ISize,
+  SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_INVERSION,
+  SCROLL_VIEW_TYPE,
+} from '../../../common';
+import { NtBaseScrollBarComponent } from '../../../scroll-bar/components/nt-base-scroll-bar/nt-base-scroll-bar.component';
+import { LEFT_PROP_NAME, PX, TOP_PROP_NAME } from '../../../common/const/base-prop-names';
+import { IScrollBarDragEvent } from '../../../scroll-bar/components/nt-base-scroll-bar/interfaces';
+import { IScrollToParams } from '../../../common/interfaces/scroll-to-params';
 
 const TOP = 'top',
   LEFT = 'left',
   INSTANT = 'instant',
-  MOTION_BLUR = 'motion-blur';
+  MOTION_BLUR = 'motion-blur',
+  FULL_SIZE = 'full-size';
 
 export const SCROLL_EVENT = new Event(SCROLLER_SCROLL);
 
 /**
- * The scroller for the NtVirtualScrollView item component
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
+ * The scroller for the NtScrollView item component
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/scroller/nt-scroller.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -32,24 +35,26 @@ export const SCROLL_EVENT = new Event(SCROLLER_SCROLL);
 @Component({
   selector: 'nt-scroller',
   providers: [
+    { provide: SCROLL_VIEW_TYPE, useValue: 'scroller' },
     { provide: SCROLL_VIEW_INVERSION, useValue: false },
     { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: true },
-    { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
   ],
   standalone: false,
   templateUrl: './nt-scroller.component.html',
   styleUrl: './nt-scroller.component.scss'
 })
 export class NtScrollerComponent extends NtScrollView {
-  @ViewChild('scrollBarHorizontal', { read: NtScrollBarComponent })
-  readonly scrollBarHorizontal: NtScrollBarComponent | undefined;
+  @ViewChild('scrollBarHorizontal', { read: NtBaseScrollBarComponent })
+  readonly scrollBarHorizontal: NtBaseScrollBarComponent | undefined;
 
-  @ViewChild('scrollBarVertical', { read: NtScrollBarComponent })
-  readonly scrollBarVertical: NtScrollBarComponent | undefined;
+  @ViewChild('scrollBarVertical', { read: NtBaseScrollBarComponent })
+  readonly scrollBarVertical: NtBaseScrollBarComponent | undefined;
 
   readonly filter = viewChild<ElementRef<SVGFEGaussianBlurElement>>('filter');
 
   readonly onScrollbarVisible = output<boolean>();
+
+  readonly fullSize = input<boolean>(false);
 
   readonly scrollbarEnabled = input<boolean>(DEFAULT_SCROLLBAR_ENABLED);
 
@@ -211,6 +216,17 @@ export class NtScrollerComponent extends NtScrollView {
       $maxMotionBlur = toObservable(this.maxMotionBlur),
       $motionBlurEnabled = toObservable(this.motionBlurEnabled);
 
+    this.$resizeViewport.pipe(
+      takeUntilDestroyed(),
+      tap(() => {
+        this.resizeViewport();
+      }),
+      debounceTime(50),
+      tap(() => {
+        this.resizeViewport();
+      }),
+    ).subscribe();
+
     const $scrollbarScroll = this.$scrollbarScroll;
     $scrollbarScroll.pipe(
       takeUntilDestroyed(),
@@ -296,8 +312,8 @@ export class NtScrollerComponent extends NtScrollView {
     });
 
     this.actualClasses = computed(() => {
-      const classes = this.classes(), direction = this.direction(), filtered = this.motionBlurEnabled();
-      return { ...classes, [direction]: true, grabbing: this.grabbing(), filtered };
+      const classes = this.classes(), direction = this.direction(), filtered = this.motionBlurEnabled(), fullSize = this.fullSize();
+      return { ...classes, [direction]: true, grabbing: this.grabbing(), filtered, [FULL_SIZE]: fullSize };
     });
 
     this.containerClasses = computed(() => {
@@ -323,6 +339,17 @@ export class NtScrollerComponent extends NtScrollView {
         this.updateScrollBarHandler(true);
       }
     });
+  }
+
+  private resizeViewport() {
+    let x = this.scrollLeft, y = this.scrollTop;
+    if (this.scrollableX) {
+      x = this._horizontalScrollRatio * this.scrollWidth;
+    }
+    if (this.scrollableY) {
+      y = this._verticalScrollRatio * this.scrollHeight;
+    }
+    this.move(x, y, true, false, false);
   }
 
   private recalculatePerspective() {
@@ -479,10 +506,6 @@ export class NtScrollerComponent extends NtScrollView {
   }
 
   refresh(fireUpdate: boolean = false, updateScrollbar: boolean = true) {
-    if (updateScrollbar) {
-      this.stopScrolling();
-    }
-
     this.scrollLimits();
 
     this.refreshCoordinate(this._x, this._y);

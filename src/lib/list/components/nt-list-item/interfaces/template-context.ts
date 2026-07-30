@@ -1,5 +1,5 @@
 import { IDisplayObjectConfig, IDisplayObjectMeasures } from "../../../models";
-import { NtVirtualListPublicService } from "../../../nt-virtual-list-public.service";
+import { NtListPublicService } from "../../../nt-list-public.service";
 
 /**
  * BaseVirtualListItemComponent
@@ -11,7 +11,7 @@ export interface ITemplateContext<D = any> {
     /**
      * API provider.
      */
-    api: NtVirtualListPublicService;
+    api: NtListPublicService;
     /**
      * List item data.
      */

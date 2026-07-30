@@ -3,13 +3,16 @@ import {
 } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ScrollerDirection, ScrollerDirections } from '../enums';
-import { SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED } from '../const';
-import { ISize, TextDirection, TextDirections } from '../../../../common';
+import {
+    ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, TextDirection, TextDirections,
+} from '../../../../common';
+import { INtListService } from '../../../interfaces';
+import { INtScroller } from '../../../../common/interfaces/nt-scroller';
+import { IScrollToParams } from '../../../../common/interfaces/scroll-to-params';
+import { IBaseScrollViewService } from '../../../../common/interfaces/base-scroll-view-service';
 
 /**
  * BaseScrollView
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-scroll-view/base/base-scroll-view.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -18,7 +21,11 @@ import { ISize, TextDirection, TextDirections } from '../../../../common';
     selector: 'base-scroll-view',
     template: '',
 })
-export class BaseScrollView {
+export abstract class BaseScrollView implements INtScroller<IBaseScrollViewService> {
+    protected _service = inject<INtListService>(SCROLL_VIEW_SERVICE);
+
+    get service() { return this._service; }
+
     readonly scrollContent = viewChild<ElementRef<HTMLDivElement>>('scrollContent');
 
     readonly scrollViewport = viewChild<ElementRef<HTMLDivElement>>('scrollViewport');
@@ -40,6 +47,9 @@ export class BaseScrollView {
     readonly grabbing = signal<boolean>(false);
 
     readonly langTextDir = input<TextDirection>(TextDirections.LTR);
+
+    protected _type = inject(SCROLL_VIEW_TYPE, { optional: true });
+    get type() { return this._type; }
 
     protected _inversion = inject(SCROLL_VIEW_INVERSION);
 
@@ -260,4 +270,6 @@ export class BaseScrollView {
             this.contentBounds.set({ width, height });
         }
     }
+
+    abstract scroll(params: IScrollToParams): Array<number> | number | null;
 }

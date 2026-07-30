@@ -1,7 +1,7 @@
 import { Id } from "../../common";
 import { MAX_SCROLL_TO_ITERATIONS } from "../const";
 import { FocusAlignment } from "../types";
-import { validateFloat, validateInt, validateString } from "./validation";
+import { validateFloat, validateInt, validateString } from "../../common/utils/validation";
 
 export const validateScrollIteration = (value: number) => {
     const result = Number.isNaN(value) || (value < 0) ? 0 : value > MAX_SCROLL_TO_ITERATIONS ? MAX_SCROLL_TO_ITERATIONS : value;

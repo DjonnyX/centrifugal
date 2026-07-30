@@ -1,0 +1,3831 @@
+import {
+  ChangeDetectionStrategy, Component, ComponentRef, computed, createNgModule, DestroyRef, effect, ElementRef, inject, Injector, input,
+  NgModuleRef,
+  OnDestroy, output, Signal, signal, TemplateRef, ViewChild, viewChild, ViewContainerRef, ViewEncapsulation,
+} from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import {
+  BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, fromEvent, map,
+  of, skip, startWith, Subject, switchMap, take, takeUntil, tap, timer,
+} from 'rxjs';
+import { NtListItemComponent } from './components/nt-list-item/nt-list-item.component';
+import {
+  BEHAVIOR_INSTANT, CLASS_LIST_HORIZONTAL, CLASS_LIST_VERTICAL, DEFAULT_DIRECTION, DEFAULT_DYNAMIC_SIZE, DEFAULT_ENABLED_BUFFER_OPTIMIZATION,
+  DEFAULT_ITEM_SIZE, DEFAULT_BUFFER_SIZE, DEFAULT_LIST_SIZE, DEFAULT_STICKY_ENABLED, DEFAULT_SNAPPING_METHOD, MAX_SCROLL_TO_ITERATIONS,
+  TRACK_BY_PROPERTY_NAME, DEFAULT_MAX_BUFFER_SIZE, DEFAULT_SELECTING_MODES, DEFAULT_SELECT_BY_CLICK, DEFAULT_COLLAPSE_BY_CLICK,
+  DEFAULT_COLLECTION_MODE, DEFAULT_SCREEN_READER_MESSAGE, DEFAULT_SNAP_TO_END_TRANSITION_INSTANT_OFFSET, DEFAULT_SNAP_SCROLLTO_END,
+  MIN_PIXELS_FOR_PREVENT_SNAPPING, DEFAULT_LANG_TEXT_DIR, DEFAULT_WAIT_FOR_PREPARATION, DEFAULT_SCROLLBAR_THICKNESS,
+  DEFAULT_SCROLLBAR_MIN_SIZE, BEHAVIOR_AUTO, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_OVERSCROLL_ENABLED,
+  DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SNAP_SCROLLTO_START, EMPTY_SCROLL_STATE_VERSION, MAX_REGULAR_SNAPED_COMPONENTS,
+  PREPARE_ITERATIONS, PREPARATION_REUPDATE_LENGTH, ROLE_LIST_BOX, ROLE_LIST, MAX_VELOCITY_FOR_SCROLL_QUALITY_OPTIMIZATION_LVL1,
+  PREPARE_ITERATIONS_FOR_UPDATE_ITEMS, PREPARATION_REUPDATE_LENGTH_FOR_UPDATE_ITEMS, PREPARE_ITERATIONS_FOR_COLLAPSE_ITEMS,
+  PREPARATION_REUPDATE_LENGTH_FOR_COLLAPSE_ITEMS, MAX_NUMBERS_OF_SKIPS_FOR_QUALITY_OPTIMIZATION_LVL1, DEFAULT_SCROLLING_SETTINGS,
+  DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, VIEWPORT, DEFAULT_MOTION_BLUR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_SCROLLING_ONE_BY_ONE,
+  DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_DIVIDES, DEFAULT_SNAPPING_DISTANCE, DEFAULT_MAX_ITEM_SIZE, DEFAULT_MIN_ITEM_SIZE,
+  DEFAULT_ALIGNMENT, DEFAULT_COLLAPSING_MODES, DEFAULT_SPREADING_MODE, DEFAULT_ZINDEX_WHEN_SELECTING, DEFAULT_OVERLAPPING_SCROLLBAR,
+} from './const';
+import {
+  IRenderVirtualListItem, IVirtualListCollection, IVirtualListItem, IVirtualListItemConfigMap,
+} from './models';
+import {
+  IScrollEvent, IScrollOptions, IAnimationParams, IRenderStabilizerOptions, IScrollingSettings,
+} from './interfaces';
+import {
+  Alignment, FocusAlignment, ItemTransform, SnappingDistance, CollectionMode, Direction, SelectingMode, SnappingMethod, SnapToItemAlign,
+  CollapsingMode, SpreadingMode,
+} from './types';
+import { IRenderVirtualListCollection } from './models/render-collection.model';
+import {
+  Alignments, CollectionModes, Directions, FocusAlignments, SelectingModes, SnappingMethods, SnapToItemAligns, SpreadingModes,
+} from './enums';
+import { ScrollEvent } from './utils';
+import { TrackBox } from './core/track-box';
+import { isSnappingMethodAdvenced } from './utils/snapping-method';
+import { BaseVirtualListItemComponent } from './components/nt-list-item/base';
+import { Component$1 } from './models/component.model';
+import { isDirection } from './utils/is-direction';
+import { NtListService } from './nt-list.service';
+import { isSelectMode } from './utils/is-select-mode';
+import { isCollapseMode } from './utils/is-collapse-mode';
+import { SelectingModesTypes } from './enums/selecting-modes-types';
+import { CMap } from '../common/utils/cmap';
+import {
+  validateArray, validateBoolean, validateFloat, validateFunction, validateInt, validateObject, validateString,
+} from '../common/utils/validation';
+import { isCollectionMode } from './utils/is-collection-mode';
+import { NtScrollerComponent } from './components/nt-scroller/nt-scroller.component';
+import { NtPrerenderContainer } from './components/nt-prerender-container/nt-prerender-container.component';
+import { IScrollParams } from './interfaces';
+import { formatActualDisplayItems, formatScreenReaderMessage } from './utils/screen-reader-formatter';
+import { validateId, validateIteration, validateScrollBehavior, validateScrollIteration } from './utils/list-validators';
+import { EVENT_KEY_DOWN, KEY_ARR_DOWN, KEY_ARR_LEFT, KEY_ARR_RIGHT, KEY_ARR_UP } from './components/nt-list-item/const';
+import { NtListPublicService } from './nt-list-public.service';
+import { normalizeCollection } from './utils/normalize-collection';
+import { CollapsingModes } from './enums';
+import { isSpreadingMode } from './utils/is-spreading-mode';
+import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interfaces';
+import { getScrollStateVersion } from './utils/get-scroll-state-version';
+import {
+  ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
+  SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
+} from '../common';
+import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, parseArithmeticExpression, toggleClassName } from '../common/utils';
+import { INtListService } from './interfaces';
+import { FOCUS, KEY_DOWN, MOUSE_DOWN, TOUCH_START } from '../common/const/event-names';
+import { KEY_TAB } from '../common/const/key-names';
+import { HEIGHT_PROP_NAME, LEFT_PROP_NAME, PX, TOP_PROP_NAME, WIDTH_PROP_NAME } from '../common/const/base-prop-names';
+import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-virtual-click/const';
+import { NtBaseScrollComponent } from '../common/components/nt-base-scroll-component';
+import { INtScrollViewService } from '../scroll-view';
+import { IListScrollToParams } from '../common/interfaces/list-scroll-to-params';
+import { NtListItemModule } from './components/nt-list-item/nt-list-item.module';
+
+/**
+ * Virtual list component.
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/nt-list.component.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ */
+@Component({
+  selector: 'nt-list',
+  templateUrl: './nt-list.component.html',
+  styleUrl: './nt-list.component.scss',
+  host: {
+    'style': 'position: relative;'
+  },
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.ShadowDom,
+  providers: [
+    { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
+    { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
+    { provide: SCROLL_VIEW_SERVICE, useClass: NtListService },
+    NtListPublicService,
+  ],
+})
+export class NtListComponent<S extends INtListService, P extends INtScrollViewService>
+  extends NtBaseScrollComponent<S, P, NtScrollerComponent> implements OnDestroy {
+  protected _prerender = viewChild<NtPrerenderContainer>('prerender');
+
+  @ViewChild('renderersContainer', { read: ViewContainerRef })
+  protected _listContainerRef: ViewContainerRef | undefined;
+
+  @ViewChild('snapRendererContainer', { read: ViewContainerRef })
+  protected _snapContainerRef: ViewContainerRef | undefined;
+
+  protected _scroller: Signal<ElementRef<HTMLDivElement> | undefined>;
+
+  protected _list: Signal<ElementRef<HTMLDivElement> | undefined>;
+
+  /**
+   * Fires when the list has been scrolled.
+   */
+  onScroll = output<IScrollEvent>();
+
+  /**
+   * Fires when the list has completed scrolling.
+   */
+  onScrollEnd = output<IScrollEvent>();
+
+  /**
+   * Fires when the viewport size is changed.
+   */
+  onViewportChange = output<ISize>();
+
+  /**
+   * Emit the component ID when an element crosses the alignment line specified by the snapToItemAlign property.
+   */
+  onSnapItem = output<Id>();
+
+  /**
+   * Fires when an element is clicked.
+   */
+  onItemClick = output<IRenderVirtualListItem<any> | null>();
+
+  /**
+   * Fires when elements are selected.
+   */
+  onSelect = output<Array<Id> | Id | null>();
+
+  /**
+   * Fires when elements are collapsed.
+   */
+  onCollapse = output<Array<Id> | Id | null>();
+
+  /**
+   * Fires when the scroll reaches the start.
+   */
+  onScrollReachStart = output<void>();
+
+  /**
+   * Fires when the scroll reaches the end.
+   */
+  onScrollReachEnd = output<void>();
+
+  private _$show = new BehaviorSubject<boolean>(false);
+  readonly $show = this._$show.asObservable();
+
+  private _$initialized = new BehaviorSubject<boolean>(false);
+  readonly $initialized = this._$initialized.asObservable();
+
+  protected _scrollbarThickness = {
+    transform: (v: number) => {
+      const valid = validateInt(v);
+
+      if (!valid) {
+        console.error('The "scrollbarThickness" parameter must be of type `number`.');
+        return DEFAULT_SCROLLBAR_THICKNESS;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Scrollbar thickness.
+   */
+  scrollbarThickness = input<number>(DEFAULT_SCROLLBAR_THICKNESS, { ...this._scrollbarThickness });
+
+  protected _scrollbarMinSize = {
+    transform: (v: number) => {
+      const valid = validateInt(v);
+
+      if (!valid) {
+        console.error('The "scrollbarMinSize" parameter must be of type `number`.');
+        return DEFAULT_SCROLLBAR_MIN_SIZE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Minimum scrollbar size.
+   */
+  scrollbarMinSize = input<number>(DEFAULT_SCROLLBAR_MIN_SIZE, { ...this._scrollbarMinSize });
+
+  protected _scrollbarThumbRenderer = {
+    transform: (v: TemplateRef<any> | null) => {
+      const valid = validateObject(v, true, true);
+
+      if (!valid) {
+        console.error('The "scrollbarThumbRenderer" parameter must be of type `object`.');
+        return null;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Scrollbar customization template.
+   */
+  scrollbarThumbRenderer = input<TemplateRef<any> | null>(null, { ...this._scrollbarThumbRenderer });
+
+  protected _scrollbarThumbParams = {
+    transform: (v: { [propName: string]: any } | null) => {
+      const valid = validateObject(v, true, true);
+
+      if (!valid) {
+        console.error('The "scrollbarThumbParams" parameter must be of type `object`.');
+        return null;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Additional options for the scrollbar.
+   */
+  scrollbarThumbParams = input<{ [propName: string]: any } | null>({}, { ...this._scrollbarThumbParams });
+
+  protected _loading = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "loading" parameter must be of type `boolean`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * If `true`, the scrollBar goes into loading state. The default value is `false`.
+   */
+  loading = input<boolean>(false, { ...this._loading });
+
+  protected _waitForPreparation = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "waitForPreparation" parameter must be of type `boolean`.');
+        return DEFAULT_WAIT_FOR_PREPARATION;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * If true, it will wait until the list items are fully prepared before displaying them.. The default value is `true`.
+   */
+  waitForPreparation = input<boolean>(DEFAULT_WAIT_FOR_PREPARATION, { ...this._waitForPreparation });
+
+  protected _clickDistance = {
+    transform: (v: number) => {
+      const valid = validateInt(v);
+
+      if (!valid) {
+        console.error('The "clickDistance" parameter must be of type `number`.');
+        return DEFAULT_CLICK_DISTANCE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * The maximum scroll distance at which a click event is triggered.
+   */
+  clickDistance = input<number>(DEFAULT_CLICK_DISTANCE, { ...this._clickDistance });
+
+  protected _itemsOptions = {
+    transform: (v: IVirtualListCollection | undefined) => {
+      let valid = validateArray(v, true, true);
+      if (valid) {
+        if (v) {
+          const trackBy = this.trackBy();
+          for (let i = 0, l = v.length; i < l; i++) {
+            const item = v[i];
+            valid = validateObject(item, true, true);
+            if (valid) {
+              if (item && !(validateFloat(item?.[trackBy] as number, true) || validateString(item?.[trackBy] as string, true, true))) {
+                valid = false;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      if (!valid) {
+        console.error('The "items" parameter must be of type `IVirtualListCollection` or `undefined`.');
+        return [];
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Collection of list items.
+   */
+  items = input.required<IVirtualListCollection>({
+    ...this._itemsOptions,
+  });
+
+  protected _defaultItemValueOptions = {
+    transform: (v: IVirtualListItem) => {
+      const valid = validateObject(v, true);
+
+      if (!valid) {
+        console.error('The "defaultItemValue" parameter must be one of type `IVirtualListItem` or `null`.');
+        return null;
+      }
+      return v;
+    },
+  } as any;
+
+  defaultItemValue = input<IVirtualListItem | null>(null, { ...this._defaultItemValueOptions });
+
+  protected _selectedIdsOptions = {
+    transform: (v: Array<Id> | Id | undefined) => {
+      let valid = validateArray(v as any, true, true) || validateString(v as any, true, true) || validateFloat(v as any, true);
+      if (valid) {
+        if (v && v instanceof Array) {
+          for (let i = 0, l = v.length; i < l; i++) {
+            const item = v[i];
+            valid = validateString(item as any) || validateFloat(item as any);
+            if (!valid) {
+              break;
+            }
+          }
+        }
+      }
+
+      if (!valid) {
+        console.error('The "selectedIds" parameter must be of type `Array<Id> | Id` or `null`.');
+        return this._isMultiSelection ? [] : undefined;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Sets the selected items.
+   */
+  selectedIds = input<Array<Id> | Id | null>(null, { ...this._selectedIdsOptions });
+
+  protected _collapsedIdsOptions = {
+    transform: (v: Array<Id>) => {
+      let valid = validateArray(v as any, true, true);
+      if (valid) {
+        if (v && !!v) {
+          for (let i = 0, l = v.length; i < l; i++) {
+            const item = v[i];
+            valid = validateString(item as any) || validateFloat(item as any);
+            if (!valid) {
+              break;
+            }
+          }
+        }
+      }
+
+      if (!valid) {
+        console.error('The "collapsedIds" parameter must be of type `Array<Id>.');
+        return [];
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Sets the collapsed items.
+   */
+  collapsedIds = input<Array<Id>>([], { ...this._collapsedIdsOptions });
+
+  protected _selectByClickOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "selectByClick" parameter must be of type `boolean`.');
+        return DEFAULT_SELECT_BY_CLICK;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * If `false`, the element is selected using the api.select method passed to the template; 
+   * if `true`, the element is selected by clicking on it. The default value is `true`.
+   */
+  selectByClick = input<boolean>(DEFAULT_SELECT_BY_CLICK, { ...this._selectByClickOptions });
+
+  protected _collapseByClickOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "collapseByClick" parameter must be of type `boolean`.');
+        return DEFAULT_COLLAPSE_BY_CLICK;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * If `false`, the element is collapsed using the config.collapse method passed to the template; 
+   * if `true`, the element is collapsed by clicking on it. The default value is `true`.
+   */
+  collapseByClick = input<boolean>(DEFAULT_COLLAPSE_BY_CLICK, { ...this._collapseByClickOptions });
+
+  protected _stickyEnabledOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "stickyEnabled" parameter must be of type `boolean`.');
+        return DEFAULT_STICKY_ENABLED;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether items with the given `sticky` in `itemConfigMap` will stick to the edges. Default value is "true".
+   */
+  stickyEnabled = input<boolean>(DEFAULT_STICKY_ENABLED, { ...this._stickyEnabledOptions });
+
+  protected _snapToEndTransitionInstantOffsetOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v, true);
+
+      if (!valid) {
+        console.error('The "snapToEndTransitionInstantOffset" parameter must be of type `number`.');
+        return DEFAULT_SNAP_TO_END_TRANSITION_INSTANT_OFFSET;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Sets the offset value; if the scroll area value is exceeded, the scroll animation will be disabled. Default value is "0".
+   */
+  snapToEndTransitionInstantOffset = input<number>(DEFAULT_SNAP_TO_END_TRANSITION_INSTANT_OFFSET, { ...this._snapToEndTransitionInstantOffsetOptions });
+
+  protected _scrollStartOffsetOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v, true) || isPercentageValue(v);
+
+      if (!valid) {
+        console.error('The "scrollStartOffset" parameter must be one of type `number` or `string`.');
+        return 0;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Sets the scroll start offset value. Can be specified in absolute or percentage values.
+   * Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0".
+   */
+  scrollStartOffset = input<ArithmeticExpression>(0, { ...this._scrollStartOffsetOptions });
+
+  protected _scrollEndOffsetOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v, true) || isPercentageValue(v);
+
+      if (!valid) {
+        console.error('The "scrollEndOffset" parameter must be one of type `number` or `string`.');
+        return 0;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Sets the scroll end offset value. Can be specified in absolute or percentage values.
+   * Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0".
+   */
+  scrollEndOffset = input<ArithmeticExpression>(0, { ...this._scrollEndOffsetOptions });
+
+  protected _snapScrollToStartOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v, true);
+
+      if (!valid) {
+        console.error('The "snapScrollToStart" parameter must be of type `boolean`.');
+        return DEFAULT_SNAP_SCROLLTO_START;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether the scroll will be anchored to the start of the list. Default value is "true".
+   * This property takes precedence over the snapScrollToEnd property.
+   * That is, if snapScrollToStart and snapScrollToEnd are enabled, the list will initially snap 
+   * to the beginning; if you move the scroll bar to the end, the list will snap to the end. 
+   * If snapScrollToStart is disabled and snapScrollToEnd is enabled, the list will snap to the end; 
+   * if you move the scroll bar to the beginning, the list will snap to the beginning. 
+   * If both snapScrollToStart and snapScrollToEnd are disabled, the list will never snap to the beginning or end.
+   * In the `spreadingMode=SpreadingModes.INFINITY` mode, the `snapScrollToStart` property is automatically disabled, since the list has no beginning or end.
+   */
+  snapScrollToStart = input<boolean>(DEFAULT_SNAP_SCROLLTO_START, { ...this._snapScrollToStartOptions });
+
+  protected _snapScrollToEndOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v, true);
+
+      if (!valid) {
+        console.error('The "snapScrollToEnd" parameter must be of type `boolean`.');
+        return DEFAULT_SNAP_SCROLLTO_END;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether the scroll will be anchored to the утв of the list. Default value is "true".
+   * That is, if snapScrollToStart and snapScrollToEnd are enabled, the list will initially snap 
+   * to the beginning; if you move the scroll bar to the end, the list will snap to the end. 
+   * If snapScrollToStart is disabled and snapScrollToEnd is enabled, the list will snap to the end; 
+   * if you move the scroll bar to the beginning, the list will snap to the beginning. 
+   * If both snapScrollToStart and snapScrollToEnd are disabled, the list will never snap to the beginning or end.
+   * In the `spreadingMode=SpreadingModes.INFINITY` mode, the `snapScrollToEnd` property is automatically disabled, since the list has no beginning or end.
+   */
+  snapScrollToEnd = input<boolean>(DEFAULT_SNAP_SCROLLTO_END, { ...this._snapScrollToEndOptions });
+
+  protected _scrollbarEnabledOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v, true);
+
+      if (!valid) {
+        console.error('The "scrollbarEnabled" parameter must be of type `boolean`.');
+        return DEFAULT_SCROLLBAR_ENABLED;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether the scrollbar is shown or not. The default value is "true".
+   */
+  scrollbarEnabled = input<boolean>(DEFAULT_SCROLLBAR_ENABLED, { ...this._scrollbarEnabledOptions });
+
+  protected _scrollbarInteractiveOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v, true);
+
+      if (!valid) {
+        console.error('The "scrollbarInteractive" parameter must be of type `boolean`.');
+        return DEFAULT_SCROLLBAR_INTERACTIVE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether scrolling using the scrollbar will be possible. The default value is "true".
+   */
+  scrollbarInteractive = input<boolean>(DEFAULT_SCROLLBAR_INTERACTIVE, { ...this._scrollbarInteractiveOptions });
+
+  protected _overlappingScrollbarOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v, true);
+
+      if (!valid) {
+        console.error('The "overlappingScrollbar" parameter must be of type `boolean`.');
+        return DEFAULT_OVERLAPPING_SCROLLBAR;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether the scroll bar will overlap the list. The default value is "false".
+   */
+  overlappingScrollbar = input<boolean>(DEFAULT_OVERLAPPING_SCROLLBAR, { ...this._overlappingScrollbarOptions });
+
+  protected _scrollBehaviorOptions = {
+    transform: (v: ScrollBehavior) => {
+      const valid = validateString(v, true, true);
+
+      if (!valid) {
+        console.error('The "scrollBehavior" parameter must be of type `boolean`.');
+        return DEFAULT_SCROLL_BEHAVIOR;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Defines the scrolling behavior for any element on the page. The default value is "smooth".
+   */
+  scrollBehavior = input<ScrollBehavior>(DEFAULT_SCROLL_BEHAVIOR, { ...this._scrollBehaviorOptions });
+
+  protected _scrollingSettingsOptions = {
+    transform: (v: IScrollingSettings): IScrollingSettings | null => {
+      let valid = validateObject(v, true, true);
+      if (valid && !!v) {
+        const { frictionalForce, mass, maxDistance, maxDuration, speedScale, optimization } = v;
+        valid = validateFloat(frictionalForce, true);
+        if (!valid) {
+          console.error('The "frictionalForce" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateFloat(mass, true);
+        if (!valid) {
+          console.error('The "mass" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateFloat(maxDistance, true);
+        if (!valid) {
+          console.error('The "maxDistance" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateFloat(maxDuration, true);
+        if (!valid) {
+          console.error('The "maxDuration" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateFloat(speedScale, true);
+        if (!valid) {
+          console.error('The "speedScale" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateBoolean(optimization, true);
+        if (!valid) {
+          console.error('The "optimization" parameter must be of type `boolean` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+      }
+      if (!valid) {
+        console.error('The "scrollingSettings" parameter must be of type `object` or null.');
+        return DEFAULT_SCROLLING_SETTINGS;
+      }
+      return {
+        frictionalForce: v.frictionalForce !== undefined && v.frictionalForce > 0 ? v.frictionalForce : DEFAULT_SCROLLING_SETTINGS.frictionalForce,
+        mass: v.mass !== undefined && v.mass > 0 ? v.mass : DEFAULT_SCROLLING_SETTINGS.mass,
+        maxDistance: v.maxDistance !== undefined && v.maxDistance > 0 ? v.maxDistance : DEFAULT_SCROLLING_SETTINGS.maxDistance,
+        maxDuration: v.maxDuration !== undefined && v.maxDuration > 0 ? v.maxDuration : DEFAULT_SCROLLING_SETTINGS.maxDuration,
+        speedScale: v.speedScale !== undefined && v.speedScale > 0 ? v.speedScale : DEFAULT_SCROLLING_SETTINGS.speedScale,
+        optimization: v.optimization ?? DEFAULT_SCROLLING_SETTINGS.optimization,
+      };
+    },
+  } as any;
+
+  /**
+   * Scrolling settings.
+   * - frictionalForce - Frictional force. Default value is 0.035.
+   * - mass - Mass. Default value is 0.005.
+   * - maxDistance - Maximum scrolling distance. Default value is 100000.
+   * - maxDuration - Maximum animation duration. Default value is 4000.
+   * - speedScale - Speed scale. Default value is 10.
+   * - optimization - Enables scrolling performance optimization. Default value is `true`.
+   */
+  scrollingSettings = input<IScrollingSettings>(DEFAULT_SCROLLING_SETTINGS, { ...this._scrollingSettingsOptions });
+
+  protected _itemTransformOptions = {
+    transform: (v: any) => {
+      let valid = validateFunction(v, true, true);
+      if (!valid) {
+        console.error('The "itemTransform" parameter must be of type `ItemTransform` or `null`.');
+        return null;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Custom transformation of element's position, rotation, scale, opacity and zIndex. The default value is `null`.
+   */
+  itemTransform = input<ItemTransform | null>(null, { ...this._itemTransformOptions });
+
+  protected _snapToItemOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "snapToItem" parameter must be of type `boolean`.');
+        return DEFAULT_SNAP_TO_ITEM;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Snap to an item. The default value is `false`.
+   */
+  snapToItem = input<boolean>(DEFAULT_SNAP_TO_ITEM, { ...this._snapToItemOptions });
+
+  protected _snapToItemAlignOptions = {
+    transform: (v: SnapToItemAlign) => {
+      const valid = validateString(v) && (v === 'start' || v === 'center' || v === 'end');
+
+      if (!valid) {
+        console.error('The "snapToItemAlign" parameter must be one of `start`, `center` or `end`.');
+        return DEFAULT_SNAP_TO_ITEM_ALIGN;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Alignment for snapToItem. Available values ​​are `start`, `center`, and `end`. The default value is `center`.
+   */
+  snapToItemAlign = input<SnapToItemAlign>(DEFAULT_SNAP_TO_ITEM_ALIGN, { ...this._snapToItemAlignOptions });
+
+  protected _snappingDistanceOptions = {
+    transform: (v: SnappingDistance | any) => {
+      const valid = validateString(v) || validateFloat(v);
+
+      if (!valid) {
+        console.error('The "snappingDistance" parameter must be of type `number` or `string`.');
+        return DEFAULT_SNAPPING_DISTANCE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Snapping activation distance. Can be specified as a percentage of the element size or in absolute values.
+   * The default value is `25%`.
+   */
+  snappingDistance = input<SnappingDistance>(DEFAULT_SNAPPING_DISTANCE, { ...this._snappingDistanceOptions });
+
+  protected _scrollingOneByOneOptions = {
+    transform: (v: any) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "scrollingOneByOne" parameter must be of type `boolean`.');
+        return DEFAULT_SCROLLING_ONE_BY_ONE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Specifies whether to scroll one item at a time if true and the scrollToItem property is set. The default value is `false`.
+   */
+  scrollingOneByOne = input<boolean>(DEFAULT_SCROLLING_ONE_BY_ONE, { ...this._scrollingOneByOneOptions });
+
+  protected _alignmentOptions = {
+    transform: (v: Alignment) => {
+      const valid = validateString(v) && (v === 'none' || v === 'center');
+
+      if (!valid) {
+        console.error('The "alignment" parameter must be one of `none` or `centert`.');
+        return DEFAULT_ALIGNMENT;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines the alignment of the list. Two modes are available: `none` and `center`. The `center` mode aligns the list items to the center of the viewport, ideal for use with the `itemTransform` property.
+   * The `none` mode means no alignment. The default value is `none`.
+   */
+  alignment = input<Alignment>(DEFAULT_ALIGNMENT, { ...this._alignmentOptions });
+
+  protected _zIndexWhenSelectingOptions = {
+    transform: (v: string | null) => {
+      const valid = validateString(v, true, true);
+
+      if (!valid) {
+        console.error('The "zIndexWhenSelecting" parameter must be of type `number` or `null`.');
+        return DEFAULT_ZINDEX_WHEN_SELECTING;
+      }
+      return v ?? null;
+    },
+  } as any;
+
+  /**
+   * Defines the zIndex when a list item is selected. The default value is `null`.
+   */
+  zIndexWhenSelecting = input<string | null>(DEFAULT_ZINDEX_WHEN_SELECTING, { ...this._zIndexWhenSelectingOptions });
+
+  protected _spreadingModeOptions = {
+    transform: (v: SpreadingMode) => {
+      const valid = validateString(v) && (v === 'normal' || v === 'infinity');
+
+      if (!valid) {
+        console.error('The "spreadingMode" parameter must be one of `normal` or `infinity`.');
+        return DEFAULT_SPREADING_MODE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * The order of list elements. Available values ​​are `standard` and `infinity`.
+   * `normal` — list elements are ordered according to the collection sequence.
+   * `infinity` — list elements are ordered cyclically, forming an infinite list.
+   * When set to `infinity`, the `alignment` property is forced to the value `Alignments.CENTER`, the `scrollbarEnabled` property is forced to the `false`
+   * The default value is `standard`.
+   */
+  spreadingMode = input<SpreadingMode>(DEFAULT_SPREADING_MODE, { ...this._spreadingModeOptions });
+
+  protected _dividesOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v);
+
+      if (!valid) {
+        console.error('The "divides" parameter must be of type `number`.');
+        return DEFAULT_DIVIDES;
+      }
+      return v <= 0 ? DEFAULT_DIVIDES : v;
+    },
+  } as any;
+
+  /**
+   * Column or row numbers. The default value is `1`.
+   */
+  divides = input<number>(DEFAULT_DIVIDES, { ...this._dividesOptions });
+
+  protected _motionBlurOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v);
+
+      if (!valid) {
+        console.error('The "motionBlur" parameter must be of type `number`.');
+        return DEFAULT_MOTION_BLUR;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Motion blur effect. The default value is `0.15`.
+   */
+  motionBlur = input<number>(DEFAULT_MOTION_BLUR, { ...this._motionBlurOptions });
+
+  protected _maxMotionBlurOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v);
+
+      if (!valid) {
+        console.error('The "maxMotionBlur" parameter must be of type `number`.');
+        return DEFAULT_MAX_MOTION_BLUR;
+      }
+      return v <= 0 ? DEFAULT_MAX_MOTION_BLUR : v;
+    },
+  } as any;
+
+  /**
+   * Maximum motion blur effect. The default value is `0.5`.
+   */
+  maxMotionBlur = input<number>(DEFAULT_MAX_MOTION_BLUR, { ...this._maxMotionBlurOptions });
+
+  protected _motionBlurEnabledOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "motionBlurEnabled" parameter must be of type `boolean`.');
+        return DEFAULT_MOTION_BLUR_ENABLED;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether to apply motion blur or not. The default value is `false`.
+   */
+  motionBlurEnabled = input<boolean>(DEFAULT_MOTION_BLUR_ENABLED, { ...this._motionBlurEnabledOptions });
+
+  protected _animationParamsOptions = {
+    transform: (v: IAnimationParams) => {
+      const valid = validateObject(v, true, true);
+
+      if (!validateFloat(v.scrollToItem)) {
+        console.error('The "scrollToItem" parameter must be of type `number`.');
+        return DEFAULT_ANIMATION_PARAMS;
+      }
+      if (!validateFloat(v.snapToItem)) {
+        console.error('The "snapToItem" parameter must be of type `number`.');
+        return DEFAULT_ANIMATION_PARAMS;
+      }
+      if (!validateFloat(v.navigateByKeyboard)) {
+        console.error('The "navigateByKeyboard" parameter must be of type `number`.');
+        return DEFAULT_ANIMATION_PARAMS;
+      }
+      if (!validateFloat(v.navigateToItem)) {
+        console.error('The "navigateToItem" parameter must be of type `number`.');
+        return DEFAULT_ANIMATION_PARAMS;
+      }
+      if (!valid) {
+        console.error('The "animationParams" parameter must be of type `object`.');
+        return DEFAULT_ANIMATION_PARAMS;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Animation parameters. The default value is "{ scrollToItem: 150, snapToItem: 150, navigateToItem: 150, navigateByKeyboard: 50 }".
+   */
+  animationParams = input<IAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
+
+  protected _overscrollEnabledOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v, true);
+
+      if (!valid) {
+        console.error('The "overscrollEnabled" parameter must be of type `boolean`.');
+        return DEFAULT_OVERSCROLL_ENABLED;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether the overscroll (re-scroll) feature will work. The default value is "true".
+   */
+  overscrollEnabled = input<boolean>(DEFAULT_OVERSCROLL_ENABLED, { ...this._overscrollEnabledOptions });
+
+  protected _enabledBufferOptimizationOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "enabledBufferOptimization" parameter must be of type `boolean`.');
+        return DEFAULT_ENABLED_BUFFER_OPTIMIZATION;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Experimental!
+   * Enables buffer optimization.
+   * Can only be used if items in the collection are not added or updated. Otherwise, artifacts in the form of twitching of the scroll area are possible.
+   * Works only if the property dynamic = true
+   */
+  enabledBufferOptimization = input<boolean>(DEFAULT_ENABLED_BUFFER_OPTIMIZATION, { ...this._enabledBufferOptimizationOptions });
+
+  protected _itemRendererOptions = {
+    transform: (v: TemplateRef<any>) => {
+      let valid = validateObject(v);
+      if (v && !(typeof v.elementRef === 'object' && typeof v.createEmbeddedView === 'function')) {
+        valid = false;
+      }
+
+      if (!valid) {
+        throw Error('The "itemRenderer" parameter must be of type `TemplateRef`.');
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Rendering element template.
+   */
+  itemRenderer = input.required<TemplateRef<any>>({ ...this._itemRendererOptions });
+
+  protected _itemRenderer = signal<TemplateRef<any> | undefined>(undefined);
+
+  protected _itemConfigMapOptions = {
+    transform: (v: IVirtualListItemConfigMap) => {
+      let valid = validateObject(v);
+      if (valid) {
+        if (v) {
+          for (let id in v) {
+            const item = v[id];
+            if (!item ||
+              !validateBoolean(item.collapsable, true) ||
+              !validateBoolean(item.selectable, true) ||
+              !(item.sticky === undefined || item.sticky === 0 || item.sticky === 1 || item.sticky === 2)
+            ) {
+              valid = false;
+              break;
+            }
+          }
+        }
+      }
+      if (!valid) {
+        console.error('The "itemConfigMap" parameter must be of type `IVirtualListItemConfigMap`.');
+        return {};
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Sets `sticky` position, `fullSize`, `collapsable` and `selectable` for the list item element. If `sticky` position is greater than `0`, then `sticky` position is applied. 
+   * If the `sticky` value is greater than `0`, then the `sticky` position mode is enabled for the element. `1` - position start, `2` - position end.
+   *  Default value is `0`.
+   * `selectable` determines whether an element can be selected or not. Default value is `true`.
+   * `collapsable` determines whether an element with a `sticky` property greater than zero can collapse and
+   *  collapse elements in front that do not have a `sticky` property.
+   * `fullSize` determines the size of an element when rendering lists with cell divisions. If sticky is 1 or 2, fullSize automatically becomes true. The default value is false.
+   * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/models/item-config-map.model.ts
+   * @author Evgenii Alexandrovich Grebennikov
+   * @email djonnyx@gmail.com
+   */
+  itemConfigMap = input<IVirtualListItemConfigMap>({}, { ...this._itemConfigMapOptions });
+
+  protected _itemSizeOptions = {
+    transform: (v: any) => {
+      const valid = validateFloat(v) || v === VIEWPORT;
+      if (!valid) {
+        console.error('The "itemSize" parameter must be one of `number`, `viewport` or `undefined`.');
+        return DEFAULT_ITEM_SIZE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * If direction = 'vertical', then the height of a typical element. If direction = 'horizontal', then the width of a typical element.
+   * If the `dynamicSize` property is true, the items in the list can have different sizes, and you must specify the `itemSize` property 
+   * to adjust the sizes of the items in the unallocated area.
+   * If the value is 'viewport', the sizes of elements are automatically resized to fit the viewport size.
+   */
+  itemSize = input<number | 'viewport'>(DEFAULT_ITEM_SIZE, { ...this._itemSizeOptions });
+
+  protected _minItemSizeOptions = {
+    transform: (v: any) => {
+      const valid = validateFloat(v) || v === VIEWPORT;
+      if (!valid) {
+        console.error('The "minItemSize" parameter must be one of `number`, `viewport` or `undefined`.');
+        return DEFAULT_ITEM_SIZE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * If the `dynamicSize` property is enabled, the minimum size of the element is set.
+   * If the value is 'viewport', the sizes of elements are automatically resized to fit the viewport size.
+   */
+  minItemSize = input<number | 'viewport'>(DEFAULT_MIN_ITEM_SIZE, { ...this._minItemSizeOptions });
+
+  protected _maxItemSizeOptions = {
+    transform: (v: any) => {
+      const valid = validateFloat(v) || v === VIEWPORT;
+      if (!valid) {
+        console.error('The "maxItemSize" parameter must be one of `number`, `viewport` or `undefined`.');
+        return DEFAULT_ITEM_SIZE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * If the `dynamicSize` property is enabled, the maximum size of the element is set.
+   * If the value is 'viewport', the sizes of elements are automatically resized to fit the viewport size.
+   */
+  maxItemSize = input<number | 'viewport'>(DEFAULT_MAX_ITEM_SIZE, { ...this._maxItemSizeOptions });
+
+  protected _dynamicSizeOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+      if (!valid) {
+        console.error('The "dynamicSize" parameter must be of type `boolean`.');
+        return DEFAULT_DYNAMIC_SIZE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * If true, items in the list may have different sizes, and the itemSize property must be specified to adjust
+   * the sizes of items in the unallocated area.
+   * If false then the items in the list have a fixed size specified by the itemSize property. The default value is true.
+   */
+  dynamicSize = input(DEFAULT_DYNAMIC_SIZE, { ...this._dynamicSizeOptions });
+
+  protected _directionOptions = {
+    transform: (v: Direction) => {
+      const valid = validateString(v) && (v === 'horizontal' || v === 'vertical');
+      if (!valid) {
+        console.error('The "direction" parameter must be one of `horizontal` or `vertical`.');
+        return DEFAULT_DIRECTION;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines the direction in which elements are placed. Default value is "vertical".
+   */
+  direction = input<Direction>(DEFAULT_DIRECTION, { ...this._directionOptions });
+
+  protected _collectionModeOptions = {
+    transform: (v: CollectionMode) => {
+      const valid = validateString(v) && (v === 'normal' || v === 'lazy');
+      if (!valid) {
+        console.error('The "direction" parameter must be one of `normal` or `lazy`.');
+        return DEFAULT_COLLECTION_MODE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines the action modes for collection elements. Default value is "normal".
+   */
+  collectionMode = input<CollectionMode>(DEFAULT_COLLECTION_MODE, { ...this._collectionModeOptions });
+
+  protected _bufferSizeOptions = {
+    transform: (v: number) => {
+      const valid = validateInt(v);
+      if (!valid) {
+        console.error('The "bufferSize" parameter must be of type `number`.');
+        return DEFAULT_BUFFER_SIZE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Number of elements outside the scope of visibility. Default value is 2.
+   */
+  bufferSize = input<number>(DEFAULT_BUFFER_SIZE, { ...this._bufferSizeOptions });
+
+  protected _maxBufferSizeTransform = {
+    transform: (v: number | undefined) => {
+      let val = v;
+      const valid = validateInt(v, true);
+      if (!valid) {
+        console.error('The "maxBufferSize" parameter must be of type `number`.');
+        val = DEFAULT_MAX_BUFFER_SIZE;
+      }
+
+      const bufferSize = this.bufferSize();
+      if (val === undefined || val <= bufferSize) {
+        return bufferSize;
+      }
+      return val;
+    }
+  } as any;
+
+  /**
+   * Maximum number of elements outside the scope of visibility. Default value is 100.
+   * If maxBufferSize is set to be greater than bufferSize, then adaptive buffer mode is enabled.
+   * The greater the scroll size, the more elements are allocated for rendering.
+   */
+  maxBufferSize = input<number>(DEFAULT_MAX_BUFFER_SIZE, { ...this._maxBufferSizeTransform });
+
+  protected _snappingMethodOptions = {
+    transform: (v: SnappingMethod) => {
+      const valid = validateString(v) && (v === SnappingMethods.ADVANCED || v === SnappingMethods.STANDART);
+      if (!valid) {
+        console.error(`The "snappingMethod" parameter must have the value '${SnappingMethods.ADVANCED}' or '${SnappingMethods.STANDART}'.`);
+        return DEFAULT_SNAPPING_METHOD;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Snapping method. Default value is 'standart'.
+   * 'standart' - Classic group visualization.
+   * 'advanced' - A mask is applied to the viewport area so that the background is displayed underneath the attached group.
+   */
+  snappingMethod = input<SnappingMethod>(DEFAULT_SNAPPING_METHOD, { ...this._snappingMethodOptions });
+
+  protected _collapsingModeOptions = {
+    transform: (v: CollapsingMode) => {
+      const valid = validateString(v) && (v === CollapsingModes.NONE || v === CollapsingModes.MULTI_COLLAPSE || v === CollapsingModes.ACCORDION);
+      if (!valid) {
+        console.error(`The "collapsingMode" parameter must have the value '${SnappingMethods.ADVANCED}' or '${SnappingMethods.STANDART}'.`);
+        return DEFAULT_COLLAPSING_MODES;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Mode for collapsing list items. 
+   * `none` - List items are not selectable.
+   * `multi-collapse` - List items are collapsed one by one.
+   * 'accordion' - Accordion collapsible list items.
+   * Default value is `none`
+   */
+  collapsingMode = input<CollapsingMode>(DEFAULT_COLLAPSING_MODES, { ...this._collapsingModeOptions });
+
+  protected _selectingModeOptions = {
+    transform: (v: SelectingMode) => {
+      const valid = validateString(v) && (v === 'none' || v === 'select' || v === 'multi-select');
+      if (!valid) {
+        console.error('The "selectingMode" parameter must be one of `none`, `select` or `multi-select`.');
+        return DEFAULT_SELECTING_MODES;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   *  Method for selecting list items. Default value is 'none'.
+   * 'select' - List items are selected one by one.
+   * 'multi-select' - Multiple selection of list items.
+   * 'none' - List items are not selectable.
+   */
+  selectingMode = input<SelectingMode>(DEFAULT_SELECTING_MODES, { ...this._selectingModeOptions });
+
+  protected _trackByOptions = {
+    transform: (v: string) => {
+      const valid = validateString(v);
+      if (!valid) {
+        console.error('The "trackBy" parameter must be of type `string`.');
+        return TRACK_BY_PROPERTY_NAME;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * The name of the property by which tracking is performed
+   */
+  trackBy = input<string>(TRACK_BY_PROPERTY_NAME, { ...this._trackByOptions });
+
+  protected _screenReaderMessageOptions = {
+    transform: (v: string) => {
+      const valid = validateString(v);
+      if (!valid) {
+        console.error('The "screenReaderMessage" parameter must be of type `string`.');
+        return DEFAULT_SCREEN_READER_MESSAGE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Message for screen reader.
+   * The message format is: "some text $1 some text $2",
+   * where $1 is the number of the first element of the screen collection,
+   * $2 is the number of the last element of the screen collection.
+   */
+  screenReaderMessage = input<string>(DEFAULT_SCREEN_READER_MESSAGE, { ...this._screenReaderMessageOptions });
+
+  protected readonly screenReaderFormattedMessage = signal<string>(this.screenReaderMessage());
+
+  protected _langTextDir = {
+    transform: (v: TextDirection) => {
+      const valid = validateString(v);
+      if (!valid) {
+        console.error('The "langTextDir" parameter must be of type `string`.');
+        return DEFAULT_LANG_TEXT_DIR;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * A string indicating the direction of text for the locale.
+   * Can be either "ltr" (left-to-right) or "rtl" (right-to-left).
+   */
+  langTextDir = input<TextDirection>(DEFAULT_LANG_TEXT_DIR, { ...this._langTextDir });
+
+  private _isSingleSelection = this.getIsSingleSelection();
+
+  private _isMultiSelection = this.getIsMultiSelection();
+
+  private _isMultipleCollapse = this.getIsMultipleCollapse();
+
+  private _isAccordionCollapse = this.getIsAccordionCollapse();
+
+  private _isSnappingMethodAdvanced: boolean = this.getIsSnappingMethodAdvanced();
+
+  protected _isInfinity: Signal<boolean>;
+
+  private _isVertical = this.getIsVertical();
+  protected get isVertical() {
+    return this._isVertical;
+  }
+
+  protected readonly focusedElement = signal<Id | null>(null);
+
+  protected readonly classes = signal<{ [cName: string]: boolean }>({});
+
+  private _actualItems = signal<IVirtualListCollection>([]);
+
+  private _collapsedItemIds = signal<Array<Id>>([]);
+
+  private _displayComponents: Array<ComponentRef<BaseVirtualListItemComponent>> = [];
+
+  private _snappedDisplayComponents: Array<ComponentRef<BaseVirtualListItemComponent>> = [];
+
+  protected _actualScrollbarEnabled: Signal<boolean>;
+
+  private _actualAlignment: Signal<Alignment>;
+  protected get actualAlignment() { return this._actualAlignment; }
+
+  private _actualItemSize = signal<number>(DEFAULT_ITEM_SIZE);
+  protected get actualItemSize() { return this._actualItemSize; }
+
+  private _actualMinItemSize = signal<number>(DEFAULT_MIN_ITEM_SIZE);
+  protected get actualMinItemSize() { return this._actualMinItemSize; }
+
+  private _actualMaxItemSize = signal<number>(DEFAULT_MAX_ITEM_SIZE);
+  protected get actualMaxItemSize() { return this._actualMaxItemSize; }
+
+  private _totalSize = signal<number>(0);
+
+  private _listBounds = signal<ISize | null>(null);
+
+  private _$scrollSize = new BehaviorSubject<number>(0);
+
+  private _isScrollStart = signal<boolean>(true);
+
+  private _isScrollEnd = signal<boolean>(false);
+
+  protected _precalculatedScrollStartOffset = signal<number>(0);
+
+  protected _precalculatedScrollEndOffset = signal<number>(0);
+
+  protected _actualScrollStartOffset = signal<number>(0);
+
+  protected _actualScrollEndOffset = signal<number>(0);
+
+  protected _actualSnapScrollToStart: Signal<boolean>;
+
+  protected _actualSnapScrollToEnd: Signal<boolean>;
+
+  protected _alignmentScrollStartOffset = signal<number>(0);
+
+  protected _alignmentScrollEndOffset = signal<number>(0);
+
+  private _resizeSnappedComponentHandler = () => {
+    const list = this._list(), scroller = this._scroller(), bounds = this._bounds(), snappedComponents = this._snappedDisplayComponents;
+    if (!!list && !!scroller && snappedComponents.length > 0) {
+      const isVertical = this._isVertical, listBounds = list.nativeElement.getBoundingClientRect();
+
+      for (const comp of snappedComponents) {
+        if (!!comp) {
+          comp.instance.regularLength = `${isVertical ? listBounds.width : listBounds.height}${PX}`;
+        }
+      }
+
+      const snappingMethod = this.snappingMethod();
+      if (snappingMethod === SnappingMethods.ADVANCED) {
+        const snappedComponent = snappedComponents?.[0]?.instance;
+        if (!!snappedComponent) {
+          const { width, height } = bounds ?? { width: 0, height: 0 }, langTextDir = this.langTextDir();
+
+          snappedComponent.element.style.clipPath = `path("M 0 0 L 0 ${snappedComponent.element.offsetHeight} L ${snappedComponent.element.offsetWidth} ${snappedComponent.element.offsetHeight} L ${snappedComponent.element.offsetWidth} 0 Z")`;
+
+          const { height: sHeight } = snappedComponent.getBounds() ?? { width: 0, height: 0 },
+            scrollerElement = scroller.nativeElement, delta = snappedComponent.item?.measures.delta ?? 0,
+            scrollBarSize = this.scrollbarThickness();
+
+          let right: number, top: number, bottom: number;
+          if (isVertical) {
+            right = width - scrollBarSize + 2;
+            top = sHeight;
+            bottom = height;
+            if (langTextDir === TextDirections.RTL) {
+              scrollerElement.style.clipPath = `path("M 0 0 L 0 ${height} L ${width} ${height} L ${width} ${top + delta} L ${scrollBarSize} ${top + delta} L ${scrollBarSize} 0 Z")`;
+            } else {
+              scrollerElement.style.clipPath = `path("M 0 ${top + delta} L 0 ${height} L ${width} ${height} L ${width} 0 L ${right} 0 L ${right} ${top + delta} Z")`;
+            }
+          } else {
+            right = width;
+            top = 0;
+            bottom = height - scrollBarSize;
+            scrollerElement.style.clipPath = `path("M ${width} 0 L ${width} ${bottom} L 0 ${bottom} L 0 0 L ${width} 0 Z")`;
+          }
+        }
+      }
+    }
+  };
+
+  private _resizeSnappedObserver: ResizeObserver | null = null;
+
+  private focusItem = (element: HTMLElement, position: number, align: FocusAlignment = FocusAlignments.CENTER,
+    behavior: ScrollBehavior = BEHAVIOR_AUTO) => {
+    if (!this._readyForShow) {
+      return;
+    }
+    const scroller = this._scrollerComponent();
+    if (!!scroller) {
+      const { width, height } = this._bounds()!, { width: elementWidth, height: elementHeight } = element.getBoundingClientRect(),
+        isVertical = this._isVertical,
+        viewportSize = isVertical ? height : width,
+        maxPosition = isVertical ? scroller.scrollHeight : scroller.scrollWidth,
+        elementSize = isVertical ? elementHeight : elementWidth;
+      let pos: number = Number.NaN;
+      switch (align) {
+        case FocusAlignments.START: {
+          const p = position + scroller.startLayoutOffset;
+          pos = scroller.inverted ? (maxPosition - p) : p;
+          break;
+        }
+        case FocusAlignments.CENTER: {
+          const p = position - (viewportSize - elementSize) * .5 + scroller.startLayoutOffset;
+          pos = scroller.inverted ? (maxPosition - p) : p;
+          break;
+        }
+        case FocusAlignments.END: {
+          const p = position - (viewportSize - elementSize) + scroller.startLayoutOffset;
+          pos = scroller.inverted ? (maxPosition - p) : p;
+          break;
+        }
+        case FocusAlignments.NONE:
+        default: {
+          break;
+        }
+      }
+      if (!Number.isNaN(pos)) {
+        this._trackBox.preventScrollSnapping(true);
+        const params: IListScrollToParams = {
+          [this._isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: pos, behavior, snap: false, normalize: true,
+          fireUpdate: true, blending: false, userAction: false,
+          duration: this.snapToItem() ? Math.max(this.animationParams().scrollToItem, this.animationParams().navigateToItem) : this.animationParams().navigateToItem,
+        };
+        scroller.scrollTo(params);
+      }
+    }
+  }
+
+  private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  /**
+   * Base class of the element component
+   */
+  private _itemComponentClass: Component$1<BaseVirtualListItemComponent> = NtListItemComponent;
+  protected get itemComponentClass() { return this._itemComponentClass; }
+
+  /**
+   * Base class trackBox
+   */
+  private _trackBoxClass: Component$1<TrackBox> = TrackBox;
+
+  /**
+   * Dictionary of element sizes by their id
+   */
+  private _trackBox: TrackBox = new this._trackBoxClass(this.trackBy());
+
+  private _$update = new Subject<string>();
+  protected readonly $update = this._$update.asObservable();
+
+  private _$scrollTo = new Subject<IScrollParams>();
+  protected $scrollTo = this._$scrollTo.asObservable();
+
+  private _$scrollToExecutor = new Subject<IScrollParams | null>();
+  protected readonly $scrollToExecutor = this._$scrollToExecutor.asObservable();
+
+  private _$scrollingTo = new BehaviorSubject<boolean>(false);
+
+  private _$scroll = new Subject<IScrollEvent>();
+  readonly $scroll = this._$scroll.asObservable();
+
+  private _$tick = new Subject<void>();
+  readonly $tick = this._$tick.asObservable();
+
+  private _$fireUpdate = new Subject<boolean>();
+  protected readonly $fireUpdate = this._$fireUpdate.asObservable();
+
+  private _$fireUpdateNextFrame = new Subject<boolean>();
+  protected readonly $fireUpdateNextFrame = this._$fireUpdateNextFrame.asObservable();
+
+  private _$preventScrollSnapping = new BehaviorSubject<boolean>(false);
+  protected readonly $preventScrollSnapping = this._$preventScrollSnapping.asObservable();
+
+  private _destroyRef = inject(DestroyRef);
+
+  private _updateId: number | undefined;
+
+  private _readyForShow = false;
+
+  private _cached = false;
+
+  private _isLoading = false;
+
+  private _animationId: number = -1;
+
+  protected get cachable() {
+    return this._prerender()?.active ?? false;
+  }
+
+  protected get prerenderable() {
+    return this.dynamicSize() && (this._trackBox?.isSnappedToEnd ?? false);
+  }
+
+  private _injector = inject(Injector);
+
+  private _$viewInit = new BehaviorSubject<boolean>(false);
+  private readonly $viewInit = this._$viewInit.asObservable();
+
+  private _$destroy = new Subject<void>();
+  private readonly $destroy = this._$destroy.asObservable();
+
+  constructor() {
+    super();
+
+    let readyForAnimations = false;
+
+    const _$created = new BehaviorSubject<boolean>(false),
+      $created = _$created.asObservable(),
+      $scrollerComponent = toObservable(this._scrollerComponent),
+      $resizeViewport = $scrollerComponent.pipe(
+        takeUntilDestroyed(),
+        filter(v => !!v),
+        switchMap(scroller => scroller.$resizeViewport),
+      ),
+      $resizeContent = $scrollerComponent.pipe(
+        takeUntilDestroyed(),
+        filter(v => !!v),
+        switchMap(scroller => scroller.$resizeContent),
+      );
+
+    combineLatest([$created, this.$show]).pipe(
+      takeUntilDestroyed(),
+      filter(([created, shown]) => created && shown),
+      debounceTime(1),
+      tap(v => {
+        this._$initialized.next(true);
+      }),
+    ).subscribe();
+
+    $scrollerComponent.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      tap(component => {
+        this._service.initialize(this._id, component, this._parentService, this._trackBox);
+      }),
+    ).subscribe()
+
+    if (!!this._parentService) {
+      this._parentService.$scrollable.pipe(
+        takeUntilDestroyed(),
+        tap(v => {
+          this._service.scrollable = v;
+        }),
+      ).subscribe();
+
+      this._service.$overscroll.pipe(
+        takeUntilDestroyed(),
+        tap(v => {
+          if (!!this._parentService) {
+            this._parentService.overscroll = v;
+          }
+        }),
+      ).subscribe();
+
+      this._parentService.$overscroll.pipe(
+        takeUntilDestroyed(),
+        tap(v => {
+          this._service.overscroll = v;
+        }),
+      ).subscribe();
+    }
+
+    const $animationParams = toObservable(this.animationParams);
+    $animationParams.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._service.animationParams = v;
+      }),
+    ).subscribe();
+
+    this._isInfinity = computed(() => {
+      const mode = this.spreadingMode();
+      return isSpreadingMode(mode, SpreadingModes.INFINITY);
+    });
+
+    const $isInfinity = toObservable(this._isInfinity);
+    $isInfinity.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._trackBox.isInfinity = this._service.isInfinity = v;
+      }),
+    ).subscribe();
+
+    const $zIndexWhenSelecting = toObservable(this.zIndexWhenSelecting);
+    $zIndexWhenSelecting.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._service.zIndexWhenSelecting = v;
+      }),
+    ).subscribe();
+
+    const $bounds = toObservable(this._bounds).pipe(
+      filter(b => !!b),
+    ),
+      $rawScrollStartOffset = toObservable(this.scrollStartOffset),
+      $rawScrollEndOffset = toObservable(this.scrollEndOffset);
+
+    combineLatest([$bounds, $rawScrollStartOffset]).pipe(
+      takeUntilDestroyed(),
+      tap(([bounds, value]) => {
+        const val = parseArithmeticExpression(value, this.isVertical ? bounds.height : bounds.width);
+        this._precalculatedScrollStartOffset.set(val);
+      }),
+    ).subscribe();
+
+    combineLatest([$bounds, $rawScrollEndOffset]).pipe(
+      takeUntilDestroyed(),
+      tap(([bounds, value]) => {
+        const val = parseArithmeticExpression(value, this.isVertical ? bounds.height : bounds.width);
+        this._precalculatedScrollEndOffset.set(val);
+      }),
+    ).subscribe();
+
+    this._service?.$intersectionElementBySnapToItemAlign?.pipe(
+      takeUntilDestroyed(),
+      filter(v => v !== null),
+      tap(id => {
+        this.onSnapItem.emit(id);
+      }),
+    ).subscribe();
+
+    this._service?.$tick?.pipe(
+      takeUntilDestroyed(),
+      tap(() => {
+        if (this.dynamicSize() === true) {
+          this.checkBoundsOfElements();
+        }
+        this._scrollerComponent()?.tick();
+      }),
+    ).subscribe();
+
+    $scrollerComponent.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      switchMap(scroller => scroller.$scrollDirection),
+      tap(v => {
+        this._trackBox.scrollDirection = v;
+      }),
+    ).subscribe();
+
+    $resizeViewport.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      tap(v => {
+        this._bounds.set(v);
+        this.onAfterResize(true);
+      }),
+    ).subscribe();
+
+    $resizeContent.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      tap(v => {
+        this._listBounds.set(v);
+        this.onAfterResize();
+      }),
+    ).subscribe();
+
+    const $trackBy = toObservable(this.trackBy);
+    $trackBy.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._service.trackBy = this._trackBox.trackBy = v;
+      }),
+    ).subscribe();
+
+    this._trackBox.displayComponents = this._displayComponents;
+
+    let hasUserAction = false;
+
+    const $itemSize = toObservable(this.itemSize).pipe(
+      map(v => typeof v === 'number' && v <= 0 ? DEFAULT_ITEM_SIZE : v),
+    ),
+      $minItemSize = toObservable(this.minItemSize).pipe(
+        map(v => typeof v === 'number' && v <= 0 ? DEFAULT_MIN_ITEM_SIZE : v),
+      ),
+      $maxItemSize = toObservable(this.maxItemSize).pipe(
+        map(v => typeof v === 'number' && v <= 0 ? DEFAULT_MAX_ITEM_SIZE : v),
+      ),
+      $scrollStartOffset = toObservable(this._actualScrollStartOffset).pipe(
+        takeUntilDestroyed(),
+        distinctUntilChanged(),
+      ),
+      $scrollEndOffset = toObservable(this._actualScrollEndOffset).pipe(
+        takeUntilDestroyed(),
+        distinctUntilChanged(),
+      );
+
+    combineLatest([$minItemSize, $bounds, $scrollStartOffset, $scrollEndOffset]).pipe(
+      takeUntilDestroyed(),
+      switchMap(([v, bounds, startOffset, endOffset]) => {
+        if (v === VIEWPORT) {
+          const isVertical = this.isVertical, viewportBounds = bounds,
+            result = (isVertical ? (viewportBounds?.height ?? 0) : (viewportBounds?.width ?? 0)) - startOffset - endOffset;
+          return of(result <= 0 ? 1 : result);
+        }
+        return of(v);
+      }),
+      tap(v => {
+        this._actualMinItemSize.set(v);
+      }),
+    ).subscribe();
+
+    combineLatest([$maxItemSize, $bounds, $scrollStartOffset, $scrollEndOffset]).pipe(
+      takeUntilDestroyed(),
+      switchMap(([v, bounds, startOffset, endOffset]) => {
+        if (v === VIEWPORT) {
+          const isVertical = this.isVertical, viewportBounds = bounds,
+            result = (isVertical ? (viewportBounds?.height ?? 0) : (viewportBounds?.width ?? 0)) - startOffset - endOffset;
+          return of(result <= 0 ? 1 : result);
+        }
+        return of(v);
+      }),
+      tap(v => {
+        this._actualMaxItemSize.set(v);
+      }),
+    ).subscribe();
+
+    const $actualMinItemSize = toObservable(this._actualMinItemSize),
+      $actualMaxItemSize = toObservable(this._actualMaxItemSize);
+
+    combineLatest([$itemSize, $bounds, $actualMinItemSize, $actualMaxItemSize, $scrollStartOffset, $scrollEndOffset]).pipe(
+      takeUntilDestroyed(),
+      switchMap(([v, bounds, min, max, startOffset, endOffset]) => {
+        if (v === VIEWPORT) {
+          const isVertical = this.isVertical, viewportBounds = bounds,
+            result = (isVertical ? (viewportBounds?.height ?? 0) : (viewportBounds?.width ?? 0)) - startOffset - endOffset;
+          return of(result < min ? min : (result > max ? max : result));
+        }
+        return of(v < min ? min : (v > max ? max : v));
+      }),
+      tap(v => {
+        this._actualItemSize.set(v);
+        this._service.itemSize = v;
+      }),
+    ).subscribe();
+
+    const $actualItemSize = toObservable(this._actualItemSize),
+      $actualItems = toObservable(this._actualItems).pipe(
+        takeUntilDestroyed(),
+        distinctUntilChanged(),
+      );
+
+    this._scroller = computed(() => {
+      return this._scrollerComponent()?.scrollViewport();
+    });
+
+    this._list = computed(() => {
+      return this._scrollerComponent()?.scrollContent();
+    });
+
+    this._service.$focusItem.pipe(
+      takeUntilDestroyed(this._destroyRef),
+      tap(params => {
+        const { element, position, align, behavior } = params;
+        this.focusItem(element, position, align, behavior);
+      }),
+    ).subscribe();
+
+    const $list = toObservable(this._list).pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      map(v => v.nativeElement),
+      take(1),
+    );
+
+    const preventKeyboardEvent = (event: KeyboardEvent, isVertical: boolean) => {
+      const scroller = this._scrollerComponent();
+      if (!!scroller) {
+        const scrollStartOffset = this._actualScrollStartOffset(), scrollable = scroller.scrollable ?? false,
+          scrollSize = isVertical ? scroller.scrollTop : scroller.scrollLeft,
+          scrollWeight = isVertical ? scroller.scrollHeight : scroller.scrollWidth;
+        if (scrollable || scrollSize <= scrollStartOffset || scrollSize >= scrollWeight) {
+          if (!!event && event.cancelable) {
+            event.stopImmediatePropagation();
+            event.preventDefault();
+          }
+        }
+      }
+    };
+
+    $list.pipe(
+      takeUntilDestroyed(),
+      filter(element => !!element),
+      switchMap(element => {
+        return fromEvent<KeyboardEvent>(element, EVENT_KEY_DOWN).pipe(
+          takeUntilDestroyed(this._destroyRef),
+          switchMap(e => {
+            switch (e.key) {
+              case KEY_ARR_LEFT:
+                if (!this.isVertical) {
+                  preventKeyboardEvent(e, this.isVertical);
+                }
+                break;
+              case KEY_ARR_UP:
+                if (this.isVertical) {
+                  preventKeyboardEvent(e, this.isVertical);
+                }
+                break;
+              case KEY_ARR_RIGHT:
+                if (!this.isVertical) {
+                  preventKeyboardEvent(e, this.isVertical);
+                }
+                break;
+              case KEY_ARR_DOWN:
+                if (this.isVertical) {
+                  preventKeyboardEvent(e, this.isVertical);
+                }
+                break;
+            }
+            return of(null);
+          }),
+        );
+      }),
+    ).subscribe();
+
+    const $scrollbarThickness = toObservable(this.scrollbarThickness);
+    $scrollbarThickness.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      tap(scrollbarThickness => {
+        this._service.scrollBarSize = scrollbarThickness;
+      }),
+    ).subscribe();
+
+    this.$fireUpdateNextFrame.pipe(
+      takeUntilDestroyed(),
+      debounceTime(0),
+      tap(userAction => {
+        this._$fireUpdate.next(userAction);
+      }),
+    ).subscribe();
+
+    const $scrollToItem = this.$scrollTo.pipe(takeUntilDestroyed()),
+      $mouseDown = fromEvent(this._elementRef.nativeElement, MOUSE_DOWN).pipe(takeUntilDestroyed()),
+      $touchStart = fromEvent(this._elementRef.nativeElement, TOUCH_START).pipe(takeUntilDestroyed());
+
+    fromEvent<KeyboardEvent>(document, KEY_DOWN).pipe(
+      takeUntilDestroyed(),
+      filter(e => e.key === KEY_TAB),
+      switchMap(e => {
+        return fromEvent(this._elementRef.nativeElement, FOCUS).pipe(
+          takeUntilDestroyed(this._destroyRef),
+          delay(0),
+          takeUntil($scrollToItem),
+          takeUntil($mouseDown),
+          takeUntil($touchStart),
+          tap(e => {
+            this._service.focusFirstElement();
+          }),
+        );
+      }),
+    ).subscribe();
+
+    this._service.$scrollToStart.pipe(
+      takeUntilDestroyed(),
+      tap(options => {
+        this.scrollToStart(null, options);
+      }),
+    ).subscribe();
+
+    this._service.$scrollTo.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      tap(params => {
+        const { id, cb, options } = params
+        this.scrollTo(id, cb, options);
+      }),
+    ).subscribe();
+
+    this._service.$scrollToEnd.pipe(
+      takeUntilDestroyed(),
+      tap(options => {
+        this.scrollToEnd(null, options);
+      }),
+    ).subscribe();
+
+    effect(() => {
+      const dir = this.langTextDir() as TextDirection;
+      this._service.langTextDir = dir;
+    });
+
+    effect(() => {
+      const dist = this.clickDistance();
+      this._service.clickDistance = dist;
+    });
+
+    this._actualSnapScrollToStart = computed(() => {
+      const snapScrollToStart = this.snapScrollToStart(), spreadingMode = this.spreadingMode(),
+        isInfinity = isSpreadingMode(spreadingMode, SpreadingModes.INFINITY);
+      return isInfinity ? false : snapScrollToStart;
+    });
+
+    this._actualSnapScrollToEnd = computed(() => {
+      const snapScrollToEnd = this.snapScrollToEnd(), spreadingMode = this.spreadingMode(),
+        isInfinity = isSpreadingMode(spreadingMode, SpreadingModes.INFINITY);
+      return isInfinity ? false : snapScrollToEnd;
+    });
+
+    const $viewInit = this.$viewInit,
+      $prerenderContainer = toObservable(this._prerender);
+
+    const $prerender = $viewInit.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      switchMap(v => {
+        return $prerenderContainer.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          filter(v => !!v),
+          switchMap(v => v.$render),
+        );
+      }),
+    );
+
+    const $fireUpdate = this.$fireUpdate;
+    $fireUpdate.pipe(
+      takeUntilDestroyed(),
+      tap(userAction => {
+        hasUserAction = userAction;
+      }),
+    ).subscribe();
+
+    const $update = this.$update,
+      renderStabilizer = (options?: IRenderStabilizerOptions) => {
+        let renderStabilizerPrevScrollStateVersion = EMPTY_SCROLL_STATE_VERSION,
+          renderStabilizerUpdateIterations = 0;
+        const prepareIterations = options?.prepareIterations ?? PREPARE_ITERATIONS,
+          prepareReupdateLength = options?.prepareReupdateLength ?? PREPARATION_REUPDATE_LENGTH;
+        return of(null).pipe(
+          takeUntilDestroyed(this._destroyRef),
+          switchMap(() => {
+            renderStabilizerPrevScrollStateVersion = EMPTY_SCROLL_STATE_VERSION;
+            renderStabilizerUpdateIterations = 0;
+            this._cached = false;
+            return $update.pipe(
+              takeUntilDestroyed(this._destroyRef),
+              debounceTime(0),
+              switchMap(v => {
+                if (((renderStabilizerPrevScrollStateVersion === EMPTY_SCROLL_STATE_VERSION) || (renderStabilizerPrevScrollStateVersion !== v)) &&
+                  (renderStabilizerUpdateIterations < prepareIterations)) {
+                  if (v !== EMPTY_SCROLL_STATE_VERSION) {
+                    renderStabilizerPrevScrollStateVersion = v;
+                  }
+                  this._$fireUpdate.next(false);
+                  return of(false);
+                }
+                if (renderStabilizerPrevScrollStateVersion === v) {
+                  if (renderStabilizerUpdateIterations < prepareReupdateLength) {
+                    renderStabilizerUpdateIterations++;
+                    this._$fireUpdate.next(false);
+                    return of(false);
+                  }
+                }
+                renderStabilizerPrevScrollStateVersion = v;
+                return of(true);
+              }),
+              filter(v => !!v),
+              distinctUntilChanged(),
+            )
+          }),
+        )
+      };
+    const $initialRenderStabilizer = renderStabilizer({
+      prepareIterations: PREPARE_ITERATIONS,
+      prepareReupdateLength: PREPARATION_REUPDATE_LENGTH,
+    }),
+      $updateItemsRenderStabilizer = renderStabilizer({
+        prepareIterations: PREPARE_ITERATIONS_FOR_UPDATE_ITEMS,
+        prepareReupdateLength: PREPARATION_REUPDATE_LENGTH_FOR_UPDATE_ITEMS,
+      }),
+      $chunkLoadingRenderStabilizer = renderStabilizer({
+        prepareIterations: PREPARE_ITERATIONS_FOR_UPDATE_ITEMS,
+        prepareReupdateLength: PREPARATION_REUPDATE_LENGTH_FOR_UPDATE_ITEMS,
+      }),
+      $collapseItemsRenderStabilizer = renderStabilizer({
+        prepareIterations: PREPARE_ITERATIONS_FOR_COLLAPSE_ITEMS,
+        prepareReupdateLength: PREPARATION_REUPDATE_LENGTH_FOR_COLLAPSE_ITEMS,
+      }),
+      $itemConfigMap = toObservable(this.itemConfigMap).pipe(
+        map(v => !v ? {} : v),
+      ),
+      $divides = toObservable(this.divides),
+      $dynamicSize = toObservable(this.dynamicSize),
+      $snapScrollToStart = toObservable(this._actualSnapScrollToStart),
+      $snapScrollToEnd = toObservable(this._actualSnapScrollToEnd),
+      $waitForPreparation = toObservable(this.waitForPreparation),
+      $items = toObservable(this.items);
+
+    combineLatest([$viewInit, $prerenderContainer, $divides, $dynamicSize, $snapScrollToStart, $snapScrollToEnd, $waitForPreparation]).pipe(
+      takeUntilDestroyed(this._destroyRef),
+      distinctUntilChanged(),
+      filter(([init, prerenderContainer]) => !!init && !!prerenderContainer),
+      debounceTime(0),
+      switchMap(([, prerenderContainer, divides, dynamicSize, snapScrollToStart, snapScrollToEnd, waitForPreparation]) => {
+        if (!!dynamicSize && !snapScrollToStart && !!snapScrollToEnd && !!waitForPreparation) {
+          const $collection = (divides > 1 ? $actualItems : $items);
+          return $collection.pipe(
+            takeUntilDestroyed(this._destroyRef),
+            distinctUntilChanged((p, c) => {
+              const pLength = p?.length ?? 0, cLength = c?.length ?? 0;
+              return !((cLength > 0) || (pLength !== cLength && (pLength === 0 || cLength === 0)));
+            }),
+            tap(items => {
+              this._trackBox.resetCollection(items, this._actualItemSize());
+            }),
+            switchMap(i => of((i ?? []).length > 0)),
+            distinctUntilChanged(),
+            tap(v => {
+              readyForAnimations = false;
+              if (!v) {
+                this.cacheClean();
+                this.cleanup();
+                this._readyForShow = false;
+                if (!snapScrollToStart && snapScrollToEnd) {
+                  this._trackBox.isScrollEnd = true;
+                }
+                const scrollerComponent = this._scrollerComponent();
+                if (!!scrollerComponent) {
+                  scrollerComponent.prepared = false;
+                  scrollerComponent.stopScrolling();
+                  scrollerComponent.refresh();
+                }
+                this.classes.set({ prepared: true });
+                this._$show.next(true);
+              } else {
+                this._trackBox.isScrollEnd = true;
+                const waitForPreparation = this.waitForPreparation();
+                if (waitForPreparation) {
+                  if (this.prerenderable) {
+                    this._cached = false;
+                    prerenderContainer!.on(this.items());
+                  }
+                }
+                this.classes.set({ prepared: false });
+                this._$show.next(false);
+              }
+            }),
+            switchMap(v => {
+              if (!v) {
+                if (this.prerenderable) {
+                  prerenderContainer!.off();
+                }
+                return of(false);
+              }
+              const waitForPreparation = this.waitForPreparation();
+              if (waitForPreparation) {
+                this._trackBox.isScrollEnd = true;
+                if (this.prerenderable) {
+                  this._cached = false;
+                  prerenderContainer!.on(this.items());
+                }
+                return $initialRenderStabilizer.pipe(
+                  takeUntilDestroyed(this._destroyRef),
+                  take(1),
+                  tap(() => {
+                    this._trackBox.isScrollEnd = true;
+                    if (this.prerenderable) {
+                      prerenderContainer!.off();
+                    }
+                    this._readyForShow = true;
+                    const scrollerComponent = this._scrollerComponent();
+                    if (!!scrollerComponent) {
+                      scrollerComponent.prepared = true;
+                      scrollerComponent.refresh();
+                    }
+                    this.classes.set({ prepared: true });
+                    this._$show.next(true);
+                  }),
+                );
+              }
+              if (this.prerenderable) {
+                prerenderContainer!.off();
+              }
+              this._readyForShow = true;
+              if (!snapScrollToStart && snapScrollToEnd) {
+                this._trackBox.isScrollEnd = true;
+              }
+              const scrollerComponent = this._scrollerComponent();
+              if (!!scrollerComponent) {
+                scrollerComponent.prepared = true;
+                scrollerComponent.refresh();
+              }
+              this.classes.set({ prepared: true });
+              this._$show.next(true);
+              return of(false);
+            }),
+          );
+        } else {
+          prerenderContainer!.off();
+          const $collection = (divides > 1 ? $actualItems : $items);
+          return $collection.pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(items => {
+              if (!items || items.length === 0) {
+                this.cacheClean();
+                const scrollerComponent = this._scrollerComponent();
+                if (!!scrollerComponent) {
+                  scrollerComponent.prepared = false;
+                }
+                this.classes.set({ prepared: false });
+                this._$show.next(false);
+              }
+              this._trackBox.resetCollection(items, this._actualItemSize());
+            }),
+            switchMap(i => of((i ?? []).length > 0)),
+            distinctUntilChanged(),
+            filter(v => !!v),
+            tap(() => {
+              this._readyForShow = true;
+              if (snapScrollToStart) {
+                this._trackBox.isScrollStart = true;
+              } else if (snapScrollToEnd) {
+                this._trackBox.isScrollEnd = true;
+              }
+              const scrollerComponent = this._scrollerComponent();
+              if (!!scrollerComponent) {
+                scrollerComponent.prepared = true;
+                scrollerComponent.refresh();
+              }
+              this.classes.set({ prepared: true });
+              this._$show.next(true);
+              this._$fireUpdate.next(false);
+            }),
+          );
+        }
+      }),
+    ).subscribe();
+
+    $items.pipe(
+      map(v => v?.length > 0),
+      distinctUntilChanged(),
+      takeUntilDestroyed(this._destroyRef),
+      filter(v => !!v),
+      tap(() => {
+        this._cached = false;
+      }),
+      switchMap(() => {
+        return $prerender.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          debounceTime(0),
+          take(1),
+          tap(cache => {
+            if (!this._readyForShow) {
+              this._trackBox.refreshCache(cache);
+              this._cached = true;
+              this._$fireUpdate.next(true);
+            }
+          }),
+        );
+      }),
+    ).subscribe();
+
+    this._service.$focusedId.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this.focusedElement.set(v ?? null);
+      }),
+    ).subscribe();
+
+    $list.pipe(
+      takeUntilDestroyed(),
+      filter(element => !!element),
+      tap(element => {
+        this._service.listElement = element;
+      }),
+    ).subscribe();
+
+    const $defaultItemValue = toObservable(this.defaultItemValue),
+      $selectByClick = toObservable(this.selectByClick),
+      $collapseByClick = toObservable(this.collapseByClick),
+      $isScrollStart = toObservable(this._isScrollStart),
+      $isScrollFinished = toObservable(this._isScrollEnd),
+      $isVertical = toObservable(this.direction).pipe(
+        map(v => this.getIsVertical(v || DEFAULT_DIRECTION)),
+      );
+
+    $snapScrollToStart.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._service.snapScrollToStart = v;
+      }),
+    ).subscribe();
+
+    $snapScrollToEnd.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._service.snapScrollToEnd = v;
+      }),
+    ).subscribe();
+
+    $isVertical.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._service.isVertical = v;
+      }),
+    ).subscribe();
+
+    $dynamicSize.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._service.dynamic = v;
+      }),
+    ).subscribe();
+
+    $defaultItemValue.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._service.defaultItemValue = v;
+      }),
+    ).subscribe();
+
+    $scrollStartOffset.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      tap(v => {
+        this._trackBox.scrollStartOffset = this._service.scrollStartOffset = v;
+      }),
+    ).subscribe();
+
+    $scrollEndOffset.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      tap(v => {
+        this._trackBox.scrollEndOffset = this._service.scrollEndOffset = v;
+      }),
+    ).subscribe();
+
+    $isScrollStart.pipe(
+      takeUntilDestroyed(),
+      skip(1),
+      distinctUntilChanged(),
+      debounceTime(0),
+      filter(v => !!v && this._readyForShow),
+      tap(() => {
+        if (this._scrollerComponent()?.scrollable) {
+          this.onScrollReachStart.emit();
+        }
+      }),
+    ).subscribe();
+
+    $isScrollFinished.pipe(
+      takeUntilDestroyed(),
+      skip(1),
+      distinctUntilChanged(),
+      debounceTime(0),
+      takeUntilDestroyed(this._destroyRef),
+      filter(v => !!v && this._readyForShow),
+      tap(v => {
+        if (this._scrollerComponent()?.scrollable) {
+          this.onScrollReachEnd.emit();
+        }
+      }),
+    ).subscribe();
+
+    $selectByClick.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._service.selectByClick = v;
+      }),
+    ).subscribe();
+
+    $collapseByClick.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._service.collapseByClick = v;
+      }),
+    ).subscribe();
+
+    $trackBy.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._trackBox.trackingPropertyName = v;
+      }),
+    ).subscribe();
+
+    $divides.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._trackBox.divides = v;
+      }),
+    ).subscribe();
+
+    this._actualAlignment = computed(() => {
+      const alignment = this.alignment(), spreadingMode = this.spreadingMode();
+      return isSpreadingMode(spreadingMode, SpreadingModes.INFINITY) ? Alignments.CENTER : alignment;
+    });
+
+    this._actualScrollbarEnabled = computed(() => {
+      const scrollbarEnabled = this.scrollbarEnabled(), spreadingMode = this.spreadingMode();
+      return isSpreadingMode(spreadingMode, SpreadingModes.INFINITY) ? false : scrollbarEnabled;
+    });
+
+    const $alignment = toObservable(this._actualAlignment),
+      $precalculatedScrollStartOffset = toObservable(this._precalculatedScrollStartOffset),
+      $precalculatedScrollEndOffset = toObservable(this._precalculatedScrollEndOffset),
+      $listBounds = toObservable(this._listBounds).pipe(
+        filter(b => !!b),
+      ), $scrollSize = this._$scrollSize.asObservable(),
+      $bufferSize = toObservable(this.bufferSize).pipe(
+        map(v => v < 0 ? DEFAULT_BUFFER_SIZE : v),
+      ),
+      $maxBufferSize = toObservable(this.maxBufferSize).pipe(
+        map(v => v < 0 ? DEFAULT_BUFFER_SIZE : v),
+      ),
+      $snapToItem = toObservable(this.snapToItem),
+      $snapToItemAlign = toObservable(this.snapToItemAlign),
+      $stickyEnabled = toObservable(this.stickyEnabled),
+      $isLazy = toObservable(this.collectionMode).pipe(
+        map(v => this.getIsLazy(v || DEFAULT_COLLECTION_MODE)),
+      ),
+      $enabledBufferOptimization = toObservable(this.enabledBufferOptimization),
+      $snappingMethod = toObservable(this.snappingMethod).pipe(
+        map(v => this.getIsSnappingMethodAdvanced(v || DEFAULT_SNAPPING_METHOD)),
+      ),
+      $collapsingMode = toObservable(this.collapsingMode),
+      $selectingMode = toObservable(this.selectingMode),
+      $selectedIds = toObservable(this.selectedIds),
+      $collapsedIds = toObservable(this.collapsedIds).pipe(
+        distinctUntilChanged(),
+        map(v => !!v ? v : []),
+      ),
+      $collapsedItemIds = toObservable(this._collapsedItemIds).pipe(
+        distinctUntilChanged(),
+        map(v => !!v ? v : []),
+      ),
+      $langTextDir = toObservable(this.langTextDir),
+      $itemTransform = toObservable(this.itemTransform),
+      $screenReaderMessage = toObservable(this.screenReaderMessage),
+      $displayItems = this._service.$displayItems,
+      $cacheVersion = this._service.$cacheVersion;
+
+    combineLatest([$isVertical, $langTextDir, $itemTransform]).pipe(
+      takeUntilDestroyed(),
+      debounceTime(0),
+      tap(([isVertical, langTextDir, itemTransform]) => {
+        if (langTextDir === TextDirections.RTL && !isVertical && itemTransform) {
+          throw Error('Currently, converting right-to-left items in horizontal lists is not possible.');
+        }
+      }),
+    ).subscribe();
+
+    $snapToItem.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._service.snapToItem = v;
+      }),
+    ).subscribe();
+
+    $actualItems.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._service.items = v;
+      }),
+    ).subscribe();
+
+    combineLatest([$actualItems, $scrollerComponent, this.$initialized, $resizeViewport]).pipe(
+      takeUntilDestroyed(),
+      filter(([, c, i]) => !!c && !!i),
+      debounceTime(0),
+      tap(() => {
+        if (this._$scrollingTo.getValue()) {
+          return;
+        }
+        this._scrollerComponent()?.snapIfNeed(false, false);
+      }),
+    ).subscribe();
+
+    $itemConfigMap.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._service.itemConfigMap = v;
+      }),
+    ).subscribe();
+
+    $collapsedIds.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._service.collapsedIds = v;
+      }),
+    ).subscribe();
+
+    combineLatest([$displayItems, $screenReaderMessage, $isVertical, $scrollSize, $bounds]).pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      debounceTime(100),
+      takeUntilDestroyed(),
+      tap(([items, screenReaderMessage, isVertical, scrollSize, bounds]) => {
+        this.screenReaderFormattedMessage.set(
+          formatScreenReaderMessage(items, screenReaderMessage, scrollSize, isVertical, bounds)
+        );
+      }),
+    ).subscribe();
+
+    $isLazy.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._trackBox.isLazy = v;
+      }),
+    ).subscribe();
+
+    const $itemsComposition = $items.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      switchMap(items => {
+        return combineLatest([$collapsedItemIds, $itemConfigMap, $trackBy, $divides]).pipe(
+          takeUntilDestroyed(this._destroyRef),
+          debounceTime(0),
+          switchMap(([collapsedIds, itemConfigMap, trackBy, divides]) => {
+            return of({ items, collapsedIds, itemConfigMap, trackBy, divides });
+          }),
+        );
+      }),
+    );
+
+    $itemsComposition.pipe(
+      takeUntilDestroyed(),
+      switchMap(({ items, collapsedIds, itemConfigMap, trackBy, divides }) => {
+        if (items.length === 0 || !this._readyForShow || !(this.cachable && !this._cached &&
+          !this._trackBox.isSnappedToStart && this._trackBox.isSnappedToEnd)) {
+          return of({ items, collapsedIds, itemConfigMap, trackBy, divides });
+        }
+        return $updateItemsRenderStabilizer.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          take(1),
+          debounceTime(0),
+          switchMap(() => {
+            return of({ items, collapsedIds, itemConfigMap, trackBy, divides });
+          }),
+        );
+      }),
+      tap(({ items, collapsedIds, itemConfigMap, trackBy, divides }) => {
+        const hiddenItems = new CMap<Id, boolean>();
+
+        let isCollapsed = false;
+        for (let i = 0, l = items.length; i < l; i++) {
+          const item = items[i], id = item?.[trackBy];
+          if (!!item) {
+            const group = (itemConfigMap[id]?.sticky ?? 0) > 0, collapsed = collapsedIds.includes(id);
+            if (!!group) {
+              isCollapsed = collapsed;
+            } else {
+              if (isCollapsed) {
+                hiddenItems.set(id, true);
+              }
+            }
+          }
+        }
+
+        const actualItems: IVirtualListCollection = [];
+        for (let i = 0, l = items.length; i < l; i++) {
+          const item = items[i], id = item?.[trackBy];
+          if (!!item && hiddenItems.has(id)) {
+            continue;
+          }
+          actualItems.push(item);
+        }
+
+        const normalizedCollection = normalizeCollection(actualItems, itemConfigMap, trackBy, divides);
+
+        if (this._scrollerComponent()?.inverted) {
+          normalizedCollection.reverse();
+        }
+
+        this._actualItems.set(normalizedCollection);
+      }),
+    ).subscribe();
+
+    $isVertical.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._isVertical = v;
+        const el: HTMLElement = this._elementRef.nativeElement;
+        toggleClassName(el, v ? CLASS_LIST_VERTICAL : CLASS_LIST_HORIZONTAL, [v ? CLASS_LIST_HORIZONTAL : CLASS_LIST_VERTICAL]);
+      }),
+    ).subscribe();
+
+    $snappingMethod.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._isSnappingMethodAdvanced = this._trackBox.isSnappingMethodAdvanced = v;
+      }),
+    ).subscribe();
+
+    $selectingMode.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        const el = this._list()?.nativeElement;
+        if (this.getIsMultiSelection(v || DEFAULT_SNAPPING_METHOD)) {
+          this._isMultiSelection = true;
+          this._isSingleSelection = false;
+          if (!!el) {
+            el.role = ROLE_LIST_BOX;
+          }
+          this._service.selectingMode = SelectingModesTypes.MULTI_SELECT;
+        } else if (this.getIsSingleSelection(v || DEFAULT_SNAPPING_METHOD)) {
+          this._isSingleSelection = true;
+          this._isMultiSelection = false;
+          if (!!el) {
+            el.role = ROLE_LIST_BOX;
+          }
+          this._service.selectingMode = SelectingModesTypes.SELECT;
+        } else if (this.getIsNoneSelection(v || DEFAULT_SNAPPING_METHOD)) {
+          this._isSingleSelection = this._isMultiSelection = false;
+          if (!!el) {
+            el.role = ROLE_LIST;
+          }
+          this._service.selectingMode = SelectingModesTypes.NONE;
+        }
+      }),
+    ).subscribe();
+
+    $collapsingMode.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        if (this.getIsNoneCollapse()) {
+          this._service.isNoneCollapse = true;
+          this._service.isAccordionCollapse = this._service.isMultipleCollapse = this._isAccordionCollapse = this._isMultipleCollapse = false;
+        } else if (this.getIsMultipleCollapse()) {
+          this._service.isMultipleCollapse = this._isMultipleCollapse = true;
+          this._service.isAccordionCollapse = this._service.isNoneCollapse = this._isAccordionCollapse = false;
+        } else if (this.getIsAccordionCollapse()) {
+          this._service.isAccordionCollapse = this._isAccordionCollapse = true;
+          this._service.isMultipleCollapse = this._service.isNoneCollapse = this._isMultipleCollapse = false;
+        }
+      }),
+    ).subscribe();
+
+    const $preventScrollSnapping = this.$preventScrollSnapping;
+
+    $preventScrollSnapping.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      tap(() => {
+        if (this._readyForShow) {
+          this._trackBox.isScrollEnd;
+          this._trackBox.isScrollStart = this._trackBox.isScrollEnd = false;
+          this._isScrollStart.set(false);
+          this._isScrollEnd.set(false);
+          const scroller = this._scrollerComponent();
+          if (!!scroller) {
+            this._trackBox.preventScrollSnapping(true);
+          }
+        }
+      }),
+      tap(() => {
+        if (this._readyForShow) {
+          this._$preventScrollSnapping.next(false);
+        }
+      }),
+    ).subscribe();
+
+    $collapsedItemIds.pipe(
+      takeUntilDestroyed(),
+      filter(() => this._readyForShow),
+      switchMap(() => {
+        return $collapseItemsRenderStabilizer.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          take(1),
+          tap(() => {
+            this._$fireUpdate.next(true);
+          }),
+        );
+      }),
+    ).subscribe();
+
+    let isChunkLoading = false;
+    const $loading = toObservable(this.loading);
+    $loading.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      skip(1),
+      filter(v => !v),
+      switchMap(() => {
+        isChunkLoading = true;
+        const scrollbar = this._scrollerComponent();
+        if (!!scrollbar) {
+          scrollbar.stopScrollbar();
+          scrollbar.refreshScrollbar();
+        }
+        return $actualItems.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          take(1),
+          tap(() => {
+            this._$fireUpdateNextFrame.next(true);
+          }),
+          switchMap(() => $chunkLoadingRenderStabilizer.pipe(
+            takeUntilDestroyed(this._destroyRef),
+            take(1),
+            tap(() => {
+              isChunkLoading = false;
+              this._trackBox.resetCacheChunkInfo();
+              const scrollbar = this._scrollerComponent();
+              if (!!scrollbar) {
+                scrollbar.stopScrollbar();
+                scrollbar.refreshScrollbar();
+              }
+            }),
+          )),
+        );
+      }),
+    ).subscribe();
+
+    $loading.pipe(
+      takeUntilDestroyed(),
+      skip(1),
+      distinctUntilChanged(),
+      tap(v => {
+        if (v) {
+          this._isLoading = true;
+        }
+      }),
+      filter(v => !v),
+      tap(() => {
+        if (this._readyForShow) {
+          this._$preventScrollSnapping.next(true);
+        }
+      }),
+      debounceTime(100),
+      tap(() => {
+        this._isLoading = false;
+      }),
+    ).subscribe();
+
+    let prevCacheVersion: number = -1, prevScrollable = false;
+
+    $viewInit.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      switchMap(() => {
+        return this.$show.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          debounceTime(Math.max(500, this.animationParams().scrollToItem)),
+          tap(() => {
+            if (this._readyForShow || (this.cachable && this._cached)) {
+              readyForAnimations = true;
+            }
+          }),
+        );
+      }),
+    ).subscribe();
+
+    const update = (params: {
+      alignment: Alignment; precalculatedScrollStartOffset: number; precalculatedScrollEndOffset: number; trackBy: string; isInfinity: boolean;
+      snapScrollToStart: boolean, snapScrollToEnd: boolean; bounds: ISize; listBounds: ISize;
+      items: IVirtualListCollection<Object>; itemConfigMap: IVirtualListItemConfigMap; scrollSize: number; itemSize: number;
+      minItemSize: number; maxItemSize: number; bufferSize: number; maxBufferSize: number; stickyEnabled: boolean; isVertical: boolean;
+      dynamicSize: boolean; divides: number; enabledBufferOptimization: boolean; cacheVersion: number; userAction: boolean;
+      snapToItem: boolean, snapToItemAlign: SnapToItemAlign, collapsedIds: Array<Id>; itemTransform: ItemTransform | null;
+    }) => {
+      const {
+        alignment, snapScrollToStart, snapScrollToEnd, bounds, items, itemConfigMap, scrollSize, itemSize, minItemSize,
+        maxItemSize, bufferSize, maxBufferSize, stickyEnabled, isVertical, dynamicSize, enabledBufferOptimization, snapToItem,
+        snapToItemAlign, userAction, collapsedIds, cacheVersion, itemTransform,
+      } = params;
+      const cacheChanged = prevCacheVersion !== cacheVersion;
+      prevCacheVersion = cacheVersion;
+      const scroller = this._scrollerComponent();
+      let totalSize = 0;
+      if (!!scroller) {
+        const isInfinity = this._isInfinity(), collapsable = collapsedIds.length > 0, cachable = this.cachable, cached = this._cached, waitingCache = cachable && !cached,
+          emitUpdate = !this._readyForShow || waitingCache || collapsable || isChunkLoading,
+          fireUpdate = !this._readyForShow || this._$scrollingTo.getValue(),
+          fireUpdateAtEdges = fireUpdate || !isInfinity,
+          useAnimations = !isInfinity && readyForAnimations && prevScrollable;
+        if (this._readyForShow || (cachable && cached)) {
+          const inverted = scroller.inverted,
+            currentScrollSize = (isVertical ? scroller.scrollTop : scroller.scrollLeft), maxScrollSize = (isVertical ? scroller.scrollHeight : scroller.scrollWidth);
+          let actualScrollSize = !this._readyForShow && snapScrollToEnd ? maxScrollSize :
+            (isVertical ? scroller.scrollTop : scroller.scrollLeft),
+            leftLayoutOffset = 0,
+            displayItems: IRenderVirtualListCollection;
+
+          const { width, height } = bounds,
+            opts: IUpdateCollectionOptions<IVirtualListItem, IVirtualListCollection> = {
+              alignment, bounds: { width, height }, dynamicSize, isVertical, itemSize, minItemSize, maxItemSize, bufferSize, maxBufferSize,
+              scrollSize: inverted ? maxScrollSize - actualScrollSize : actualScrollSize, stickyEnabled, enabledBufferOptimization,
+              snapToItem, snapToItemAlign, inverted, itemTransform,
+            };
+
+          if (snapScrollToEnd && !this._readyForShow) {
+            const { displayItems: calculatedDisplayItems, totalSize: calculatedTotalSize1, leftLayoutOffset: leftLayoutOffset1 } =
+              this._trackBox.updateCollection(items, itemConfigMap, { ...opts, scrollSize: inverted ? maxScrollSize - actualScrollSize : actualScrollSize });
+            displayItems = calculatedDisplayItems;
+            totalSize = calculatedTotalSize1;
+            leftLayoutOffset = leftLayoutOffset1;
+
+            if (!!itemTransform && dynamicSize && this._trackBox.delta !== 0) {
+              const { displayItems: calculatedDisplayItems, totalSize: calculatedTotalSize1, leftLayoutOffset: leftLayoutOffset1 } =
+                this._trackBox.updateCollection(items, itemConfigMap, { ...opts, scrollSize: inverted ? (maxScrollSize - actualScrollSize + this._trackBox.delta) : (actualScrollSize + this._trackBox.delta) });
+              displayItems = calculatedDisplayItems;
+              totalSize = calculatedTotalSize1;
+              leftLayoutOffset = leftLayoutOffset1;
+            }
+          } else {
+            const { displayItems: calculatedDisplayItems, totalSize: calculatedTotalSize, leftLayoutOffset: leftLayoutOffset1 } = this._trackBox.updateCollection(items, itemConfigMap, opts);
+            displayItems = calculatedDisplayItems;
+            totalSize = calculatedTotalSize;
+            leftLayoutOffset = leftLayoutOffset1;
+
+            if (!!itemTransform && dynamicSize && this._trackBox.delta !== 0) {
+              const { displayItems: calculatedDisplayItems, totalSize: calculatedTotalSize, leftLayoutOffset: leftLayoutOffset1 } = this._trackBox.updateCollection(items, itemConfigMap,
+                { ...opts, scrollSize: inverted ? (maxScrollSize - actualScrollSize + this._trackBox.delta) : (actualScrollSize + this._trackBox.delta) });
+              displayItems = calculatedDisplayItems;
+              totalSize = calculatedTotalSize;
+              leftLayoutOffset = leftLayoutOffset1;
+            }
+          }
+
+          scroller.totalSize = totalSize;
+
+          scroller.startLayoutOffset = leftLayoutOffset;
+
+          this._totalSize.set(totalSize);
+
+          this._service.collection = displayItems;
+
+          this.resetBoundsSize(isVertical, totalSize);
+
+          this.createDisplayComponentsIfNeed(displayItems);
+
+          this.tracking();
+
+          this.snappingHandler();
+
+          const delta = this._trackBox.delta,
+            scrollPositionAfterUpdate = actualScrollSize + delta,
+            roundedScrollPositionAfterUpdate = scrollPositionAfterUpdate,
+            roundedMaxPositionAfterUpdate = isVertical ? scroller.actualScrollHeight : scroller.actualScrollWidth;
+
+          if (this._isSnappingMethodAdvanced) {
+            this.updateRegularRenderer();
+          }
+
+          this.updateOffsetsByAllignment();
+
+          scroller.delta = delta;
+
+          prevScrollable = scroller.scrollable;
+
+          if (!scroller.grabbing()) {
+            if ((snapScrollToStart && this._trackBox.isSnappedToStart && scroller.scrollable) ||
+              (snapScrollToStart && currentScrollSize <= MIN_PIXELS_FOR_PREVENT_SNAPPING)) {
+              if (currentScrollSize !== roundedScrollPositionAfterUpdate) {
+                this._trackBox.clearDelta();
+
+                if (this._readyForShow) {
+                  this.emitScrollEvent(true, false, userAction);
+                }
+                this._trackBox.isScrollEnd;
+                const params: IListScrollToParams = {
+                  [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: 0, userAction,
+                  fireUpdate: fireUpdateAtEdges, behavior: !useAnimations ? BEHAVIOR_INSTANT : ((this.animationParams().scrollToItem > 0 && this.scrollBehavior() !== BEHAVIOR_INSTANT) ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT),
+                  blending: useAnimations && scroller.hasAnimation(this._animationId), duration: this.animationParams().scrollToItem,
+                };
+                const animationId = scroller?.scrollTo?.(params);
+                if (animationId > -1) {
+                  this._animationId = animationId;
+                } else {
+                  scroller.stopAnimation(this._animationId);
+                }
+                if (emitUpdate) {
+                  this._$update.next(getScrollStateVersion(totalSize, this._isVertical ? scroller.scrollTop : scroller.scrollLeft));
+                }
+              }
+              return;
+            }
+
+            if ((snapScrollToEnd && this._trackBox.isSnappedToEnd) || (snapScrollToEnd && !scroller.scrollable) ||
+              (scrollPositionAfterUpdate + MIN_PIXELS_FOR_PREVENT_SNAPPING >= roundedMaxPositionAfterUpdate) ||
+              (roundedScrollPositionAfterUpdate >= scrollPositionAfterUpdate + MIN_PIXELS_FOR_PREVENT_SNAPPING)) {
+              this._trackBox.clearDelta();
+
+              if (!this._trackBox.isSnappedToEnd) {
+                this._trackBox.isScrollEnd = true;
+                this._trackBox.isScrollStart = false;
+              }
+
+              if (this._readyForShow) {
+                this.emitScrollEvent(true, false, false);
+              }
+              const params: IListScrollToParams = {
+                [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: roundedMaxPositionAfterUpdate,
+                fireUpdate: fireUpdateAtEdges, behavior: !useAnimations ? BEHAVIOR_INSTANT : ((this.animationParams().scrollToItem > 0 && this.scrollBehavior() !== BEHAVIOR_INSTANT) ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT), userAction: false,
+                blending: useAnimations && scroller.hasAnimation(this._animationId) || cacheChanged, duration: this.animationParams().scrollToItem,
+              };
+              const animationId = scroller?.scrollTo?.(params);
+              if (animationId > -1) {
+                this._animationId = animationId;
+              } else {
+                scroller.stopAnimation(this._animationId);
+              }
+              if (emitUpdate) {
+                this._$update.next(getScrollStateVersion(totalSize, this._isVertical ? scroller.scrollTop : scroller.scrollLeft));
+              }
+              return;
+            }
+          }
+
+          if (scrollSize !== scrollPositionAfterUpdate &&
+            ((scrollPositionAfterUpdate >= 0 && scrollPositionAfterUpdate < roundedMaxPositionAfterUpdate) ||
+              (scrollSize !== roundedMaxPositionAfterUpdate || currentScrollSize !== scrollPositionAfterUpdate))) {
+            this._trackBox.clearDelta();
+
+            if (this._readyForShow) {
+              this.emitScrollEvent(true, false, userAction);
+            }
+            if (this._animationId > -1) {
+              scroller.stopAnimation(this._animationId);
+              this._animationId = -1;
+            }
+            const params: IListScrollToParams = {
+              [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: scrollPositionAfterUpdate, blending: true, userAction,
+              fireUpdate, behavior: BEHAVIOR_INSTANT, duration: 0,
+            };
+            scroller.scrollTo(params);
+            if (emitUpdate) {
+              this._$update.next(getScrollStateVersion(totalSize, this._isVertical ? scroller.scrollTop : scroller.scrollLeft));
+            }
+            return;
+          }
+        }
+        if (emitUpdate) {
+          this._$update.next(getScrollStateVersion(totalSize, this._isVertical ? scroller.scrollTop : scroller.scrollLeft));
+        }
+      }
+    };
+
+    let prevItems: IVirtualListCollection = [];
+    const debouncedUpdate = debounce(update, 0, MAX_NUMBERS_OF_SKIPS_FOR_QUALITY_OPTIMIZATION_LVL1);
+    $viewInit.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      switchMap(() => {
+        return combineLatest([$trackBy, $isInfinity, $snapScrollToStart, $snapScrollToEnd, $bounds, $listBounds, $actualItems, $itemConfigMap, $scrollSize,
+          $actualItemSize, $actualMinItemSize, $actualMaxItemSize, $collapsedItemIds, $bufferSize, $maxBufferSize, $stickyEnabled, $isVertical,
+          $dynamicSize, $divides, $snapToItem, $snapToItemAlign, $enabledBufferOptimization, $itemTransform, $alignment,
+          $precalculatedScrollStartOffset, $precalculatedScrollEndOffset, $cacheVersion, this.$fireUpdate,
+        ]).pipe(
+          takeUntilDestroyed(this._destroyRef),
+          tap(([
+            trackBy, isInfinity, snapScrollToStart, snapScrollToEnd, bounds, listBounds, items, itemConfigMap, scrollSize, itemSize, minItemSize,
+            maxItemSize, collapsedIds, bufferSize, maxBufferSize, stickyEnabled, isVertical, dynamicSize, divides, snapToItem, snapToItemAlign,
+            enabledBufferOptimization, itemTransform, alignment, precalculatedScrollStartOffset, precalculatedScrollEndOffset, cacheVersion,
+          ]) => {
+            if (!_$created.getValue()) {
+              _$created.next(true);
+            }
+
+            let itemsChanged = false;
+            if (prevItems !== items) {
+              itemsChanged = true;
+              prevItems = items;
+            }
+            const enabledOptimization = this.scrollingSettings()?.optimization ?? DEFAULT_SCROLLING_SETTINGS.optimization,
+              velocity = this._scrollerComponent()?.averageVelocity ?? 0,
+              isScrolling = this._$scrollingTo.getValue(),
+              useDebouncedUpdate = (dynamicSize && !itemTransform) && !(snapScrollToEnd && this._trackBox.isSnappedToEnd) && !itemsChanged && hasUserAction && !isScrolling &&
+                (velocity > 0 && velocity < MAX_VELOCITY_FOR_SCROLL_QUALITY_OPTIMIZATION_LVL1);
+            if (enabledOptimization) {
+              if (useDebouncedUpdate) {
+                debouncedUpdate.execute({
+                  trackBy, isInfinity, snapScrollToStart, snapScrollToEnd, bounds, listBounds, items, itemConfigMap, scrollSize, itemSize, minItemSize,
+                  maxItemSize, collapsedIds, bufferSize, maxBufferSize, stickyEnabled, isVertical, dynamicSize, divides, enabledBufferOptimization, itemTransform,
+                  snapToItem, snapToItemAlign, alignment, precalculatedScrollStartOffset, precalculatedScrollEndOffset, cacheVersion, userAction: hasUserAction,
+                });
+                return;
+              }
+
+              debouncedUpdate.dispose();
+            }
+
+            if (!isScrolling) {
+              update({
+                trackBy, isInfinity, snapScrollToStart, snapScrollToEnd, bounds, listBounds, items, itemConfigMap, scrollSize, itemSize, minItemSize,
+                maxItemSize, collapsedIds, bufferSize, maxBufferSize, stickyEnabled, isVertical, dynamicSize, divides, enabledBufferOptimization, itemTransform,
+                snapToItem, snapToItemAlign, alignment, precalculatedScrollStartOffset, precalculatedScrollEndOffset, cacheVersion, userAction: hasUserAction,
+              });
+            }
+          }),
+        );
+      }),
+    ).subscribe();
+
+    const $scroller = toObservable(this._scroller).pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      map(v => v.nativeElement),
+      take(1),
+    ),
+      $scrollerScroll = $scrollerComponent.pipe(
+        takeUntilDestroyed(),
+        filter(v => !!v),
+        take(1),
+        switchMap(scroller => scroller.$scroll),
+      ),
+      $scrollerScrollEnd = $scrollerComponent.pipe(
+        takeUntilDestroyed(),
+        filter(v => !!v),
+        take(1),
+        switchMap(scroller => scroller.$scrollEnd),
+      ),
+      $scrollbarScroll = $scrollerComponent.pipe(
+        takeUntilDestroyed(),
+        filter(v => !!v),
+        take(1),
+        switchMap(scroller => scroller.$scrollbarScroll),
+      );
+
+    const scrollHandler = (userAction: boolean = false) => {
+      const scroller = this._scrollerComponent();
+      if (!!scroller) {
+        const isVertical = this._isVertical,
+          scrollSize = (isVertical ? scroller.scrollTop : scroller.scrollLeft),
+          actualScrollSize = scrollSize;
+
+        if (this._readyForShow) {
+          if (userAction) {
+            this._$preventScrollSnapping.next(true);
+          }
+        }
+
+        this._$scrollSize.next(actualScrollSize);
+      }
+    };
+
+    $scroller.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      switchMap(scroller => {
+        return $scrollbarScroll.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          tap(userAction => {
+            const scrollerEl = this._scroller()?.nativeElement, scrollerComponent = this._scrollerComponent();
+            if (!!scrollerEl && !!scrollerComponent) {
+              this.emitScrollEvent(false, this._readyForShow, hasUserAction);
+            }
+            if (this._readyForShow) {
+              if (userAction) {
+                if (this._trackBox.isSnappedToStart) {
+                  this._$preventScrollSnapping.next(true);
+                }
+                if (this._trackBox.isSnappedToEnd) {
+                  this._$preventScrollSnapping.next(true);
+                }
+              }
+            }
+          }),
+        );
+      }),
+    ).subscribe();
+
+    $scroller.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      switchMap(scroller => {
+        return $scrollerScroll.pipe(
+          takeUntilDestroyed(this._destroyRef),
+        );
+      }),
+      tap(userAction => {
+        hasUserAction = userAction;
+        const scrollerEl = this._scroller()?.nativeElement, scrollerComponent = this._scrollerComponent();
+        if (!!scrollerEl && !!scrollerComponent) {
+          this.emitScrollEvent(false, this._readyForShow, userAction);
+        }
+        scrollHandler(userAction);
+      }),
+    ).subscribe();
+
+    $scroller.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      switchMap(scroller => {
+        return $scrollerScrollEnd.pipe(
+          takeUntilDestroyed(this._destroyRef),
+        );
+      }),
+      tap(userAction => {
+        hasUserAction = userAction;
+        const scrollerEl = this._scroller()?.nativeElement, scrollerComponent = this._scrollerComponent();
+        if (!!scrollerEl && !!scrollerComponent) {
+          this.emitScrollEvent(true, this._readyForShow, userAction);
+        }
+        scrollHandler(userAction);
+      }),
+    ).subscribe();
+
+    const $scrollTo = this.$scrollTo,
+      $scrollToExecutor = this.$scrollToExecutor;
+
+    combineLatest([$scroller, $trackBy, $scrollTo]).pipe(
+      filter(([scroller, , event]) => !!scroller && !!event),
+      map(([scroller, trackBy, event]) => ({ scroller: scroller, trackBy, event })),
+      switchMap(({ event }) => {
+        const d = event?.delay ?? 0;
+        if (d > 0) {
+          return of(event).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            delay(d),
+          );
+        }
+        return of(event);
+      }),
+      tap(event => {
+        this._$scrollingTo.next(true);
+        this._$scrollToExecutor.next(event);
+      }),
+    ).subscribe();
+
+    const $scrollToInitialize = combineLatest([$itemTransform, $dynamicSize]).pipe(
+      takeUntilDestroyed(this._destroyRef),
+      switchMap(([i, d]) => {
+        if (!!i && !d) {
+          return this.$initialized.pipe(
+            takeUntilDestroyed(this._destroyRef),
+            filter(v => !v),
+            switchMap(v => {
+              return combineLatest([$resizeContent.pipe(
+                takeUntilDestroyed(this._destroyRef),
+                startWith(true),
+                switchMap(() => of(true)),
+              ), $resizeViewport.pipe(
+                takeUntilDestroyed(this._destroyRef),
+                startWith(true),
+                switchMap(() => of(true)),
+              )]).pipe(
+                takeUntilDestroyed(this._destroyRef),
+                debounceTime(1),
+                switchMap(() => of(true)),
+              ).pipe(
+                takeUntilDestroyed(this._destroyRef),
+                takeUntil(timer(1000)),
+              );
+            }),
+          );
+        }
+        return this.$initialized;
+      }),
+    );
+
+    combineLatest([$scrollToInitialize, $scrollerComponent, $scrollToExecutor]).pipe(
+      takeUntilDestroyed(),
+      filter(([i, c, e]) => !!i && !!c && !!e),
+      debounceTime(0),
+      switchMap(([, , e]) => {
+        const event = e!;
+        const trackBy = this.trackBy(), scrollerComponent = this._scrollerComponent(),
+          { id, iteration = 0, blending = false, isLastIteration = false, cb } = event;
+        const nextIteration = iteration + 1, finished = nextIteration >= MAX_SCROLL_TO_ITERATIONS, fireUpdate = false;
+
+        if (!this._readyForShow) {
+          return of([finished, { id, iteration: nextIteration, blending, cb }]).pipe(delay(0));
+        }
+
+        debouncedUpdate.dispose();
+        this._$preventScrollSnapping.next(true);
+
+        if (!!scrollerComponent) {
+          scrollerComponent.startScrollTo();
+
+          const items = this._actualItems();
+          if (!!items && items.length) {
+            const dynamicSize = this.dynamicSize(), itemSize = this._actualItemSize(), minItemSize = this._actualMinItemSize(),
+              maxItemSize = this._actualMaxItemSize(), snapScrollToEnd = this.snapScrollToEnd();
+
+            if (dynamicSize) {
+              const { width, height } = this._bounds() || { width: DEFAULT_LIST_SIZE, height: DEFAULT_LIST_SIZE },
+                itemConfigMap = this.itemConfigMap(), isVertical = this._isVertical,
+                inverted = scrollerComponent.inverted,
+                maxScrollSize = isVertical ? scrollerComponent.scrollHeight : scrollerComponent.scrollWidth,
+                currentScrollSize = isVertical ? scrollerComponent.scrollTop : scrollerComponent.scrollLeft,
+                opts: IGetItemPositionOptions<IVirtualListItem, IVirtualListCollection> = {
+                  alignment: this.actualAlignment(), inverted,
+                  bounds: { width, height }, collection: items, dynamicSize, isVertical: this._isVertical, itemSize, minItemSize, maxItemSize,
+                  bufferSize: this.bufferSize(), maxBufferSize: this.maxBufferSize(), itemTransform: this.itemTransform(),
+                  scrollSize: (inverted ? (maxScrollSize - currentScrollSize) : currentScrollSize),
+                  snapToItem: this.snapToItem(), snapToItemAlign: this.snapToItemAlign(),
+                  stickyEnabled: this.stickyEnabled(), fromItemId: id, enabledBufferOptimization: this.enabledBufferOptimization(),
+                };
+
+              let scrollSize = snapScrollToEnd && this._trackBox.isSnappedToEnd ?
+                maxScrollSize :
+                this._trackBox.getItemPosition(id, itemConfigMap, opts);
+
+              if (scrollSize === -1) {
+                return of([finished, { id, blending, iteration: nextIteration, cb }]).pipe(delay(0));
+              }
+
+              this._trackBox.clearDelta();
+
+              const viewportSize = (isVertical ? height : width),
+                { displayItems, totalSize, leftLayoutOffset } = this._trackBox.updateCollection(items, itemConfigMap, {
+                  ...opts, scrollSize: (inverted ? (maxScrollSize - scrollSize) : scrollSize), fromItemId: isLastIteration ? undefined : id,
+                }), delta1 = this._trackBox.delta;
+
+              const normalizedTotalSize = totalSize < viewportSize ? viewportSize : totalSize;
+
+              scrollerComponent.startLayoutOffset = leftLayoutOffset;
+
+              scrollerComponent.totalSize = normalizedTotalSize;
+
+              this._service.collection = displayItems;
+
+              let actualScrollSize = scrollSize + delta1;
+
+              this.resetBoundsSize(isVertical, normalizedTotalSize);
+
+              this.createDisplayComponentsIfNeed(displayItems);
+
+              this.tracking();
+
+              this.snappingHandler();
+
+              this.updateOffsetsByAllignment();
+
+              scrollSize = this._trackBox.getItemPosition(id, itemConfigMap, { ...opts, scrollSize: (inverted ? (maxScrollSize - actualScrollSize) : actualScrollSize), fromItemId: id });
+
+              if (scrollSize === -1) {
+                return of([finished, { id, blending, iteration: nextIteration, cb }]).pipe(delay(0));
+              }
+              const notChanged = scrollSize === currentScrollSize;
+              if (!notChanged && iteration < MAX_SCROLL_TO_ITERATIONS) {
+                this._trackBox.clearDelta();
+                const params: IListScrollToParams = {
+                  [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: scrollSize, behavior: BEHAVIOR_INSTANT as ScrollBehavior,
+                  fireUpdate, blending, force: true, snap: false, normalize: false,
+                };
+                scrollerComponent?.scrollTo?.(params);
+                return of([finished, {
+                  id, iteration: nextIteration, blending,
+                  isLastIteration: nextIteration < MAX_SCROLL_TO_ITERATIONS, cb
+                }]).pipe(delay(0));
+              } else {
+                this._$scrollSize.next(actualScrollSize);
+                return of([true, { id, blending, iteration: nextIteration, cb }]).pipe(delay(0));
+              }
+            } else {
+              const index = items.findIndex(item => item[trackBy] === id);
+              if (index > -1) {
+                const isVertical = this._isVertical, itemSize = this._actualItemSize(), isInfinity = this._isInfinity(), snapToItem = this.snapToItem(),
+                  snapToItemAlign = this.snapToItemAlign();
+                let scrollSize = index * itemSize;
+
+                if (isInfinity) {
+                  if (snapToItem) {
+                    switch (snapToItemAlign) {
+                      case SnapToItemAligns.CENTER: {
+                        scrollSize += itemSize * .5;
+                        break;
+                      }
+                    }
+                  }
+                }
+
+                const { width, height } = this._bounds() || { width: DEFAULT_LIST_SIZE, height: DEFAULT_LIST_SIZE },
+                  itemConfigMap = this.itemConfigMap(), items = this._actualItems(),
+                  inverted = scrollerComponent.inverted,
+                  maxScrollSize = (isVertical ? scrollerComponent.scrollHeight : scrollerComponent.scrollWidth),
+                  actualScrollSize = (isVertical ? scrollerComponent.scrollTop : scrollerComponent.scrollLeft),
+                  opts: IGetItemPositionOptions<IVirtualListItem, IVirtualListCollection> = {
+                    alignment: this._actualAlignment(), inverted,
+                    bounds: { width, height }, collection: items, dynamicSize, isVertical: this._isVertical, itemSize, minItemSize, maxItemSize,
+                    bufferSize: this.bufferSize(), maxBufferSize: this.maxBufferSize(), itemTransform: this.itemTransform(),
+                    scrollSize: (inverted ? (maxScrollSize - actualScrollSize) : actualScrollSize),
+                    snapToItem, snapToItemAlign, stickyEnabled: this.stickyEnabled(), fromItemId: id,
+                    enabledBufferOptimization: this.enabledBufferOptimization(),
+                  };
+
+                this._trackBox.clearDelta();
+
+                const viewportSize = (isVertical ? height : width),
+                  { displayItems, totalSize, leftLayoutOffset } = this._trackBox.updateCollection(items, itemConfigMap, {
+                    ...opts, scrollSize: (inverted ? (maxScrollSize - scrollSize) : scrollSize),
+                    fromItemId: isLastIteration ? undefined : id,
+                  });
+
+                const actualTotalSize = this._isInfinity() ? (totalSize + viewportSize) : totalSize;
+
+                const normalizedTotalSize = actualTotalSize < viewportSize ? viewportSize : actualTotalSize;
+
+                scrollerComponent.startLayoutOffset = leftLayoutOffset;
+
+                scrollerComponent.totalSize = normalizedTotalSize;
+
+                this._service.collection = displayItems;
+
+                this.resetBoundsSize(isVertical, normalizedTotalSize);
+
+                this.createDisplayComponentsIfNeed(displayItems);
+
+                this.tracking();
+
+                this.snappingHandler();
+
+                this.updateOffsetsByAllignment();
+
+                this._$preventScrollSnapping.next(true);
+
+                const params: IListScrollToParams = {
+                  [this._isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: scrollSize, fireUpdate: false,
+                  behavior: BEHAVIOR_INSTANT as ScrollBehavior, blending, force: true, snap: false, normalize: false,
+                };
+                scrollerComponent?.scrollTo?.(params);
+                return of([true, { id, blending, iteration: nextIteration, cb }]);
+              }
+            }
+          }
+        }
+        return of([finished, { id, iteration: nextIteration, blending, cb }]);
+      }),
+      takeUntilDestroyed(),
+      tap(([finished, params]) => {
+        if (!finished) {
+          this._$scrollToExecutor.next(params as IScrollParams);
+          return;
+        }
+
+        if (this._readyForShow) {
+          this._trackBox.preventScrollSnapping(true);
+        }
+
+        this._$scrollingTo.next(false);
+        this._scrollerComponent()?.finishedScrollTo();
+        this._$fireUpdate.next(true);
+        this.emitScrollEvent(true, false, true);
+        const scrollParams = params as IScrollParams & { scrollCalled: boolean; };
+        scrollParams?.cb?.();
+      }),
+      delay(0),
+      tap(([finished]) => {
+        if (finished) {
+          this._scrollerComponent()?.snapIfNeed();
+        }
+      }),
+    ).subscribe();
+
+    const $itemRenderer = toObservable(this.itemRenderer);
+
+    $itemRenderer.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      filter(v => !!v),
+      tap(v => {
+        this._itemRenderer.set(v);
+      }),
+    ).subscribe();
+
+    $bounds.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      tap(value => {
+        const size: ISize = { width: value.width, height: value.height };
+        this.onViewportChange.emit(objectAsReadonly(size));
+      }),
+    ).subscribe();
+
+    this._service.$virtualClick.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this.onItemClick.emit(objectAsReadonly(v));
+      }),
+    ).subscribe();
+
+    let isSelectedIdsFirstEmit = 0;
+
+    this._service.$selectedIds.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      tap(v => {
+        if (this._isSingleSelection || (this._isMultiSelection && isSelectedIdsFirstEmit >= 2)) {
+          const curr = this.selectedIds();
+          if ((this._isSingleSelection && JSON.stringify(v) !== JSON.stringify(curr)) ||
+            (isSelectedIdsFirstEmit === 2 && JSON.stringify(v) !== JSON.stringify(curr)) || isSelectedIdsFirstEmit > 2) {
+            this.onSelect.emit(copyValueAsReadonly(v));
+          }
+        }
+        if (isSelectedIdsFirstEmit < 3) {
+          isSelectedIdsFirstEmit++;
+        }
+      }),
+    ).subscribe();
+
+    $selectedIds.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      tap(v => {
+        this._service.selectedIds = v;
+      }),
+    ).subscribe();
+
+    $viewInit.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      switchMap(() => {
+        return this._service.$collapsedIds.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          distinctUntilChanged(),
+          tap(v => {
+            const curr = this._collapsedItemIds();
+            if ((this._isAccordionCollapse || this._isMultipleCollapse) && (JSON.stringify(v) !== JSON.stringify(curr))) {
+              this._collapsedItemIds.set(v);
+              this.onCollapse.emit(copyValueAsReadonly(v));
+            }
+          }),
+        );
+      }),
+    ).subscribe();
+
+    combineLatest([$itemConfigMap, $dynamicSize, $divides]).pipe(
+      takeUntilDestroyed(),
+      filter(([itemConfigMap, dynamicSize, divides]) => !!itemConfigMap && !dynamicSize && divides > 1),
+      tap(([itemConfigMap]) => {
+        for (const id in itemConfigMap) {
+          const metaData = itemConfigMap[id];
+          if (metaData?.fullSize || metaData?.sticky === 1 || metaData?.sticky === 2) {
+            throw Error('The accelerated rendering algorithm `[dynamicSize]="false"` cannot correctly handle non-uniform lists (the itemConfigMap specifies full-size elements). For correct rendering, specify `[dynamicSize]="true"`.');
+          }
+        }
+      }),
+    ).subscribe();
+
+    combineLatest([$collapsingMode, $items, $itemConfigMap, $trackBy]).pipe(
+      takeUntilDestroyed(),
+      tap(([collapsingMode, items, itemConfigMap, trackBy]) => {
+        const isAccordion = isCollapseMode(collapsingMode, CollapsingModes.ACCORDION);
+        if (isAccordion) {
+          const allGroups: Array<Id> = [];
+          if (this._isAccordionCollapse) {
+            for (let i = 0, l = items.length; i < l; i++) {
+              const item = items[i], id = item[trackBy], collapsable = itemConfigMap?.[id]?.collapsable === true;
+              if (!collapsable) {
+                continue;
+              }
+              allGroups.push(id);
+            }
+          }
+          if ((this._isAccordionCollapse || this._isMultipleCollapse) && (JSON.stringify(this._collapsedItemIds()) !== JSON.stringify(allGroups))) {
+            this._collapsedItemIds.set(allGroups);
+            this.onCollapse.emit(copyValueAsReadonly(allGroups));
+          }
+        }
+      }),
+    ).subscribe();
+
+    $collapsedItemIds.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      tap(v => {
+        this._service.collapsedIds = v;
+      }),
+    ).subscribe();
+
+    this.$destroy.pipe(
+      takeUntilDestroyed(),
+      tap(() => {
+        debouncedUpdate.dispose();
+      }),
+    ).subscribe();
+  }
+
+  ngAfterViewInit() {
+    this._$viewInit.next(true);
+
+    this._$fireUpdate.next(false);
+  }
+
+  private onAfterResize(update = false) {
+    this.snappingHandler();
+
+    if (this._isSnappingMethodAdvanced) {
+      this.updateRegularRenderer();
+    }
+
+    if (this._readyForShow && update) {
+      const scroller = this._scrollerComponent();
+      if (!!scroller) {
+        const updatebale = this._readyForShow;
+        if (updatebale) {
+          this._$fireUpdate.next(false);
+        }
+        scroller.refresh(updatebale, updatebale);
+      }
+    }
+  }
+
+  private checkBoundsOfElements() {
+    const changed = this._trackBox.checkBoundsOfElements();
+    if (changed) {
+      const readyForShow = this._readyForShow,
+        isScrolling = this._$scrollingTo.getValue();
+      this._trackBox.changes(true, readyForShow && !isScrolling);
+    }
+  }
+
+  private snappingHandler() {
+    const scroller = this._scrollerComponent();
+    if (!!scroller) {
+      const isVertical = this.isVertical,
+        maxScrollSize = Math.round(isVertical ? scroller.scrollHeight ?? 0 : scroller.scrollWidth ?? 0),
+        scrollSize = isVertical ? scroller.scrollTop ?? 0 : scroller.scrollLeft ?? 0,
+        actualScrollSize = Math.round(scrollSize);
+      if (this._readyForShow && !this._isLoading) {
+        const isScrollEnd = (actualScrollSize >= (maxScrollSize - MIN_PIXELS_FOR_PREVENT_SNAPPING)) || !scroller.scrollable || this._trackBox.isScrollEnd;
+        if (isScrollEnd) {
+          this._isScrollStart.set(false);
+          this._isScrollEnd.set(true);
+          this._trackBox.isScrollStart = false;
+          this._trackBox.isScrollEnd = true;
+        } else {
+          const isScrollStart = (actualScrollSize <= MIN_PIXELS_FOR_PREVENT_SNAPPING);
+          this._isScrollStart.set(isScrollStart);
+          this._isScrollEnd.set(false);
+          this._trackBox.isScrollStart = isScrollStart;
+          this._trackBox.isScrollEnd = false;
+        }
+      } else if (!this._readyForShow) {
+        const snapScrollToStart = this._actualSnapScrollToStart(), snapScrollToEnd = this._actualSnapScrollToEnd();
+        if (!snapScrollToStart && snapScrollToEnd) {
+          this._isScrollStart.set(false);
+          this._isScrollEnd.set(true);
+          this._trackBox.isScrollStart = false;
+          this._trackBox.isScrollEnd = true;
+        } else if (snapScrollToStart && snapScrollToEnd) {
+          this._isScrollStart.set(true);
+          this._isScrollEnd.set(false);
+          this._trackBox.isScrollStart = true;
+          this._trackBox.isScrollEnd = false;
+        } else {
+          this._isScrollStart.set(false);
+          this._isScrollEnd.set(false);
+          this._trackBox.isScrollStart = false;
+          this._trackBox.isScrollEnd = false;
+        }
+      }
+    }
+  };
+
+  private emitScrollEvent(isScrollEnd: boolean = false, update: boolean = true, userAction: boolean = false) {
+    if (!this._readyForShow) {
+      return;
+    }
+    const scrollerEl = this._scroller()?.nativeElement, scrollerComponent = this._scrollerComponent();
+    if (scrollerEl && scrollerComponent) {
+      const isVertical = this._isVertical, scrollSize = (isVertical ? scrollerComponent.scrollTop : scrollerComponent.scrollLeft),
+        maxScrollSize = (isVertical ? scrollerComponent.scrollHeight : scrollerComponent.scrollWidth),
+        bounds = this._bounds() || { x: 0, y: 0, width: DEFAULT_LIST_SIZE, height: DEFAULT_LIST_SIZE };
+      const itemsRange = formatActualDisplayItems(this._service.displayItems, this._actualScrollStartOffset(), this._actualScrollEndOffset(),
+        scrollSize, isVertical, bounds),
+        event = new ScrollEvent({
+          direction: this._scrollerComponent()?.scrollDirection ?? 0, container: scrollerEl,
+          list: this._list()!.nativeElement, delta: this._trackBox.delta,
+          deltaOfNewItems: this._trackBox.deltaOfNewItems, isVertical,
+          scrollSize,
+          itemsRange,
+          isEnd: !scrollerComponent.scrollable || this._trackBox.isSnappedToEnd || (Math.round(scrollSize) === Math.round(maxScrollSize)),
+          userAction,
+        });
+      if (update) {
+        this._$scroll.next(event);
+      }
+
+      if (isScrollEnd) {
+        this.onScrollEnd.emit(event);
+      } else {
+        this.onScroll.emit(event);
+      }
+    }
+  }
+
+  private getIsSnappingMethodAdvanced(m?: SnappingMethod) {
+    const method = m || this.snappingMethod();
+    return isSnappingMethodAdvenced(method);
+  }
+
+  private getIsNoneSelection(m?: SelectingMode) {
+    const mode = m || this.selectingMode();
+    return isSelectMode(mode, SelectingModes.NONE);
+  }
+
+  private getIsSingleSelection(m?: SelectingMode) {
+    const mode = m || this.selectingMode();
+    return isSelectMode(mode, SelectingModes.SELECT);
+  }
+
+  private getIsMultiSelection(m?: SelectingMode) {
+    const mode = m || this.selectingMode();
+    return isSelectMode(mode, SelectingModes.MULTI_SELECT);
+  }
+
+  private getIsNoneCollapse(m?: CollapsingMode) {
+    const mode = m || this.collapsingMode();
+    return isCollapseMode(mode, CollapsingModes.NONE);
+  }
+
+  private getIsMultipleCollapse(m?: CollapsingMode) {
+    const mode = m || this.collapsingMode();
+    return isCollapseMode(mode, CollapsingModes.MULTI_COLLAPSE);
+  }
+
+  private getIsAccordionCollapse(m?: CollapsingMode) {
+    const mode = m || this.collapsingMode();
+    return isCollapseMode(mode, CollapsingModes.ACCORDION);
+  }
+
+  private getIsVertical(d?: Direction) {
+    const dir = d || this.direction();
+    return isDirection(dir, Directions.VERTICAL);
+  }
+
+  private getIsLazy(m?: CollectionMode) {
+    const mode = m || this.collectionMode();
+    return isCollectionMode(mode, CollectionModes.LAZY);
+  }
+
+  private createDisplayComponentsIfNeed(displayItems: IRenderVirtualListCollection | null) {
+    if (!displayItems || !this._listContainerRef) {
+      this._trackBox.setDisplayObjectIndexMapById({});
+      return;
+    }
+
+    if (this._isSnappingMethodAdvanced && this.stickyEnabled()) {
+      if (this._snappedDisplayComponents.length < MAX_REGULAR_SNAPED_COMPONENTS && !!this._snapContainerRef) {
+        let index = 0;
+        while (this._snappedDisplayComponents.length < MAX_REGULAR_SNAPED_COMPONENTS) {
+          const comp = this._snapContainerRef.createComponent(this._itemComponentClass);
+          comp.instance.renderer = this._itemRenderer();
+          comp.instance.regular = true;
+          this._snappedDisplayComponents.push(comp);
+          this._trackBox.snappedDisplayComponents = this._snappedDisplayComponents;
+          this._resizeSnappedObserver = new ResizeObserver(this._resizeSnappedComponentHandler);
+          this._resizeSnappedObserver.observe(comp.instance.element);
+          index++;
+        }
+      }
+    }
+
+    this._trackBox.items = displayItems;
+
+    const listContainerRef = this._listContainerRef;
+
+    const maxLength = displayItems.length, components = this._displayComponents;
+
+    if (!!listContainerRef) {
+      const doMap: { [id: number]: number } = {};
+      let i = 0;
+      for (let l = components.length; i < l; i++) {
+        const item = components[i];
+        if (!!item) {
+          const id = item.instance.id;
+          item.instance.renderer = this._itemRenderer();
+          doMap[id] = i;
+        }
+      }
+      let index = 0;
+      while (components.length < maxLength) {
+        const comp = listContainerRef.createComponent(this._itemComponentClass, {
+          index,
+          injector: this._injector,
+          ngModuleRef: createNgModule(NtListItemModule, this._injector),
+        });
+        const id = comp.instance.id;
+        comp.instance.renderer = this._itemRenderer();
+        doMap[id] = i;
+        components.push(comp);
+        i++;
+        index ++;
+      }
+      this._trackBox.setDisplayObjectIndexMapById(doMap);
+    }
+  }
+
+  private updateOffsetsByAllignment() {
+    const alignment = this._actualAlignment(), items = this._actualItems(), trackBy = this.trackBy(),
+      isInfinity = this._isInfinity(), isVertical = this._isVertical,
+      { width, height } = this._bounds() || { width: DEFAULT_LIST_SIZE, height: DEFAULT_LIST_SIZE },
+      viewportSize = isVertical ? height : width,
+      precalculatedScrollStartOffset = this._precalculatedScrollStartOffset(),
+      precalculatedScrollEndOffset = this._precalculatedScrollEndOffset();
+    switch (alignment) {
+      case Alignments.NONE: {
+        this._actualScrollStartOffset.set(precalculatedScrollStartOffset);
+        this._actualScrollEndOffset.set(precalculatedScrollEndOffset);
+        break;
+      }
+      case Alignments.CENTER: {
+        const firstItemId: Id | null = items.length > 0 ? (items[0]?.[trackBy] ?? null) : null,
+          endItemId: Id | null = items.length > 0 ? (items?.[items.length - 1]?.[trackBy] ?? null) : null,
+          alignmentStartOffset = viewportSize * .5 - (firstItemId !== null ? (isVertical ? (this._service.getItemBounds(firstItemId)?.height ?? 0) :
+            (this._service.getItemBounds(firstItemId)?.width ?? 0)) : 0) * (isInfinity ? 0 : .5),
+          alignmentEndOffset = viewportSize * .5 - (endItemId !== null ? (isVertical ? (this._service.getItemBounds(endItemId)?.height ?? 0) :
+            (this._service.getItemBounds(endItemId)?.width ?? 0)) : 0) * (isInfinity ? 0 : .5);
+
+        this._alignmentScrollStartOffset.set(alignmentStartOffset);
+        this._alignmentScrollEndOffset.set(alignmentEndOffset);
+        this._actualScrollStartOffset.set(precalculatedScrollStartOffset + alignmentStartOffset);
+        this._actualScrollEndOffset.set(precalculatedScrollEndOffset + alignmentEndOffset);
+        break;
+      }
+    }
+  }
+
+  private updateRegularRenderer() {
+    this._resizeSnappedComponentHandler();
+  }
+
+  /**
+   * Tracking by id
+   */
+  private tracking() {
+    this._trackBox.track();
+  }
+
+  private resetBoundsSize(isVertical: boolean, totalSize: number) {
+    const l = this._list(), prop = isVertical ? HEIGHT_PROP_NAME : WIDTH_PROP_NAME,
+      size = totalSize;
+    if (!!l && parseInt(l.nativeElement.style[prop]) !== size) {
+      l.nativeElement.style[prop] = `${size}${PX}`;
+    }
+  }
+
+  /**
+   * Returns the bounds of an element with a given id
+   */
+  getItemBounds(id: Id): ISize | null {
+    return this._service.getItemBounds(id);
+  }
+
+  /**
+   * Focus an list item by a given id.
+   */
+  focus(id: Id, align: FocusAlignment = FocusAlignments.NONE) {
+    this._elementRef.nativeElement.focus();
+    this._service.focusById(id, align, this.scrollBehavior());
+  }
+
+  /**
+   * The method scrolls the list to the element with the given `id` and returns the value of the scrolled area.
+   */
+  scrollTo(id: Id, cb: (() => void) | null = null, options: IScrollOptions | null = null) {
+    const behavior = options?.behavior ?? BEHAVIOR_INSTANT,
+      blending = options?.blending ?? false,
+      focused = options?.focused ?? true,
+      delay = options?.delay ?? 0,
+      iteration = options?.iteration ?? 0;
+    validateId(id);
+    validateScrollBehavior(behavior);
+    validateIteration(iteration);
+    const actualIteration = validateScrollIteration(iteration);
+    this._elementRef.nativeElement.focus();
+    this._$scrollTo.next({
+      id, behavior, blending, delay, iteration: actualIteration, isLastIteration: actualIteration === MAX_SCROLL_TO_ITERATIONS, cb: () => {
+        this.scrollToFinalize(id, focused, cb);
+      }
+    });
+  }
+
+  /**
+   * Scrolls the scroll area to the first item in the collection.
+   */
+  scrollToStart(cb: (() => void) | null = null, options: IScrollOptions | null = null) {
+    const scroller = this._scrollerComponent();
+    if (!!scroller) {
+      const scrollSize = this.isVertical ? scroller.scrollTop : scroller.scrollLeft;
+      if (scrollSize === 0) {
+        return;
+      }
+      scroller.stopScrolling();
+    }
+    const behavior = options?.behavior ?? BEHAVIOR_INSTANT,
+      blending = options?.blending ?? false,
+      focused = options?.focused ?? true,
+      delay = options?.delay ?? 0,
+      iteration = options?.iteration ?? 0;
+    validateScrollBehavior(behavior);
+    validateIteration(iteration);
+    const trackBy = this.trackBy(), items = this._actualItems(), firstItem = items.length > 0 ? items[0] ?? null : null, id = firstItem?.[trackBy] ?? null,
+      actualIteration = validateScrollIteration(iteration);
+    if (!!firstItem) {
+      this._elementRef.nativeElement.focus();
+      this._$scrollTo.next({
+        id, behavior, blending, delay, iteration: actualIteration, isLastIteration: actualIteration === MAX_SCROLL_TO_ITERATIONS, cb: () => {
+          this._isScrollStart.set(true);
+          this._trackBox.isScrollStart = true;
+          this._trackBox.isScrollEnd = false;
+          this._$fireUpdate.next(true);
+          this.scrollToFinalize(id, focused, cb);
+        }
+      });
+    }
+  }
+
+  /**
+   * Scrolls the list to the end of the content size.
+   */
+  scrollToEnd(cb: (() => void) | null = null, options: IScrollOptions | null = null) {
+    const scroller = this._scrollerComponent();
+    if (!!scroller) {
+      const isVertical = this.isVertical,
+        scrollSize = isVertical ? scroller.scrollTop : scroller.scrollLeft,
+        maxScrollSize = isVertical ? scroller.scrollHeight : scroller.scrollTop;
+      if (scrollSize === maxScrollSize) {
+        return;
+      }
+      scroller.stopScrolling();
+    }
+    const behavior = options?.behavior ?? BEHAVIOR_INSTANT,
+      blending = options?.blending ?? false,
+      focused = options?.focused ?? true,
+      delay = options?.delay ?? 0,
+      iteration = options?.iteration ?? 0;
+    validateScrollBehavior(behavior);
+    validateIteration(iteration);
+    const trackBy = this.trackBy(), items = this._actualItems(), latItem = items[items.length > 0 ? items.length - 1 : 0], id = latItem?.[trackBy] ?? null,
+      actualIteration = validateScrollIteration(iteration);
+    if (latItem === null) {
+      return;
+    }
+    this._elementRef.nativeElement.focus();
+    if (!this._scrollerComponent()?.scrollable) {
+      this.scrollToFinalize(id, focused, cb);
+      return;
+    }
+    this._$scrollTo.next({
+      id, behavior, blending, delay, iteration: actualIteration, isLastIteration: actualIteration === MAX_SCROLL_TO_ITERATIONS, cb: () => {
+        this._isScrollEnd.set(true);
+        this._trackBox.isScrollStart = false;
+        this._trackBox.isScrollEnd = true;
+        this._$fireUpdate.next(true);
+        this.scrollToFinalize(id, focused, cb);
+      }
+    });
+  }
+
+  private scrollToFinalize(id: Id, focused: boolean, cb: (() => void) | null) {
+    if (focused) {
+      const el = this._service.getFocusedElementById(id);
+      if (!!el) {
+        this._service.focus(el, FocusAlignments.NONE);
+      }
+    }
+    if (typeof cb === 'function') {
+      cb?.();
+    }
+  }
+
+  protected cleanup() {
+    const displayItems: IRenderVirtualListCollection = [];
+    this._service.collection = displayItems;
+    this.createDisplayComponentsIfNeed(displayItems);
+    this.tracking();
+    this.emitScrollEvent(true, false, false);
+  }
+
+  /**
+   * Force clearing the cache.
+   */
+  protected cacheClean() {
+    this._cached = false;
+    if (this.dynamicSize()) {
+      this._trackBox.cacheClean();
+    }
+    const prerenderContainer = this._prerender();
+    if (!!prerenderContainer) {
+      prerenderContainer.clear();
+      prerenderContainer.off();
+    }
+    this._collapsedItemIds.set([]);
+    this._isScrollStart.set(true);
+    this._isScrollEnd.set(false);
+    this._totalSize.set(0);
+    this._$scrollSize.next(0);
+    const scroller = this._scrollerComponent();
+    if (!!scroller) {
+      scroller.reset();
+    }
+  }
+
+  /**
+   * Prevents the list from snapping to its start or end edge.
+   */
+  preventSnapping() {
+    if (!this._readyForShow) {
+      return;
+    }
+    const scroller = this._scrollerComponent();
+    this._isScrollStart.set(false);
+    this._isScrollEnd.set(false);
+    this._trackBox.preventScrollSnapping(true);
+    if (!!scroller) {
+      scroller.stopScrolling();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.dispose();
+  }
+
+  private dispose() {
+    this._$destroy.next();
+
+    const updateId = this._updateId;
+    if (updateId !== undefined) {
+      cancelAnimationFrame(updateId);
+      this._updateId = undefined;
+    }
+
+    if (!!this._trackBox) {
+      this._trackBox.dispose();
+    }
+
+    if (!!this._resizeSnappedObserver) {
+      this._resizeSnappedObserver.disconnect();
+    }
+
+    if (!!this._snappedDisplayComponents) {
+      while (this._snappedDisplayComponents.length > 0) {
+        const comp = this._snappedDisplayComponents.shift();
+        comp?.destroy();
+      }
+    }
+
+    if (!!this._displayComponents) {
+      while (this._displayComponents.length > 0) {
+        const comp = this._displayComponents.shift();
+        comp?.destroy();
+      }
+    }
+  }
+}

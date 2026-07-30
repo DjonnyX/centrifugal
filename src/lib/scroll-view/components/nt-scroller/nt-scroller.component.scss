@@ -88,5 +88,19 @@
         &.prepared {
             opacity: 1;
         }
+
+        &.full-size {
+            display: grid;
+            min-width: 100%;
+            min-height: 100%;
+        }
+
+        .a {
+            -webkit-user-drag: none;
+        }
+
+        .grabbing {
+            cursor: grabbing !important;
+        }
     }
 }

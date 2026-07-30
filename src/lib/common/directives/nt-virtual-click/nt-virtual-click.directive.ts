@@ -1,14 +1,18 @@
-import { DestroyRef, Directive, ElementRef, inject, Input, output } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DestroyRef, Directive, ElementRef, inject, input, output, SecurityContext } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest, fromEvent, of, race } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { NtVirtualListService } from '../../../list/nt-virtual-list.service';
-import { DEFAULT_CLICK_DISTANCE } from '../../../list/const';
+import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from '../../injection';
+import { toggleClassName, validateBoolean, validateFloat } from '../../utils';
+import { ANCHOR, DEFAULT_CLICK_DISTANCE } from './const';
+import { CLICK, POINTER_DOWN, POINTER_LEAVE, POINTER_MOVE, POINTER_UP } from '../../const/event-names';
+import { INtBaseControlContainerService } from '../../interfaces';
+import { GRABBING, NOT_GRABBING } from '../../const/class-names';
+import { DomSanitizer } from '@angular/platform-browser';
+import { IBaseScrollViewService } from '../../interfaces/base-scroll-view-service';
 
 /**
  * VirtualClickDirective
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/directives/nt-item-click/nt-item-click.directive.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -17,18 +21,65 @@ import { DEFAULT_CLICK_DISTANCE } from '../../../list/const';
     selector: '[virtualClick]',
     standalone: false,
 })
-export class NtVirtualClickDirective {
-    private _$maxDistance = new BehaviorSubject<number | null>(null);
-    protected $maxDistance = this._$maxDistance.asObservable();
+export class NtVirtualClickDirective<S extends IBaseScrollViewService, C extends INtBaseControlContainerService> {
+    protected _service = inject<S>(SCROLL_VIEW_SERVICE);
 
-    private _maxDistance: number | null = null;
+    protected _controlService = inject<C>(CONTROL_CONTAINER_SERVICE);
 
-    @Input('maxClickDistance')
-    set maxDistance(v: number | string) {
-        const value = (v !== null || v !== undefined) ? Number(v) : null;
-        this._maxDistance = value;
-        this._$maxDistance.next(value);
-    }
+    protected _maxClickDistanceTransform = {
+        transform: (v: number) => {
+            const valid = validateFloat(v);
+            if (!valid) {
+                console.error('The "maxClickDistance" parameter must be of type `number`.');
+                return DEFAULT_CLICK_DISTANCE;
+            }
+            return v;
+        },
+    } as any;
+
+    maxClickDistance = input<number>(DEFAULT_CLICK_DISTANCE, { ...this._maxClickDistanceTransform });
+
+    protected _emitNativeClickTransform = {
+        transform: (v: boolean) => {
+            const valid = validateBoolean(v);
+            if (!valid) {
+                console.error('The "emitNativeClick" parameter must be of type `boolean`.');
+                return true;
+            }
+            return v;
+        },
+    } as any;
+
+    emitNativeClick = input<boolean>(true, { ...this._emitNativeClickTransform });
+
+    protected _focusElementTransform = {
+        transform: (v: boolean) => {
+            const valid = validateBoolean(v);
+            if (!valid) {
+                console.error('The "focusElement" parameter must be of type `boolean`.');
+                return true;
+            }
+            return v;
+        },
+    } as any;
+
+    focusElement = input<boolean>(true, { ...this._focusElementTransform });
+
+    protected _allowedAnchorDraggableTransform = {
+        transform: (v: boolean) => {
+            const valid = validateBoolean(v);
+            if (!valid) {
+                console.error('The "allowedAnchorDraggable" parameter must be of type `boolean`.');
+                return false;
+            }
+            return v;
+        },
+    } as any;
+
+    /**
+     * Determines whether anchors can be moved by dragging. Default value is `false`.
+     */
+    allowedAnchorDraggable = input<boolean>(false, { ...this._allowedAnchorDraggableTransform });
 
     onVirtualClick = output<PointerEvent | TouchEvent>();
 
@@ -36,35 +87,75 @@ export class NtVirtualClickDirective {
 
     onVirtualClickCancel = output<void>();
 
-    private _service = inject(NtVirtualListService);
+    private _$elementTarget = new BehaviorSubject<HTMLElement | null>(null);
+    protected $elementTarget = this._$elementTarget.asObservable();
 
     private _elementRef = inject(ElementRef);
+
+    private _sanitizer = inject(DomSanitizer);
 
     private _destroyRef = inject(DestroyRef);
 
     constructor() {
-        let maxDistance = this._maxDistance ?? DEFAULT_CLICK_DISTANCE;
-        combineLatest([this._service.$clickDistance, this.$maxDistance]).pipe(
+        const root = this._controlService?.emitter ?? window,
+            host = this._elementRef.nativeElement,
+            targetTagName = host.tagName.toLocaleLowerCase();
+
+        const $allowedAnchorDraggable = toObservable(this.allowedAnchorDraggable);
+        $allowedAnchorDraggable.pipe(
             takeUntilDestroyed(),
-            tap(([clickDistance, distance]) => {
-                maxDistance = distance === null ? clickDistance : distance;
+            tap(v => {
+                if (targetTagName === ANCHOR) {
+                    const aTarget = host as HTMLAnchorElement;
+                    aTarget.draggable = v;
+                }
             }),
         ).subscribe();
 
-        const $pointerPressed = fromEvent<PointerEvent>(this._elementRef.nativeElement, 'pointerdown'),
+        let maxDistance = this.maxClickDistance() ?? DEFAULT_CLICK_DISTANCE;
+
+        const $maxDistance = toObservable(this.maxClickDistance);
+
+        if (!!this._service) {
+            combineLatest([this._service.$grabbing, this.$elementTarget]).pipe(
+                takeUntilDestroyed(),
+                tap(([v, t]) => {
+                    if (!!t) {
+                        toggleClassName(t, v ? GRABBING : NOT_GRABBING, [v ? NOT_GRABBING : GRABBING]);
+                    }
+                }),
+            ).subscribe();
+
+            combineLatest([this._service.$clickDistance, $maxDistance]).pipe(
+                takeUntilDestroyed(),
+                tap(([clickDistance, distance]) => {
+                    maxDistance = distance === null ? clickDistance : distance;
+                }),
+            ).subscribe();
+        } else {
+            $maxDistance.pipe(
+                takeUntilDestroyed(),
+                tap(distance => {
+                    maxDistance = distance === null ? DEFAULT_CLICK_DISTANCE : distance;
+                }),
+            ).subscribe();
+        }
+
+        const $pointerPressed = fromEvent<PointerEvent>(host, POINTER_DOWN),
             $pointerCancel = race([
-                fromEvent(window, 'pointerup').pipe(
+                fromEvent(root, POINTER_UP).pipe(
                     takeUntilDestroyed(),
                 ),
-                fromEvent<PointerEvent>(window, 'pointerleave').pipe(
+                fromEvent<PointerEvent>(root, POINTER_LEAVE).pipe(
                     takeUntilDestroyed(),
                 ),
             ]),
-            $pointerRelease = fromEvent<PointerEvent>(this._elementRef.nativeElement, 'pointerup', { passive: false });
+            $pointerRelease = fromEvent<PointerEvent>(host, POINTER_UP, { passive: false });
 
         $pointerPressed.pipe(
             takeUntilDestroyed(),
             switchMap(e => {
+                this._$elementTarget.next(e.target as HTMLElement);
                 const x = Math.abs(e.clientX),
                     y = Math.abs(e.clientY);
                 this.onVirtualClickPress.emit(e);
@@ -76,9 +167,10 @@ export class NtVirtualClickDirective {
                                 takeUntilDestroyed(this._destroyRef),
                                 tap(() => {
                                     this.onVirtualClickCancel.emit();
+                                    this._$elementTarget.next(null);
                                 }),
                             ),
-                            fromEvent<PointerEvent>(window, 'pointermove').pipe(
+                            fromEvent<PointerEvent>(root, POINTER_MOVE).pipe(
                                 takeUntilDestroyed(this._destroyRef),
                                 switchMap(e => {
                                     const xx = x - Math.abs(e.clientX),
@@ -98,12 +190,46 @@ export class NtVirtualClickDirective {
                     ),
                     takeUntilDestroyed(this._destroyRef),
                     tap(e => {
-                        if (e) {
+                        if (!!e) {
+                            if (!!this._controlService && e.cancelable) {
+                                e.stopImmediatePropagation();
+                                e.preventDefault();
+                            }
+
                             this.onVirtualClick.emit(e);
+
+                            if (this.emitNativeClick()) {
+                                const target = e.target as HTMLElement,
+                                    targetTagName = target.tagName.toLocaleLowerCase();
+                                if (!!targetTagName) {
+                                    if (targetTagName === ANCHOR) {
+                                        const aTarget = target as HTMLAnchorElement,
+                                            url = String(aTarget.href),
+                                            sanitizedUrl = this._sanitizer.sanitize(SecurityContext.URL, url);
+                                        if (sanitizedUrl !== null) {
+                                            window.open(sanitizedUrl, aTarget.target);
+                                        }
+                                    } else {
+                                        if (this.focusElement() && !!this._controlService) {
+                                            this._controlService.prefocus(target, this._service.id);
+                                        }
+                                    }
+                                }
+                            }
                         }
+                        this._$elementTarget.next(null);
                     }),
                 );
             }),
         ).subscribe();
+
+        if (!!this._controlService) {
+            fromEvent<PointerEvent>(host, CLICK, { passive: false }).pipe(
+                takeUntilDestroyed(),
+                tap(e => {
+                    e.preventDefault();
+                }),
+            ).subscribe();
+        }
     }
 }

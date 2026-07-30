@@ -1,0 +1,28 @@
+@let scrollLeftOffset = _precalculatedScrollLeftOffset();
+@let scrollRightOffset = _precalculatedScrollRightOffset();
+@let scrollTopOffset = _precalculatedScrollTopOffset();
+@let scrollBottomOffset = _precalculatedScrollBottomOffset();
+
+<div #container class="ntcc__container">
+    <nt-scroller #scroller class="ntcc__scroller" [classes]="classes()" [scrollable]="scrollable()"
+        [langTextDir]="langTextDir()" [leftOffset]="scrollLeftOffset" [rightOffset]="scrollRightOffset"
+        [topOffset]="scrollTopOffset" [bottomOffset]="scrollBottomOffset" [direction]="direction()"
+        [scrollbarThumbRenderer]="scrollbarThumbRenderer()" [scrollbarThickness]="scrollbarThickness()"
+        [scrollbarThumbParams]="scrollbarThumbParams()" [animationParams]="animationParams()"
+        [focusedElement]="focusedElement()" [loading]="loading()" [overscrollEnabled]="overscrollEnabled()"
+        [overlappingScrollbar]="overlappingScrollbar()" [scrollbarEnabled]="scrollbarEnabled()"
+        [scrollbarInteractive]="scrollbarInteractive()" [scrollbarMinSize]="scrollbarMinSize()"
+        [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()"
+        [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()">
+        <ng-container #renderersContainer>
+            @let contentOffset = _contentOffset();
+            <div class="ntcc__content"
+                [ngStyle]="{width: container.offsetWidth + 'px', height: container.offsetHeight - contentOffset + 'px', paddingTop: contentOffset + 'px'}">
+                <ng-content></ng-content>
+            </div>
+            <div class="ntcc__keyboard">
+                Keyboard
+            </div>
+        </ng-container>
+    </nt-scroller>
+</div>

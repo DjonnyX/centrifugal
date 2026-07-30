@@ -1,11 +1,4 @@
-import { InjectionToken } from "@angular/core";
 import { SCROLLER_SCROLL } from "../../../const";
-
-export const SCROLL_VIEW_INVERSION = new InjectionToken<boolean>('ScrollViewInversion');
-
-export const SCROLL_VIEW_OVERSCROLL_ENABLED = new InjectionToken<boolean>('ScrollViewOverscrollEnabled');
-
-export const SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO = new InjectionToken<boolean>('ScrollViewNormalizeValueFromZero');
 
 export const TOP = 'top',
     LEFT = 'left',

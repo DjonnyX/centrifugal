@@ -87,6 +87,14 @@
         overflow: hidden;
         width: 100%;
         height: 100%;
+
+        .a {
+            -webkit-user-drag: none;
+        }
+
+        .grabbing {
+            cursor: grabbing !important;
+        }
     }
 
     .ntvl__list {
