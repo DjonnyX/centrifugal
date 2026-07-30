@@ -1,5 +1,6 @@
 import {
-  ChangeDetectionStrategy, Component, ComponentRef, computed, DestroyRef, effect, ElementRef, forwardRef, inject, input,
+  ChangeDetectionStrategy, Component, ComponentRef, computed, createNgModule, DestroyRef, effect, ElementRef, inject, Injector, input,
+  NgModuleRef,
   OnDestroy, output, Signal, signal, TemplateRef, ViewChild, viewChild, ViewContainerRef, ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -77,6 +78,7 @@ import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-virtual-click/co
 import { NtBaseScrollComponent } from '../common/components/nt-base-scroll-component';
 import { INtScrollViewService } from '../scroll-view';
 import { IListScrollToParams } from '../common/interfaces/list-scroll-to-params';
+import { NtListItemModule } from './components/nt-list-item/nt-list-item.module';
 
 /**
  * Virtual list component.
@@ -1490,6 +1492,8 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
   protected get prerenderable() {
     return this.dynamicSize() && (this._trackBox?.isSnappedToEnd ?? false);
   }
+
+  private _injector = inject(Injector);
 
   private _$viewInit = new BehaviorSubject<boolean>(false);
   private readonly $viewInit = this._$viewInit.asObservable();
@@ -3518,6 +3522,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
 
     if (this._isSnappingMethodAdvanced && this.stickyEnabled()) {
       if (this._snappedDisplayComponents.length < MAX_REGULAR_SNAPED_COMPONENTS && !!this._snapContainerRef) {
+        let index = 0;
         while (this._snappedDisplayComponents.length < MAX_REGULAR_SNAPED_COMPONENTS) {
           const comp = this._snapContainerRef.createComponent(this._itemComponentClass);
           comp.instance.renderer = this._itemRenderer();
@@ -3526,6 +3531,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
           this._trackBox.snappedDisplayComponents = this._snappedDisplayComponents;
           this._resizeSnappedObserver = new ResizeObserver(this._resizeSnappedComponentHandler);
           this._resizeSnappedObserver.observe(comp.instance.element);
+          index++;
         }
       }
     }
@@ -3547,13 +3553,19 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
           doMap[id] = i;
         }
       }
+      let index = 0;
       while (components.length < maxLength) {
-        const comp = listContainerRef.createComponent(this._itemComponentClass);
+        const comp = listContainerRef.createComponent(this._itemComponentClass, {
+          index,
+          injector: this._injector,
+          ngModuleRef: createNgModule(NtListItemModule, this._injector),
+        });
         const id = comp.instance.id;
         comp.instance.renderer = this._itemRenderer();
         doMap[id] = i;
         components.push(comp);
         i++;
+        index ++;
       }
       this._trackBox.setDisplayObjectIndexMapById(doMap);
     }

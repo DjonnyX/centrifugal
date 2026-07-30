@@ -30,7 +30,7 @@ export class NtBaseScrollComponent<S extends IBaseScrollViewService, P extends I
 
     get service() { return this._service; }
 
-    protected _parentService: P | null = null;
+    protected _parentService = inject<P | null>(SCROLL_VIEW_SERVICE, { skipSelf: true, optional: true });
 
     get parentService() { return this._parentService; }
 
