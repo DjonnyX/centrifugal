@@ -1,4 +1,5 @@
 import { Easing } from "../../common/utils/animator";
+import { IAnimatorUpdateData } from "../../common/utils/animator/interfaces";
 
 /**
  * Interface IScrollOptions.
@@ -13,6 +14,8 @@ export interface IScrollOptions {
     top?: number | null;
     blending?: boolean;
     behavior?: ScrollBehavior;
+    onUpdate?: ((data: IAnimatorUpdateData) => void) | null;
+    onComplete?: ((data: IAnimatorUpdateData) => void) | null;
     ease?: Easing;
     duration?: number;
 }

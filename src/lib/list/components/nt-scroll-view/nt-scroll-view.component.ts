@@ -32,6 +32,7 @@ import { X_PROP_NAME, Y_PROP_NAME } from '../../../common/const/base-prop-names'
 import { getScrollable } from '../../../common/utils/get-scrollable';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { ICancelOverscrollOptions } from '../../../common/interfaces/cancel-overscroll-options';
+import { IAnimatorUpdateData } from '../../../common/utils/animator/interfaces';
 
 /**
  * NtScrollView
@@ -916,7 +917,8 @@ export class NtScrollView extends BaseScrollView {
     }
 
     protected animate(startValue: number, endValue: number, duration = ANIMATION_DURATION, easingFunction: Easing = easeOutQuad, blending: boolean = false,
-        userAction: boolean = false, alignmentAtComplete: boolean = true, skipOverridedCoordinates: boolean = false, fireUpdate: boolean = true): number {
+        userAction: boolean = false, alignmentAtComplete: boolean = true, skipOverridedCoordinates: boolean = false, fireUpdate: boolean = true,
+        onUpdate: ((data: IAnimatorUpdateData) => void) | null = null, onComplete: ((data: IAnimatorUpdateData) => void) | null = null): number {
         const isVertical = this.isVertical();
         let position = startValue;
         this._isAlignmentAnimation = !alignmentAtComplete;
@@ -936,11 +938,12 @@ export class NtScrollView extends BaseScrollView {
             easingFunction,
             getPropValue: () => {
                 return isVertical ? this._y : this._x;
-            }, onUpdate: ({ value, timestamp, elapsed }) => {
+            }, onUpdate: data => {
+                const { value, timestamp, elapsed } = data;
                 if (this._isCoordinatesOverrided && !skipOverridedCoordinates) {
                     this._isCoordinatesOverrided = false;
                     const currentCoordinate = isVertical ? this._y : this._x, delta = endValue - value;
-                    this.animate(currentCoordinate, currentCoordinate + delta, duration - elapsed, easingFunction, blending, userAction, alignmentAtComplete);
+                    this.animate(currentCoordinate, currentCoordinate + delta, duration - elapsed, easingFunction, blending, userAction, alignmentAtComplete, false, true, onUpdate, onComplete);
                     return;
                 }
                 const v0 = calculateVelocity(position, value - this._delta, timestamp) ?? this.averageVelocity;
@@ -953,7 +956,11 @@ export class NtScrollView extends BaseScrollView {
                     this.move(isVertical, value, false, userAction, fireUpdate);
                 }
                 this._service.update(true);
-            }, onComplete: ({ value, timestamp }) => {
+                if (typeof onUpdate === 'function') {
+                    onUpdate(data);
+                }
+            }, onComplete: data => {
+                const { value, timestamp } = data;
                 this._isAlignmentAnimation = false;
                 const v0 = calculateVelocity(position, value, timestamp);
                 if (alignmentAtComplete && !this._isAlignmentAnimation && !skipOverridedCoordinates) {
@@ -964,6 +971,9 @@ export class NtScrollView extends BaseScrollView {
                 this._$scrollEnd.next(userAction);
                 this._service.update(true);
                 this.onAnimationComplete(value);
+                if (typeof onComplete === 'function') {
+                    onComplete(data);
+                }
             },
         });
     }
@@ -1201,6 +1211,8 @@ export class NtScrollView extends BaseScrollView {
             snap = params.snap ?? true,
             normalize = params.normalize ?? true,
             ease = params.ease || easeOutQuad,
+            onUpdate = params.onUpdate ?? null,
+            onComplete = params.onComplete ?? null,
             fireUpdate = params.fireUpdate ?? true,
             behavior = params.behavior ?? INSTANT,
             blending = params.blending ?? true,
@@ -1215,11 +1227,11 @@ export class NtScrollView extends BaseScrollView {
         if (behavior === AUTO || behavior === SMOOTH) {
             if (isVertical) {
                 if (prevY !== y) {
-                    return this.animate(prevY, y, duration, ease, blending, userAction);
+                    return this.animate(prevY, y, duration, ease, blending, userAction, true, false, true, onUpdate, onComplete);
                 }
             } else {
                 if (prevX !== x) {
-                    return this.animate(prevX, x, duration, ease, blending, userAction);
+                    return this.animate(prevX, x, duration, ease, blending, userAction, true, false, true, onUpdate, onComplete);
                 }
             }
         } else {
