@@ -722,18 +722,28 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
       }),
     ).subscribe()
 
+    
     if (!!this._parentService) {
       this._parentService.$scrollable.pipe(
         takeUntilDestroyed(),
         tap(v => {
-          this._service.parentScrollable = v;
+          this._service.scrollable = v;
+        }),
+      ).subscribe();
+
+      this._service.$overscroll.pipe(
+        takeUntilDestroyed(),
+        tap(v => {
+          if (!!this._parentService) {
+            this._parentService.overscroll = v;
+          }
         }),
       ).subscribe();
 
       this._parentService.$overscroll.pipe(
         takeUntilDestroyed(),
         tap(v => {
-          this._service.parentOverscroll = v;
+          this._service.overscroll = v;
         }),
       ).subscribe();
     }

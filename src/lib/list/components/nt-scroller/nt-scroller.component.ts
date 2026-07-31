@@ -12,6 +12,7 @@ import { TOP_PROP_NAME, LEFT_PROP_NAME, PX } from '../../../common/const/base-pr
 import { NtBaseScrollBarComponent } from '../../../scroll-bar/components/nt-base-scroll-bar/nt-base-scroll-bar.component';
 import { IScrollBarDragEvent } from '../../../scroll-bar/components/nt-base-scroll-bar/interfaces';
 import { IListScrollToParams } from '../../../common/interfaces/list-scroll-to-params';
+import { ScrollerTypes } from '../../../common/enums/scroller-types';
 
 const TOP = 'top',
   LEFT = 'left',
@@ -29,7 +30,7 @@ export const SCROLL_EVENT = new Event(SCROLLER_SCROLL);
 @Component({
   selector: 'nt-scroller',
   providers: [
-    { provide: SCROLL_VIEW_TYPE, useValue: 'list-scroller' },
+    { provide: SCROLL_VIEW_TYPE, useValue: ScrollerTypes.LIST_SCROLLER },
     { provide: SCROLL_VIEW_INVERSION, useValue: false },
     { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: true },
   ],

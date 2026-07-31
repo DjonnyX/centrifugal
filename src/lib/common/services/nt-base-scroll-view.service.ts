@@ -107,31 +107,6 @@ export class NtBaseScrollViewService implements IBaseScrollViewService, OnDestro
     this._$overscroll.next(v);
   }
 
-
-  protected _$parentScrollable = new BehaviorSubject<IScrollable>({ x: false, y: false });
-  readonly $parentScrollable = this._$parentScrollable.asObservable();
-  get parentScrollable() { return this._$parentScrollable.getValue(); }
-
-  set parentScrollable(v: IScrollable) {
-    if (this.parentScrollable === v) {
-      return;
-    }
-
-    this._$parentScrollable.next(v);
-  }
-
-  protected _$parentOverscroll = new BehaviorSubject<IOverscroll>({ x: false, y: false });
-  readonly $parentOverscroll = this._$parentOverscroll.asObservable();
-  get parentOverscroll() { return this._$parentOverscroll.getValue(); }
-
-  set parentOverscroll(v: IOverscroll) {
-    if (this.parentOverscroll === v) {
-      return;
-    }
-
-    this._$parentOverscroll.next(v);
-  }
-
   constructor() {
     const $grabbing = this.$grabbing.pipe(
       takeUntilDestroyed(),
