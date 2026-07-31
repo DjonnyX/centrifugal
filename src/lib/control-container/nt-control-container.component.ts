@@ -11,6 +11,7 @@ import { combineLatest, filter, fromEvent, map, switchMap, tap } from "rxjs";
 import { INtControlContainerService } from "./interfaces";
 import { NtDrawerContainerComponent } from "../drawer-container";
 import { DEFAULT_INPUT_ELEMETNS } from "../common/directives/nt-virtual-click/const";
+import { IBaseScrollViewService } from "../common/interfaces/base-scroll-view-service";
 
 /**
  * NtScrollViewComponent
@@ -30,12 +31,11 @@ import { DEFAULT_INPUT_ELEMETNS } from "../common/directives/nt-virtual-click/co
   providers: [
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: false },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: false },
-    { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
     { provide: CONTROL_CONTAINER_SERVICE, useClass: NtControlContainerService },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
   ],
 })
-export class NtControlContainerComponent extends NtDrawerContainerComponent<INtScrollViewService, INtControlContainerService> {
+export class NtControlContainerComponent extends NtDrawerContainerComponent<INtScrollViewService, INtScrollViewService, INtControlContainerService> {
   protected _containerComponent = viewChild<ElementRef<HTMLDivElement>>('container');
 
   protected override _clickDistance = {
@@ -70,7 +70,7 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
 
   constructor() {
     super();
-    this._controlService.initialize(this._id, this._parentService.id, this.host);
+    this._controlService.initialize(this._id, this._parentService?.id ?? -1, this.host);
 
     const $scroller = toObservable(this._scrollerComponent).pipe(
       takeUntilDestroyed(this._destroyRef),
@@ -189,11 +189,11 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
     this._controlService.$focusedElement.pipe(
       takeUntilDestroyed(),
       tap(e => {
-        if (!!e) {
-          const targetTagName = e.tagName?.toLocaleLowerCase();
+        if (!!e && !!e.element) {
+          const target = e.element, targetTagName = target.tagName?.toLocaleLowerCase();
           if (!!targetTagName && DEFAULT_INPUT_ELEMETNS.indexOf(targetTagName) > -1) {
-            if (e.blur instanceof Function) {
-              e.blur();
+            if (target.blur instanceof Function) {
+              target.blur();
             }
             const { height: targetHeight } = target.getBoundingClientRect();
             let offsetTop = target.offsetTop;
@@ -231,7 +231,7 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
       switchMap(scroller => {
         return combineLatest([scroller.$scroll, scroller.$resizeContent, scroller.$resizeViewport]).pipe(
           tap(() => {
-            this._contentOffset.set(scroller.verticalScrollRatio * 200 * .9);
+            this._contentOffset.set(scroller.verticalScrollRatio * 200 /* keyboard height */ * .9 /* offset ratio */);
           }),
         );
       }),

@@ -6,9 +6,10 @@ import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from '../../injection'
 import { toggleClassName, validateBoolean, validateFloat } from '../../utils';
 import { ANCHOR, DEFAULT_CLICK_DISTANCE } from './const';
 import { CLICK, POINTER_DOWN, POINTER_LEAVE, POINTER_MOVE, POINTER_UP } from '../../const/event-names';
-import { INtBaseControlContainerService, INtBaseScrollViewService } from '../../interfaces';
+import { INtBaseControlContainerService } from '../../interfaces';
 import { GRABBING, NOT_GRABBING } from '../../const/class-names';
 import { DomSanitizer } from '@angular/platform-browser';
+import { IBaseScrollViewService } from '../../interfaces/base-scroll-view-service';
 
 /**
  * VirtualClickDirective
@@ -20,7 +21,7 @@ import { DomSanitizer } from '@angular/platform-browser';
     selector: '[virtualClick]',
     standalone: false,
 })
-export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C extends INtBaseControlContainerService> {
+export class NtVirtualClickDirective<S extends IBaseScrollViewService, C extends INtBaseControlContainerService> {
     protected _service = inject<S>(SCROLL_VIEW_SERVICE);
 
     protected _controlService = inject<C>(CONTROL_CONTAINER_SERVICE);
@@ -210,7 +211,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                                         }
                                     } else {
                                         if (this.focusElement() && !!this._controlService) {
-                                            this._controlService.focus(target);
+                                            this._controlService.prefocus(target, this._service.id);
                                         }
                                     }
                                 }

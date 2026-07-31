@@ -9,7 +9,7 @@ import { NtBaseScrollBarService } from './nt-base-scroll-bar.service';
 import { NtScrollBarPublicService } from './nt-base-scroll-bar-public.service';
 import { ScrollbarStates } from './enums';
 import {
-  GradientColorPositions, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED, TextDirections,
+  GradientColorPositions, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_TYPE, TextDirections,
 } from '../../../common';
 import { NtScrollView, ScrollerDirection } from '../../../scroll-view';
 import { DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE } from '../../../scroll-view/const';

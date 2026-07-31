@@ -11,7 +11,6 @@ import {
     BEHAVIOR_INSTANT, DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLABLE,
     DEFAULT_SCROLLING_SETTINGS,
 } from '../../const';
-import { IScrollToParams, IWheelEvent } from './interfaces';
 import {
     ACCELERATION_SCALE, ANIMATION_DURATION, AUTO, DURATION, FRICTION_FORCE, INSTANT, LEFT, MASS, MAX_DIST, MAX_DURATION,
     MAX_ITERATIONS_FOR_AVERAGE_CALCULATIONS, MAX_VELOCITY_TIMESTAMP, MAX_VELOCITIES_LENGTH, OVERSCROLL_START_ITERATION, SCROLL_EVENT,
@@ -23,7 +22,7 @@ import { IAnimationParams, IScrollingSettings } from '../../interfaces';
 import { ScrollDirection } from '../../types';
 import { calculateVelocity } from './utils/calculate-velocity';
 import { ScrollerDirection } from './enums';
-import { Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirections } from '../../../common';
+import { Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirections } from '../../../common';
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL, } from '../../../common/const/event-names';
 import { INTERACTIVE } from '../../../common/const/class-names';
 import { IScrollToParams } from '../../../common/interfaces/scroll-to-params';
@@ -1050,7 +1049,7 @@ export class NtScrollView extends BaseScrollView {
         return false;
     }
 
-    scroll(params: IScrollToParams): Array<number> | null {
+    override scroll(params: IScrollToParams): Array<number> | null {
         const animationIds = new Array<number>(),
             posX = params.x ?? params.left ?? null,
             posY = params.y ?? params.top ?? null,

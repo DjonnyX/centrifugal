@@ -6,7 +6,7 @@ import {
   BEHAVIOR_INSTANT, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR,
   DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, SCROLLER_SCROLL,
 } from '../../const';
-import { IScrollToParams, NtScrollView } from '../nt-scroll-view';
+import { NtScrollView } from '../nt-scroll-view';
 import { ScrollerDirection } from '../nt-scroll-view/enums';
 import {
   GradientColorPositions, Id, ISize, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_INVERSION, SCROLL_VIEW_TYPE,

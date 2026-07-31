@@ -1,7 +1,6 @@
 /*
  * Public API Surface of nt-scroll-view
  */
-export * from './components/nt-scroll-view/interfaces/scroll-to-params'
 export * from './components/nt-scroll-view/base';
 export * from './components/nt-scroll-view/nt-scroll-view.component';
 export * from './components/nt-scroll-view/enums';

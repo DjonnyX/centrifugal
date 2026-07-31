@@ -1,5 +1,9 @@
 import { Component, ElementRef, inject, signal, viewChild } from "@angular/core";
 import { SCROLL_VIEW_SERVICE } from "../injection";
+import { IBaseScrollViewService } from "../interfaces/base-scroll-view-service";
+import { IBaseScrollView } from "../interfaces/base-scroll-view";
+import { ISize } from "../interfaces";
+import { INtScroller } from "../interfaces/nt-scroller";
 
 @Component({
     selector: 'nt-base-scroll-component',
@@ -11,7 +15,8 @@ import { SCROLL_VIEW_SERVICE } from "../injection";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export class NtBaseScrollComponent<S> {
+export class NtBaseScrollComponent<S extends IBaseScrollViewService, P extends IBaseScrollViewService, C = INtScroller<S>>
+    implements IBaseScrollView<S, P, C> {
     private static __nextId: number = 0;
 
     protected _id: number = NtBaseScrollComponent.__nextId;
