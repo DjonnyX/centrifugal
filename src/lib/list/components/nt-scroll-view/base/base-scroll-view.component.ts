@@ -10,6 +10,7 @@ import { INtListService } from '../../../interfaces';
 import { INtScroller } from '../../../../common/interfaces/nt-scroller';
 import { IScrollToParams } from '../../../../common/interfaces/scroll-to-params';
 import { IBaseScrollViewService } from '../../../../common/interfaces/base-scroll-view-service';
+import { IBaseScrollView } from '../../../../common/interfaces/base-scroll-view';
 
 /**
  * BaseScrollView
@@ -45,6 +46,9 @@ export abstract class BaseScrollView implements INtScroller<IBaseScrollViewServi
     readonly isVertical: Signal<boolean>;
 
     readonly grabbing = signal<boolean>(false);
+
+    readonly context = input<IBaseScrollView<IBaseScrollViewService, IBaseScrollViewService> | null>(null);
+    get parent() { return this.context(); }
 
     readonly langTextDir = input<TextDirection>(TextDirections.LTR);
 

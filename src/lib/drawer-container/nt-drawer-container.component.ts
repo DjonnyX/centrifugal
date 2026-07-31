@@ -1,5 +1,5 @@
 import { Component, inject, input, TemplateRef, ViewEncapsulation } from "@angular/core";
-import { INtScrollViewService, NtScrollViewComponent } from "../scroll-view";
+import { INtScrollViewService, NtScrollViewComponent, NtScrollViewService } from "../scroll-view";
 import {
   CONTROL_CONTAINER_SERVICE, ElementNames, INtBaseControlContainerService, SCROLL_VIEW_OVERSCROLL_ENABLED,
   SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
@@ -29,7 +29,7 @@ import { DEFAULT_EXCLUDE_ELEMETN_LIST } from "./const";
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
     { provide: CONTROL_CONTAINER_SERVICE, useClass: NtDrawerContainerService },
-    { provide: SCROLL_VIEW_SERVICE, useClass: NtDrawerContainerService },
+    { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
   ],
 })
 export class NtDrawerContainerComponent<S extends INtScrollViewService, P extends INtScrollViewService,

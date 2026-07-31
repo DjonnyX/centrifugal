@@ -1,4 +1,4 @@
-import { Component, inject, signal, viewChild } from "@angular/core";
+import { Component, ElementRef, inject, signal, viewChild } from "@angular/core";
 import { SCROLL_VIEW_SERVICE } from "../injection";
 import { IBaseScrollViewService } from "../interfaces/base-scroll-view-service";
 import { IBaseScrollView } from "../interfaces/base-scroll-view";
@@ -39,6 +39,11 @@ export class NtBaseScrollComponent<S extends IBaseScrollViewService, P extends I
 
     protected _bounds = signal<ISize | null>(null);
     get bounds(): ISize { return this._bounds() ?? { width: 0, height: 0 }; }
+
+    protected _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+    get host() {
+        return this._elementRef?.nativeElement || null;
+    }
 
     get scrollLeft(): number {
         return (this.component as INtScroller<S>)?.scrollLeft ?? 0;

@@ -662,11 +662,6 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
 
   protected _precalculatedScrollBottomOffset = signal<number>(0);
 
-  private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-  get host() {
-    return this._elementRef.nativeElement;
-  }
-
   private _$scrollTo = new Subject<IScrollOptions>();
   protected $scrollTo = this._$scrollTo.asObservable();
 
@@ -722,7 +717,6 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
       }),
     ).subscribe()
 
-    
     if (!!this._parentService) {
       this._parentService.$scrollable.pipe(
         takeUntilDestroyed(),
@@ -1363,10 +1357,8 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
 
     combineLatest([$scrollToInitialize, $scrollerComponent, $scrollTo]).pipe(
       takeUntilDestroyed(),
-      tap(([i, c, e]) => console.log(i, c, e)),
       filter(([i, c, e]) => !!i && !!c && !!e),
       tap(([, s, e]) => {
-        console.log('scroll', e)
         const event = e!;
         const behavior = event?.behavior ?? BEHAVIOR_INSTANT,
           blending = event?.blending ?? false,

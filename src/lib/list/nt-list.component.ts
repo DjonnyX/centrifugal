@@ -1429,8 +1429,6 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
     }
   }
 
-  private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-
   /**
    * Base class of the element component
    */
@@ -1536,7 +1534,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
         this._service.initialize(this._id, component, this._parentService, this._trackBox);
       }),
     ).subscribe()
-    
+
     if (!!this._parentService) {
       this._parentService.$scrollable.pipe(
         takeUntilDestroyed(),
@@ -3565,7 +3563,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
         doMap[id] = i;
         components.push(comp);
         i++;
-        index ++;
+        index++;
       }
       this._trackBox.setDisplayObjectIndexMapById(doMap);
     }

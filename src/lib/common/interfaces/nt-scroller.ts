@@ -2,6 +2,7 @@ import { Signal } from "@angular/core";
 import { IScrollToParams } from "./scroll-to-params";
 import { ISize } from "./size";
 import { IBaseScrollViewService } from "./base-scroll-view-service";
+import { IBaseScrollView } from "./base-scroll-view";
 
 /**
  * INtScroller
@@ -13,6 +14,8 @@ export interface INtScroller<S extends IBaseScrollViewService> {
     get service(): S;
 
     get type(): string | null;
+
+    get parent(): IBaseScrollView<S, S> | null;
 
     set scrollLeft(v: number);
     get scrollLeft(): number;

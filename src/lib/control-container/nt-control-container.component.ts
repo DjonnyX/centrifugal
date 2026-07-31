@@ -1,5 +1,5 @@
 import { Component, ElementRef, input, signal, viewChild, ViewEncapsulation } from "@angular/core";
-import { INtScrollViewService } from "../scroll-view";
+import { INtScrollViewService, NtScrollViewService } from "../scroll-view";
 import {
   CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
   SCROLL_VIEW_USER_INTERACTION_ENABLED,
@@ -32,7 +32,7 @@ import { IBaseScrollViewService } from "../common/interfaces/base-scroll-view-se
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: false },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: false },
     { provide: CONTROL_CONTAINER_SERVICE, useClass: NtControlContainerService },
-    { provide: SCROLL_VIEW_SERVICE, useClass: NtControlContainerService },
+    { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
   ],
 })
 export class NtControlContainerComponent extends NtDrawerContainerComponent<INtScrollViewService, INtScrollViewService, INtControlContainerService> {
@@ -195,35 +195,34 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
             if (target.blur instanceof Function) {
               target.blur();
             }
-            this._keyboardShown.set(true);
-            console.log('this.scrollHeight', this.scrollHeight, this.scrollWidth)
-            this.scrollTo({ top: 200 /* keyboard height */, behavior: 'auto', duration: 250 });
+            const { height: targetHeight } = target.getBoundingClientRect();
+            let offsetTop = target.offsetTop;
             const scroller = e.scroller;
-            console.log('scroller', scroller?.service.id, scroller?.type)
             if (!!scroller) {
-              const { height: targetHeight } = target.getBoundingClientRect(),
-                { height: scrollerViewportHeight } = scroller.viewportBounds(),
-                y = (target.offsetTop + targetHeight) - (scrollerViewportHeight - 200) /* keyboard height */ - 20 /* gap */;
               let s = scroller.service, hostService: IBaseScrollViewService | null = null;
               while (true) {
-                // if (s === this._service) {
-                //   break;
-                // }
-                console.log('s', s.id)
+                offsetTop += s.scrollView?.parent?.host?.offsetTop ?? 0;
+                if (s === this._service) {
+                  break;
+                }
                 hostService = s ?? null;
                 s = s.parent;
-                if (!s.scrollView) {
+                if (!s?.scrollView) {
                   break;
                 }
               }
-              console.log('host', hostService?.id, hostService?.scrollView?.type)
+              const { height: scrollerViewportHeight } = this._scrollerComponent()?.viewportBounds() ?? { height: 0 },
+                y = (offsetTop + targetHeight) - (scrollerViewportHeight - 200) /* keyboard height */;
+
+              this._keyboardShown.set(true);
+              this.scrollTo({ top: 200 /* keyboard height */, behavior: 'auto', duration: 250 });
               hostService?.scrollView?.scroll({ x: scroller.scrollLeft, y, behavior: 'auto', duration: 250, userAction: true });
             }
-          } else {
-            this._keyboardShown.set(false);
-            this.scrollTo({ top: 0, behavior: 'auto', duration: 250 });
+            return;
           }
         }
+        this._keyboardShown.set(false);
+        this.scrollTo({ top: 0, behavior: 'auto', duration: 250 });
       }),
     ).subscribe();
 

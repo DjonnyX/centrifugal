@@ -84,7 +84,6 @@ export class NtScrollViewService extends NtBaseScrollViewService implements INtS
   initialize(id: number, scrollView: INtScroller<IBaseScrollViewService>, parentService: IBaseScrollViewService | null) {
     this._id = id;
     this._scrollView = scrollView;
-    console.log('init sv', parentService?.id, id, scrollView);
     if (!!parentService) {
       this._parent = parentService;
       this._parentId = parentService.id;
