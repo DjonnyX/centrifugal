@@ -26,18 +26,19 @@ export class NtControlContainerService extends NtBaseScrollViewService implement
 
   focusedScroller: INtScroller<IBaseScrollViewService> | null = null;
 
-  private _$prefocused = new Subject<{ element: HTMLElement, serviceId: number }>();
-  readonly $prefocused = this._$prefocused.asObservable();
+  private _$focusEcho = new Subject<{ element: HTMLElement, serviceId: number }>();
+  readonly $focusEcho = this._$focusEcho.asObservable();
 
   private _$focusedElement = new BehaviorSubject<IFocusedObject | null>(null);
   readonly $focusedElement = this._$focusedElement.asObservable();
-  set focusedElement(v: IFocusedObject | null) {
-    if (this._$focusedElement.getValue() !== v) {
-      this._$focusedElement.next(v);
-    }
-  }
   get focusedElement() {
     return this._$focusedElement.getValue();
+  }
+
+  private _$overscrollCanceled = new BehaviorSubject<IFocusedObject | null>(null);
+  readonly $overscrollCanceled = this._$overscrollCanceled.asObservable();
+  get overscrollCanceled() {
+    return this._$overscrollCanceled.getValue();
   }
 
   constructor() {
@@ -60,14 +61,18 @@ export class NtControlContainerService extends NtBaseScrollViewService implement
     return null;
   }
 
-  prefocus(element: HTMLElement, serviceId: number) {
-    this._$prefocused.next({ element, serviceId });
+  focusEcho(element: HTMLElement, serviceId: number) {
+    this._$focusEcho.next({ element, serviceId });
   }
 
   focus(focusedObject: IFocusedObject) {
     if (!!focusedObject) {
       this._$focusedElement.next(focusedObject);
     }
+  }
+
+  overscrollCancel(focusedObject: IFocusedObject) {
+    this._$overscrollCanceled.next(focusedObject);
   }
 
   override ngOnDestroy() {

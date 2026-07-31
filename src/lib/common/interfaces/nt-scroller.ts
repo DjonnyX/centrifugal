@@ -32,4 +32,6 @@ export interface INtScroller<S extends IBaseScrollViewService> {
     readonly contentBounds: Signal<ISize>;
 
     scroll(params: IScrollToParams): Array<number> | number | null;
+
+    stopScrolling(force?: boolean): void;
 }

@@ -1,7 +1,7 @@
 @let filtered = motionBlurEnabled();
 @let prepared = preparedSignal();
 @let textDir = langTextDir();
-<div virtualClick localeSensitive [langTextDir]="textDir" [listDir]="direction()" class="ntvs__container"
+<div localeSensitive [langTextDir]="textDir" [listDir]="direction()" class="ntvs__container"
     [ngClass]="containerClasses()">
     <svg part="viewport" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
         xmlns:xlink="http://www.w3.org/1999/xlink">

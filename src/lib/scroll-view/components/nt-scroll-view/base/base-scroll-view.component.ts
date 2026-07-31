@@ -50,6 +50,8 @@ export abstract class BaseScrollView implements INtScroller<IBaseScrollViewServi
     protected _type = inject(SCROLL_VIEW_TYPE, { optional: true });
     get type() { return this._type; }
 
+    protected _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+
     protected _inversion = inject(SCROLL_VIEW_INVERSION);
 
     protected _overscrollEnabled = inject(SCROLL_VIEW_OVERSCROLL_ENABLED);
@@ -270,6 +272,8 @@ export abstract class BaseScrollView implements INtScroller<IBaseScrollViewServi
             this.contentBounds.set({ width, height });
         }
     }
+
+    abstract stopScrolling(force?: boolean): void;
 
     abstract scroll(params: IScrollToParams): Array<number> | null;
 }

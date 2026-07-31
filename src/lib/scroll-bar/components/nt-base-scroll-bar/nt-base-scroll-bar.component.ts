@@ -90,8 +90,6 @@ export class NtBaseScrollBarComponent extends NtScrollView {
   private _$scrollingCancel = new Subject<void>();
   protected readonly $scrollingCancel = this._$scrollingCancel.asObservable();
 
-  private _elementRef = inject(ElementRef);
-
   constructor() {
     super();
 

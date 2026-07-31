@@ -14,11 +14,16 @@ export interface INtBaseControlContainerService extends IBaseScrollViewService {
     readonly $focusedElement: Observable<IFocusedObject | null>;
     get focusedElement(): IFocusedObject | null;
 
-    readonly $prefocused: Observable<{ element: HTMLElement, serviceId: number }>;
+    readonly $overscrollCanceled: Observable<IFocusedObject | null>;
+    get overscrollCanceled(): IFocusedObject | null;
+
+    readonly $focusEcho: Observable<{ element: HTMLElement, serviceId: number }>;
 
     initialize: (id: number, parentId: number, emitter: HTMLElement) => void;
 
-    prefocus: (element: HTMLElement, serviceId: number) => void;
+    focusEcho: (element: HTMLElement, serviceId: number) => void;
 
     focus: (object: IFocusedObject) => void;
+
+    overscrollCancel: (object: IFocusedObject) => void;
 }

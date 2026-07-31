@@ -31,6 +31,7 @@ import { IListScrollToParams } from '../../../common/interfaces/list-scroll-to-p
 import { X_PROP_NAME, Y_PROP_NAME } from '../../../common/const/base-prop-names';
 import { getScrollable } from '../../../common/utils/get-scrollable';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
+import { ICancelOverscrollOptions } from '../../../common/interfaces/cancel-overscroll-options';
 
 /**
  * NtScrollView
@@ -288,7 +289,7 @@ export class NtScrollView extends BaseScrollView {
             ), $wheelEmitter = this._inversion ? $viewport : $content;
 
             if (!!this._controlContainerService) {
-                this._controlContainerService.$prefocused.pipe(
+                this._controlContainerService.$focusEcho.pipe(
                     takeUntilDestroyed(this._destroyRef),
                     filter(v => !!v),
                     tap(e => {
@@ -359,6 +360,7 @@ export class NtScrollView extends BaseScrollView {
                                 takeUntilDestroyed(this._destroyRef),
                                 takeUntil(fromEvent<MouseEvent>(root, MOUSE_MOVE, { passive: false })),
                                 tap(e => {
+                                    this.cancelOverscroll({ event: e, released: true });
                                     this._isMoving = false;
                                     this.grabbing.set(false);
                                     if (!mouseCanceled) {
@@ -447,7 +449,7 @@ export class NtScrollView extends BaseScrollView {
                                         takeUntil($mouseDragCancel),
                                         tap(e => {
                                             mouseCanceled = true;
-                                            this.cancelOverscroll();
+                                            this.cancelOverscroll({ event: e, released: true });
                                             const endTime = Date.now(),
                                                 timestamp = endTime - startTime,
                                                 { v0 } = this.calculateVelocity(isVertical ? offsetsY : offsetsX, isVertical ? scrollDeltaY : scrollDeltaX, timestamp),
@@ -525,6 +527,7 @@ export class NtScrollView extends BaseScrollView {
                                 takeUntilDestroyed(this._destroyRef),
                                 takeUntil(fromEvent<TouchEvent>(root, TOUCH_MOVE, { passive: false })),
                                 tap(e => {
+                                    this.cancelOverscroll({ event: e, released: true });
                                     this._touchId = -1;
                                     this._isMoving = false;
                                     this.grabbing.set(false);
@@ -628,7 +631,7 @@ export class NtScrollView extends BaseScrollView {
                                         tap(e => {
                                             this._touchId = -1;
                                             touchCanceled = true;
-                                            this.cancelOverscroll();
+                                            this.cancelOverscroll({ event: e, released: true });
                                             const endTime = Date.now(),
                                                 timestamp = endTime - startTime,
                                                 { v0 } = this.calculateVelocity(isVertical ? offsetsY : offsetsX, isVertical ? scrollDeltaY : scrollDeltaX, timestamp),
@@ -747,7 +750,10 @@ export class NtScrollView extends BaseScrollView {
         return { position, currentPos, endTime, scrollDelta };
     }
 
-    private cancelOverscroll() {
+    private cancelOverscroll(options?: ICancelOverscrollOptions) {
+        if (options?.released && !this._service.overscroll.x && !this._service.overscroll.y && !!this._controlContainerService) {
+            this._controlContainerService.overscrollCancel({ element: (options?.event?.target as HTMLElement) ?? this._elementRef.nativeElement, scroller: this, type: this._type!, id: this._service.id });
+        }
         if (!this.overscrollEnabled()) {
             return;
         }
@@ -869,7 +875,7 @@ export class NtScrollView extends BaseScrollView {
         return { a0: Math.abs(a0) < MIN_ACCELERATION ? 0 : a0 };
     }
 
-    stopScrolling(force: boolean = false) {
+    override stopScrolling(force: boolean = false) {
         if (this._isAlignmentAnimation && !force) {
             return;
         }

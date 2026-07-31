@@ -7,11 +7,13 @@ import {
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
 import { NtControlContainerService } from "./nt-control-container.service";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { combineLatest, filter, fromEvent, map, switchMap, tap } from "rxjs";
+import { combineLatest, debounceTime, filter, fromEvent, map, of, skipUntil, Subject, switchMap, tap, timer } from "rxjs";
 import { INtControlContainerService } from "./interfaces";
 import { NtDrawerContainerComponent } from "../drawer-container";
-import { DEFAULT_INPUT_ELEMETNS } from "../common/directives/nt-virtual-click/const";
 import { IBaseScrollViewService } from "../common/interfaces/base-scroll-view-service";
+import { isInteractive } from "../common/utils/is-interactive";
+import { ScrollerTypes } from "../common/enums/scroller-types";
+import { IFocusedObject } from "../common/interfaces/focused-object";
 
 /**
  * NtScrollViewComponent
@@ -64,9 +66,10 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
    */
   override overscrollEnabled = input<boolean>(false, { ...this._overscrollEnabledOptions });
 
-  protected _keyboardShown = signal<boolean>(false);
-
   protected _contentOffset = signal<number>(0);
+
+  private _$hostScroll = new Subject<IFocusedObject | null>();
+  protected $hostScroll = this._$hostScroll.asObservable();
 
   constructor() {
     super();
@@ -188,10 +191,10 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
 
     this._controlService.$focusedElement.pipe(
       takeUntilDestroyed(),
-      tap(e => {
+      switchMap(e => {
         if (!!e && !!e.element) {
           const target = e.element, targetTagName = target.tagName?.toLocaleLowerCase();
-          if (!!targetTagName && DEFAULT_INPUT_ELEMETNS.indexOf(targetTagName) > -1) {
+          if (!!targetTagName && isInteractive(targetTagName)) {
             if (target.blur instanceof Function) {
               target.blur();
             }
@@ -212,17 +215,39 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
                 }
               }
               const { height: scrollerViewportHeight } = this._scrollerComponent()?.viewportBounds() ?? { height: 0 },
+                x = scroller.scrollLeft,
                 y = (offsetTop + targetHeight) - (scrollerViewportHeight - 200) /* keyboard height */;
 
-              this._keyboardShown.set(true);
               this.scrollTo({ top: 200 /* keyboard height */, behavior: 'auto', duration: 250 });
-              hostService?.scrollView?.scroll({ x: scroller.scrollLeft, y, behavior: 'auto', duration: 250, userAction: true });
+              this._$hostScroll.next(e);
             }
-            return;
+            return of({ visible: true, target });
           }
         }
-        this._keyboardShown.set(false);
-        this.scrollTo({ top: 0, behavior: 'auto', duration: 250 });
+        this._scrollerComponent()?.scrollTo({ top: 0, behavior: 'auto', duration: 250 }) ?? null;
+        return of({ visible: false, target: null });
+      }),
+      filter(e => e.visible),
+      switchMap(e => {
+        return this._controlService.$overscrollCanceled.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          skipUntil(timer(100).pipe(switchMap(() => of(true)))),
+          tap(event => {
+            const scroller = this._scrollerComponent()!;
+            this._controlService.focus({ id: -1, element: this._elementRef.nativeElement, type: scroller.type ?? ScrollerTypes.SCROLL_VIEW_SCROLLER, scroller });
+          }),
+        );
+      }),
+    ).subscribe();
+
+    this.$hostScroll.pipe(
+      takeUntilDestroyed(this._destroyRef),
+      tap(e => {
+        this.hostScrollTo(e);
+      }),
+      debounceTime(250),
+      tap(e => {
+        this.hostScrollTo(e);
       }),
     ).subscribe();
 
@@ -236,5 +261,34 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
         );
       }),
     ).subscribe();
+  }
+
+  private hostScrollTo(e: IFocusedObject | null) {
+    if (!!e && !!e.element) {
+      const target = e.element
+      const { height: targetHeight } = target.getBoundingClientRect();
+      let offsetTop = target.offsetTop;
+      const scroller = e.scroller;
+      if (!!scroller) {
+        let s = scroller.service, hostService: IBaseScrollViewService | null = null;
+        while (true) {
+          offsetTop += s.scrollView?.parent?.host?.offsetTop ?? 0;
+          if (s === this._service) {
+            break;
+          }
+          hostService = s ?? null;
+          s = s.parent;
+          if (!s?.scrollView) {
+            break;
+          }
+        }
+        const { height: scrollerViewportHeight } = this._scrollerComponent()?.viewportBounds() ?? { height: 0 },
+          x = scroller.scrollLeft,
+          y = (offsetTop + targetHeight) - (scrollerViewportHeight - 200) /* keyboard height */;
+
+        hostService?.scrollView?.stopScrolling(true);
+        hostService?.scrollView?.scroll({ x: x, y: y, behavior: 'auto', duration: 250, userAction: true });
+      }
+    }
   }
 }

@@ -59,6 +59,8 @@ export abstract class BaseScrollView implements INtScroller<IBaseScrollViewServi
 
     protected _overscrollEnabled = inject(SCROLL_VIEW_OVERSCROLL_ENABLED);
 
+    protected _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+
     protected _$updateScrollBar = new Subject<void>();
     protected $updateScrollBar = this._$updateScrollBar.asObservable();
 
@@ -192,6 +194,9 @@ export abstract class BaseScrollView implements INtScroller<IBaseScrollViewServi
         this.isVertical = computed(() => {
             return this.direction() === ScrollerDirection.VERTICAL;
         });
+    }
+    stopScrolling(force?: boolean): void {
+        throw new Error('Method not implemented.');
     }
 
     tick() {

@@ -30,6 +30,7 @@ import { IWheelEvent } from '../../../common/interfaces/wheel-event';
 import { getScrollable } from '../../../common/utils/get-scrollable';
 import { X_PROP_NAME, Y_PROP_NAME } from '../../../common/const/base-prop-names';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
+import { ICancelOverscrollOptions } from '../../../common/interfaces/cancel-overscroll-options';
 
 /**
  * NtScrollView
@@ -318,7 +319,7 @@ export class NtScrollView extends BaseScrollView {
                 $wheelEmitter = this._inversion ? $viewport : $content;
 
             if (!!this._controlContainerService) {
-                this._controlContainerService.$prefocused.pipe(
+                this._controlContainerService.$focusEcho.pipe(
                     takeUntilDestroyed(this._destroyRef),
                     filter(v => !!v),
                     tap(e => {
@@ -393,6 +394,7 @@ export class NtScrollView extends BaseScrollView {
                                 takeUntil(fromEvent<MouseEvent>(root, MOUSE_MOVE, { passive: false })),
                                 takeUntil($scrollDisabled),
                                 tap(e => {
+                                    this.cancelOverscroll({ event: e, released: true });
                                     this._isMoving = false;
                                     this.grabbing.set(false);
                                     if (!mouseCanceled) {
@@ -467,7 +469,7 @@ export class NtScrollView extends BaseScrollView {
                                         takeUntil($scrollDisabled),
                                         tap(e => {
                                             mouseCanceled = true;
-                                            this.cancelOverscroll();
+                                            this.cancelOverscroll({ event: e, released: true });
                                             const endTime = Date.now(),
                                                 horizontalAxisEnabled = this._horizontalAxisEnabled(),
                                                 verticalAxisEnabled = this._verticalAxisEnabled(),
@@ -519,7 +521,8 @@ export class NtScrollView extends BaseScrollView {
                     }),
                     delay(0),
                     filter(e => Array.from(e.targetTouches).findIndex(({ identifier }) => identifier === this._touchId) === -1),
-                    tap(() => {
+                    tap(e => {
+                        this.cancelOverscroll({ event: e, released: true });
                         this._touchId = -1;
                         this._isMoving = false;
                         this.grabbing.set(false);
@@ -636,7 +639,7 @@ export class NtScrollView extends BaseScrollView {
                                         tap(e => {
                                             this._touchId = -1;
                                             touchCanceled = true;
-                                            this.cancelOverscroll();
+                                            this.cancelOverscroll({ event: e, released: true });
                                             const endTime = Date.now(),
                                                 timestampX = endTime - startTimeX,
                                                 timestampY = endTime - startTimeY,
@@ -770,7 +773,10 @@ export class NtScrollView extends BaseScrollView {
         return { position, currentPos, endTime, scrollDelta };
     }
 
-    private cancelOverscroll() {
+    private cancelOverscroll(options?: ICancelOverscrollOptions) {
+        if (options?.released && !this._service.overscroll.x && !this._service.overscroll.y && !!this._controlContainerService) {
+            this._controlContainerService.overscrollCancel({ element: (options?.event?.target as HTMLElement) ?? this._elementRef.nativeElement, scroller: this, type: this._type!, id: this._service.id });
+        }
         if (!this.overscrollEnabled()) {
             return;
         }

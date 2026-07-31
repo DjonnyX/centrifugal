@@ -211,7 +211,7 @@ export class NtVirtualClickDirective<S extends IBaseScrollViewService, C extends
                                         }
                                     } else {
                                         if (this.focusElement() && !!this._controlService) {
-                                            this._controlService.prefocus(target, this._service.id);
+                                            this._controlService.focusEcho(target, this._service.id);
                                         }
                                     }
                                 }
