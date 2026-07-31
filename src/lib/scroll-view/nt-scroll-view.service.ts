@@ -80,7 +80,11 @@ export class NtScrollViewService extends NtBaseScrollViewService implements INtS
 
   initialize(id: number, parentId: number) {
     this._id = id;
-    this._parentId = parentId;
+    this._scrollView = scrollView;
+    if (!!parentService) {
+      this._parent = parentService;
+      this._parentId = parentService.id;
+    }
   }
 
   generateComponentId() {

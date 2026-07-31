@@ -4,7 +4,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-  BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, map, skip, Subject, switchMap, take, tap,
+  BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, map, skip, startWith, Subject, switchMap, take, tap,
 } from 'rxjs';
 import {
   BEHAVIOR_INSTANT, CLASS_SCROLL_VIEW_HORIZONTAL, CLASS_SCROLL_VIEW_VERTICAL, DEFAULT_DIRECTION, MIN_PIXELS_FOR_PREVENT_SNAPPING,
@@ -713,11 +713,6 @@ export class NtScrollViewComponent<S extends INtScrollViewService> extends NtBas
 
   protected _precalculatedScrollBottomOffset = signal<number>(0);
 
-  private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-  get host() {
-    return this._elementRef.nativeElement;
-  }
-
   private _$scrollTo = new Subject<IScrollOptions>();
   protected $scrollTo = this._$scrollTo.asObservable();
 
@@ -769,14 +764,23 @@ export class NtScrollViewComponent<S extends INtScrollViewService> extends NtBas
       this._parentService.$scrollable.pipe(
         takeUntilDestroyed(),
         tap(v => {
-          this._service.parentScrollable = v;
+          this._service.scrollable = v;
+        }),
+      ).subscribe();
+
+      this._service.$overscroll.pipe(
+        takeUntilDestroyed(),
+        tap(v => {
+          if (!!this._parentService) {
+            this._parentService.overscroll = v;
+          }
         }),
       ).subscribe();
 
       this._parentService.$overscroll.pipe(
         takeUntilDestroyed(),
         tap(v => {
-          this._service.parentOverscroll = v;
+          this._service.overscroll = v;
         }),
       ).subscribe();
     }
@@ -1142,18 +1146,20 @@ export class NtScrollViewComponent<S extends INtScrollViewService> extends NtBas
       takeUntilDestroyed(),
       filter(v => !!v),
       switchMap(() => {
-        return combineLatest([$snapScrollToLeft, $snapScrollToRight, $snapScrollToTop, $snapScrollToBottom, $precalculatedScrollLeftOffset,
+        return combineLatest([$scrollerComponent, $snapScrollToLeft, $snapScrollToRight, $snapScrollToTop, $snapScrollToBottom, $precalculatedScrollLeftOffset,
           $precalculatedScrollRightOffset, $precalculatedScrollTopOffset, $precalculatedScrollBottomOffset, $bounds, $scrollerBounds,
           $scrollLeftOffset, $scrollRightOffset, $scrollTopOffset, $scrollBottomOffset, $scrollSizeX, $scrollSizeY, $direction,
-          this.$fireUpdate,
+          this.$fireUpdate.pipe(
+            takeUntilDestroyed(this._destroyRef),
+            startWith(false),
+          ),
         ]).pipe(
           takeUntilDestroyed(this._destroyRef),
           tap(([
-            snapScrollToLeft, snapScrollToRight, snapScrollToTop, snapScrollToBottom, precalculatedScrollLeftOffset, precalculatedScrollRightOffset,
+            scroller, snapScrollToLeft, snapScrollToRight, snapScrollToTop, snapScrollToBottom, precalculatedScrollLeftOffset, precalculatedScrollRightOffset,
             precalculatedScrollTopOffset, precalculatedScrollBottomOffset, bounds, scrollerBounds,
             scrollLeftOffset, scrollRightOffset, scrollTopOffset, scrollBottomOffset, scrollSizeX, scrollSizeY, direction,
           ]) => {
-            const scroller = this._scrollerComponent();
             if (!!scroller) {
               const userAction = hasUserAction, ready = _$created.getValue();
 

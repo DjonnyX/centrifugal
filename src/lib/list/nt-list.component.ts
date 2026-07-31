@@ -1430,8 +1430,6 @@ export class NtListComponent<S extends INtListService> extends NtBaseScrollCompo
     }
   }
 
-  private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-
   /**
    * Base class of the element component
    */
@@ -3549,6 +3547,7 @@ export class NtListComponent<S extends INtListService> extends NtBaseScrollCompo
         doMap[id] = i;
         components.push(comp);
         i++;
+        index++;
       }
       this._trackBox.setDisplayObjectIndexMapById(doMap);
     }

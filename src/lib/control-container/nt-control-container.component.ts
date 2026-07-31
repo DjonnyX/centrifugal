@@ -1,6 +1,9 @@
 import { Component, ElementRef, input, signal, viewChild, ViewEncapsulation } from "@angular/core";
 import { INtScrollViewService, NtScrollViewService } from "../scroll-view";
-import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED } from "../common";
+import {
+  CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
+  SCROLL_VIEW_USER_INTERACTION_ENABLED,
+} from "../common";
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
 import { NtControlContainerService } from "./nt-control-container.service";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
@@ -29,6 +32,7 @@ import { DEFAULT_INPUT_ELEMETNS } from "../common/directives/nt-virtual-click/co
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: false },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
     { provide: CONTROL_CONTAINER_SERVICE, useClass: NtControlContainerService },
+    { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
   ],
 })
 export class NtControlContainerComponent extends NtDrawerContainerComponent<INtScrollViewService, INtControlContainerService> {
@@ -191,13 +195,34 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
             if (e.blur instanceof Function) {
               e.blur();
             }
-            this._keyboardShown.set(true);
-            this.scrollTo({ top: 200, behavior: 'auto', duration: 250 });
-          } else {
-            this._keyboardShown.set(false);
-            this.scrollTo({ top: 0, behavior: 'auto', duration: 250 });
+            const { height: targetHeight } = target.getBoundingClientRect();
+            let offsetTop = target.offsetTop;
+            const scroller = e.scroller;
+            if (!!scroller) {
+              let s = scroller.service, hostService: IBaseScrollViewService | null = null;
+              while (true) {
+                offsetTop += s.scrollView?.parent?.host?.offsetTop ?? 0;
+                if (s === this._service) {
+                  break;
+                }
+                hostService = s ?? null;
+                s = s.parent;
+                if (!s?.scrollView) {
+                  break;
+                }
+              }
+              const { height: scrollerViewportHeight } = this._scrollerComponent()?.viewportBounds() ?? { height: 0 },
+                y = (offsetTop + targetHeight) - (scrollerViewportHeight - 200) /* keyboard height */;
+
+              this._keyboardShown.set(true);
+              this.scrollTo({ top: 200 /* keyboard height */, behavior: 'auto', duration: 250 });
+              hostService?.scrollView?.scroll({ x: scroller.scrollLeft, y, behavior: 'auto', duration: 250, userAction: true });
+            }
+            return;
           }
         }
+        this._keyboardShown.set(false);
+        this.scrollTo({ top: 0, behavior: 'auto', duration: 250 });
       }),
     ).subscribe();
 

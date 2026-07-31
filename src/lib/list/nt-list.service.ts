@@ -430,7 +430,11 @@ export class NtListService extends NtBaseScrollViewService implements IBaseScrol
 
   initialize(id: number, parentId: number, trackBox: TrackBox) {
     this._id = id;
-    this._parentId = parentId;
+    this._scrollView = scrollView;
+    if (!!parentService) {
+      this._parent = parentService;
+      this._parentId = parentService.id;
+    }
     this._trackBox = trackBox;
     this._trackBox.addEventListener(TrackBoxEvents.TICK, this._onTickHandler);
     this._trackBox.addEventListener(TrackBoxEvents.CHANGE, this._onTrackBoxChangeHandler);

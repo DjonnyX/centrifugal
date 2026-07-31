@@ -32,6 +32,7 @@ import { tap } from "rxjs";
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
     { provide: CONTROL_CONTAINER_SERVICE, useClass: NtDrawerContainerService },
+    { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
   ],
 })
 export class NtDrawerContainerComponent<S extends INtScrollViewService,

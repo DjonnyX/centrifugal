@@ -1,7 +1,7 @@
 @let filtered = motionBlurEnabled();
 @let prepared = preparedSignal();
 @let textDir = langTextDir();
-<div localeSensitive [langTextDir]="textDir" [listDir]="direction()" class="ntvs__container"
+<div virtualClick localeSensitive [langTextDir]="textDir" [listDir]="direction()" class="ntvs__container"
     [ngClass]="containerClasses()">
     <svg part="viewport" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
         xmlns:xlink="http://www.w3.org/1999/xlink">
@@ -22,8 +22,9 @@
         </foreignObject>
     </svg>
     @if (scrollbarEnabled()) {
+        @let parent = context();
         @if (scrollbarVerticalEnabled()) {
-            <nt-scroll-bar #scrollBarVertical direction="vertical" [size]="thumbSizeVertical()"
+            <nt-scroll-bar #scrollBarVertical direction="vertical" [size]="thumbSizeVertical()" [context]="parent"
                 [renderer]="scrollbarThumbRenderer()" [thickness]="scrollbarThickness()" [params]="scrollbarThumbParams()"
                 [loading]="loading()" [overlapping]="overlappingScrollbar()"
                 [thumbGradientPositions]="thumbGradientPositionsVertical()" [prepared]="prepared"
@@ -34,7 +35,7 @@
                 (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-scroll-bar>
         }
         @if (scrollbarHorizontalEnabled()) {
-            <nt-scroll-bar #scrollBarHorizontal direction="horizontal" [size]="thumbSizeHorizontal()"
+            <nt-scroll-bar #scrollBarHorizontal direction="horizontal" [size]="thumbSizeHorizontal()" [context]="parent"
                 [renderer]="scrollbarThumbRenderer()" [thickness]="scrollbarThickness()" [params]="scrollbarThumbParams()"
                 [loading]="loading()" [overlapping]="overlappingScrollbar()"
                 [thumbGradientPositions]="thumbGradientPositionsHorizontal()" [prepared]="prepared"

@@ -26,6 +26,11 @@ import { ScrollerDirection } from './enums';
 import { Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirections } from '../../../common';
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL, } from '../../../common/const/event-names';
 import { INTERACTIVE } from '../../../common/const/class-names';
+import { IScrollToParams } from '../../../common/interfaces/scroll-to-params';
+import { IWheelEvent } from '../../../common/interfaces/wheel-event';
+import { getScrollable } from '../../../common/utils/get-scrollable';
+import { X_PROP_NAME, Y_PROP_NAME } from '../../../common/const/base-prop-names';
+import { ScrollerTypes } from '../../../common/enums/scroller-types';
 
 /**
  * NtScrollView
@@ -312,6 +317,18 @@ export class NtScrollView extends BaseScrollView {
                     filter(v => !v),
                 ),
                 $wheelEmitter = this._inversion ? $viewport : $content;
+
+            if (!!this._controlContainerService) {
+                this._controlContainerService.$prefocused.pipe(
+                    takeUntilDestroyed(this._destroyRef),
+                    filter(v => !!v),
+                    tap(e => {
+                        if (e.serviceId === this._service.id && this._type === ScrollerTypes.SCROLL_VIEW_SCROLLER) {
+                            this._controlContainerService.focus({ element: e.element, scroller: this, type: this._type, id: e.serviceId });
+                        }
+                    }),
+                ).subscribe();
+            }
 
             $wheelEmitter.pipe(
                 takeUntilDestroyed(this._destroyRef),
@@ -799,7 +816,7 @@ export class NtScrollView extends BaseScrollView {
                 this._userScrollDirectionIsHorizontal = this._scrollDirectionValueX > this._scrollDirectionValueY;
             }
             if (this._userScrollDirectionIsHorizontal) {
-                if (!overscrollY && this._service.parentScrollable.x) {
+                if (!overscrollY && getScrollable(this._service, X_PROP_NAME, true)) {
                     if (this._overscrollXIteration < OVERSCROLL_START_ITERATION) {
                         this._overscrollXIteration++;
                         this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
@@ -814,7 +831,7 @@ export class NtScrollView extends BaseScrollView {
                     }
                 }
             } else {
-                if (!overscrollX && this._service.parentScrollable.y) {
+                if (!overscrollX && getScrollable(this._service, Y_PROP_NAME, true)) {
                     if (this._overscrollYIteration < OVERSCROLL_START_ITERATION) {
                         this._overscrollYIteration++;
                         this.checkOverscrollByAxis(e, this._y, this.scrollHeight);

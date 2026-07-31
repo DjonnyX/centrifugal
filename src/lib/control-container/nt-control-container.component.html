@@ -4,7 +4,7 @@
 @let scrollBottomOffset = _precalculatedScrollBottomOffset();
 
 <div #container class="ntcc__container">
-    <nt-scroller #scroller class="ntcc__scroller" [classes]="classes()" [scrollable]="scrollable()"
+    <nt-scroller #scroller class="ntcc__scroller" [classes]="classes()" [context]="this" [scrollable]="scrollable()"
         [langTextDir]="langTextDir()" [leftOffset]="scrollLeftOffset" [rightOffset]="scrollRightOffset"
         [topOffset]="scrollTopOffset" [bottomOffset]="scrollBottomOffset" [direction]="direction()"
         [scrollbarThumbRenderer]="scrollbarThumbRenderer()" [scrollbarThickness]="scrollbarThickness()"

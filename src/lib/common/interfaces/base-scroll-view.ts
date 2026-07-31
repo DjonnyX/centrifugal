@@ -7,6 +7,8 @@ export interface IBaseScrollView<S extends IBaseScrollViewService, P extends IBa
 
     get service(): S;
 
+    get host(): HTMLElement;
+
     get parentService(): P | null;
 
     get component(): C | undefined;

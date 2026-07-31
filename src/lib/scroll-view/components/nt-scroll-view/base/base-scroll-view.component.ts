@@ -9,6 +9,9 @@ import {
 } from '../../../../common';
 import { INtScrollViewService } from '../../../interfaces';
 import { INtControlContainerService } from '../../../../control-container/interfaces';
+import { IScrollToParams } from '../../../../common/interfaces/scroll-to-params';
+import { IBaseScrollViewService } from '../../../../common/interfaces/base-scroll-view-service';
+import { IBaseScrollView } from '../../../../common/interfaces/base-scroll-view';
 
 /**
  * BaseScrollView
@@ -38,6 +41,12 @@ export class BaseScrollView {
     readonly bottomOffset = input<number>(0);
 
     readonly grabbing = signal<boolean>(false);
+
+    readonly context = input<IBaseScrollView<IBaseScrollViewService, IBaseScrollViewService> | null>(null);
+    get parent() { return this.context(); }
+
+    protected _type = inject(SCROLL_VIEW_TYPE, { optional: true });
+    get type() { return this._type; }
 
     protected _inversion = inject(SCROLL_VIEW_INVERSION);
 

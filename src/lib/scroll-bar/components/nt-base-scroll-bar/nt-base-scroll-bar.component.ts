@@ -16,6 +16,7 @@ import { DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE } from '..
 import {
   LEFT, POSITION, POSITION_ABSOLUTE, POSITION_RELATIVE, RIGHT, TOP, BOTTOM, ZERO_PX, UNSET, SIZE_AUTO, SIZE_100_PERSENT,
 } from '../../../common/const/base-prop-names';
+import { ScrollerTypes } from '../../../common/enums/scroller-types';
 
 /**
  * NtBaseScrollBarComponent
@@ -26,6 +27,7 @@ import {
 @Component({
   selector: 'nt-scroll-bar',
   providers: [
+    { provide: SCROLL_VIEW_TYPE, useValue: ScrollerTypes.SCROLL_BAR_SCROLLER },
     { provide: SCROLL_VIEW_INVERSION, useValue: true },
     { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: false },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: false },

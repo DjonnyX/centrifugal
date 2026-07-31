@@ -46,16 +46,4 @@ export interface IBaseScrollViewService {
     get overscroll(): IOverscroll;
 
     set overscroll(v: IOverscroll);
-
-    readonly $parentScrollable: Observable<IScrollable>;
-
-    get parentScrollable(): IScrollable;
-
-    set parentScrollable(v: IScrollable);
-
-    readonly $parentOverscroll: Observable<IOverscroll>;
-
-    get parentOverscroll(): IOverscroll;
-
-    set parentOverscroll(v: IOverscroll);
 }
