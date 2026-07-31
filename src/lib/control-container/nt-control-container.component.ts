@@ -198,27 +198,15 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
             if (target.blur instanceof Function) {
               target.blur();
             }
-            const { height: targetHeight } = target.getBoundingClientRect();
-            let offsetTop = target.offsetTop;
             const scroller = e.scroller;
             if (!!scroller) {
-              let s = scroller.service, hostService: IBaseScrollViewService | null = null;
-              while (true) {
-                offsetTop += s.scrollView?.parent?.host?.offsetTop ?? 0;
-                if (s === this._service) {
-                  break;
+              this.scrollTo({
+                top: 200 /* keyboard height */, behavior: 'auto', duration: 250, onUpdate: () => {
+                  this.hostScrollTo(e, true);
+                }, onComplete: () => {
+                  this.hostScrollTo(e, true);
                 }
-                hostService = s ?? null;
-                s = s.parent;
-                if (!s?.scrollView) {
-                  break;
-                }
-              }
-              const { height: scrollerViewportHeight } = this._scrollerComponent()?.viewportBounds() ?? { height: 0 },
-                x = scroller.scrollLeft,
-                y = (offsetTop + targetHeight) - (scrollerViewportHeight - 200) /* keyboard height */;
-
-              this.scrollTo({ top: 200 /* keyboard height */, behavior: 'auto', duration: 250 });
+              });
               this._$hostScroll.next(e);
             }
             return of({ visible: true, target });
@@ -263,7 +251,7 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
     ).subscribe();
   }
 
-  private hostScrollTo(e: IFocusedObject | null) {
+  private hostScrollTo(e: IFocusedObject | null, blending: boolean = false) {
     if (!!e && !!e.element) {
       const target = e.element
       const { height: targetHeight } = target.getBoundingClientRect();
@@ -272,7 +260,9 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
       if (!!scroller) {
         let s = scroller.service, hostService: IBaseScrollViewService | null = null;
         while (true) {
-          offsetTop += s.scrollView?.parent?.host?.offsetTop ?? 0;
+          if (!!s?.scrollView?.parent?.host) {
+            offsetTop += s.scrollView.parent.host.getBoundingClientRect().top;
+          }
           if (s === this._service) {
             break;
           }
@@ -284,10 +274,10 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
         }
         const { height: scrollerViewportHeight } = this._scrollerComponent()?.viewportBounds() ?? { height: 0 },
           x = scroller.scrollLeft,
-          y = (offsetTop + targetHeight) - (scrollerViewportHeight - 200) /* keyboard height */;
+          y = (offsetTop + targetHeight + 20 /* gap */) - (scrollerViewportHeight - 200) /* keyboard height */;
 
         hostService?.scrollView?.stopScrolling(true);
-        hostService?.scrollView?.scroll({ x: x, y: y, behavior: 'auto', duration: 250, userAction: true });
+        hostService?.scrollView?.scroll({ x: x, y: y, behavior: 'auto', blending, duration: 250, userAction: true });
       }
     }
   }

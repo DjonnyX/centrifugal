@@ -1,4 +1,5 @@
 import { Easing } from "../utils";
+import { IAnimatorUpdateData } from "../utils/animator/interfaces";
 
 /**
  * IScrollToParams
@@ -16,6 +17,8 @@ export interface IScrollToParams {
     blending?: boolean;
     behavior?: ScrollBehavior;
     ease?: Easing;
+    onUpdate?: ((data: IAnimatorUpdateData) => void) | null;
+    onComplete?: ((data: IAnimatorUpdateData) => void) | null;
     fireUpdate?: boolean;
     userAction?: boolean;
     duration?: number;

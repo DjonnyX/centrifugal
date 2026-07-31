@@ -31,6 +31,7 @@ import { getScrollable } from '../../../common/utils/get-scrollable';
 import { X_PROP_NAME, Y_PROP_NAME } from '../../../common/const/base-prop-names';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { ICancelOverscrollOptions } from '../../../common/interfaces/cancel-overscroll-options';
+import { IAnimatorUpdateData } from '../../../common/utils/animator/interfaces';
 
 /**
  * NtScrollView
@@ -977,7 +978,7 @@ export class NtScrollView extends BaseScrollView {
     }
 
     protected animate(axis: 'x' | 'y', startValue: number, endValue: number, duration = ANIMATION_DURATION, easingFunction: Easing = easeOutQuad, blending: boolean = false,
-        userAction: boolean = false): number {
+        userAction: boolean = false, onUpdate: ((data: IAnimatorUpdateData) => void) | null = null, onComplete: ((data: IAnimatorUpdateData) => void) | null = null): number {
         const isVertical = axis === 'y', animator = isVertical ? this._animatorY : this._animatorX;
         let position = startValue;
 
@@ -995,17 +996,25 @@ export class NtScrollView extends BaseScrollView {
             easingFunction,
             getPropValue: () => {
                 return isVertical ? this._y : this._x;
-            }, onUpdate: ({ value, timestamp, elapsed }) => {
+            }, onUpdate: data => {
+                const { value, timestamp } = data;
                 calculateVelocity(position, value - (isVertical ? this._deltaY : this._deltaX), timestamp) ?? (isVertical ? this.averageVelocityY : this.averageVelocityX);
                 position = value;
                 this.move(isVertical ? null : value, isVertical ? value : null, false, userAction);
                 this._service.update(true);
-            }, onComplete: ({ value, timestamp }) => {
+                if (typeof onUpdate === 'function') {
+                    onUpdate(data);
+                }
+            }, onComplete: data => {
+                const { value, timestamp } = data;
                 calculateVelocity(position, value, timestamp);
                 this.move(isVertical ? null : value, isVertical ? value : null, false, userAction);
                 this._$scrollEnd.next(userAction);
                 this._service.update(true);
                 this.onAnimationComplete(value);
+                if (typeof onComplete === 'function') {
+                    onComplete(data);
+                }
             },
         });
     }
@@ -1063,6 +1072,8 @@ export class NtScrollView extends BaseScrollView {
             normalize = params.normalize ?? true,
             ease = params.ease || easeOutQuad,
             fireUpdate = params.fireUpdate ?? true,
+            onUpdate = params.onUpdate ?? null,
+            onComplete = params.onComplete ?? null,
             behavior = params.behavior ?? INSTANT,
             blending = params.blending ?? true,
             force = params.force ?? false,
@@ -1076,11 +1087,11 @@ export class NtScrollView extends BaseScrollView {
             prevY = this._y;
         if (behavior === AUTO || behavior === SMOOTH) {
             if (horizontalAxisEnabled && x !== null && prevX !== x) {
-                const id = this.animate('x', prevX, x, duration, ease, blending, userAction);
+                const id = this.animate('x', prevX, x, duration, ease, blending, userAction, onUpdate, onComplete);
                 animationIds.push(id);
             }
             if (verticalAxisEnabled && y !== null && prevY !== y) {
-                const id = this.animate('y', prevY, y, duration, ease, blending, userAction);
+                const id = this.animate('y', prevY, y, duration, ease, blending, userAction, onUpdate, onComplete);
                 animationIds.push(id);
             }
             return animationIds;

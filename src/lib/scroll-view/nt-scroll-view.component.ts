@@ -1366,10 +1366,12 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
           y = event?.y,
           left = event?.left,
           top = event?.top,
+          onUpdate = event?.onUpdate ?? undefined,
+          onComplete = event?.onComplete ?? undefined,
           ease = event?.ease,
           duration = event?.duration;
         s!.stopScrolling();
-        s!.scroll({ x, y, left, top, behavior, blending, ease, duration, userAction: true });
+        s!.scroll({ x, y, left, top, behavior, blending, ease, duration, userAction: true, onUpdate, onComplete });
       }),
     ).subscribe();
   }
