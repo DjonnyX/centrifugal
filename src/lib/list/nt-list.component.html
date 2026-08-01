@@ -15,11 +15,11 @@
   [scrollbarEnabled]="scroller.scrollbarShow()" [enabled]="dynamicSize() && snapScrollToEnd()" />
 
 @if (stickyEnabled()) {
-<div localeSensitive [langTextDir]="textDir" #snappedContainer class="ntvl__snapped-container" [ngClass]="class">
-  <div #snapped part="snapped-item" class="ntvl__list-snapper">
-    <ng-container #snapRendererContainer></ng-container>
+  <div localeSensitive [langTextDir]="textDir" #snappedContainer class="ntvl__snapped-container" [ngClass]="class">
+    <div #snapped part="snapped-item" class="ntvl__list-snapper">
+      <ng-container #snapRendererContainer></ng-container>
+    </div>
   </div>
-</div>
 }
 
 <nt-scroller #scroller virtualClick class="ntvl__list-scroller" tabindex="-1" [langTextDir]="textDir" [classes]="class"
@@ -33,6 +33,6 @@
   [scrollbarInteractive]="scrollbarInteractive()" [snapToItem]="snapToItem()" [snapToItemAlign]="snapToItemAlign()"
   [scrollbarMinSize]="scrollbarMinSize()" [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()"
   [scrollingOneByOne]="scrollingOneByOne()" [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()"
-  [motionBlurEnabled]="motionBlurEnabled()">
+  [motionBlurEnabled]="motionBlurEnabled()" (onOverscroll)="onOverscrollHandler($event)">
   <ng-container #renderersContainer></ng-container>
 </nt-scroller>

@@ -12,7 +12,8 @@
   [overlappingScrollbar]="overlappingScrollbar()" [scrollbarEnabled]="scrollbarEnabled()"
   [scrollbarInteractive]="scrollbarInteractive()" [scrollbarMinSize]="scrollbarMinSize()"
   [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()"
-  [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()">
+  [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()"
+  (onOverscroll)="onOverscrollHandler($event)">
   <ng-container #renderersContainer>
     <ng-content></ng-content>
   </ng-container>

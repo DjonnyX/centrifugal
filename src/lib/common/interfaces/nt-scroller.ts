@@ -3,6 +3,8 @@ import { IScrollToParams } from "./scroll-to-params";
 import { ISize } from "./size";
 import { IBaseScrollViewService } from "./base-scroll-view-service";
 import { IBaseScrollView } from "./base-scroll-view";
+import { Observable } from "rxjs";
+import { IOverscrollEvent } from "./overscroll-event";
 
 /**
  * INtScroller
@@ -30,6 +32,8 @@ export interface INtScroller<S extends IBaseScrollViewService> {
     readonly viewportBounds: Signal<ISize>;
 
     readonly contentBounds: Signal<ISize>;
+
+    readonly $overscroll: Observable<IOverscrollEvent>;
 
     scroll(params: IScrollToParams): Array<number> | number | null;
 
