@@ -7,7 +7,7 @@ import { TextDirection } from '../types';
 import { TextDirections } from '../enums';
 import { DEFAULT_CLICK_DISTANCE } from '../directives/nt-virtual-click/const';
 import { IOverscroll } from '../interfaces/overscroll';
-import { IBaseScrollViewService } from '../interfaces/base-scroll-view-service';
+import { INtBaseScrollViewService } from '../interfaces/nt-base-scroll-view-service';
 import { INtScroller } from '../interfaces/nt-scroller';
 
 /**
@@ -19,17 +19,17 @@ import { INtScroller } from '../interfaces/nt-scroller';
 @Injectable({
   providedIn: 'root'
 })
-export class NtBaseScrollViewService implements IBaseScrollViewService, OnDestroy {
+export class NtBaseScrollViewService implements INtBaseScrollViewService, OnDestroy {
   protected _id: number = 0;
   get id() { return this._id; }
 
   protected _parentId: number = -1;
   get parentId() { return this._parentId; }
 
-  protected _parent!: IBaseScrollViewService;
+  protected _parent!: INtBaseScrollViewService;
   get parent() { return this._parent; }
 
-  protected _scrollView!: INtScroller<IBaseScrollViewService>;
+  protected _scrollView!: INtScroller<INtBaseScrollViewService>;
   get scrollView() { return this._scrollView; }
 
   protected _$langTextDir = new BehaviorSubject<TextDirection>(TextDirections.LTR);

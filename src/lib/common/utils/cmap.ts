@@ -1,3 +1,9 @@
+/**
+ * CMap
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/utils/cmap.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ */
 export class CMap<K = string, V = any> {
     protected _dict: { [k: string | number]: V } = {};
 

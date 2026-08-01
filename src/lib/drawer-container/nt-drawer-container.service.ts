@@ -6,7 +6,7 @@ import { INtDrawerContainerService } from './interfaces/drawer-container-service
 import { DEFAULT_ANIMATION_PARAMS } from '../scroll-view/const';
 import { Direction, Directions, IAnimationParams, IScrollOptions } from '../scroll-view';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
-import { IBaseScrollViewService } from '../common/interfaces/base-scroll-view-service';
+import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-view-service';
 
 /**
  * NtDrawerContainerService
@@ -17,7 +17,7 @@ import { IBaseScrollViewService } from '../common/interfaces/base-scroll-view-se
 @Injectable({
   providedIn: 'root'
 })
-export class NtDrawerContainerService extends NtBaseScrollViewService implements IBaseScrollViewService, INtDrawerContainerService, OnDestroy {
+export class NtDrawerContainerService extends NtBaseScrollViewService implements INtBaseScrollViewService, INtDrawerContainerService, OnDestroy {
   private _nextComponentId: number = 0;
 
   private _$tick = new Subject<void>();

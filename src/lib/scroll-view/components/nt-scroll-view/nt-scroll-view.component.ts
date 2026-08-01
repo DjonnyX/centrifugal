@@ -17,7 +17,7 @@ import {
     SMOOTH, SPEED_SCALE, TOP, MIN_ACCELERATION, MIN_DELTA,
 } from './const';
 import { calculateDirection, matrix3d } from './utils';
-import { BaseScrollView } from './base';
+import { NtBaseScrollView } from './base';
 import { IAnimationParams, IScrollingSettings } from '../../interfaces';
 import { ScrollDirection } from '../../types';
 import { calculateVelocity } from './utils/calculate-velocity';
@@ -44,7 +44,7 @@ import { OverscrollEvent } from '../../../common/events/overscroll-event';
     selector: 'nt-scroll-view',
     template: '',
 })
-export class NtScrollView extends BaseScrollView {
+export class NtScrollView extends NtBaseScrollView {
     @ViewChild('scrollViewport', { read: CdkScrollable })
     readonly cdkScrollable: CdkScrollable | undefined;
 

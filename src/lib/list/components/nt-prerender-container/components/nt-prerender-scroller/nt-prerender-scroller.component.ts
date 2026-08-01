@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, Signal, signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, from, tap } from 'rxjs';
-import { BaseScrollView } from '../../../nt-scroll-view/base/base-scroll-view.component';
+import { NtBaseScrollView } from '../../../nt-scroll-view/base';
 import { BEHAVIOR_INSTANT, DEFAULT_SCROLLBAR_ENABLED } from '../../../../const';
 import { ScrollBox } from '../../../nt-scroller/utils';
 import { SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED } from '../../../../../common';
@@ -27,7 +27,7 @@ import { IScrollToParams } from '../../../../../common/interfaces/scroll-to-para
     standalone: false,
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NtPrerenderScrollerComponent extends BaseScrollView {
+export class NtPrerenderScrollerComponent extends NtBaseScrollView {
     @ViewChild('scrollBar', { read: NtBaseScrollBarComponent })
     scrollBar: NtBaseScrollBarComponent | undefined;
 

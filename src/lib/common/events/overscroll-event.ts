@@ -1,6 +1,12 @@
 import { IOverscrollEvent } from "../interfaces";
 import { IOverscrollEventParams } from "./interfaces";
 
+/**
+ * OverscrollEvent
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/events/overscroll-event.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ */
 export class OverscrollEvent implements IOverscrollEvent {
     private _dragX: number;
     get dragX() { return this._dragX; }

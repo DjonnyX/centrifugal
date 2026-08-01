@@ -29,7 +29,7 @@ import { debounce, objectAsReadonly } from "../../common/utils";
 import {
     HEIGHT_PROP_NAME, TRANSFORMED_X_PROP_NAME, TRANSFORMED_Y_PROP_NAME, WIDTH_PROP_NAME, X_PROP_NAME, Y_PROP_NAME,
 } from "../../common/const/base-prop-names";
-import { BaseVirtualListItemComponent } from "../components/nt-list-item/base";
+import { NtBaseVirtualListItemComponent } from "../components/nt-list-item/base";
 import { PrerenderCache } from "../components/nt-prerender-container/types";
 
 /**
@@ -38,7 +38,7 @@ import { PrerenderCache } from "../components/nt-prerender-container/types";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export class TrackBox<C extends BaseVirtualListItemComponent = any>
+export class TrackBox<C extends NtBaseVirtualListItemComponent = any>
     extends CacheMap<Id, Cache, CacheMapEvents, CacheMapListeners> {
 
     protected _tracker!: Tracker<C>;

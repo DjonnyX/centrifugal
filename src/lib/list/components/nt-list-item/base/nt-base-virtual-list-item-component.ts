@@ -16,7 +16,7 @@ import {
 } from '../const';
 import { NtListPublicService } from '../../../nt-list-public.service';
 import { createDisplayId, matrix3d } from '../utils';
-import { IBaseVirtualListItemComponent } from '../../../interfaces/base-virtual-list-item-component';
+import { INtBaseVirtualListItemComponent } from '../../../interfaces/base-virtual-list-item-component';
 import { Color, ISize, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../../../../common';
 import { INtListService } from '../../../interfaces/nt-list-service';
 import {
@@ -25,8 +25,8 @@ import {
 } from '../../../../common/const/base-prop-names';
 
 /**
- * BaseVirtualListItemComponent
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/list-item/base/base-virtual-list-item-component.ts
+ * NtBaseVirtualListItemComponent
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/list-item/base/nt-base-virtual-list-item-component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
@@ -36,7 +36,7 @@ import {
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BaseVirtualListItemComponent implements IBaseVirtualListItemComponent {
+export class NtBaseVirtualListItemComponent implements INtBaseVirtualListItemComponent {
   protected _item = viewChild<ElementRef<HTMLDivElement>>('item');
 
   protected _container = viewChild<ElementRef<HTMLDivElement>>('container');

@@ -1,9 +1,9 @@
-import { Component, input, output, TemplateRef } from "@angular/core";
-import { IOverscrollEvent } from "../../../common";
+import { Component } from "@angular/core";
+import { NtBaseOverscrollIndicatorComponent } from "./base";
 
 /**
  * NtOverscrollIndicatorComponent
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/nt-overscroll-indicator.component.ts
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/nt-overscroll-indicator/nt-overscroll-indicator.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
@@ -16,10 +16,6 @@ import { IOverscrollEvent } from "../../../common";
     },
     standalone: false,
 })
-export class NtOverscrollIndicatorComponent {
-    readonly onPinned = output<boolean>();
+export class NtOverscrollIndicatorComponent extends NtBaseOverscrollIndicatorComponent {
 
-    readonly renderer = input<TemplateRef<any> | null>(null);
-
-    readonly overscrollEvent = input<IOverscrollEvent | null>(null);
 }

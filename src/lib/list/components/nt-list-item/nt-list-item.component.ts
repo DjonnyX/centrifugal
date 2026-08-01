@@ -5,7 +5,7 @@ import { IRenderVirtualListItem } from '../../models/render-item.model';
 import {
   NAVIGATION_BY_KEYBOARD_TIMER,
 } from '../../const';
-import { BaseVirtualListItemComponent } from './base';
+import { NtBaseVirtualListItemComponent } from './base/nt-base-virtual-list-item-component';
 import { SelectingModesTypes } from '../../enums/selecting-modes-types';
 import { IDisplayObjectConfig } from '../../models';
 import { getListElementByIndex } from './utils';
@@ -34,7 +34,7 @@ import { DEFAULT_CLICK_DISTANCE } from '../../../common/directives/nt-virtual-cl
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NtListItemComponent extends BaseVirtualListItemComponent implements OnInit {
+export class NtListItemComponent extends NtBaseVirtualListItemComponent implements OnInit {
   protected readonly maxClickDistance = signal<number>(DEFAULT_CLICK_DISTANCE);
 
   protected _injector = inject(Injector);

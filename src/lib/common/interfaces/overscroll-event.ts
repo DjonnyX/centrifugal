@@ -1,6 +1,6 @@
 /**
  * IOverscrollEvent
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/overscroll.ts
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/overscroll-event.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */

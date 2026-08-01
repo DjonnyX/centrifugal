@@ -3,7 +3,7 @@ import { IOverscrollEvent } from "../../../common";
 
 /**
  * NtOverscrollIndicatorComponent
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/nt-overscroll-indicator-container.component.ts
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/nt-overscroll-indicator-container/nt-overscroll-indicator-container.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */

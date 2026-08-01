@@ -22,7 +22,7 @@ import { getSelectorByItemId } from './utils/get-selector-by-item-id';
 import { IScrollToParams } from './interfaces/scroll-to-params';
 import { Id, IRect, ISize } from '../common';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
-import { IBaseScrollViewService } from '../common/interfaces/base-scroll-view-service';
+import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-view-service';
 import { INtScroller } from '../common/interfaces/nt-scroller';
 
 /**
@@ -34,7 +34,7 @@ import { INtScroller } from '../common/interfaces/nt-scroller';
 @Injectable({
   providedIn: 'root'
 })
-export class NtListService extends NtBaseScrollViewService implements IBaseScrollViewService, OnDestroy {
+export class NtListService extends NtBaseScrollViewService implements INtBaseScrollViewService, OnDestroy {
   private _nextComponentId: number = 0;
 
   private _$virtualClick = new Subject<IRenderVirtualListItem<any> | null>();
@@ -429,7 +429,7 @@ export class NtListService extends NtBaseScrollViewService implements IBaseScrol
     }
   }
 
-  initialize(id: number, scrollView: INtScroller<IBaseScrollViewService>, parentService: IBaseScrollViewService | null, trackBox: TrackBox) {
+  initialize(id: number, scrollView: INtScroller<INtBaseScrollViewService>, parentService: INtBaseScrollViewService | null, trackBox: TrackBox) {
     this._id = id;
     this._scrollView = scrollView;
     if (!!parentService) {

@@ -3,7 +3,7 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { Id, IRect } from '../common';
 import { INtControlContainerService } from './interfaces';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
-import { IBaseScrollViewService } from '../common/interfaces/base-scroll-view-service';
+import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-view-service';
 import { INtScroller } from '../common/interfaces/nt-scroller';
 import { IFocusedObject } from '../common/interfaces/focused-object';
 
@@ -16,7 +16,7 @@ import { IFocusedObject } from '../common/interfaces/focused-object';
 @Injectable({
   providedIn: 'root'
 })
-export class NtControlContainerService extends NtBaseScrollViewService implements IBaseScrollViewService, INtControlContainerService, OnDestroy {
+export class NtControlContainerService extends NtBaseScrollViewService implements INtBaseScrollViewService, INtControlContainerService, OnDestroy {
   private _nextComponentId: number = 0;
 
   private _emitter: HTMLElement = window as unknown as HTMLElement;
@@ -24,7 +24,7 @@ export class NtControlContainerService extends NtBaseScrollViewService implement
     return this._emitter;
   }
 
-  focusedScroller: INtScroller<IBaseScrollViewService> | null = null;
+  focusedScroller: INtScroller<INtBaseScrollViewService> | null = null;
 
   private _$focusEcho = new Subject<{ element: HTMLElement, serviceId: number }>();
   readonly $focusEcho = this._$focusEcho.asObservable();

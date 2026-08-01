@@ -10,20 +10,20 @@ import {
 import { INtListService } from '../../../interfaces';
 import { INtScroller } from '../../../../common/interfaces/nt-scroller';
 import { IScrollToParams } from '../../../../common/interfaces/scroll-to-params';
-import { IBaseScrollViewService } from '../../../../common/interfaces/base-scroll-view-service';
-import { IBaseScrollView } from '../../../../common/interfaces/base-scroll-view';
+import { INtBaseScrollViewService } from '../../../../common/interfaces/nt-base-scroll-view-service';
+import { INtBaseScrollView } from '../../../../common/interfaces/nt-base-scroll-view';
 
 /**
- * BaseScrollView
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-scroll-view/base/base-scroll-view.component.ts
+ * NtBaseScrollView
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-scroll-view/base/nt-base-scroll-view.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
 @Component({
-    selector: 'base-scroll-view',
+    selector: 'nt-base-scroll-view',
     template: '',
 })
-export abstract class BaseScrollView implements INtScroller<IBaseScrollViewService> {
+export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewService> {
     protected _service = inject<INtListService>(SCROLL_VIEW_SERVICE);
 
     get service() { return this._service; }
@@ -50,7 +50,7 @@ export abstract class BaseScrollView implements INtScroller<IBaseScrollViewServi
 
     readonly grabbing = signal<boolean>(false);
 
-    readonly context = input<IBaseScrollView<IBaseScrollViewService, IBaseScrollViewService> | null>(null);
+    readonly context = input<INtBaseScrollView<INtBaseScrollViewService, INtBaseScrollViewService> | null>(null);
     get parent() { return this.context(); }
 
     readonly langTextDir = input<TextDirection>(TextDirections.LTR);

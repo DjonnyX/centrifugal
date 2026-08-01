@@ -1,7 +1,7 @@
 import { ComponentRef } from "@angular/core";
 import { ScrollDirection } from "../types";
 import { IRenderVirtualListCollection } from "../models/render-collection.model";
-import { BaseVirtualListItemComponent } from "../components/nt-list-item/base";
+import { NtBaseVirtualListItemComponent } from "../components/nt-list-item/base";
 import { CMap } from "../../common/utils/cmap";
 import { SERVICE_PROP_DUMMY, SERVICE_PROP_DUMMY_ENABLED } from "../const";
 import { getServiceIdProp } from "./utils";
@@ -26,7 +26,7 @@ export interface IVirtualListItemComponent<I = any> {
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export class Tracker<C extends BaseVirtualListItemComponent = any> {
+export class Tracker<C extends NtBaseVirtualListItemComponent = any> {
     /**
      * display objects dictionary of indexes by id
      */

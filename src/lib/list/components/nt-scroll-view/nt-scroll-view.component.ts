@@ -14,7 +14,7 @@ import {
     MIN_ACCELERATION, MIN_DELTA,
 } from './const';
 import { calculateDirection, matrix3d } from './utils';
-import { BaseScrollView } from './base/base-scroll-view.component';
+import { NtBaseScrollView } from './base';
 import { IAnimationParams, IScrollingSettings } from '../../interfaces';
 import { SnapToItemAligns } from '../../enums';
 import { SnappingDistance, SnapToItemAlign } from '../../types';
@@ -45,7 +45,7 @@ import { OverscrollEvent } from '../../../common/events/overscroll-event';
     selector: 'nt-scroll-view',
     template: '',
 })
-export class NtScrollView extends BaseScrollView {
+export class NtScrollView extends NtBaseScrollView {
     @ViewChild('scrollViewport', { read: CdkScrollable })
     readonly cdkScrollable: CdkScrollable | undefined;
 

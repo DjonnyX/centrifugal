@@ -41,7 +41,7 @@ import {
 import { ScrollEvent } from './utils';
 import { TrackBox } from './core/track-box';
 import { isSnappingMethodAdvenced } from './utils/snapping-method';
-import { BaseVirtualListItemComponent } from './components/nt-list-item/base';
+import { NtBaseVirtualListItemComponent } from './components/nt-list-item/base';
 import { Component$1 } from './models/component.model';
 import { isDirection } from './utils/is-direction';
 import { NtListService } from './nt-list.service';
@@ -1297,9 +1297,9 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
 
   private _collapsedItemIds = signal<Array<Id>>([]);
 
-  private _displayComponents: Array<ComponentRef<BaseVirtualListItemComponent>> = [];
+  private _displayComponents: Array<ComponentRef<NtBaseVirtualListItemComponent>> = [];
 
-  private _snappedDisplayComponents: Array<ComponentRef<BaseVirtualListItemComponent>> = [];
+  private _snappedDisplayComponents: Array<ComponentRef<NtBaseVirtualListItemComponent>> = [];
 
   protected _actualScrollbarEnabled: Signal<boolean>;
 
@@ -1436,7 +1436,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
   /**
    * Base class of the element component
    */
-  private _itemComponentClass: Component$1<BaseVirtualListItemComponent> = NtListItemComponent;
+  private _itemComponentClass: Component$1<NtBaseVirtualListItemComponent> = NtListItemComponent;
   protected get itemComponentClass() { return this._itemComponentClass; }
 
   /**

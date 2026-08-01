@@ -2,7 +2,7 @@ import { IDisplayObjectConfig, IDisplayObjectMeasures } from "../../../models";
 import { NtListPublicService } from "../../../nt-list-public.service";
 
 /**
- * BaseVirtualListItemComponent
+ * NtBaseVirtualListItemComponent
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/list-item/interfaces/template-context.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com

@@ -1,14 +1,14 @@
-import { IBaseScrollViewService } from "./base-scroll-view-service";
+import { INtBaseScrollViewService } from "./nt-base-scroll-view-service";
 import { ISize } from "./size";
 import { INtScroller } from "./nt-scroller";
 
 /**
- * IBaseScrollView
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/base-scroll-view.ts
+ * INtBaseScrollView
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/nt-base-scroll-view.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface IBaseScrollView<S extends IBaseScrollViewService, P extends IBaseScrollViewService, C = INtScroller<S>> {
+export interface INtBaseScrollView<S extends INtBaseScrollViewService, P extends INtBaseScrollViewService, C = INtScroller<S>> {
     get id(): number;
 
     get service(): S;

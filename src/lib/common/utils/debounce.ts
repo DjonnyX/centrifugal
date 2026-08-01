@@ -1,3 +1,9 @@
+/**
+ * IDebounce
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/utils/debounce.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ */
 export interface IDebounce {
     /**
      *  Call handling method

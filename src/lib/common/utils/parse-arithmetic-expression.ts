@@ -4,6 +4,12 @@ import { parseFloatOrPersentageValue } from "./parse-float-or-persentage-value";
 
 const WHITESPACE = ' ', PLUS = '+', MINUS = '-', OPERATORS = [PLUS, MINUS];
 
+/**
+ * copyValueAsReadonly
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/utils/parse-arithmetic-expression.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ */
 const calculate = (exp: string, reference: number, operator: -1 | 1 = 1) => {
     let result: number = 0;
     const isPercentage = isPercentageValue(exp);
