@@ -66,7 +66,7 @@ import { isSpreadingMode } from './utils/is-spreading-mode';
 import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interfaces';
 import { getScrollStateVersion } from './utils/get-scroll-state-version';
 import {
-  ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
+  ArithmeticExpression, Id, IOverscrollEvent, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
   SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
 } from '../common';
 import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, parseArithmeticExpression, toggleClassName } from '../common/utils';
@@ -161,6 +161,10 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
    * Fires when the scroll reaches the end.
    */
   onScrollReachEnd = output<void>();
+  /**
+   * Dispatches an overscroll event.
+   */
+  onOverscroll = output<IOverscrollEvent>();
 
   private _$show = new BehaviorSubject<boolean>(false);
   readonly $show = this._$show.asObservable();
@@ -3381,6 +3385,10 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
         scroller.refresh(updatebale, updatebale);
       }
     }
+  }
+
+  protected onOverscrollHandler(event: IOverscrollEvent) {
+    this.onOverscroll.emit(event);
   }
 
   private checkBoundsOfElements() {

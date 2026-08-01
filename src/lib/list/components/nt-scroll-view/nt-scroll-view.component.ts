@@ -33,6 +33,7 @@ import { getScrollable } from '../../../common/utils/get-scrollable';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { ICancelOverscrollOptions } from '../../../common/interfaces/cancel-overscroll-options';
 import { IAnimatorUpdateData } from '../../../common/utils/animator/interfaces';
+import { OverscrollEvent } from '../../../common/events/overscroll-event';
 
 /**
  * NtScrollView
@@ -210,6 +211,10 @@ export class NtScrollView extends BaseScrollView {
     private _scrollDirectionValueX: number = 0;
 
     private _scrollDirectionValueY: number = 0;
+
+    private _dragX: number = 0;
+
+    private _dragY: number = 0;
 
     private _userScrollDirectionIsHorizontal: boolean = false;
 
@@ -431,6 +436,8 @@ export class NtScrollView extends BaseScrollView {
                                     prevClientPositionY = currentPosY;
                                     this._scrollDirectionValueX += Math.abs(scrollDeltaX);
                                     this._scrollDirectionValueY += Math.abs(scrollDeltaY);
+                                    this._dragX = !isVertical && this.scrollable ? (Math.abs((currentPosX ?? 0) - startClientPosX)) : 0;
+                                    this._dragY = isVertical && this.scrollable ? (Math.abs((currentPosY ?? 0) - startClientPosY)) : 0;
                                     this.move(isVertical, position, true, true, true);
                                     if (this.isInfinity()) {
                                         const offset = Math.abs(position) - Math.abs(isVertical ? this._y : this._x),
@@ -612,6 +619,8 @@ export class NtScrollView extends BaseScrollView {
                                     prevClientPositionY = currentPosY;
                                     this._scrollDirectionValueX += Math.abs(scrollDeltaX);
                                     this._scrollDirectionValueY += Math.abs(scrollDeltaY);
+                                    this._dragX = !isVertical && this.scrollable ? (Math.abs((currentPosX ?? 0) - startClientPosX)) : 0;
+                                    this._dragY = isVertical && this.scrollable ? (Math.abs((currentPosY ?? 0) - startClientPosY)) : 0;
                                     this.move(isVertical, position, true, true, true);
                                     if (this.isInfinity()) {
                                         const offset = Math.abs(position) - Math.abs(isVertical ? this._y : this._x),
@@ -758,26 +767,31 @@ export class NtScrollView extends BaseScrollView {
         if (!this.overscrollEnabled()) {
             return;
         }
-        this._overscrollIteration = 0;
+        this._overscrollIteration = this._dragX = this._dragY = 0;
+        this.emitOverscrollEvent();
     }
 
     private checkOverscrollByAxis(e: Event, pos: number, limit: number) {
         const p = Math.abs(pos);
         if (p > 0 && p < limit) {
+            this._overscrollIteration = 0;
             if (e.cancelable) {
                 e.stopImmediatePropagation();
                 e.preventDefault();
+                return true;
             }
-            this._overscrollIteration = 0;
         } else {
             if (this._overscrollIteration < OVERSCROLL_START_ITERATION) {
                 this._overscrollIteration++;
                 if (e.cancelable) {
                     e.stopImmediatePropagation();
                     e.preventDefault();
+                    return true;
                 }
             }
+            this.emitOverscrollEvent();
         }
+        return false;
     }
 
     private checkOverscroll(e: Event, wheel: boolean = false) {
@@ -788,44 +802,64 @@ export class NtScrollView extends BaseScrollView {
             }
             return;
         }
-        if (this._overscrollEnabled) {
-            const overscrollX = this._service.overscroll.x,
-                overscrollY = this._service.overscroll.y;
-            if (!overscrollX && !overscrollY) {
-                this._userScrollDirectionIsHorizontal = this._scrollDirectionValueX > this._scrollDirectionValueY;
-            }
-            if (this._userScrollDirectionIsHorizontal) {
-                if (!overscrollY && getScrollable(this._service, X_PROP_NAME, true)) {
-                    if (this._overscrollStartIteration < OVERSCROLL_START_ITERATION) {
-                        this._overscrollStartIteration++;
-                        this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
-                    } else {
-                        this._service.overscroll = { ...this._service.overscroll, x: true };
-                        this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
-                    }
+        const overscrollX = this._service.overscroll.x,
+            overscrollY = this._service.overscroll.y;
+        if (!overscrollX && !overscrollY) {
+            this._userScrollDirectionIsHorizontal = this._scrollDirectionValueX > this._scrollDirectionValueY;
+        }
+        if (this._userScrollDirectionIsHorizontal) {
+            const scrollable = getScrollable(this._service, X_PROP_NAME, true);
+            if (!overscrollY && scrollable) {
+                if (this._overscrollStartIteration < OVERSCROLL_START_ITERATION) {
+                    this._overscrollStartIteration++;
+                    this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
                 } else {
-                    if (e.cancelable) {
-                        e.stopImmediatePropagation();
-                        e.preventDefault();
-                    }
+                    this._service.overscroll = { ...this._service.overscroll, x: true };
+                    this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
                 }
             } else {
-                if (!overscrollX && getScrollable(this._service, Y_PROP_NAME, true)) {
-                    if (this._overscrollStartIteration < OVERSCROLL_START_ITERATION) {
-                        this._overscrollStartIteration++;
-                        this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
-                    } else {
-                        this._service.overscroll = { ...this._service.overscroll, y: true };
-                        this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
-                    }
+                if (e.cancelable) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                }
+                const p = Math.abs(this._x);
+                if (p <= 0 || p >= this.scrollWidth) {
+                    this.emitOverscrollEvent();
+                }
+            }
+        } else {
+            const scrollable = getScrollable(this._service, Y_PROP_NAME, true);
+            if (!overscrollX && scrollable) {
+                if (this._overscrollStartIteration < OVERSCROLL_START_ITERATION) {
+                    this._overscrollStartIteration++;
+                    this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
                 } else {
-                    if (e.cancelable) {
-                        e.stopImmediatePropagation();
-                        e.preventDefault();
-                    }
+                    this._service.overscroll = { ...this._service.overscroll, y: true };
+                    this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
+                }
+            } else {
+                if (e.cancelable) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                }
+                const p = Math.abs(this._y);
+                if (p <= 0 || p >= this.scrollHeight) {
+                    this.emitOverscrollEvent();
                 }
             }
         }
+    }
+
+    private emitOverscrollEvent() {
+        const isVertical = this.isVertical(),
+            event = new OverscrollEvent({
+                dragX: this._dragX,
+                dragY: this._dragY,
+                positionX: isVertical ? 0 : (this._scrollRatio === 1 ? 1 : 0),
+                positionY: isVertical ? (this._scrollRatio === 1 ? 1 : 0) : 0,
+            });
+        this._$overscroll.next(event);
+        this.onOverscroll.emit(event);
     }
 
     private calculateVelocity(offsets: Array<[number, number]>, delta: number, timestamp: number, indexOffset: number = 10) {

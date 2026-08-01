@@ -1,10 +1,10 @@
 import {
-    Component, DestroyRef, ElementRef, inject, input, signal, viewChild,
+    Component, DestroyRef, ElementRef, inject, input, output, signal, viewChild,
 } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ScrollerDirection, ScrollerDirections } from '../enums';
 import {
-    CONTROL_CONTAINER_SERVICE, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
+    CONTROL_CONTAINER_SERVICE, IOverscrollEvent, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
     SCROLL_VIEW_TYPE,
     TextDirection, TextDirections,
 } from '../../../../common';
@@ -29,6 +29,8 @@ export abstract class BaseScrollView implements INtScroller<IBaseScrollViewServi
     readonly scrollContent = viewChild<ElementRef<HTMLDivElement>>('scrollContent');
 
     readonly scrollViewport = viewChild<ElementRef<HTMLDivElement>>('scrollViewport');
+
+    readonly onOverscroll = output<IOverscrollEvent>();
 
     readonly direction = input<ScrollerDirections>(ScrollerDirection.BOTH);
 
@@ -55,6 +57,9 @@ export abstract class BaseScrollView implements INtScroller<IBaseScrollViewServi
     protected _inversion = inject(SCROLL_VIEW_INVERSION);
 
     protected _overscrollEnabled = inject(SCROLL_VIEW_OVERSCROLL_ENABLED);
+
+    protected _$overscroll = new Subject<IOverscrollEvent>();
+    readonly $overscroll = this._$overscroll.asObservable();
 
     protected _$updateScrollBarHorizontal = new Subject<void>();
     protected $updateScrollBarHorizontal = this._$updateScrollBarHorizontal.asObservable();

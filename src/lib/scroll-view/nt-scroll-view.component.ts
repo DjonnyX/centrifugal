@@ -29,7 +29,7 @@ import { NtScrollViewService } from './nt-scroll-view.service';
 import { objectAsReadonly } from '../common/utils/object';
 import { NtScrollerComponent } from './components/nt-scroller/nt-scroller.component';
 import {
-  ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
+  ArithmeticExpression, Id, IOverscrollEvent, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
   TextDirection, TextDirections,
 } from '../common';
 import {
@@ -101,6 +101,11 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
    * Fires when the scroll reaches the bottom.
    */
   onScrollReachBottom = output<void>();
+
+  /**
+   * Dispatches an overscroll event.
+   */
+  onOverscroll = output<IOverscrollEvent>();
 
   protected _$initialized = new BehaviorSubject<boolean>(false);
   readonly $initialized = this._$initialized.asObservable();
@@ -1392,6 +1397,10 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
         scroller.refresh(true, true);
       }
     }
+  }
+
+  protected onOverscrollHandler(event: IOverscrollEvent) {
+    this.onOverscroll.emit(event);
   }
 
   private snappingHandler() {

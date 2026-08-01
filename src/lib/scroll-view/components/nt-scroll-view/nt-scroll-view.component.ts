@@ -32,6 +32,7 @@ import { X_PROP_NAME, Y_PROP_NAME } from '../../../common/const/base-prop-names'
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { ICancelOverscrollOptions } from '../../../common/interfaces/cancel-overscroll-options';
 import { IAnimatorUpdateData } from '../../../common/utils/animator/interfaces';
+import { OverscrollEvent } from '../../../common/events/overscroll-event';
 
 /**
  * NtScrollView
@@ -66,6 +67,10 @@ export class NtScrollView extends BaseScrollView {
     private _scrollDirectionValueX: number = 0;
 
     private _scrollDirectionValueY: number = 0;
+
+    private _dragX: number = 0;
+
+    private _dragY: number = 0;
 
     private _$scrollDirectionX = new BehaviorSubject<ScrollDirection>(0);
     readonly $scrollDirectionX = this._$scrollDirectionX.asObservable();
@@ -461,6 +466,8 @@ export class NtScrollView extends BaseScrollView {
                                     prevClientPositionY = currentPosY;
                                     this._scrollDirectionValueX += Math.abs(scrollDeltaX);
                                     this._scrollDirectionValueY += Math.abs(scrollDeltaY);
+                                    this._dragX = this.scrollableX ? (Math.abs((currentPosX ?? 0) - startClientPosX)) : 0;
+                                    this._dragY = this.scrollableY ? (Math.abs((currentPosY ?? 0) - startClientPosY)) : 0;
                                     this.move(positionX, positionY, true, true, true);
                                     startTimeX = endTimeX;
                                     startTimeY = endTimeY;
@@ -630,6 +637,8 @@ export class NtScrollView extends BaseScrollView {
                                     prevClientPositionY = currentPosY;
                                     this._scrollDirectionValueX += Math.abs(scrollDeltaX);
                                     this._scrollDirectionValueY += Math.abs(scrollDeltaY);
+                                    this._dragX = this.scrollableX ? (Math.abs((currentPosX ?? 0) - startClientPosX)) : 0;
+                                    this._dragY = this.scrollableY ? (Math.abs((currentPosY ?? 0) - startClientPosY)) : 0;
                                     this.move(positionX, positionY, true, true, true);
                                     startTimeX = endTimeX;
                                     startTimeY = endTimeY;
@@ -781,18 +790,19 @@ export class NtScrollView extends BaseScrollView {
         if (!this.overscrollEnabled()) {
             return;
         }
-        this._overscrollIteration = 0;
+        this._overscrollIteration = this._dragX = this._dragY = 0;
+        this.emitOverscrollEvent();
     }
 
     private checkOverscrollByAxis(e: Event, pos: number, limit: number): boolean {
         const p = Math.abs(pos);
         if (p > 0 && p < limit) {
+            this._overscrollIteration = 0;
             if (e.cancelable) {
                 e.stopImmediatePropagation();
                 e.preventDefault();
                 return true;
             }
-            this._overscrollIteration = 0;
         } else {
             if (this._overscrollIteration < OVERSCROLL_START_ITERATION) {
                 this._overscrollIteration++;
@@ -802,6 +812,7 @@ export class NtScrollView extends BaseScrollView {
                     return true;
                 }
             }
+            this.emitOverscrollEvent();
         }
         return false;
     }
@@ -835,6 +846,10 @@ export class NtScrollView extends BaseScrollView {
                         e.stopImmediatePropagation();
                         e.preventDefault();
                     }
+                    const p = Math.abs(this._x);
+                    if (p <= 0 || p >= this.scrollWidth) {
+                        this.emitOverscrollEvent();
+                    }
                 }
             } else {
                 if (!overscrollX && getScrollable(this._service, Y_PROP_NAME, true)) {
@@ -850,9 +865,24 @@ export class NtScrollView extends BaseScrollView {
                         e.stopImmediatePropagation();
                         e.preventDefault();
                     }
+                    const p = Math.abs(this._y);
+                    if (p <= 0 || p >= this.scrollHeight) {
+                        this.emitOverscrollEvent();
+                    }
                 }
             }
         }
+    }
+
+    private emitOverscrollEvent() {
+        const event = new OverscrollEvent({
+            dragX: this._dragX,
+            dragY: this._dragY,
+            positionX: this._horizontalScrollRatio === 1 ? 1 : 0,
+            positionY: this._verticalScrollRatio === 1 ? 1 : 0,
+        });
+        this._$overscroll.next(event);
+        this.onOverscroll.emit(event);
     }
 
     private calculateVelocity(enabled: boolean, offsets: Array<[number, number]>, delta: number, timestamp: number, indexOffset: number = 10) {
