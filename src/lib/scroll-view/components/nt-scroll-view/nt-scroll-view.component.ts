@@ -466,8 +466,12 @@ export class NtScrollView extends NtBaseScrollView {
                                     prevClientPositionY = currentPosY;
                                     this._scrollDirectionValueX += Math.abs(scrollDeltaX);
                                     this._scrollDirectionValueY += Math.abs(scrollDeltaY);
-                                    this._dragX = this.scrollableX ? (Math.abs((currentPosX ?? 0) - startClientPosX)) : 0;
-                                    this._dragY = this.scrollableY ? (Math.abs((currentPosY ?? 0) - startClientPosY)) : 0;
+                                    const dragX = (currentPosX ?? 0) - startClientPosX,
+                                        dragY = (currentPosY ?? 0) - startClientPosY;
+                                    this._dragX = Math.abs(dragX);
+                                    this._dragY = Math.abs(dragY);
+                                    this._horizontalScrollRatio = Math.sign(dragX) < 0 ? 1 : 0;
+                                    this._verticalScrollRatio = Math.sign(dragY) < 0 ? 1 : 0;
                                     this.move(positionX, positionY, true, true, true);
                                     startTimeX = endTimeX;
                                     startTimeY = endTimeY;
@@ -637,8 +641,12 @@ export class NtScrollView extends NtBaseScrollView {
                                     prevClientPositionY = currentPosY;
                                     this._scrollDirectionValueX += Math.abs(scrollDeltaX);
                                     this._scrollDirectionValueY += Math.abs(scrollDeltaY);
-                                    this._dragX = this.scrollableX ? (Math.abs((currentPosX ?? 0) - startClientPosX)) : 0;
-                                    this._dragY = this.scrollableY ? (Math.abs((currentPosY ?? 0) - startClientPosY)) : 0;
+                                    const dragX = (currentPosX ?? 0) - startClientPosX,
+                                        dragY = (currentPosY ?? 0) - startClientPosY;
+                                    this._dragX = Math.abs(dragX);
+                                    this._dragY = Math.abs(dragY);
+                                    this._horizontalScrollRatio = Math.sign(dragX) < 0 ? 1 : 0;
+                                    this._verticalScrollRatio = Math.sign(dragY) < 0 ? 1 : 0;
                                     this.move(positionX, positionY, true, true, true);
                                     startTimeX = endTimeX;
                                     startTimeY = endTimeY;
@@ -1129,7 +1137,7 @@ export class NtScrollView extends NtBaseScrollView {
             if (horizontalAxisEnabled && x !== null && (x !== prevX || force)) {
                 if (x !== null) {
                     this.setX(x, normalize);
-                    if (userAction) {
+                    if (userAction && this.scrollableX) {
                         const scrollWidth = Math.abs(this.scrollWidth),
                             xx = Math.abs(this._x);
                         this._horizontalScrollRatio = scrollWidth !== 0 ? (xx / scrollWidth) : 0;
@@ -1145,7 +1153,7 @@ export class NtScrollView extends NtBaseScrollView {
             if (verticalAxisEnabled && y !== null && (y !== prevY || force)) {
                 if (y !== null) {
                     this.setY(y, normalize);
-                    if (userAction) {
+                    if (userAction && this.scrollableY) {
                         const scrollHeight = Math.abs(this.scrollHeight),
                             yy = Math.abs(this._y);
                         this._verticalScrollRatio = scrollHeight !== 0 ? yy / scrollHeight : 0;

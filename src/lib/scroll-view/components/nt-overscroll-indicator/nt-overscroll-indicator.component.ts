@@ -11,9 +11,6 @@ import { NtBaseOverscrollIndicatorComponent } from "./base";
     selector: 'nt-overscroll-indicator',
     templateUrl: './nt-overscroll-indicator.component.html',
     styleUrl: './nt-overscroll-indicator.component.scss',
-    host: {
-        'style': 'position: relative;'
-    },
     standalone: false,
 })
 export class NtOverscrollIndicatorComponent extends NtBaseOverscrollIndicatorComponent {

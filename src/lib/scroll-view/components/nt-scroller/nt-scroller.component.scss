@@ -56,11 +56,16 @@
     }
 
     .ntvs__scroller-wrapper {
+        position: absolute;
 
         /** For motion blur correction */
         &.filtered {
             overflow: unset;
         }
+    }
+
+    .ntoi {
+        position: relative;
     }
 
     .ntvs__scroller {
@@ -70,10 +75,11 @@
     .ntvs__scroller-wrapper,
     .ntvs__scroller {
         display: block;
-        position: relative;
+        position: absolute;
         overflow: hidden;
         width: 100%;
         height: 100%;
+        z-index: 1;
     }
 
     .ntvs__content {

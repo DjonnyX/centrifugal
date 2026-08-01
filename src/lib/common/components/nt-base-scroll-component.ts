@@ -15,7 +15,7 @@ import { INtScroller } from "../interfaces/nt-scroller";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export class NtBaseScrollComponent<S extends INtBaseScrollViewService, P extends INtBaseScrollViewService, C = INtScroller<S>>
+export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, P extends INtBaseScrollViewService, C = INtScroller<S>>
     implements INtBaseScrollView<S, P, C> {
     private static __nextId: number = 0;
 

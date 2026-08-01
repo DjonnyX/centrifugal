@@ -1,0 +1,20 @@
+.ntoi-indicator {
+    display: block;
+    position: absolute;
+
+    &.left {
+        left: 0;
+    }
+
+    &.top {
+        top: 0;
+    }
+
+    &.right {
+        right: 0;
+    }
+
+    &.bottom {
+        bottom: 0;
+    }
+}

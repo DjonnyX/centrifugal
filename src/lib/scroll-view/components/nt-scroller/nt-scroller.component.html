@@ -9,12 +9,6 @@
             <feGaussianBlur #filter></feGaussianBlur>
         </filter>
         <foreignObject xmlns="http://www.w3.org/1999/xhtml" width="100%" height="100%" class="ntvs__viewport">
-            <nt-overscroll-indicator-container [leftIndicatorEnabled]="overscrollIndicatorLeftEnabled()" [topIndicatorEnabled]="overscrollIndicatorTopEnabled()"
-                [rightIndicatorEnabled]="overscrollIndicatorRightEnabled()" [bottomIndicatorEnabled]="overscrollIndicatorBottomEnabled()"
-                [leftIndicatorRenderer]="overscrollIndicatorLeftRenderer()" [topIndicatorRenderer]="overscrollIndicatorTopRenderer()"
-                [rightIndicatorRenderer]="overscrollIndicatorRightRenderer()" [bottomIndicatorRenderer]="overscrollIndicatorBottomRenderer()"
-                (onLeftIndiatorPinned)="onLeftOverscrollIndiatorPinned.emit($event)" (onTopIndiatorPinned)="onTopOverscrollIndiatorPinned.emit($event)" 
-                (onRightIndiatorPinned)="onRightOverscrollIndiatorPinned.emit($event)" (onBottomIndiatorPinned)="onBottomOverscrollIndiatorPinned.emit($event)"/>
             <div class="ntvs__scroller-wrapper" [class.filtered]="filtered"
                 [style.filter]="filtered ? _filter : 'unset'">
                 <div cdkScrollable #scrollViewport part="scroller" class="ntvs__scroller">
@@ -25,6 +19,14 @@
                     </div>
                 </div>
             </div>
+            <nt-overscroll-indicator-container class="ntoi" [bounds]="viewportBounds()" [leftOffset]="leftOffset()" [topOffset]="topOffset()"
+                [rightOffset]="rightOffset()" [bottomOffset]="bottomOffset()" [overscrollEvent]="$overscroll | async"
+                [leftIndicatorEnabled]="overscrollIndicatorLeftEnabled()" [topIndicatorEnabled]="overscrollIndicatorTopEnabled()"
+                [rightIndicatorEnabled]="overscrollIndicatorRightEnabled()" [bottomIndicatorEnabled]="overscrollIndicatorBottomEnabled()"
+                [leftIndicatorRenderer]="overscrollIndicatorLeftRenderer()" [topIndicatorRenderer]="overscrollIndicatorTopRenderer()"
+                [rightIndicatorRenderer]="overscrollIndicatorRightRenderer()" [bottomIndicatorRenderer]="overscrollIndicatorBottomRenderer()"
+                (onLeftIndiatorPinned)="onLeftOverscrollIndiatorPinned.emit($event)" (onTopIndiatorPinned)="onTopOverscrollIndiatorPinned.emit($event)" 
+                (onRightIndiatorPinned)="onRightOverscrollIndiatorPinned.emit($event)" (onBottomIndiatorPinned)="onBottomOverscrollIndiatorPinned.emit($event)"/>
         </foreignObject>
     </svg>
     @if (scrollbarEnabled()) {

@@ -1,5 +1,5 @@
 import { Component, input, output, signal, TemplateRef } from "@angular/core";
-import { IOverscrollEvent } from "../../../common";
+import { IOverscrollEvent, ISize } from "../../../common";
 
 /**
  * NtOverscrollIndicatorComponent
@@ -12,7 +12,13 @@ import { IOverscrollEvent } from "../../../common";
     templateUrl: './nt-overscroll-indicator-container.component.html',
     styleUrl: './nt-overscroll-indicator-container.component.scss',
     host: {
-        'style': 'position: relative;'
+        'style': `
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: block;
+            pointer-events: none;
+        `
     },
     standalone: false,
 })
@@ -25,7 +31,17 @@ export class NtOverscrollIndicatorContainerComponent {
 
     readonly onBottomIndiatorPinned = output<boolean>();
 
+    readonly bounds = input<ISize>({ width: 0, height: 0 });
+
     readonly overscrollEvent = input<IOverscrollEvent | null>(null);
+
+    readonly leftOffset = input<number>(0);
+
+    readonly topOffset = input<number>(0);
+
+    readonly rightOffset = input<number>(0);
+
+    readonly bottomOffset = input<number>(0);
 
     readonly leftIndicatorEnabled = input<boolean>(false);
 
