@@ -1,7 +1,7 @@
 import {
-    Component, DestroyRef, ElementRef, inject, input, output, signal, TemplateRef, viewChild,
+    Component, DestroyRef, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild,
 } from '@angular/core';
-import { Subject } from 'rxjs';
+import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
 import { ScrollerDirection, ScrollerDirections } from '../enums';
 import {
     CONTROL_CONTAINER_SERVICE, IOverscrollEvent, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
@@ -14,6 +14,7 @@ import { INtControlContainerService } from '../../../../control-container/interf
 import { IScrollToParams } from '../../../../common/interfaces/scroll-to-params';
 import { INtBaseScrollViewService } from '../../../../common/interfaces/nt-base-scroll-view-service';
 import { INtBaseScrollView } from '../../../../common/interfaces/nt-base-scroll-view';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 
 /**
  * NtBaseScrollView
@@ -31,21 +32,23 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
     readonly scrollViewport = viewChild<ElementRef<HTMLDivElement>>('scrollViewport');
 
     readonly onOverscroll = output<IOverscrollEvent>();
-    
+
     readonly onLeftOverscrollIndiatorPinned = output<boolean>();
-    
+
     readonly onTopOverscrollIndiatorPinned = output<boolean>();
-    
+
     readonly onRightOverscrollIndiatorPinned = output<boolean>();
-    
+
     readonly onBottomOverscrollIndiatorPinned = output<boolean>();
 
+    readonly overscrollIndicatorShowAutomatically = input<boolean>(true);
+
     readonly overscrollIndicatorLeftEnabled = input<boolean>(false);
-    
+
     readonly overscrollIndicatorTopEnabled = input<boolean>(false);
-    
+
     readonly overscrollIndicatorRightEnabled = input<boolean>(false);
-    
+
     readonly overscrollIndicatorBottomEnabled = input<boolean>(false);
 
     readonly overscrollIndicatorLeftRenderer = input<TemplateRef<any> | null>(null);
@@ -55,7 +58,7 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
     readonly overscrollIndicatorRightRenderer = input<TemplateRef<any> | null>(null);
 
     readonly overscrollIndicatorBottomRenderer = input<TemplateRef<any> | null>(null);
-    
+
     readonly direction = input<ScrollerDirections>(ScrollerDirection.BOTH);
 
     readonly langTextDir = input<TextDirection>(TextDirections.LTR);
@@ -67,6 +70,14 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
     readonly rightOffset = input<number>(0);
 
     readonly bottomOffset = input<number>(0);
+
+    protected _actualOverscrollIndicatorLeftEnabled = signal<boolean>(false);
+
+    protected _actualOverscrollIndicatorTopEnabled = signal<boolean>(false);
+
+    protected _actualOverscrollIndicatorRightEnabled = signal<boolean>(false);
+
+    protected _actualOverscrollIndicatorBottomEnabled = signal<boolean>(false);
 
     readonly grabbing = signal<boolean>(false);
 
@@ -245,6 +256,33 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
     readonly viewportBounds = signal<ISize>({ width: 0, height: 0 });
 
     readonly contentBounds = signal<ISize>({ width: 0, height: 0 });
+
+    constructor() {
+
+        const $viewportBounds = toObservable(this.viewportBounds),
+            $contentBounds = toObservable(this.contentBounds),
+            $overscrollIndicatorShowAutomatically = toObservable(this.overscrollIndicatorShowAutomatically),
+            $overscrollIndicatorLeftEnabled = toObservable(this.overscrollIndicatorLeftEnabled),
+            $overscrollIndicatorTopEnabled = toObservable(this.overscrollIndicatorTopEnabled),
+            $overscrollIndicatorRightEnabled = toObservable(this.overscrollIndicatorRightEnabled),
+            $overscrollIndicatorBottomEnabled = toObservable(this.overscrollIndicatorBottomEnabled);
+
+        combineLatest([$viewportBounds, $contentBounds, $overscrollIndicatorShowAutomatically, $overscrollIndicatorLeftEnabled, $overscrollIndicatorTopEnabled,
+            $overscrollIndicatorRightEnabled, $overscrollIndicatorBottomEnabled]).pipe(
+                takeUntilDestroyed(),
+                debounceTime(0),
+                tap(([, , showAutomatically, leftEnabled, topEnabled, rightEnabled, bottomEnabled]) => {
+                    const left = (leftEnabled || showAutomatically) ? this.scrollableX : false,
+                        top = (topEnabled || showAutomatically) ? this.scrollableY : false,
+                        right = (rightEnabled || showAutomatically) ? this.scrollableX : false,
+                        bottom = (bottomEnabled || showAutomatically) ? this.scrollableY : false;
+                    this._actualOverscrollIndicatorLeftEnabled.set(left);
+                    this._actualOverscrollIndicatorTopEnabled.set(top);
+                    this._actualOverscrollIndicatorRightEnabled.set(right);
+                    this._actualOverscrollIndicatorBottomEnabled.set(bottom);
+                }),
+            ).subscribe();
+    }
 
     tick() {
         this.onResizeContent();

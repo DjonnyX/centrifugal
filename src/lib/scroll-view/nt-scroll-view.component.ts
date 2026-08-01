@@ -126,8 +126,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
   protected _$initialized = new BehaviorSubject<boolean>(false);
   readonly $initialized = this._$initialized.asObservable();
 
-
-
+  readonly overscrollIndicatorShowAutomatically = input<boolean>(true);
 
   readonly overscrollIndicatorLeftEnabled = input<boolean>(false);
     
@@ -144,9 +143,6 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
   readonly overscrollIndicatorRightRenderer = input<TemplateRef<any> | null>(null);
 
   readonly overscrollIndicatorBottomRenderer = input<TemplateRef<any> | null>(null);
-
-
-
 
   protected _scrollbarThickness = {
     transform: (v: number) => {

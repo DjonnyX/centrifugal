@@ -36,4 +36,9 @@
         }
     }
 
+    &:not(.grabbing) {
+        .ntoi-rect {
+            transition: left ease-out 250ms, right ease-out 250ms, top ease-out 250ms, bottom ease-out 250ms;
+        }
+    }
 }

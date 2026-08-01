@@ -21,8 +21,8 @@
             </div>
             <nt-overscroll-indicator-container class="ntoi" [bounds]="viewportBounds()" [leftOffset]="leftOffset()" [topOffset]="topOffset()"
                 [rightOffset]="rightOffset()" [bottomOffset]="bottomOffset()" [overscrollEvent]="$overscroll | async"
-                [leftIndicatorEnabled]="overscrollIndicatorLeftEnabled()" [topIndicatorEnabled]="overscrollIndicatorTopEnabled()"
-                [rightIndicatorEnabled]="overscrollIndicatorRightEnabled()" [bottomIndicatorEnabled]="overscrollIndicatorBottomEnabled()"
+                [leftIndicatorEnabled]="_actualOverscrollIndicatorLeftEnabled()" [topIndicatorEnabled]="_actualOverscrollIndicatorTopEnabled()"
+                [rightIndicatorEnabled]="_actualOverscrollIndicatorRightEnabled()" [bottomIndicatorEnabled]="_actualOverscrollIndicatorBottomEnabled()"
                 [leftIndicatorRenderer]="overscrollIndicatorLeftRenderer()" [topIndicatorRenderer]="overscrollIndicatorTopRenderer()"
                 [rightIndicatorRenderer]="overscrollIndicatorRightRenderer()" [bottomIndicatorRenderer]="overscrollIndicatorBottomRenderer()"
                 (onLeftIndiatorPinned)="onLeftOverscrollIndiatorPinned.emit($event)" (onTopIndiatorPinned)="onTopOverscrollIndiatorPinned.emit($event)" 

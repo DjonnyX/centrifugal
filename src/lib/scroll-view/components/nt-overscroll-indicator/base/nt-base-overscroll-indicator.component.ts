@@ -49,7 +49,7 @@ export class NtBaseOverscrollIndicatorComponent {
 
     constructor() {
         this._classes = computed(() => {
-            return { [this.type()]: true };
+            return { [this.type()]: true, grabbing: this.overscrollEvent()?.grabbing ?? false };
         });
 
         this._enabled = computed(() => {

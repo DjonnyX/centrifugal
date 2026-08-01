@@ -137,6 +137,9 @@ export class NtScrollView extends NtBaseScrollView {
     protected _scrollRatio: number = 0;
     get scrollRatio() { return this._scrollRatio; }
 
+    protected _scrollRatioWhenGrabbing: number = 0;
+    get scrollRatioWhenGrabbing() { return this._scrollRatioWhenGrabbing; }
+
     get inverted() { return this._horizontalAxisInvertion(); }
 
     private _overscrollIteration: number = 0;
@@ -436,8 +439,13 @@ export class NtScrollView extends NtBaseScrollView {
                                     prevClientPositionY = currentPosY;
                                     this._scrollDirectionValueX += Math.abs(scrollDeltaX);
                                     this._scrollDirectionValueY += Math.abs(scrollDeltaY);
-                                    this._dragX = !isVertical && this.scrollable ? (Math.abs((currentPosX ?? 0) - startClientPosX)) : 0;
-                                    this._dragY = isVertical && this.scrollable ? (Math.abs((currentPosY ?? 0) - startClientPosY)) : 0;
+                                    const dx = (currentPosX ?? 0) - startClientPosX,
+                                        dy = (currentPosY ?? 0) - startClientPosY,
+                                        dragX = dx > 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - this.scrollWidth)),
+                                        dragY = dy > 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - this.scrollHeight));
+                                    this._dragX = !isVertical && this.scrollable ? Math.abs(dragX) : 0;
+                                    this._dragY = isVertical && this.scrollable ? Math.abs(dragY) : 0;
+                                    this._scrollRatioWhenGrabbing = isVertical ? (Math.sign(dragY) < 0 ? 1 : 0) : (Math.sign(dragX) < 0 ? 1 : 0);
                                     this.move(isVertical, position, true, true, true);
                                     if (this.isInfinity()) {
                                         const offset = Math.abs(position) - Math.abs(isVertical ? this._y : this._x),
@@ -619,8 +627,13 @@ export class NtScrollView extends NtBaseScrollView {
                                     prevClientPositionY = currentPosY;
                                     this._scrollDirectionValueX += Math.abs(scrollDeltaX);
                                     this._scrollDirectionValueY += Math.abs(scrollDeltaY);
-                                    this._dragX = !isVertical && this.scrollable ? (Math.abs((currentPosX ?? 0) - startClientPosX)) : 0;
-                                    this._dragY = isVertical && this.scrollable ? (Math.abs((currentPosY ?? 0) - startClientPosY)) : 0;
+                                    const dx = (currentPosX ?? 0) - startClientPosX,
+                                        dy = (currentPosY ?? 0) - startClientPosY,
+                                        dragX = dx > 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - this.scrollWidth)),
+                                        dragY = dy > 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - this.scrollHeight));
+                                    this._dragX = !isVertical && this.scrollable ? Math.abs(dragX) : 0;
+                                    this._dragY = isVertical && this.scrollable ? Math.abs(dragY) : 0;
+                                    this._scrollRatioWhenGrabbing = isVertical ? (Math.sign(dragY) < 0 ? 1 : 0) : (Math.sign(dragX) < 0 ? 1 : 0);
                                     this.move(isVertical, position, true, true, true);
                                     if (this.isInfinity()) {
                                         const offset = Math.abs(position) - Math.abs(isVertical ? this._y : this._x),
@@ -768,7 +781,7 @@ export class NtScrollView extends NtBaseScrollView {
             return;
         }
         this._overscrollIteration = this._dragX = this._dragY = 0;
-        this.emitOverscrollEvent();
+        this.emitOverscrollEvent(false);
     }
 
     private checkOverscrollByAxis(e: Event, pos: number, limit: number) {
@@ -854,16 +867,17 @@ export class NtScrollView extends NtBaseScrollView {
         }
     }
 
-    private emitOverscrollEvent() {
+    private emitOverscrollEvent(grabbing: boolean = true) {
         if (this.isInfinity()) {
             return;
         }
         const isVertical = this.isVertical(),
             event = new OverscrollEvent({
+                grabbing,
                 dragX: this._dragX,
                 dragY: this._dragY,
-                positionX: isVertical ? 0 : (this._scrollRatio === 1 ? 1 : 0),
-                positionY: isVertical ? (this._scrollRatio === 1 ? 1 : 0) : 0,
+                positionX: isVertical ? 0 : (this._scrollRatioWhenGrabbing === 1 ? 1 : 0),
+                positionY: isVertical ? (this._scrollRatioWhenGrabbing === 1 ? 1 : 0) : 0,
             });
         this._$overscroll.next(event);
         this.onOverscroll.emit(event);
