@@ -1,0 +1,44 @@
+@let leftIndicatorVisible = leftIndicatorEnabled();
+@let topIndicatorVisible = topIndicatorEnabled();
+@let rightIndicatorVisible = rightIndicatorEnabled();
+@let bottomIndicatorVisible = bottomIndicatorEnabled();
+
+@if (leftIndicatorVisible || topIndicatorVisible || rightIndicatorVisible || bottomIndicatorVisible) {
+    @let event = overscrollEvent();
+    @if (leftIndicatorVisible) {
+        @let leftIndicatorCustomRenderer = leftIndicatorRenderer();
+        @if (!!leftIndicatorCustomRenderer) {
+            <ng-container [ngTemplateOutlet]="leftIndicatorCustomRenderer" [ngTemplateOutletContext]="event"
+                [pinned]="leftIndicatorPinned()" />
+        } @else {
+            <nt-overscroll-indicator [overscrollEvent]="event" [pinned]="leftIndicatorPinned()" />
+        }
+    }
+    @if (topIndicatorVisible) {
+        @let topIndicatorCustomRenderer = topIndicatorRenderer();
+        @if (!!topIndicatorCustomRenderer) {
+            <ng-container [ngTemplateOutlet]="topIndicatorCustomRenderer" [ngTemplateOutletContext]="event"
+                [pinned]="topIndicatorPinned()" />
+        } @else {
+            <nt-overscroll-indicator [overscrollEvent]="event" [pinned]="topIndicatorPinned()" />
+        }
+    }
+    @if (rightIndicatorVisible) {
+        @let rightIndicatorCustomRenderer = rightIndicatorRenderer();
+        @if (!!rightIndicatorCustomRenderer) {
+            <ng-container [ngTemplateOutlet]="rightIndicatorCustomRenderer" [ngTemplateOutletContext]="event"
+                [pinned]="rightIndicatorPinned()" />
+        } @else {
+            <nt-overscroll-indicator [overscrollEvent]="event" [pinned]="rightIndicatorPinned()" />
+        }
+    }
+    @if (bottomIndicatorVisible) {
+        @let bottomIndicatorCustomRenderer = bottomIndicatorRenderer();
+        @if (!!bottomIndicatorCustomRenderer) {
+            <ng-container [ngTemplateOutlet]="bottomIndicatorCustomRenderer" [ngTemplateOutletContext]="event"
+                [pinned]="bottomIndicatorPinned()" />
+        } @else {
+            <nt-overscroll-indicator [overscrollEvent]="event" [pinned]="bottomIndicatorPinned()" />
+        }
+    }
+}

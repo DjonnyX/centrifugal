@@ -1,5 +1,5 @@
 import {
-    Component, DestroyRef, ElementRef, inject, input, output, signal, viewChild,
+    Component, DestroyRef, ElementRef, inject, input, output, signal, TemplateRef, viewChild,
 } from '@angular/core';
 import { Subject } from 'rxjs';
 import { ScrollerDirection, ScrollerDirections } from '../enums';
@@ -31,7 +31,31 @@ export abstract class BaseScrollView implements INtScroller<IBaseScrollViewServi
     readonly scrollViewport = viewChild<ElementRef<HTMLDivElement>>('scrollViewport');
 
     readonly onOverscroll = output<IOverscrollEvent>();
+    
+    readonly onLeftOverscrollIndiatorPinned = output<boolean>();
+    
+    readonly onTopOverscrollIndiatorPinned = output<boolean>();
+    
+    readonly onRightOverscrollIndiatorPinned = output<boolean>();
+    
+    readonly onBottomOverscrollIndiatorPinned = output<boolean>();
 
+    readonly overscrollIndicatorLeftEnabled = input<boolean>(false);
+    
+    readonly overscrollIndicatorTopEnabled = input<boolean>(false);
+    
+    readonly overscrollIndicatorRightEnabled = input<boolean>(false);
+    
+    readonly overscrollIndicatorBottomEnabled = input<boolean>(false);
+
+    readonly overscrollIndicatorLeftRenderer = input<TemplateRef<any> | null>(null);
+
+    readonly overscrollIndicatorTopRenderer = input<TemplateRef<any> | null>(null);
+
+    readonly overscrollIndicatorRightRenderer = input<TemplateRef<any> | null>(null);
+
+    readonly overscrollIndicatorBottomRenderer = input<TemplateRef<any> | null>(null);
+    
     readonly direction = input<ScrollerDirections>(ScrollerDirection.BOTH);
 
     readonly langTextDir = input<TextDirection>(TextDirections.LTR);

@@ -106,6 +106,22 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
    * Dispatches an overscroll event.
    */
   onOverscroll = output<IOverscrollEvent>();
+  /**
+   * Fires when the left overscroll indicator is pinned to the screen.
+   */
+  onLeftOverscrollIndiatorPinned = output<boolean>();
+  /**
+   * Fires when the top overscroll indicator is pinned to the screen.
+   */
+  onTopOverscrollIndiatorPinned = output<boolean>();
+  /**
+   * Fires when the right overscroll indicator is pinned to the screen.
+   */
+  onRightOverscrollIndiatorPinned = output<boolean>();
+  /**
+   * Fires when the bottom overscroll indicator is pinned to the screen.
+   */
+  onBottomOverscrollIndiatorPinned = output<boolean>();
 
   protected _$initialized = new BehaviorSubject<boolean>(false);
   readonly $initialized = this._$initialized.asObservable();
@@ -1397,10 +1413,6 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
         scroller.refresh(true, true);
       }
     }
-  }
-
-  protected onOverscrollHandler(event: IOverscrollEvent) {
-    this.onOverscroll.emit(event);
   }
 
   private snappingHandler() {

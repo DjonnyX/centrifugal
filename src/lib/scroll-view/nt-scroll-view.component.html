@@ -12,8 +12,11 @@
   [overlappingScrollbar]="overlappingScrollbar()" [scrollbarEnabled]="scrollbarEnabled()"
   [scrollbarInteractive]="scrollbarInteractive()" [scrollbarMinSize]="scrollbarMinSize()"
   [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()"
-  [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()"
-  (onOverscroll)="onOverscrollHandler($event)">
+  [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()" (onOverscroll)="onOverscroll.emit($event)"
+  (onLeftOverscrollIndiatorPinned)="onLeftOverscrollIndiatorPinned.emit($event)"
+  (onTopOverscrollIndiatorPinned)="onTopOverscrollIndiatorPinned.emit($event)"
+  (onRightOverscrollIndiatorPinned)="onRightOverscrollIndiatorPinned.emit($event)"
+  (onBottomOverscrollIndiatorPinned)="onBottomOverscrollIndiatorPinned.emit($event)">
   <ng-container #renderersContainer>
     <ng-content></ng-content>
   </ng-container>
