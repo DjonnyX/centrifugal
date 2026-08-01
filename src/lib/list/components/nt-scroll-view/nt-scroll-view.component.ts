@@ -822,9 +822,11 @@ export class NtScrollView extends BaseScrollView {
                     e.stopImmediatePropagation();
                     e.preventDefault();
                 }
-                const p = Math.abs(this._x);
-                if (p <= 0 || p >= this.scrollWidth) {
-                    this.emitOverscrollEvent();
+                if (!this.isInfinity()) {
+                    const p = Math.abs(this._x);
+                    if (p <= 0 || p >= this.scrollWidth) {
+                        this.emitOverscrollEvent();
+                    }
                 }
             }
         } else {
@@ -842,15 +844,20 @@ export class NtScrollView extends BaseScrollView {
                     e.stopImmediatePropagation();
                     e.preventDefault();
                 }
-                const p = Math.abs(this._y);
-                if (p <= 0 || p >= this.scrollHeight) {
-                    this.emitOverscrollEvent();
+                if (!this.isInfinity()) {
+                    const p = Math.abs(this._y);
+                    if (p <= 0 || p >= this.scrollHeight) {
+                        this.emitOverscrollEvent();
+                    }
                 }
             }
         }
     }
 
     private emitOverscrollEvent() {
+        if (this.isInfinity()) {
+            return;
+        }
         const isVertical = this.isVertical(),
             event = new OverscrollEvent({
                 dragX: this._dragX,
