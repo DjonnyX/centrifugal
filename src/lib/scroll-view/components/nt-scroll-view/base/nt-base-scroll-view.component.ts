@@ -258,27 +258,27 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
     readonly contentBounds = signal<ISize>({ width: 0, height: 0 });
 
     constructor() {
-
         const $viewportBounds = toObservable(this.viewportBounds),
             $contentBounds = toObservable(this.contentBounds),
+            $langTextDir = toObservable(this.langTextDir),
             $overscrollIndicatorShowAutomatically = toObservable(this.overscrollIndicatorShowAutomatically),
             $overscrollIndicatorLeftEnabled = toObservable(this.overscrollIndicatorLeftEnabled),
             $overscrollIndicatorTopEnabled = toObservable(this.overscrollIndicatorTopEnabled),
             $overscrollIndicatorRightEnabled = toObservable(this.overscrollIndicatorRightEnabled),
             $overscrollIndicatorBottomEnabled = toObservable(this.overscrollIndicatorBottomEnabled);
 
-        combineLatest([$viewportBounds, $contentBounds, $overscrollIndicatorShowAutomatically, $overscrollIndicatorLeftEnabled, $overscrollIndicatorTopEnabled,
+        combineLatest([$viewportBounds, $contentBounds, $langTextDir, $overscrollIndicatorShowAutomatically, $overscrollIndicatorLeftEnabled, $overscrollIndicatorTopEnabled,
             $overscrollIndicatorRightEnabled, $overscrollIndicatorBottomEnabled]).pipe(
                 takeUntilDestroyed(),
                 debounceTime(0),
-                tap(([, , showAutomatically, leftEnabled, topEnabled, rightEnabled, bottomEnabled]) => {
+                tap(([, , langTextDir, showAutomatically, leftEnabled, topEnabled, rightEnabled, bottomEnabled]) => {
                     const left = (leftEnabled || showAutomatically) ? this.scrollableX : false,
                         top = (topEnabled || showAutomatically) ? this.scrollableY : false,
                         right = (rightEnabled || showAutomatically) ? this.scrollableX : false,
                         bottom = (bottomEnabled || showAutomatically) ? this.scrollableY : false;
-                    this._actualOverscrollIndicatorLeftEnabled.set(left);
+                    this._actualOverscrollIndicatorLeftEnabled.set(langTextDir === TextDirections.LTR ? left : right);
                     this._actualOverscrollIndicatorTopEnabled.set(top);
-                    this._actualOverscrollIndicatorRightEnabled.set(right);
+                    this._actualOverscrollIndicatorRightEnabled.set(langTextDir === TextDirections.LTR ? right : left);
                     this._actualOverscrollIndicatorBottomEnabled.set(bottom);
                 }),
             ).subscribe();

@@ -165,12 +165,189 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
    * Dispatches an overscroll event.
    */
   onOverscroll = output<IOverscrollEvent>();
+  
+  /**
+   * Fires when the left overscroll indicator is pinned to the screen.
+   */
+  onLeftOverscrollIndiatorPinned = output<boolean>();
+
+  /**
+   * Fires when the top overscroll indicator is pinned to the screen.
+   */
+  onTopOverscrollIndiatorPinned = output<boolean>();
+
+  /**
+   * Fires when the right overscroll indicator is pinned to the screen.
+   */
+  onRightOverscrollIndiatorPinned = output<boolean>();
+
+  /**
+   * Fires when the bottom overscroll indicator is pinned to the screen.
+   */
+  onBottomOverscrollIndiatorPinned = output<boolean>();
 
   private _$show = new BehaviorSubject<boolean>(false);
   readonly $show = this._$show.asObservable();
 
   private _$initialized = new BehaviorSubject<boolean>(false);
   readonly $initialized = this._$initialized.asObservable();
+  
+  protected _overscrollIndicatorShowAutomaticallyOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "overscrollIndicatorShowAutomatically" parameter must be of type `boolean`.');
+        return true;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   *  Sets whether overscroll indicators are automatically displayed if the value is true.
+   */
+  overscrollIndicatorShowAutomatically = input<boolean>(true, { ...this._overscrollIndicatorShowAutomaticallyOptions });
+
+  protected _overscrollIndicatorLeftEnabledOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "overscrollIndicatorLeftEnabled" parameter must be of type `boolean`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether to display the left overscroll indicator if the parameter value is true or not if it is false. 
+   * If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorLeftEnabled="false", the indicator will be used if horizontal scrolling is available.
+   */
+  overscrollIndicatorLeftEnabled = input<boolean>(false, { ...this._overscrollIndicatorLeftEnabledOptions });
+
+  protected _overscrollIndicatorTopEnabledOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "overscrollIndicatorTopEnabled" parameter must be of type `boolean`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether to display the top overscroll indicator if the parameter value is true or not if it is false. 
+   * If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorTopEnabled="false", the indicator will be used if vertical scrolling is available.
+   */
+  overscrollIndicatorTopEnabled = input<boolean>(false, { ...this._overscrollIndicatorTopEnabledOptions });
+
+  protected _overscrollIndicatorRightEnabledOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "overscrollIndicatorRightEnabled" parameter must be of type `boolean`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether to display the right overscroll indicator if the parameter value is true or not if it is false. 
+   * If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorRightEnabled="false", the indicator will be used if horizontal scrolling is available.
+   */
+  overscrollIndicatorRightEnabled = input<boolean>(false, { ...this._overscrollIndicatorRightEnabledOptions });
+
+  protected _overscrollIndicatorBottomEnabledOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "overscrollIndicatorBottomEnabled" parameter must be of type `boolean`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether to display the bottom overscroll indicator if the parameter value is true or not if it is false. 
+   * If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorBottomEnabled="false", the indicator will be used if vertical scrolling is available.
+   */
+  overscrollIndicatorBottomEnabled = input<boolean>(false, { ...this._overscrollIndicatorBottomEnabledOptions });
+
+  protected _overscrollIndicatorLeftRendererOptions = {
+    transform: (v: TemplateRef<any> | null) => {
+      const valid = validateObject(v, true, true);
+
+      if (!valid) {
+        console.error('The "overscrollIndicatorLeftRenderer" parameter must be of type `TemplateRef<any>`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Specifies a custom template for the left overscroll indicator.
+   */
+  overscrollIndicatorLeftRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollIndicatorLeftRendererOptions });
+
+  protected _overscrollIndicatorTopRendererOptions = {
+    transform: (v: TemplateRef<any> | null) => {
+      const valid = validateObject(v, true, true);
+
+      if (!valid) {
+        console.error('The "overscrollIndicatorTopRenderer" parameter must be of type `TemplateRef<any>`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Specifies a custom template for the top overscroll indicator.
+   */
+  overscrollIndicatorTopRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollIndicatorTopRendererOptions });
+
+  protected _overscrollIndicatorRightRendererOptions = {
+    transform: (v: TemplateRef<any> | null) => {
+      const valid = validateObject(v, true, true);
+
+      if (!valid) {
+        console.error('The "overscrollIndicatorRightRenderer" parameter must be of type `TemplateRef<any>`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Specifies a custom template for the right overscroll indicator.
+   */
+  overscrollIndicatorRightRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollIndicatorRightRendererOptions });
+
+  protected _overscrollIndicatorBottomRendererOptions = {
+    transform: (v: TemplateRef<any> | null) => {
+      const valid = validateObject(v, true, true);
+
+      if (!valid) {
+        console.error('The "overscrollIndicatorBottomRenderer" parameter must be of type `TemplateRef<any>`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Specifies a custom template for the bottom overscroll indicator.
+   */
+  overscrollIndicatorBottomRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollIndicatorBottomRendererOptions });
 
   protected _scrollbarThickness = {
     transform: (v: number) => {

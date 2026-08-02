@@ -899,7 +899,7 @@ export class NtScrollView extends NtBaseScrollView {
             grabbing,
             dragX: transitionExponent(this._dragX, bounds.width, DEFAULT_TRANSITION_EXPONENT),
             dragY: transitionExponent(this._dragY, bounds.height, DEFAULT_TRANSITION_EXPONENT),
-            positionX: this._horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0,
+            positionX: (this.langTextDir() === TextDirections.LTR ? (this._horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0) : (this._horizontalScrollRatioWhenGrabbing === 1 ? 0 : 1)),
             positionY: this._verticalScrollRatioWhenGrabbing === 1 ? 1 : 0,
         });
         this._$overscroll.next(event);

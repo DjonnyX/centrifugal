@@ -1,7 +1,7 @@
 import {
-    Component, computed, DestroyRef, ElementRef, inject, input, output, Signal, signal, viewChild,
+    Component, computed, DestroyRef, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild,
 } from '@angular/core';
-import { Subject } from 'rxjs';
+import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
 import { ScrollerDirection, ScrollerDirections } from '../enums';
 import {
     IOverscrollEvent,
@@ -12,6 +12,7 @@ import { INtScroller } from '../../../../common/interfaces/nt-scroller';
 import { IScrollToParams } from '../../../../common/interfaces/scroll-to-params';
 import { INtBaseScrollViewService } from '../../../../common/interfaces/nt-base-scroll-view-service';
 import { INtBaseScrollView } from '../../../../common/interfaces/nt-base-scroll-view';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 
 /**
  * NtBaseScrollView
@@ -34,11 +35,45 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     readonly onOverscroll = output<IOverscrollEvent>();
 
+    readonly onLeftOverscrollIndiatorPinned = output<boolean>();
+
+    readonly onTopOverscrollIndiatorPinned = output<boolean>();
+
+    readonly onRightOverscrollIndiatorPinned = output<boolean>();
+
+    readonly onBottomOverscrollIndiatorPinned = output<boolean>();
+
+    readonly overscrollIndicatorShowAutomatically = input<boolean>(true);
+
+    readonly overscrollIndicatorStartEnabled = input<boolean>(false);
+
+    readonly overscrollIndicatorEndEnabled = input<boolean>(false);
+
+    readonly overscrollIndicatorStartRenderer = input<TemplateRef<any> | null>(null);
+
+    readonly overscrollIndicatorEndRenderer = input<TemplateRef<any> | null>(null);
+
     readonly direction = input<ScrollerDirections>(ScrollerDirection.VERTICAL);
 
     readonly startOffset = input<number>(0);
 
     readonly endOffset = input<number>(0);
+
+    protected _leftOffset = signal<number>(0);
+
+    protected _topOffset = signal<number>(0);
+
+    protected _rightOffset = signal<number>(0);
+
+    protected _bottomOffset = signal<number>(0);
+
+    protected _actualOverscrollIndicatorLeftEnabled = signal<boolean>(false);
+
+    protected _actualOverscrollIndicatorTopEnabled = signal<boolean>(false);
+
+    protected _actualOverscrollIndicatorRightEnabled = signal<boolean>(false);
+
+    protected _actualOverscrollIndicatorBottomEnabled = signal<boolean>(false);
 
     readonly alignmentStartOffset = input<number>(0);
 
@@ -200,6 +235,54 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
         this.isVertical = computed(() => {
             return this.direction() === ScrollerDirection.VERTICAL;
         });
+
+        const $viewportBounds = toObservable(this.viewportBounds),
+            $contentBounds = toObservable(this.contentBounds),
+            $isVertical = toObservable(this.isVertical),
+            $overscrollIndicatorShowAutomatically = toObservable(this.overscrollIndicatorShowAutomatically),
+            $overscrollIndicatorStartEnabled = toObservable(this.overscrollIndicatorStartEnabled),
+            $overscrollIndicatorEndEnabled = toObservable(this.overscrollIndicatorEndEnabled),
+            $startOffset = toObservable(this.startOffset),
+            $endOffset = toObservable(this.endOffset);
+
+        combineLatest([$viewportBounds, $contentBounds, $isVertical, $overscrollIndicatorShowAutomatically, $overscrollIndicatorStartEnabled,
+            $overscrollIndicatorEndEnabled]).pipe(
+                takeUntilDestroyed(),
+                debounceTime(0),
+                tap(([, , isVertical, showAutomatically, startEnabled, endEnabled]) => {
+                    const start = (startEnabled || showAutomatically) ? this.scrollable : false,
+                        end = (endEnabled || showAutomatically) ? this.scrollable : false;
+                    this._actualOverscrollIndicatorLeftEnabled.set(isVertical ? false : start);
+                    this._actualOverscrollIndicatorTopEnabled.set(isVertical ? start : false);
+                    this._actualOverscrollIndicatorRightEnabled.set(isVertical ? false : end);
+                    this._actualOverscrollIndicatorBottomEnabled.set(isVertical ? end : false);
+                }),
+            ).subscribe();
+
+        combineLatest([$isVertical, $startOffset, $overscrollIndicatorShowAutomatically, $overscrollIndicatorStartEnabled]).pipe(
+            takeUntilDestroyed(),
+            debounceTime(0),
+            tap(([isVertical, startOffset, showAutomatically, startEnabled]) => {
+                const start = (startEnabled || showAutomatically) ? this.scrollable : false;
+                if (start) {
+                    this._leftOffset.set(isVertical ? 0 : startOffset);
+                    this._topOffset.set(isVertical ? startOffset : 0);
+                }
+            }),
+        ).subscribe();
+
+        combineLatest([$isVertical, $endOffset, $overscrollIndicatorShowAutomatically,
+            $overscrollIndicatorEndEnabled]).pipe(
+                takeUntilDestroyed(),
+                debounceTime(0),
+                tap(([isVertical, endOffset, showAutomatically, endEnabled]) => {
+                    const end = (endEnabled || showAutomatically) ? this.scrollable : false;
+                    if (end) {
+                        this._rightOffset.set(isVertical ? 0 : endOffset);
+                        this._bottomOffset.set(isVertical ? endOffset : 0);
+                    }
+                }),
+            ).subscribe();
     }
     stopScrolling(force?: boolean): void {
         throw new Error('Method not implemented.');
