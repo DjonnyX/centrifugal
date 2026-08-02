@@ -7,8 +7,7 @@ import { Direction } from './types';
 import { DEFAULT_ANIMATION_PARAMS } from './const';
 import { Id, IRect } from '../common';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
-import { IBaseScrollViewService } from '../common/interfaces/base-scroll-view-service';
-import { IBaseScrollView } from '../common/interfaces/base-scroll-view';
+import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-view-service';
 import { INtScroller } from '../common/interfaces/nt-scroller';
 
 /**
@@ -81,7 +80,7 @@ export class NtScrollViewService extends NtBaseScrollViewService implements INtS
     });
   }
 
-  initialize(id: number, scrollView: INtScroller<IBaseScrollViewService>, parentService: IBaseScrollViewService | null) {
+  initialize(id: number, scrollView: INtScroller<INtBaseScrollViewService>, parentService: INtBaseScrollViewService | null) {
     this._id = id;
     this._scrollView = scrollView;
     if (!!parentService) {

@@ -1,7 +1,7 @@
 import { TextDirections } from "../enums/text-directions";
 
 /**
- * TextDirection.
+ * TextDirection
  * 'rtl' - right-to-left.
  * 'ltr' - left-to-right.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/enums/text-directions.ts

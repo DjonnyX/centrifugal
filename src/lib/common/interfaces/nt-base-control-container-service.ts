@@ -1,5 +1,5 @@
 import { Observable } from "rxjs";
-import { IBaseScrollViewService } from "./base-scroll-view-service";
+import { INtBaseScrollViewService } from "./nt-base-scroll-view-service";
 import { IFocusedObject } from "./focused-object";
 
 /**
@@ -8,7 +8,7 @@ import { IFocusedObject } from "./focused-object";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface INtBaseControlContainerService extends IBaseScrollViewService {
+export interface INtBaseControlContainerService extends INtBaseScrollViewService {
     get emitter(): HTMLElement;
 
     readonly $focusedElement: Observable<IFocusedObject | null>;

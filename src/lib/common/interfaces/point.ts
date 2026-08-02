@@ -1,5 +1,3 @@
-import { ISize } from "./size";
-
 /**
  * IPoint
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/interfaces/point.ts

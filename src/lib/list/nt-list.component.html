@@ -33,6 +33,20 @@
   [scrollbarInteractive]="scrollbarInteractive()" [snapToItem]="snapToItem()" [snapToItemAlign]="snapToItemAlign()"
   [scrollbarMinSize]="scrollbarMinSize()" [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()"
   [scrollingOneByOne]="scrollingOneByOne()" [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()"
-  [motionBlurEnabled]="motionBlurEnabled()" (onOverscroll)="onOverscrollHandler($event)">
+  [motionBlurEnabled]="motionBlurEnabled()" (onOverscroll)="onOverscrollHandler($event)"
+  [overscrollIndicatorShowAutomatically]="overscrollIndicatorShowAutomatically()"
+  [overscrollIndicatorUseOffsets]="overscrollIndicatorUseOffsets()"
+  [overscrollIndicatorLeftEnabled]="overscrollIndicatorLeftEnabled()"
+  [overscrollIndicatorTopEnabled]="overscrollIndicatorTopEnabled()"
+  [overscrollIndicatorRightEnabled]="overscrollIndicatorRightEnabled()"
+  [overscrollIndicatorBottomEnabled]="overscrollIndicatorBottomEnabled()"
+  [overscrollIndicatorLeftRenderer]="overscrollIndicatorLeftRenderer()"
+  [overscrollIndicatorTopRenderer]="overscrollIndicatorTopRenderer()"
+  [overscrollIndicatorRightRenderer]="overscrollIndicatorRightRenderer()"
+  [overscrollIndicatorBottomRenderer]="overscrollIndicatorBottomRenderer()"
+  (onLeftOverscrollIndiatorTrigger)="onLeftOverscrollIndiatorTrigger.emit($event)"
+  (onTopOverscrollIndiatorTrigger)="onTopOverscrollIndiatorTrigger.emit($event)"
+  (onRightOverscrollIndiatorTrigger)="onRightOverscrollIndiatorTrigger.emit($event)"
+  (onBottomOverscrollIndiatorTrigger)="onBottomOverscrollIndiatorTrigger.emit($event)">
   <ng-container #renderersContainer></ng-container>
 </nt-scroller>

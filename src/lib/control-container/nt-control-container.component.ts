@@ -10,7 +10,7 @@ import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
 import { combineLatest, debounceTime, filter, fromEvent, map, of, skipUntil, Subject, switchMap, tap, timer } from "rxjs";
 import { INtControlContainerService } from "./interfaces";
 import { NtDrawerContainerComponent } from "../drawer-container";
-import { IBaseScrollViewService } from "../common/interfaces/base-scroll-view-service";
+import { INtBaseScrollViewService } from "../common/interfaces/nt-base-scroll-view-service";
 import { isInteractive } from "../common/utils/is-interactive";
 import { ScrollerTypes } from "../common/enums/scroller-types";
 import { IFocusedObject } from "../common/interfaces/focused-object";
@@ -258,7 +258,7 @@ export class NtControlContainerComponent extends NtDrawerContainerComponent<INtS
       let offsetTop = target.offsetTop;
       const scroller = e.scroller;
       if (!!scroller) {
-        let s = scroller.service, hostService: IBaseScrollViewService | null = null;
+        let s = scroller.service, hostService: INtBaseScrollViewService | null = null;
         while (true) {
           if (!!s?.scrollView?.parent?.host) {
             offsetTop += s.scrollView.parent.host.getBoundingClientRect().top;

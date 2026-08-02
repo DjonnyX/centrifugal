@@ -9,7 +9,7 @@ import { IScrollToParams } from "./scroll-to-params";
 import { IAnimationParams } from "./animation-params";
 import { Id, IRect, ISize, TextDirection } from "../../common";
 import { IScrollOptions } from "./scroll-options";
-import { IBaseScrollViewService } from "../../common/interfaces/base-scroll-view-service";
+import { INtBaseScrollViewService } from "../../common/interfaces/nt-base-scroll-view-service";
 import { INtScroller } from "../../common/interfaces/nt-scroller";
 
 /**
@@ -18,7 +18,7 @@ import { INtScroller } from "../../common/interfaces/nt-scroller";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface INtListService extends IBaseScrollViewService {
+export interface INtListService extends INtBaseScrollViewService {
     readonly $virtualClick: Observable<IRenderVirtualListItem<any> | null>;
 
     readonly $selectedIds: Observable<Array<Id> | Id | null>;
@@ -131,7 +131,7 @@ export interface INtListService extends IBaseScrollViewService {
 
     update(immediately?: boolean): void;
 
-    initialize(id: number, component: INtScroller<IBaseScrollViewService>, parent: IBaseScrollViewService | null, trackBox: TrackBox): void;
+    initialize(id: number, component: INtScroller<INtBaseScrollViewService>, parent: INtBaseScrollViewService | null, trackBox: TrackBox): void;
 
     generateComponentId(): number;
 

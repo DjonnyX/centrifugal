@@ -10,7 +10,7 @@ import {
 } from "../../../../const";
 import { IVirtualListCollection } from "../../../../models";
 import { PrerenderCache } from "../../types/cache";
-import { BaseVirtualListItemComponent } from "../../../nt-list-item/base";
+import { NtBaseVirtualListItemComponent } from "../../../nt-list-item/base";
 import { Component$1 } from "../../../../models/component.model";
 import { PrerenderTrackBox } from "../../core";
 import { PrerenderTrackBoxEvents } from "../../events";
@@ -65,7 +65,7 @@ export class NtPrerenderList implements OnDestroy {
 
     itemRenderer = input<TemplateRef<any>>();
 
-    itemComponentClass = input<Component$1<BaseVirtualListItemComponent>>(NtPrerenderVirtualListItemComponent);
+    itemComponentClass = input<Component$1<NtBaseVirtualListItemComponent>>(NtPrerenderVirtualListItemComponent);
 
     protected _items = signal<IVirtualListCollection | null>(null);
 

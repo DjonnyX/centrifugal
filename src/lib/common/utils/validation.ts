@@ -8,6 +8,9 @@ const isNullable = <T = any>(value: T) => {
 
 /**
  * Int validator
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/utils/validation.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
  * @param value Int
  */
 export const validateInt = (value: number | undefined, undefinable = false) => {
@@ -16,6 +19,9 @@ export const validateInt = (value: number | undefined, undefinable = false) => {
 
 /**
  * Float validator
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/utils/validation.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
  * @param value Float
  */
 export const validateFloat = (value: number | undefined, undefinable = false) => {
@@ -24,6 +30,9 @@ export const validateFloat = (value: number | undefined, undefinable = false) =>
 
 /**
  * String validator
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/utils/validation.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
  * @param value String
  */
 export const validateString = (value: string | undefined | null, undefinable = false, nullable = false) => {
@@ -32,6 +41,9 @@ export const validateString = (value: string | undefined | null, undefinable = f
 
 /**
  * Boolean validator
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/utils/validation.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
  * @param value Boolean
  */
 export const validateBoolean = (value: boolean | undefined, undefinable = false) => {
@@ -40,6 +52,9 @@ export const validateBoolean = (value: boolean | undefined, undefinable = false)
 
 /**
  * Array validator
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/utils/validation.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
  * @param value Array
  */
 export const validateArray = <T = any>(value: Array<T> | undefined | null, undefinable = false, nullable = false) => {
@@ -48,6 +63,9 @@ export const validateArray = <T = any>(value: Array<T> | undefined | null, undef
 
 /**
  * Object validator
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/utils/validation.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
  * @param value Object
  */
 export const validateObject = <T = any>(value: Object & T | undefined | null, undefinable = false, nullable = false) => {
@@ -56,6 +74,9 @@ export const validateObject = <T = any>(value: Object & T | undefined | null, un
 
 /**
  * Function validator
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/utils/validation.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
  * @param value Function
  */
 export const validateFunction = <T = any>(value: Object & T | undefined | null, undefinable = false, nullable = false) => {

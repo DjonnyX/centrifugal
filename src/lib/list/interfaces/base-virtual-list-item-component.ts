@@ -3,12 +3,12 @@ import { IRenderVirtualListItem } from '../models/render-item.model';
 import { Id, ISize } from '../../common';
 
 /**
- * IBaseVirtualListItemComponent
+ * INtBaseVirtualListItemComponent
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/interfaces/base-virtual-list-item-component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface IBaseVirtualListItemComponent {
+export interface INtBaseVirtualListItemComponent {
     get id(): number;
     regular: boolean;
     set regularLength(v: string)

@@ -3,7 +3,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, debounceTime, filter, from, Subject, switchMap, take, tap } from 'rxjs';
 import { ScrollBox } from './utils';
 import {
-  BEHAVIOR_INSTANT, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR,
+  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR,
   DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, SCROLLER_SCROLL,
 } from '../../const';
 import { NtScrollView } from '../nt-scroll-view';
@@ -13,6 +13,7 @@ import { NtBaseScrollBarComponent } from '../../../scroll-bar/components/nt-base
 import { IScrollBarDragEvent } from '../../../scroll-bar/components/nt-base-scroll-bar/interfaces';
 import { IListScrollToParams } from '../../../common/interfaces/list-scroll-to-params';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
+import { BEHAVIOR_INSTANT } from '../../../common/const/behavior';
 
 const TOP = 'top',
   LEFT = 'left',

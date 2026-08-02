@@ -1,5 +1,5 @@
 import { Tracker } from './tracker';
-import { BaseVirtualListItemComponent } from '../components/nt-list-item/base';
+import { NtBaseVirtualListItemComponent } from '../components/nt-list-item/base';
 import { IRenderVirtualListCollection } from '../models/render-collection.model';
 import { IRenderVirtualListItem } from '../models/render-item.model';
 import { SnapToItemAligns } from '../enums';
@@ -49,8 +49,8 @@ class Component {
     }
 }
 
-const generateComponent = (id: number): ComponentRef<BaseVirtualListItemComponent> => {
-    return new ComponentRef<BaseVirtualListItemComponent>(new Component(id) as unknown as BaseVirtualListItemComponent);
+const generateComponent = (id: number): ComponentRef<NtBaseVirtualListItemComponent> => {
+    return new ComponentRef<NtBaseVirtualListItemComponent>(new Component(id) as unknown as NtBaseVirtualListItemComponent);
 };
 
 const generateItem = (id: Id, trackBy: string): IRenderVirtualListItem => {
@@ -123,13 +123,13 @@ const generateItem = (id: Id, trackBy: string): IRenderVirtualListItem => {
     };
 };
 
-class TrackerTested<C extends BaseVirtualListItemComponent = any> extends Tracker<C> { }
+class TrackerTested<C extends NtBaseVirtualListItemComponent = any> extends Tracker<C> { }
 
 describe('Tracker', () => {
     it('Tracking should work correctly', () => {
         const trackBy = 'id', tracker = new TrackerTested(trackBy),
             items: IRenderVirtualListCollection = [],
-            components = new Array<ComponentRef<BaseVirtualListItemComponent>>(),
+            components = new Array<ComponentRef<NtBaseVirtualListItemComponent>>(),
             COLLECTION_LENGTH = 10,
             expected = new Array<number>();
         for (let i = 0, l = COLLECTION_LENGTH; i < l; i++) {
@@ -156,7 +156,7 @@ describe('Tracker', () => {
     it('Tracking with free components should work correctly', () => {
         const trackBy = 'id', tracker = new TrackerTested(trackBy),
             items: IRenderVirtualListCollection = [],
-            components = new Array<ComponentRef<BaseVirtualListItemComponent>>(),
+            components = new Array<ComponentRef<NtBaseVirtualListItemComponent>>(),
             COLLECTION_LENGTH = 10, COMPONENTS_LENGTH = 15, COLLECTION_DIFF_LENGTH = COMPONENTS_LENGTH - COLLECTION_LENGTH,
             COMPONENT_ID_OFFSET = 100,
             expected = new Array<number>(), displayObjectIndexMapById: {
@@ -194,7 +194,7 @@ describe('Tracker', () => {
     it('Tracking with legacy components should work correctly', () => {
         const trackBy = 'id', tracker = new TrackerTested(trackBy),
             items: IRenderVirtualListCollection = [],
-            components = new Array<ComponentRef<BaseVirtualListItemComponent>>(),
+            components = new Array<ComponentRef<NtBaseVirtualListItemComponent>>(),
             COLLECTION_LENGTH = 10, COMPONENTS_LENGTH = 15, COLLECTION_DIFF_LENGTH = COMPONENTS_LENGTH - COLLECTION_LENGTH,
             COMPONENT_ID_OFFSET = 100, COMPONENTS_INDEX_OFFSET = 10,
             expected = new Array<number>(), displayObjectIndexMapById: {
@@ -232,7 +232,7 @@ describe('Tracker', () => {
     it('`trackBy` should work correctly', () => {
         const trackBy = 'number', tracker = new TrackerTested(trackBy),
             items: IRenderVirtualListCollection = [],
-            components = new Array<ComponentRef<BaseVirtualListItemComponent>>(),
+            components = new Array<ComponentRef<NtBaseVirtualListItemComponent>>(),
             COLLECTION_LENGTH = 10, COMPONENTS_LENGTH = 15, COLLECTION_DIFF_LENGTH = COMPONENTS_LENGTH - COLLECTION_LENGTH,
             COMPONENT_ID_OFFSET = 100, COMPONENTS_INDEX_OFFSET = 10,
             expected = new Array<number>(), displayObjectIndexMapById: {

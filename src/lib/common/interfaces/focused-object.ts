@@ -1,4 +1,4 @@
-import { IBaseScrollViewService } from "./base-scroll-view-service";
+import { INtBaseScrollViewService } from "./nt-base-scroll-view-service";
 import { INtScroller } from "./nt-scroller";
 
 /**
@@ -11,5 +11,5 @@ export interface IFocusedObject {
     id: number;
     type: string;
     element: HTMLElement;
-    scroller: INtScroller<IBaseScrollViewService> | null;
+    scroller: INtScroller<INtBaseScrollViewService> | null;
 }

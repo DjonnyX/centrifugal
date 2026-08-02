@@ -69,10 +69,16 @@
         }
 
         .ntvl__scroller-wrapper {
+            position: absolute;
+
             &.filtered {
                 /** For motion blur correction */
                 overflow: unset;
             }
+        }
+
+        .ntoi {
+            position: relative;
         }
 
         .ntvl__scroller {
@@ -83,7 +89,7 @@
     .ntvl__scroller-wrapper,
     .ntvl__scroller {
         display: block;
-        position: relative;
+        position: absolute;
         overflow: hidden;
         width: 100%;
         height: 100%;

@@ -17,6 +17,14 @@
                     </div>
                 </div>
             </div>
+            <nt-overscroll-indicator-container class="ntoi" dir="ltr" [bounds]="viewportBounds()" [leftOffset]="_leftOffset()" [topOffset]="_topOffset()"
+                [rightOffset]="_rightOffset()" [bottomOffset]="_bottomOffset()" [overscrollEvent]="$overscroll | async"
+                [leftIndicatorEnabled]="_actualOverscrollIndicatorLeftEnabled()" [topIndicatorEnabled]="_actualOverscrollIndicatorTopEnabled()"
+                [rightIndicatorEnabled]="_actualOverscrollIndicatorRightEnabled()" [bottomIndicatorEnabled]="_actualOverscrollIndicatorBottomEnabled()"
+                [leftIndicatorRenderer]="overscrollIndicatorStartRenderer()" [topIndicatorRenderer]="overscrollIndicatorStartRenderer()"
+                [rightIndicatorRenderer]="overscrollIndicatorEndRenderer()" [bottomIndicatorRenderer]="overscrollIndicatorEndRenderer()"
+                (onLeftIndiatorTrigger)="onLeftOverscrollIndiatorTrigger.emit($event)" (onTopIndiatorTrigger)="onTopOverscrollIndiatorTrigger.emit($event)" 
+                (onRightIndiatorTrigger)="onRightOverscrollIndiatorTrigger.emit($event)" (onBottomIndiatorTrigger)="onBottomOverscrollIndiatorTrigger.emit($event)"/>
         </foreignObject>
     </svg>
     @if (scrollbarEnabled()) {

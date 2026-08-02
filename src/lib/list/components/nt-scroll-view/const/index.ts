@@ -1,11 +1,6 @@
 import { SCROLLER_SCROLL } from "../../../const";
 
-export const TOP = 'top',
-    LEFT = 'left',
-    INSTANT = 'instant',
-    AUTO = 'auto',
-    SMOOTH = 'smooth',
-    DURATION = 2000,
+export const DURATION = 2000,
     FRICTION_FORCE = .035,
     MAX_DURATION = 4000,
     ANIMATION_DURATION = 50,

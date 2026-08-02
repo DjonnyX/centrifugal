@@ -8,16 +8,14 @@ import {
 } from 'rxjs';
 import { ANIMATOR_MIN_TIMESTAMP, Animator, Easing, easeOutQuad } from '../../../common/utils/animator';
 import {
-    BEHAVIOR_INSTANT, DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLABLE,
-    DEFAULT_SCROLLING_SETTINGS,
+    DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLABLE, DEFAULT_SCROLLING_SETTINGS,
 } from '../../const';
 import {
-    ACCELERATION_SCALE, ANIMATION_DURATION, AUTO, DURATION, FRICTION_FORCE, INSTANT, LEFT, MASS, MAX_DIST, MAX_DURATION,
-    MAX_ITERATIONS_FOR_AVERAGE_CALCULATIONS, MAX_VELOCITY_TIMESTAMP, MAX_VELOCITIES_LENGTH, OVERSCROLL_START_ITERATION, SCROLL_EVENT,
-    SMOOTH, SPEED_SCALE, TOP, MIN_ACCELERATION, MIN_DELTA,
+    ACCELERATION_SCALE, ANIMATION_DURATION, DURATION, FRICTION_FORCE, MASS, MAX_DIST, MAX_DURATION, MAX_ITERATIONS_FOR_AVERAGE_CALCULATIONS,
+    MAX_VELOCITY_TIMESTAMP, MAX_VELOCITIES_LENGTH, OVERSCROLL_START_ITERATION, SCROLL_EVENT, SPEED_SCALE, MIN_ACCELERATION, MIN_DELTA,
 } from './const';
 import { calculateDirection, matrix3d } from './utils';
-import { BaseScrollView } from './base';
+import { NtBaseScrollView } from './base';
 import { IAnimationParams, IScrollingSettings } from '../../interfaces';
 import { ScrollDirection } from '../../types';
 import { calculateVelocity } from './utils/calculate-velocity';
@@ -28,11 +26,14 @@ import { INTERACTIVE } from '../../../common/const/class-names';
 import { IScrollToParams } from '../../../common/interfaces/scroll-to-params';
 import { IWheelEvent } from '../../../common/interfaces/wheel-event';
 import { getScrollable } from '../../../common/utils/get-scrollable';
-import { X_PROP_NAME, Y_PROP_NAME } from '../../../common/const/base-prop-names';
+import { LEFT_PROP_NAME, TOP_PROP_NAME, X_PROP_NAME, Y_PROP_NAME } from '../../../common/const/base-prop-names';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { ICancelOverscrollOptions } from '../../../common/interfaces/cancel-overscroll-options';
 import { IAnimatorUpdateData } from '../../../common/utils/animator/interfaces';
 import { OverscrollEvent } from '../../../common/events/overscroll-event';
+import { transitionExponent } from '../../../common/utils/transitions';
+import { DEFAULT_TRANSITION_EXPONENT } from '../../../common/const/transitions';
+import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT, BEHAVIOR_SMOOTH } from '../../../common/const/behavior';
 
 /**
  * NtScrollView
@@ -44,7 +45,7 @@ import { OverscrollEvent } from '../../../common/events/overscroll-event';
     selector: 'nt-scroll-view',
     template: '',
 })
-export class NtScrollView extends BaseScrollView {
+export class NtScrollView extends NtBaseScrollView {
     @ViewChild('scrollViewport', { read: CdkScrollable })
     readonly cdkScrollable: CdkScrollable | undefined;
 
@@ -243,6 +244,12 @@ export class NtScrollView extends BaseScrollView {
     protected _verticalScrollRatio = 0;
     get verticalScrollRatio() { return this._verticalScrollRatio; }
 
+    protected _horizontalScrollRatioWhenGrabbing = 0;
+    get horizontalScrollRatioWhenGrabbing() { return this._horizontalScrollRatioWhenGrabbing; }
+
+    protected _verticalScrollRatioWhenGrabbing = 0;
+    get verticalScrollRatioWhenGrabbing() { return this._verticalScrollRatioWhenGrabbing; }
+
     protected _injector = inject(Injector);
 
     constructor() {
@@ -358,7 +365,7 @@ export class NtScrollView extends BaseScrollView {
                             let positionX = 0, positionY = 0;
                             positionX = dpX < 0 ? 0 : dpX > scrollWidth ? scrollWidth : dpX;
                             positionY = dpY < 0 ? 0 : dpY > scrollHeight ? scrollHeight : dpY;
-                            this.scroll({ [LEFT]: positionX, [TOP]: positionY, behavior: INSTANT, userAction: true, blending: false, fireUpdate: true });
+                            this.scroll({ [LEFT_PROP_NAME]: positionX, [TOP_PROP_NAME]: positionY, behavior: BEHAVIOR_INSTANT, userAction: true, blending: false, fireUpdate: true });
                             this._$wheel.next({ deltaX, deltaY });
                         }),
                     );
@@ -377,7 +384,8 @@ export class NtScrollView extends BaseScrollView {
                 $mouseDragCancel = $mouseUp.pipe(
                     takeUntilDestroyed(this._destroyRef),
                     delay(0),
-                    tap(() => {
+                    tap(e => {
+                        this.cancelOverscroll({ event: e, released: true });
                         this._isMoving = false;
                         this.grabbing.set(false);
                         if (!mouseCanceled) {
@@ -466,8 +474,14 @@ export class NtScrollView extends BaseScrollView {
                                     prevClientPositionY = currentPosY;
                                     this._scrollDirectionValueX += Math.abs(scrollDeltaX);
                                     this._scrollDirectionValueY += Math.abs(scrollDeltaY);
-                                    this._dragX = this.scrollableX ? (Math.abs((currentPosX ?? 0) - startClientPosX)) : 0;
-                                    this._dragY = this.scrollableY ? (Math.abs((currentPosY ?? 0) - startClientPosY)) : 0;
+                                    const dx = (currentPosX ?? 0) - startClientPosX,
+                                        dy = (currentPosY ?? 0) - startClientPosY,
+                                        dragX = dx > 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - this.scrollWidth)),
+                                        dragY = dy > 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - this.scrollHeight));
+                                    this._dragX = this.scrollableX ? Math.abs(dragX) : 0;
+                                    this._dragY = this.scrollableY ? Math.abs(dragY) : 0;
+                                    this._horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
+                                    this._verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
                                     this.move(positionX, positionY, true, true, true);
                                     startTimeX = endTimeX;
                                     startTimeY = endTimeY;
@@ -522,11 +536,6 @@ export class NtScrollView extends BaseScrollView {
                 ),
                 $touchCanceler = race([$touchUp.pipe(
                     takeUntilDestroyed(this._destroyRef),
-                    tap((e) => {
-                        if (this._touchId > -1) {
-                            e.stopImmediatePropagation();
-                        }
-                    }),
                     delay(0),
                     filter(e => Array.from(e.targetTouches).findIndex(({ identifier }) => identifier === this._touchId) === -1),
                     tap(e => {
@@ -637,8 +646,14 @@ export class NtScrollView extends BaseScrollView {
                                     prevClientPositionY = currentPosY;
                                     this._scrollDirectionValueX += Math.abs(scrollDeltaX);
                                     this._scrollDirectionValueY += Math.abs(scrollDeltaY);
-                                    this._dragX = this.scrollableX ? (Math.abs((currentPosX ?? 0) - startClientPosX)) : 0;
-                                    this._dragY = this.scrollableY ? (Math.abs((currentPosY ?? 0) - startClientPosY)) : 0;
+                                    const dx = (currentPosX ?? 0) - startClientPosX,
+                                        dy = (currentPosY ?? 0) - startClientPosY,
+                                        dragX = dx > 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - this.scrollWidth)),
+                                        dragY = dy > 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - this.scrollHeight));
+                                    this._dragX = this.scrollableX ? Math.abs(dragX) : 0;
+                                    this._dragY = this.scrollableY ? Math.abs(dragY) : 0;
+                                    this._horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
+                                    this._verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
                                     this.move(positionX, positionY, true, true, true);
                                     startTimeX = endTimeX;
                                     startTimeY = endTimeY;
@@ -791,7 +806,7 @@ export class NtScrollView extends BaseScrollView {
             return;
         }
         this._overscrollIteration = this._dragX = this._dragY = 0;
-        this.emitOverscrollEvent();
+        this.emitOverscrollEvent(false);
     }
 
     private checkOverscrollByAxis(e: Event, pos: number, limit: number): boolean {
@@ -874,12 +889,13 @@ export class NtScrollView extends BaseScrollView {
         }
     }
 
-    private emitOverscrollEvent() {
-        const event = new OverscrollEvent({
-            dragX: this._dragX,
-            dragY: this._dragY,
-            positionX: this._horizontalScrollRatio === 1 ? 1 : 0,
-            positionY: this._verticalScrollRatio === 1 ? 1 : 0,
+    private emitOverscrollEvent(grabbing: boolean = true) {
+        const bounds = this.viewportBounds(), event = new OverscrollEvent({
+            grabbing,
+            dragX: transitionExponent(this._dragX, bounds.width, DEFAULT_TRANSITION_EXPONENT),
+            dragY: transitionExponent(this._dragY, bounds.height, DEFAULT_TRANSITION_EXPONENT),
+            positionX: (this.langTextDir() === TextDirections.LTR ? (this._horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0) : (this._horizontalScrollRatioWhenGrabbing === 1 ? 0 : 1)),
+            positionY: this._verticalScrollRatioWhenGrabbing === 1 ? 1 : 0,
         });
         this._$overscroll.next(event);
         this.onOverscroll.emit(event);
@@ -946,7 +962,7 @@ export class NtScrollView extends BaseScrollView {
     }
 
     protected move(x: number | null, y: number | null, blending: boolean = false, userAction: boolean = false, fireUpdate: boolean = true) {
-        this.scroll({ [LEFT]: x, [TOP]: y, behavior: INSTANT, blending, userAction, fireUpdate });
+        this.scroll({ [LEFT_PROP_NAME]: x, [TOP_PROP_NAME]: y, behavior: BEHAVIOR_INSTANT, blending, userAction, fireUpdate });
     }
 
     private calculateParamsWithVelocity(position: number, v: number, a0: number, startPosition: number): {
@@ -979,14 +995,14 @@ export class NtScrollView extends BaseScrollView {
                 const { startPosition: startPositionX, endPosition: endPositionX, duration: durationX } = this.calculateParamsWithVelocity(positionX, vX, a0X, this.x),
                     { startPosition: startPositionY, endPosition: endPositionY, duration: durationY } = this.calculateParamsWithVelocity(positionY, vY, a0Y, this.y),
                     duration = Math.max(durationX, durationY);
-                this.animate('x', startPositionX, endPositionX, duration, easeOutQuad, false, true);
-                this.animate('y', startPositionY, endPositionY, duration, easeOutQuad, false, true);
+                this.animate(X_PROP_NAME, startPositionX, endPositionX, duration, easeOutQuad, false, true);
+                this.animate(Y_PROP_NAME, startPositionY, endPositionY, duration, easeOutQuad, false, true);
             } else if (animateX) {
                 const { startPosition, endPosition, duration } = this.calculateParamsWithVelocity(positionX, vX, a0X, this.x);
-                this.animate('x', startPosition, endPosition, duration, easeOutQuad, false, true);
+                this.animate(X_PROP_NAME, startPosition, endPosition, duration, easeOutQuad, false, true);
             } else if (animateY) {
                 const { startPosition, endPosition, duration } = this.calculateParamsWithVelocity(positionY, vY, a0Y, this.y);
-                this.animate('y', startPosition, endPosition, duration, easeOutQuad, false, true);
+                this.animate(Y_PROP_NAME, startPosition, endPosition, duration, easeOutQuad, false, true);
             }
         }
     }
@@ -1007,9 +1023,9 @@ export class NtScrollView extends BaseScrollView {
         return result;
     }
 
-    protected animate(axis: 'x' | 'y', startValue: number, endValue: number, duration = ANIMATION_DURATION, easingFunction: Easing = easeOutQuad, blending: boolean = false,
+    protected animate(axis: typeof X_PROP_NAME | typeof Y_PROP_NAME, startValue: number, endValue: number, duration = ANIMATION_DURATION, easingFunction: Easing = easeOutQuad, blending: boolean = false,
         userAction: boolean = false, onUpdate: ((data: IAnimatorUpdateData) => void) | null = null, onComplete: ((data: IAnimatorUpdateData) => void) | null = null): number {
-        const isVertical = axis === 'y', animator = isVertical ? this._animatorY : this._animatorX;
+        const isVertical = axis === Y_PROP_NAME, animator = isVertical ? this._animatorY : this._animatorX;
         let position = startValue;
 
         if (this.hasAnimation() && blending) {
@@ -1104,7 +1120,7 @@ export class NtScrollView extends BaseScrollView {
             fireUpdate = params.fireUpdate ?? true,
             onUpdate = params.onUpdate ?? null,
             onComplete = params.onComplete ?? null,
-            behavior = params.behavior ?? INSTANT,
+            behavior = params.behavior ?? BEHAVIOR_INSTANT,
             blending = params.blending ?? true,
             force = params.force ?? false,
             duration = params.duration ?? ANIMATION_DURATION,
@@ -1115,13 +1131,13 @@ export class NtScrollView extends BaseScrollView {
             y = posY !== null ? this.normalizeValueY(posY) : null,
             prevX = this._x,
             prevY = this._y;
-        if (behavior === AUTO || behavior === SMOOTH) {
+        if (behavior === BEHAVIOR_AUTO || behavior === BEHAVIOR_SMOOTH) {
             if (horizontalAxisEnabled && x !== null && prevX !== x) {
-                const id = this.animate('x', prevX, x, duration, ease, blending, userAction, onUpdate, onComplete);
+                const id = this.animate(X_PROP_NAME, prevX, x, duration, ease, blending, userAction, onUpdate, onComplete);
                 animationIds.push(id);
             }
             if (verticalAxisEnabled && y !== null && prevY !== y) {
-                const id = this.animate('y', prevY, y, duration, ease, blending, userAction, onUpdate, onComplete);
+                const id = this.animate(Y_PROP_NAME, prevY, y, duration, ease, blending, userAction, onUpdate, onComplete);
                 animationIds.push(id);
             }
             return animationIds;

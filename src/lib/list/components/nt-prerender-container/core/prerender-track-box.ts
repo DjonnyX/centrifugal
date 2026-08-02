@@ -2,7 +2,7 @@ import { ComponentRef, ViewContainerRef } from "@angular/core";
 import { IRenderVirtualListItem, IVirtualListCollection, IVirtualListItem } from "../../../models";
 import { CMap } from "../../../../common/utils/cmap";
 import { PrerenderCache } from "../types/cache";
-import { BaseVirtualListItemComponent } from "../../nt-list-item/base";
+import { NtBaseVirtualListItemComponent } from "../../nt-list-item/base";
 import { IPrerenderTrackBoxRefreshParams } from "../interfaces";
 import { DEFAULT_DIVIDES, DEFAULT_DYNAMIC_SIZE, DEFAULT_ITEM_SIZE, DEFAULT_SNAP_TO_ITEM_ALIGN, TRACK_BY_PROPERTY_NAME } from "../../../const";
 import { Component$1 } from "../../../models/component.model";
@@ -100,9 +100,9 @@ export class PrerenderTrackBox extends EventEmitter<PrerenderTrackBoxEvents, Pre
 
     private _container: ViewContainerRef | null = null;
 
-    private _componentClass: Component$1<BaseVirtualListItemComponent> | null = null;
+    private _componentClass: Component$1<NtBaseVirtualListItemComponent> | null = null;
 
-    private _components: Array<ComponentRef<BaseVirtualListItemComponent>> | null = new Array<ComponentRef<BaseVirtualListItemComponent>>();
+    private _components: Array<ComponentRef<NtBaseVirtualListItemComponent>> | null = new Array<ComponentRef<NtBaseVirtualListItemComponent>>();
 
     private _componentsResizeObserver: ResizeObserver | null = new ResizeObserver(() => {
         const components = this._components;
@@ -118,7 +118,7 @@ export class PrerenderTrackBox extends EventEmitter<PrerenderTrackBoxEvents, Pre
     private _active: boolean = true;
     get active() { return this._active; }
 
-    private refresh(componentClass: Component$1<BaseVirtualListItemComponent>, bounds: ISize, params: IPrerenderTrackBoxRefreshParams) {
+    private refresh(componentClass: Component$1<NtBaseVirtualListItemComponent>, bounds: ISize, params: IPrerenderTrackBoxRefreshParams) {
         const isVertical = params.isVertical ?? true,
             dynamic = params.dynamic ?? DEFAULT_DYNAMIC_SIZE,
             divides = params.divides ?? DEFAULT_DIVIDES,
@@ -140,7 +140,7 @@ export class PrerenderTrackBox extends EventEmitter<PrerenderTrackBoxEvents, Pre
             const item = items[i];
             if (!!item) {
                 const id = item[trackBy], index = items.length - i - 1;
-                let comp: ComponentRef<BaseVirtualListItemComponent>;
+                let comp: ComponentRef<NtBaseVirtualListItemComponent>;
                 if (components.length <= j) {
                     comp = this._container.createComponent(componentClass);
                     comp.instance.renderer = itemRenderer;
@@ -166,7 +166,7 @@ export class PrerenderTrackBox extends EventEmitter<PrerenderTrackBoxEvents, Pre
         this._container = container;
     }
 
-    reset(componentClass: Component$1<BaseVirtualListItemComponent>, items: IVirtualListCollection,
+    reset(componentClass: Component$1<NtBaseVirtualListItemComponent>, items: IVirtualListCollection,
         bounds: ISize, params: IPrerenderTrackBoxRefreshParams) {
         this._items = items;
         this._componentClass = componentClass;

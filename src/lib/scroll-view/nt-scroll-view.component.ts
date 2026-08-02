@@ -1,14 +1,14 @@
 import {
-  ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, forwardRef, inject, Injector, input,
-  OnDestroy, output, Signal, signal, TemplateRef, ViewEncapsulation,
+  ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, Injector, input, OnDestroy, output, Signal,
+  signal, TemplateRef, ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
   BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, map, skip, startWith, Subject, switchMap, take, tap,
 } from 'rxjs';
 import {
-  BEHAVIOR_INSTANT, CLASS_SCROLL_VIEW_HORIZONTAL, CLASS_SCROLL_VIEW_VERTICAL, DEFAULT_DIRECTION, MIN_PIXELS_FOR_PREVENT_SNAPPING,
-  DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLLBAR_THICKNESS, DEFAULT_SCROLLBAR_MIN_SIZE, BEHAVIOR_AUTO, DEFAULT_SCROLLBAR_ENABLED,
+  CLASS_SCROLL_VIEW_HORIZONTAL, CLASS_SCROLL_VIEW_VERTICAL, DEFAULT_DIRECTION, MIN_PIXELS_FOR_PREVENT_SNAPPING,
+  DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLLBAR_THICKNESS, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_ENABLED,
   DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_SETTINGS,
   DEFAULT_MOTION_BLUR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SNAP_SCROLLTO_LEFT,
   DEFAULT_SNAP_SCROLLTO_TOP, DEFAULT_SNAP_SCROLLTO_RIGHT, DEFAULT_SNAP_SCROLLTO_BOTTOM, CLASS_SCROLL_VIEW_BOTH, DEFAULT_SCROLLABLE,
@@ -39,6 +39,7 @@ import { LEFT_PROP_NAME, TOP_PROP_NAME } from '../common/const/base-prop-names';
 import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-virtual-click/const';
 import { NtBaseScrollComponent } from '../common/components/nt-base-scroll-component';
 import { IScrollToParams } from '../common/interfaces/scroll-to-params';
+import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from '../common/const/behavior';
 
 /**
  * NtScrollViewComponent
@@ -101,11 +102,6 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
    * Fires when the scroll reaches the bottom.
    */
   onScrollReachBottom = output<void>();
-
-  /**
-   * Dispatches an overscroll event.
-   */
-  onOverscroll = output<IOverscrollEvent>();
 
   protected _$initialized = new BehaviorSubject<boolean>(false);
   readonly $initialized = this._$initialized.asObservable();
@@ -1397,10 +1393,6 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
         scroller.refresh(true, true);
       }
     }
-  }
-
-  protected onOverscrollHandler(event: IOverscrollEvent) {
-    this.onOverscroll.emit(event);
   }
 
   private snappingHandler() {

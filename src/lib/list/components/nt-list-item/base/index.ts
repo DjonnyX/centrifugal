@@ -1,5 +1,5 @@
-import { BaseVirtualListItemComponent } from './base-virtual-list-item-component';
+import { NtBaseVirtualListItemComponent } from './nt-base-virtual-list-item-component';
 
 export {
-    BaseVirtualListItemComponent,
+    NtBaseVirtualListItemComponent,
 }

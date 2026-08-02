@@ -1,5 +1,5 @@
 /**
- * TextDirections.
+ * TextDirections
  * RTL - right-to-left.
  * LTR - left-to-right.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/enums/text-directions.ts

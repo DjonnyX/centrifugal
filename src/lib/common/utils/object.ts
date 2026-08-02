@@ -1,3 +1,9 @@
+/**
+ * objectAsReadonly
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/utils/object.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ */
 export const objectAsReadonly = <T = { [x: string]: any }>(source: T) => {
     if (!source) {
         return source;
@@ -16,6 +22,12 @@ export const objectAsReadonly = <T = { [x: string]: any }>(source: T) => {
     return result;
 };
 
+/**
+ * copyValueAsReadonly
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/utils/object.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ */
 export const copyValueAsReadonly = <T = any>(source: T) => {
     if (!source) {
         return source;

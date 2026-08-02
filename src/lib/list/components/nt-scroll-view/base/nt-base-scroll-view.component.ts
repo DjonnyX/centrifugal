@@ -1,7 +1,7 @@
 import {
-    Component, computed, DestroyRef, ElementRef, inject, input, output, Signal, signal, viewChild,
+    Component, computed, DestroyRef, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild,
 } from '@angular/core';
-import { Subject } from 'rxjs';
+import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
 import { ScrollerDirection, ScrollerDirections } from '../enums';
 import {
     IOverscrollEvent,
@@ -10,20 +10,21 @@ import {
 import { INtListService } from '../../../interfaces';
 import { INtScroller } from '../../../../common/interfaces/nt-scroller';
 import { IScrollToParams } from '../../../../common/interfaces/scroll-to-params';
-import { IBaseScrollViewService } from '../../../../common/interfaces/base-scroll-view-service';
-import { IBaseScrollView } from '../../../../common/interfaces/base-scroll-view';
+import { INtBaseScrollViewService } from '../../../../common/interfaces/nt-base-scroll-view-service';
+import { INtBaseScrollView } from '../../../../common/interfaces/nt-base-scroll-view';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 
 /**
- * BaseScrollView
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-scroll-view/base/base-scroll-view.component.ts
+ * NtBaseScrollView
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-scroll-view/base/nt-base-scroll-view.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
 @Component({
-    selector: 'base-scroll-view',
+    selector: 'nt-base-scroll-view',
     template: '',
 })
-export abstract class BaseScrollView implements INtScroller<IBaseScrollViewService> {
+export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewService> {
     protected _service = inject<INtListService>(SCROLL_VIEW_SERVICE);
 
     get service() { return this._service; }
@@ -34,11 +35,47 @@ export abstract class BaseScrollView implements INtScroller<IBaseScrollViewServi
 
     readonly onOverscroll = output<IOverscrollEvent>();
 
+    readonly onLeftOverscrollIndiatorTrigger = output<boolean>();
+
+    readonly onTopOverscrollIndiatorTrigger = output<boolean>();
+
+    readonly onRightOverscrollIndiatorTrigger = output<boolean>();
+
+    readonly onBottomOverscrollIndiatorTrigger = output<boolean>();
+
+    readonly overscrollIndicatorShowAutomatically = input<boolean>(true);
+
+    readonly overscrollIndicatorUseOffsets = input<boolean>(false);
+
+    readonly overscrollIndicatorStartEnabled = input<boolean>(false);
+
+    readonly overscrollIndicatorEndEnabled = input<boolean>(false);
+
+    readonly overscrollIndicatorStartRenderer = input<TemplateRef<any> | null>(null);
+
+    readonly overscrollIndicatorEndRenderer = input<TemplateRef<any> | null>(null);
+
     readonly direction = input<ScrollerDirections>(ScrollerDirection.VERTICAL);
 
     readonly startOffset = input<number>(0);
 
     readonly endOffset = input<number>(0);
+
+    protected _leftOffset = signal<number>(0);
+
+    protected _topOffset = signal<number>(0);
+
+    protected _rightOffset = signal<number>(0);
+
+    protected _bottomOffset = signal<number>(0);
+
+    protected _actualOverscrollIndicatorLeftEnabled = signal<boolean>(false);
+
+    protected _actualOverscrollIndicatorTopEnabled = signal<boolean>(false);
+
+    protected _actualOverscrollIndicatorRightEnabled = signal<boolean>(false);
+
+    protected _actualOverscrollIndicatorBottomEnabled = signal<boolean>(false);
 
     readonly alignmentStartOffset = input<number>(0);
 
@@ -50,7 +87,7 @@ export abstract class BaseScrollView implements INtScroller<IBaseScrollViewServi
 
     readonly grabbing = signal<boolean>(false);
 
-    readonly context = input<IBaseScrollView<IBaseScrollViewService, IBaseScrollViewService> | null>(null);
+    readonly context = input<INtBaseScrollView<INtBaseScrollViewService, INtBaseScrollViewService> | null>(null);
     get parent() { return this.context(); }
 
     readonly langTextDir = input<TextDirection>(TextDirections.LTR);
@@ -200,6 +237,55 @@ export abstract class BaseScrollView implements INtScroller<IBaseScrollViewServi
         this.isVertical = computed(() => {
             return this.direction() === ScrollerDirection.VERTICAL;
         });
+
+        const $viewportBounds = toObservable(this.viewportBounds),
+            $contentBounds = toObservable(this.contentBounds),
+            $isVertical = toObservable(this.isVertical),
+            $overscrollIndicatorShowAutomatically = toObservable(this.overscrollIndicatorShowAutomatically),
+            $overscrollIndicatorStartEnabled = toObservable(this.overscrollIndicatorStartEnabled),
+            $overscrollIndicatorEndEnabled = toObservable(this.overscrollIndicatorEndEnabled),
+            $overscrollIndicatorUseOffsets = toObservable(this.overscrollIndicatorUseOffsets),
+            $startOffset = toObservable(this.startOffset),
+            $endOffset = toObservable(this.endOffset);
+
+        combineLatest([$viewportBounds, $contentBounds, $isVertical, $overscrollIndicatorShowAutomatically, $overscrollIndicatorStartEnabled,
+            $overscrollIndicatorEndEnabled]).pipe(
+                takeUntilDestroyed(),
+                debounceTime(0),
+                tap(([, , isVertical, showAutomatically, startEnabled, endEnabled]) => {
+                    const start = (startEnabled || showAutomatically) ? this.scrollable : false,
+                        end = (endEnabled || showAutomatically) ? this.scrollable : false;
+                    this._actualOverscrollIndicatorLeftEnabled.set(isVertical ? false : start);
+                    this._actualOverscrollIndicatorTopEnabled.set(isVertical ? start : false);
+                    this._actualOverscrollIndicatorRightEnabled.set(isVertical ? false : end);
+                    this._actualOverscrollIndicatorBottomEnabled.set(isVertical ? end : false);
+                }),
+            ).subscribe();
+
+        combineLatest([$isVertical, $startOffset, $overscrollIndicatorUseOffsets, $overscrollIndicatorShowAutomatically, $overscrollIndicatorStartEnabled]).pipe(
+            takeUntilDestroyed(),
+            debounceTime(0),
+            tap(([isVertical, startOffset, useOffsets, showAutomatically, startEnabled]) => {
+                const start = (startEnabled || showAutomatically) ? this.scrollable : false;
+                if (start) {
+                    this._leftOffset.set(useOffsets ? (isVertical ? 0 : startOffset) : 0);
+                    this._topOffset.set(useOffsets ? (isVertical ? startOffset : 0) : 0);
+                }
+            }),
+        ).subscribe();
+
+        combineLatest([$isVertical, $endOffset, $overscrollIndicatorUseOffsets, $overscrollIndicatorShowAutomatically,
+            $overscrollIndicatorEndEnabled]).pipe(
+                takeUntilDestroyed(),
+                debounceTime(0),
+                tap(([isVertical, endOffset, useOffsets, showAutomatically, endEnabled]) => {
+                    const end = (endEnabled || showAutomatically) ? this.scrollable : false;
+                    if (end) {
+                        this._rightOffset.set(useOffsets ? (isVertical ? 0 : endOffset) : 0);
+                        this._bottomOffset.set(useOffsets ? (isVertical ? endOffset : 0) : 0);
+                    }
+                }),
+            ).subscribe();
     }
     stopScrolling(force?: boolean): void {
         throw new Error('Method not implemented.');

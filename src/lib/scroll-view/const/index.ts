@@ -54,13 +54,6 @@ export const DEFAULT_SCROLLBAR_THICKNESS: number = 6;
 export const DEFAULT_SCROLLBAR_MIN_SIZE: number = 80;
 
 // presets
-
-export const BEHAVIOR_AUTO: ScrollBehavior = 'auto';
-
-export const BEHAVIOR_INSTANT: ScrollBehavior = 'instant';
-
-export const BEHAVIOR_SMOOTH: ScrollBehavior = 'smooth';
-
 export const SCROLL = 'scroll';
 
 export const SCROLLER_SCROLL = 'scroll';

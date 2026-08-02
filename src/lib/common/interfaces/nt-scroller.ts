@@ -1,8 +1,8 @@
 import { Signal } from "@angular/core";
 import { IScrollToParams } from "./scroll-to-params";
 import { ISize } from "./size";
-import { IBaseScrollViewService } from "./base-scroll-view-service";
-import { IBaseScrollView } from "./base-scroll-view";
+import { INtBaseScrollViewService } from "./nt-base-scroll-view-service";
+import { INtBaseScrollView } from "./nt-base-scroll-view";
 import { Observable } from "rxjs";
 import { IOverscrollEvent } from "./overscroll-event";
 
@@ -12,12 +12,12 @@ import { IOverscrollEvent } from "./overscroll-event";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface INtScroller<S extends IBaseScrollViewService> {
+export interface INtScroller<S extends INtBaseScrollViewService> {
     get service(): S;
 
     get type(): string | null;
 
-    get parent(): IBaseScrollView<S, S> | null;
+    get parent(): INtBaseScrollView<S, S> | null;
 
     set scrollLeft(v: number);
     get scrollLeft(): number;
