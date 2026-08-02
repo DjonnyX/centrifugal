@@ -8,9 +8,11 @@
     @if (leftIndicatorVisible) {
         @let leftIndicatorCustomRenderer = leftIndicatorRenderer();
         @if (!!leftIndicatorCustomRenderer) {
-            <ng-container [ngTemplateOutlet]="leftIndicatorCustomRenderer" [ngTemplateOutletContext]="event" />
+            <div class="ntoi-indicator left">
+                <ng-container [ngTemplateOutlet]="leftIndicatorCustomRenderer" [ngTemplateOutletContext]="_leftContext()" />
+            </div>
         } @else {
-            <nt-overscroll-indicator class="ntoi-indicator left" type="left" part="overscroll-indicator left" [bounds]="bounds()" [leftOffset]="leftOffset()"
+            <nt-overscroll-indicator class="ntoi-indicator left" type="left" [bounds]="bounds()" [leftOffset]="leftOffset()"
                 [topOffset]="topOffset()" [rightOffset]="rightOffset()" [bottomOffset]="bottomOffset()" [overscrollEvent]="event"
                 (onTrigger)="onLeftIndiatorTrigger.emit($event)" />
         }
@@ -18,19 +20,23 @@
     @if (topIndicatorVisible) {
         @let topIndicatorCustomRenderer = topIndicatorRenderer();
         @if (!!topIndicatorCustomRenderer) {
-            <ng-container [ngTemplateOutlet]="topIndicatorCustomRenderer" [ngTemplateOutletContext]="event" />
+            <div class="ntoi-indicator top">
+                <ng-container [ngTemplateOutlet]="topIndicatorCustomRenderer" [ngTemplateOutletContext]="_topContext()" />
+            </div>
         } @else {
-            <nt-overscroll-indicator class="ntoi-indicator top" type="top" part="overscroll-indicator top" [bounds]="bounds()" [leftOffset]="leftOffset()"
+            <nt-overscroll-indicator class="ntoi-indicator top" type="top" [bounds]="bounds()" [leftOffset]="leftOffset()"
                 [topOffset]="topOffset()" [rightOffset]="rightOffset()" [bottomOffset]="bottomOffset()" [overscrollEvent]="event"
                 (onTrigger)="onTopIndiatorTrigger.emit($event)" />
         }
     }
     @if (rightIndicatorVisible) {
         @let rightIndicatorCustomRenderer = rightIndicatorRenderer();
-            @if (!!rightIndicatorCustomRenderer) {
-        <ng-container [ngTemplateOutlet]="rightIndicatorCustomRenderer" [ngTemplateOutletContext]="event" />
+        @if (!!rightIndicatorCustomRenderer) {
+            <div class="ntoi-indicator right">
+                <ng-container [ngTemplateOutlet]="rightIndicatorCustomRenderer" [ngTemplateOutletContext]="_rightContext()" />
+            </div>
         } @else {
-            <nt-overscroll-indicator class="ntoi-indicator right" type="right" part="overscroll-indicator right" [bounds]="bounds()" [leftOffset]="leftOffset()"
+            <nt-overscroll-indicator class="ntoi-indicator right" type="right" [bounds]="bounds()" [leftOffset]="leftOffset()"
                 [topOffset]="topOffset()" [rightOffset]="rightOffset()" [bottomOffset]="bottomOffset()" [overscrollEvent]="event"
                 (onTrigger)="onRightIndiatorTrigger.emit($event)" />
         }
@@ -38,9 +44,11 @@
     @if (bottomIndicatorVisible) {
         @let bottomIndicatorCustomRenderer = bottomIndicatorRenderer();
         @if (!!bottomIndicatorCustomRenderer) {
-            <ng-container [ngTemplateOutlet]="bottomIndicatorCustomRenderer" [ngTemplateOutletContext]="event" />
+            <div class="ntoi-indicator bottom">
+                <ng-container [ngTemplateOutlet]="bottomIndicatorCustomRenderer" [ngTemplateOutletContext]="_bottomContext()" />
+            </div>
         } @else {
-            <nt-overscroll-indicator class="ntoi-indicator bottom" type="bottom" part="overscroll-indicator bottom" [bounds]="bounds()" [leftOffset]="leftOffset()"
+            <nt-overscroll-indicator class="ntoi-indicator bottom" type="bottom" [bounds]="bounds()" [leftOffset]="leftOffset()"
                 [topOffset]="topOffset()" [rightOffset]="rightOffset()" [bottomOffset]="bottomOffset()" [overscrollEvent]="event"
                 (onTrigger)="onBottomIndiatorTrigger.emit($event)" />
         }

@@ -1,5 +1,10 @@
-import { Component, input, output, TemplateRef } from "@angular/core";
-import { IOverscrollEvent, ISize } from "../../../common";
+import { Component, computed, input, output, Signal, TemplateRef } from "@angular/core";
+import { IOverscrollEvent, ISize, OverscrollIndicatorTypes } from "../../../common";
+import { INtOverscrollIndicatorContext } from "./interfaces";
+import { NtOverscrollIndicatorService } from "../nt-overscroll-indicator/nt-overscroll-indicator-public-api.service";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { debounceTime, filter, tap } from "rxjs";
+import { validateBoolean } from "../../../common/utils";
 
 /**
  * NtOverscrollIndicatorComponent
@@ -58,4 +63,122 @@ export class NtOverscrollIndicatorContainerComponent {
     readonly rightIndicatorRenderer = input<TemplateRef<any> | null>(null);
 
     readonly bottomIndicatorRenderer = input<TemplateRef<any> | null>(null);
+
+    protected _leftService = new NtOverscrollIndicatorService();
+
+    protected _topService = new NtOverscrollIndicatorService();
+
+    protected _rightService = new NtOverscrollIndicatorService();
+
+    protected _bottomService = new NtOverscrollIndicatorService();
+
+    protected _leftContext: Signal<{ context: INtOverscrollIndicatorContext }>;
+
+    protected _topContext: Signal<{ context: INtOverscrollIndicatorContext }>;
+
+    protected _rightContext: Signal<{ context: INtOverscrollIndicatorContext }>;
+
+    protected _bottomContext: Signal<{ context: INtOverscrollIndicatorContext }>;
+
+    constructor() {
+        this._leftContext = computed(() => {
+            return {
+                context: {
+                    api: this._leftService,
+                    bounds: this.bounds(),
+                    overscrollEvent: this.overscrollEvent(),
+                    leftOffset: this.leftOffset(),
+                    topOffset: this.topOffset(),
+                    rightOffset: this.rightOffset(),
+                    bottomOffset: this.bottomOffset(),
+                    enabled: this.leftIndicatorEnabled(),
+                    type: OverscrollIndicatorTypes.LEFT,
+                },
+            };
+        });
+
+        this._rightContext = computed(() => {
+            return {
+                context: {
+                    api: this._rightService,
+                    bounds: this.bounds(),
+                    overscrollEvent: this.overscrollEvent(),
+                    leftOffset: this.leftOffset(),
+                    topOffset: this.topOffset(),
+                    rightOffset: this.rightOffset(),
+                    bottomOffset: this.bottomOffset(),
+                    enabled: this.rightIndicatorEnabled(),
+                    type: OverscrollIndicatorTypes.RIGHT,
+                },
+            };
+        });
+
+        this._topContext = computed(() => {
+            return {
+                context: {
+                    api: this._topService,
+                    bounds: this.bounds(),
+                    overscrollEvent: this.overscrollEvent(),
+                    leftOffset: this.leftOffset(),
+                    topOffset: this.topOffset(),
+                    rightOffset: this.rightOffset(),
+                    bottomOffset: this.bottomOffset(),
+                    enabled: this.topIndicatorEnabled(),
+                    type: OverscrollIndicatorTypes.TOP,
+                },
+            };
+        });
+
+        this._bottomContext = computed(() => {
+            return {
+                context: {
+                    api: this._bottomService,
+                    bounds: this.bounds(),
+                    overscrollEvent: this.overscrollEvent(),
+                    leftOffset: this.leftOffset(),
+                    topOffset: this.topOffset(),
+                    rightOffset: this.rightOffset(),
+                    bottomOffset: this.bottomOffset(),
+                    enabled: this.bottomIndicatorEnabled(),
+                    type: OverscrollIndicatorTypes.BOTTOM,
+                }
+            };
+        });
+
+        this._leftService.$pinned.pipe(
+            takeUntilDestroyed(),
+            debounceTime(0),
+            filter(v => validateBoolean(v)),
+            tap(v => {
+                this.onLeftIndiatorTrigger.emit(v);
+            }),
+        ).subscribe();
+
+        this._topService.$pinned.pipe(
+            takeUntilDestroyed(),
+            debounceTime(0),
+            filter(v => validateBoolean(v)),
+            tap(v => {
+                this.onTopIndiatorTrigger.emit(v);
+            }),
+        ).subscribe();
+
+        this._rightService.$pinned.pipe(
+            takeUntilDestroyed(),
+            debounceTime(0),
+            filter(v => validateBoolean(v)),
+            tap(v => {
+                this.onRightIndiatorTrigger.emit(v);
+            }),
+        ).subscribe();
+
+        this._bottomService.$pinned.pipe(
+            takeUntilDestroyed(),
+            debounceTime(0),
+            filter(v => validateBoolean(v)),
+            tap(v => {
+                this.onBottomIndiatorTrigger.emit(v);
+            }),
+        ).subscribe();
+    }
 }

@@ -17,7 +17,7 @@ import { BehaviorSubject, combineLatest, debounceTime, skip, tap } from "rxjs";
     template: '',
     standalone: false,
 })
-export class NtBaseOverscrollIndicatorComponent {
+export abstract class NtBaseOverscrollIndicatorComponent {
     private _rect = viewChild<ElementRef<HTMLDivElement>>('rect');
 
     readonly onTrigger = output<boolean>();
