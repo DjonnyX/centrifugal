@@ -5,6 +5,6 @@
  * @email djonnyx@gmail.com
  */
 export interface ICancelOverscrollOptions {
-    event: Event | null;
+    event?: Event | null;
     released?: boolean;
 }

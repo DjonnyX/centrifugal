@@ -506,11 +506,6 @@ export class NtScrollView extends NtBaseScrollView {
                 $touchCanceler = race([$touchUp.pipe(
                     takeUntilDestroyed(this._destroyRef),
                     filter(e => Array.from(e.targetTouches).findIndex(({ identifier }) => identifier === this._touchId) === -1),
-                    tap((e) => {
-                        if (this._touchId > -1) {
-                            e.stopImmediatePropagation();
-                        }
-                    }),
                     delay(0),
                     tap(() => {
                         this._touchId = -1;

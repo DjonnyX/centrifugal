@@ -384,7 +384,8 @@ export class NtScrollView extends NtBaseScrollView {
                 $mouseDragCancel = $mouseUp.pipe(
                     takeUntilDestroyed(this._destroyRef),
                     delay(0),
-                    tap(() => {
+                    tap(e => {
+                        this.cancelOverscroll({ event: e, released: true });
                         this._isMoving = false;
                         this.grabbing.set(false);
                         if (!mouseCanceled) {
@@ -535,11 +536,6 @@ export class NtScrollView extends NtBaseScrollView {
                 ),
                 $touchCanceler = race([$touchUp.pipe(
                     takeUntilDestroyed(this._destroyRef),
-                    tap((e) => {
-                        if (this._touchId > -1) {
-                            e.stopImmediatePropagation();
-                        }
-                    }),
                     delay(0),
                     filter(e => Array.from(e.targetTouches).findIndex(({ identifier }) => identifier === this._touchId) === -1),
                     tap(e => {
