@@ -19,8 +19,8 @@
                     </div>
                 </div>
             </div>
-            <nt-overscroll-indicator-container class="ntoi" dir="ltr" [bounds]="viewportBounds()" [leftOffset]="leftOffset()" [topOffset]="topOffset()"
-                [rightOffset]="rightOffset()" [bottomOffset]="bottomOffset()" [overscrollEvent]="$overscroll | async"
+            <nt-overscroll-indicator-container class="ntoi" dir="ltr" [bounds]="viewportBounds()" [leftOffset]="_leftOffset()" [topOffset]="_topOffset()"
+                [rightOffset]="_rightOffset()" [bottomOffset]="_bottomOffset()" [overscrollEvent]="$overscroll | async"
                 [leftIndicatorEnabled]="_actualOverscrollIndicatorLeftEnabled()" [topIndicatorEnabled]="_actualOverscrollIndicatorTopEnabled()"
                 [rightIndicatorEnabled]="_actualOverscrollIndicatorRightEnabled()" [bottomIndicatorEnabled]="_actualOverscrollIndicatorBottomEnabled()"
                 [leftIndicatorRenderer]="overscrollIndicatorLeftRenderer()" [topIndicatorRenderer]="overscrollIndicatorTopRenderer()"

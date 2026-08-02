@@ -45,6 +45,8 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     readonly overscrollIndicatorShowAutomatically = input<boolean>(true);
 
+    readonly overscrollIndicatorUseOffsets = input<boolean>(false);
+
     readonly overscrollIndicatorStartEnabled = input<boolean>(false);
 
     readonly overscrollIndicatorEndEnabled = input<boolean>(false);
@@ -242,6 +244,7 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
             $overscrollIndicatorShowAutomatically = toObservable(this.overscrollIndicatorShowAutomatically),
             $overscrollIndicatorStartEnabled = toObservable(this.overscrollIndicatorStartEnabled),
             $overscrollIndicatorEndEnabled = toObservable(this.overscrollIndicatorEndEnabled),
+            $overscrollIndicatorUseOffsets = toObservable(this.overscrollIndicatorUseOffsets),
             $startOffset = toObservable(this.startOffset),
             $endOffset = toObservable(this.endOffset);
 
@@ -259,27 +262,27 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
                 }),
             ).subscribe();
 
-        combineLatest([$isVertical, $startOffset, $overscrollIndicatorShowAutomatically, $overscrollIndicatorStartEnabled]).pipe(
+        combineLatest([$isVertical, $startOffset, $overscrollIndicatorUseOffsets, $overscrollIndicatorShowAutomatically, $overscrollIndicatorStartEnabled]).pipe(
             takeUntilDestroyed(),
             debounceTime(0),
-            tap(([isVertical, startOffset, showAutomatically, startEnabled]) => {
+            tap(([isVertical, startOffset, useOffsets, showAutomatically, startEnabled]) => {
                 const start = (startEnabled || showAutomatically) ? this.scrollable : false;
                 if (start) {
-                    this._leftOffset.set(isVertical ? 0 : startOffset);
-                    this._topOffset.set(isVertical ? startOffset : 0);
+                    this._leftOffset.set(useOffsets ? (isVertical ? 0 : startOffset) : 0);
+                    this._topOffset.set(useOffsets ? (isVertical ? startOffset : 0) : 0);
                 }
             }),
         ).subscribe();
 
-        combineLatest([$isVertical, $endOffset, $overscrollIndicatorShowAutomatically,
+        combineLatest([$isVertical, $endOffset, $overscrollIndicatorUseOffsets, $overscrollIndicatorShowAutomatically,
             $overscrollIndicatorEndEnabled]).pipe(
                 takeUntilDestroyed(),
                 debounceTime(0),
-                tap(([isVertical, endOffset, showAutomatically, endEnabled]) => {
+                tap(([isVertical, endOffset, useOffsets, showAutomatically, endEnabled]) => {
                     const end = (endEnabled || showAutomatically) ? this.scrollable : false;
                     if (end) {
-                        this._rightOffset.set(isVertical ? 0 : endOffset);
-                        this._bottomOffset.set(isVertical ? endOffset : 0);
+                        this._rightOffset.set(useOffsets ? (isVertical ? 0 : endOffset) : 0);
+                        this._bottomOffset.set(useOffsets ? (isVertical ? endOffset : 0) : 0);
                     }
                 }),
             ).subscribe();

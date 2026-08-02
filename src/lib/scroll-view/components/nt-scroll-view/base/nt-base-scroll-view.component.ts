@@ -1,12 +1,11 @@
 import {
-    Component, DestroyRef, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild,
+    Component, computed, DestroyRef, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild,
 } from '@angular/core';
 import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
 import { ScrollerDirection, ScrollerDirections } from '../enums';
 import {
     CONTROL_CONTAINER_SERVICE, IOverscrollEvent, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
-    SCROLL_VIEW_TYPE,
-    TextDirection, TextDirections,
+    SCROLL_VIEW_TYPE, TextDirection, TextDirections,
 } from '../../../../common';
 import { INtScroller } from '../../../../common/interfaces/nt-scroller';
 import { INtScrollViewService } from '../../../interfaces';
@@ -43,6 +42,8 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     readonly overscrollIndicatorShowAutomatically = input<boolean>(true);
 
+    readonly overscrollIndicatorUseOffsets = input<boolean>(false);
+
     readonly overscrollIndicatorLeftEnabled = input<boolean>(false);
 
     readonly overscrollIndicatorTopEnabled = input<boolean>(false);
@@ -70,6 +71,14 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
     readonly rightOffset = input<number>(0);
 
     readonly bottomOffset = input<number>(0);
+
+    protected _leftOffset: Signal<number>;
+
+    protected _topOffset: Signal<number>;
+
+    protected _rightOffset: Signal<number>;
+
+    protected _bottomOffset: Signal<number>;
 
     protected _actualOverscrollIndicatorLeftEnabled = signal<boolean>(false);
 
@@ -267,21 +276,38 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
             $overscrollIndicatorRightEnabled = toObservable(this.overscrollIndicatorRightEnabled),
             $overscrollIndicatorBottomEnabled = toObservable(this.overscrollIndicatorBottomEnabled);
 
-        combineLatest([$viewportBounds, $contentBounds, $langTextDir, $overscrollIndicatorShowAutomatically, $overscrollIndicatorLeftEnabled, $overscrollIndicatorTopEnabled,
-            $overscrollIndicatorRightEnabled, $overscrollIndicatorBottomEnabled]).pipe(
-                takeUntilDestroyed(),
-                debounceTime(0),
-                tap(([, , langTextDir, showAutomatically, leftEnabled, topEnabled, rightEnabled, bottomEnabled]) => {
-                    const left = (leftEnabled || showAutomatically) ? this.scrollableX : false,
-                        top = (topEnabled || showAutomatically) ? this.scrollableY : false,
-                        right = (rightEnabled || showAutomatically) ? this.scrollableX : false,
-                        bottom = (bottomEnabled || showAutomatically) ? this.scrollableY : false;
-                    this._actualOverscrollIndicatorLeftEnabled.set(langTextDir === TextDirections.LTR ? left : right);
-                    this._actualOverscrollIndicatorTopEnabled.set(top);
-                    this._actualOverscrollIndicatorRightEnabled.set(langTextDir === TextDirections.LTR ? right : left);
-                    this._actualOverscrollIndicatorBottomEnabled.set(bottom);
-                }),
-            ).subscribe();
+        combineLatest([$viewportBounds, $contentBounds, $langTextDir, $overscrollIndicatorShowAutomatically, $overscrollIndicatorLeftEnabled,
+            $overscrollIndicatorTopEnabled, $overscrollIndicatorRightEnabled, $overscrollIndicatorBottomEnabled,
+        ]).pipe(
+            takeUntilDestroyed(),
+            debounceTime(0),
+            tap(([, , langTextDir, showAutomatically, leftEnabled, topEnabled, rightEnabled, bottomEnabled]) => {
+                const left = (leftEnabled || showAutomatically) ? this.scrollableX : false,
+                    top = (topEnabled || showAutomatically) ? this.scrollableY : false,
+                    right = (rightEnabled || showAutomatically) ? this.scrollableX : false,
+                    bottom = (bottomEnabled || showAutomatically) ? this.scrollableY : false;
+                this._actualOverscrollIndicatorLeftEnabled.set(langTextDir === TextDirections.LTR ? left : right);
+                this._actualOverscrollIndicatorTopEnabled.set(top);
+                this._actualOverscrollIndicatorRightEnabled.set(langTextDir === TextDirections.LTR ? right : left);
+                this._actualOverscrollIndicatorBottomEnabled.set(bottom);
+            }),
+        ).subscribe();
+
+        this._leftOffset = computed(() => {
+            return this.overscrollIndicatorUseOffsets() ? this.leftOffset() : 0;
+        });
+
+        this._topOffset = computed(() => {
+            return this.overscrollIndicatorUseOffsets() ? this.topOffset() : 0;
+        });
+
+        this._rightOffset = computed(() => {
+            return this.overscrollIndicatorUseOffsets() ? this.rightOffset() : 0;
+        });
+
+        this._bottomOffset = computed(() => {
+            return this.overscrollIndicatorUseOffsets() ? this.bottomOffset() : 0;
+        });
     }
 
     tick() {
