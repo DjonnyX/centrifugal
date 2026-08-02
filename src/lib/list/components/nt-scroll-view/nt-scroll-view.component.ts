@@ -5,12 +5,12 @@ import { CdkScrollable } from '@angular/cdk/scrolling';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest, debounceTime, delay, filter, fromEvent, map, of, race, startWith, Subject, switchMap, takeUntil, tap } from 'rxjs';
 import {
-    BEHAVIOR_INSTANT, DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_ONE_BY_ONE,
+    DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_ONE_BY_ONE,
     DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, DEFAULT_SNAPPING_DISTANCE,
 } from '../../const';
 import {
-    ACCELERATION_SCALE, ANIMATION_DURATION, AUTO, DURATION, FRICTION_FORCE, INSTANT, LEFT, MASS, MAX_DIST, MAX_DURATION, MAX_ITERATIONS_FOR_AVERAGE_CALCULATIONS,
-    MAX_VELOCITY_TIMESTAMP, MAX_VELOCITIES_LENGTH, OVERSCROLL_START_ITERATION, SCROLL_EVENT, SMOOTH, SPEED_SCALE, TOP,
+    ACCELERATION_SCALE, ANIMATION_DURATION, DURATION, FRICTION_FORCE, MASS, MAX_DIST, MAX_DURATION, MAX_ITERATIONS_FOR_AVERAGE_CALCULATIONS,
+    MAX_VELOCITY_TIMESTAMP, MAX_VELOCITIES_LENGTH, OVERSCROLL_START_ITERATION, SCROLL_EVENT, SPEED_SCALE,
     MIN_ACCELERATION, MIN_DELTA,
 } from './const';
 import { calculateDirection, matrix3d } from './utils';
@@ -28,7 +28,7 @@ import { INtControlContainerService } from '../../../control-container/interface
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL, } from '../../../common/const/event-names';
 import { INTERACTIVE } from '../../../common/const/class-names';
 import { IListScrollToParams } from '../../../common/interfaces/list-scroll-to-params';
-import { X_PROP_NAME, Y_PROP_NAME } from '../../../common/const/base-prop-names';
+import { LEFT_PROP_NAME, TOP_PROP_NAME, X_PROP_NAME, Y_PROP_NAME } from '../../../common/const/base-prop-names';
 import { getScrollable } from '../../../common/utils/get-scrollable';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { ICancelOverscrollOptions } from '../../../common/interfaces/cancel-overscroll-options';
@@ -36,6 +36,7 @@ import { IAnimatorUpdateData } from '../../../common/utils/animator/interfaces';
 import { OverscrollEvent } from '../../../common/events/overscroll-event';
 import { transitionExponent } from '../../../common/utils/transitions';
 import { DEFAULT_TRANSITION_EXPONENT } from '../../../common/const/transitions';
+import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT, BEHAVIOR_SMOOTH } from '../../../common/const/behavior';
 
 /**
  * NtScrollView
@@ -326,7 +327,7 @@ export class NtScrollView extends NtBaseScrollView {
                                 startPos = isVertical ? this._y : this._x,
                                 delta = isVertical ? e.deltaY : (e.deltaX * (this._horizontalAxisInvertion() ? -1 : 1)), dp = (startPos + delta),
                                 position = this.isInfinity() ? dp : (dp < 0 ? 0 : dp > scrollSize ? scrollSize : dp);
-                            this.scroll({ [isVertical ? TOP : LEFT]: position, behavior: INSTANT, userAction: true, blending: false, fireUpdate: true });
+                            this.scroll({ [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: position, behavior: BEHAVIOR_INSTANT, userAction: true, blending: false, fireUpdate: true });
                             this._$wheel.next(delta);
                         }),
                     );
@@ -942,7 +943,7 @@ export class NtScrollView extends NtBaseScrollView {
     }
 
     protected move(isVertical: boolean, position: number, blending: boolean = false, userAction: boolean = false, fireUpdate: boolean = true) {
-        this.scroll({ [isVertical ? TOP : LEFT]: position, behavior: INSTANT, blending, userAction, fireUpdate });
+        this.scroll({ [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: position, behavior: BEHAVIOR_INSTANT, blending, userAction, fireUpdate });
     }
 
     protected moveWithAcceleration(isVertical: boolean, position: number, v0: number, v: number, a0: number, timestamp: number) {
@@ -1271,7 +1272,7 @@ export class NtScrollView extends NtBaseScrollView {
             onUpdate = params.onUpdate ?? null,
             onComplete = params.onComplete ?? null,
             fireUpdate = params.fireUpdate ?? true,
-            behavior = params.behavior ?? INSTANT,
+            behavior = params.behavior ?? BEHAVIOR_INSTANT,
             blending = params.blending ?? true,
             force = params.force ?? false,
             duration = params.duration ?? ANIMATION_DURATION,
@@ -1281,7 +1282,7 @@ export class NtScrollView extends NtBaseScrollView {
             y = this.normalizeValue(posY),
             prevX = this._x,
             prevY = this._y;
-        if (behavior === AUTO || behavior === SMOOTH) {
+        if (behavior === BEHAVIOR_AUTO || behavior === BEHAVIOR_SMOOTH) {
             if (isVertical) {
                 if (prevY !== y) {
                     return this.animate(prevY, y, duration, ease, blending, userAction, true, false, true, onUpdate, onComplete);

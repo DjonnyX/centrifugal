@@ -10,9 +10,8 @@ import { IRenderVirtualListCollection } from './models/render-collection.model';
 import { FocusAlignments } from './enums';
 import { SelectingModesTypes } from './enums/selecting-modes-types';
 import {
-  BEHAVIOR_AUTO, BEHAVIOR_INSTANT, DEFAULT_ANIMATION_PARAMS, DEFAULT_COLLAPSE_BY_CLICK,
-  DEFAULT_ITEM_SIZE, DEFAULT_SELECT_BY_CLICK, DEFAULT_SNAP_TO_ITEM, DEFAULT_ZINDEX_WHEN_SELECTING, ITEM_CONTAINER,
-  TRACK_BY_PROPERTY_NAME,
+  DEFAULT_ANIMATION_PARAMS, DEFAULT_COLLAPSE_BY_CLICK, DEFAULT_ITEM_SIZE, DEFAULT_SELECT_BY_CLICK, DEFAULT_SNAP_TO_ITEM,
+  DEFAULT_ZINDEX_WHEN_SELECTING, ITEM_CONTAINER, TRACK_BY_PROPERTY_NAME,
 } from './const';
 import { FocusAlignment } from './types';
 import { getListElements, NTVL_INDEX } from './components/nt-list-item/utils';
@@ -24,6 +23,7 @@ import { Id, IRect, ISize } from '../common';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
 import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-view-service';
 import { INtScroller } from '../common/interfaces/nt-scroller';
+import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from '../common/const/behavior';
 
 /**
  * NtListService

@@ -123,12 +123,6 @@ export const DEFAULT_SCROLLBAR_MIN_SIZE: number = 80;
 
 // presets
 
-export const BEHAVIOR_AUTO: ScrollBehavior = 'auto';
-
-export const BEHAVIOR_INSTANT: ScrollBehavior = 'instant';
-
-export const BEHAVIOR_SMOOTH: ScrollBehavior = 'smooth';
-
 export const DISABLED = 'disabled';
 
 export const VIEWPORT = 'viewport';
