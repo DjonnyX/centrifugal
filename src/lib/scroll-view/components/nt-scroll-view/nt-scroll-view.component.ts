@@ -33,6 +33,8 @@ import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { ICancelOverscrollOptions } from '../../../common/interfaces/cancel-overscroll-options';
 import { IAnimatorUpdateData } from '../../../common/utils/animator/interfaces';
 import { OverscrollEvent } from '../../../common/events/overscroll-event';
+import { transitionExponent } from '../../../common/utils/transitions';
+import { DEFAULT_TRANSITION_EXPONENT } from '../../../common/const/transitions';
 
 /**
  * NtScrollView
@@ -893,10 +895,10 @@ export class NtScrollView extends NtBaseScrollView {
     }
 
     private emitOverscrollEvent(grabbing: boolean = true) {
-        const event = new OverscrollEvent({
+        const bounds = this.viewportBounds(), event = new OverscrollEvent({
             grabbing,
-            dragX: this._dragX,
-            dragY: this._dragY,
+            dragX: transitionExponent(this._dragX, bounds.width, DEFAULT_TRANSITION_EXPONENT),
+            dragY: transitionExponent(this._dragY, bounds.height, DEFAULT_TRANSITION_EXPONENT),
             positionX: this._horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0,
             positionY: this._verticalScrollRatioWhenGrabbing === 1 ? 1 : 0,
         });
