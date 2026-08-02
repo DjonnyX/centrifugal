@@ -145,7 +145,7 @@ export class NtOverscrollIndicatorContainerComponent {
             };
         });
 
-        this._leftService.$pinned.pipe(
+        this._leftService.$trigger.pipe(
             takeUntilDestroyed(),
             debounceTime(0),
             filter(v => validateBoolean(v)),
@@ -154,7 +154,7 @@ export class NtOverscrollIndicatorContainerComponent {
             }),
         ).subscribe();
 
-        this._topService.$pinned.pipe(
+        this._topService.$trigger.pipe(
             takeUntilDestroyed(),
             debounceTime(0),
             filter(v => validateBoolean(v)),
@@ -163,7 +163,7 @@ export class NtOverscrollIndicatorContainerComponent {
             }),
         ).subscribe();
 
-        this._rightService.$pinned.pipe(
+        this._rightService.$trigger.pipe(
             takeUntilDestroyed(),
             debounceTime(0),
             filter(v => validateBoolean(v)),
@@ -172,7 +172,7 @@ export class NtOverscrollIndicatorContainerComponent {
             }),
         ).subscribe();
 
-        this._bottomService.$pinned.pipe(
+        this._bottomService.$trigger.pipe(
             takeUntilDestroyed(),
             debounceTime(0),
             filter(v => validateBoolean(v)),

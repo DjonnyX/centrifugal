@@ -18,10 +18,12 @@ export {
     NtScrollerComponent,
     NtScrollViewModule,
     NtScrollViewComponent,
-    NtScrollViewService
+    NtScrollViewService,
+    NtBaseOverscrollIndicatorComponent,
 } from './lib/scroll-view';
 export type {
     INtScrollViewService,
+    INtOverscrollIndicatorPublicApi,
 } from './lib/scroll-view';
 
 /*

@@ -1,9 +1,9 @@
 import { IOverscrollEvent, ISize } from "../../../../common";
 import { OverscrollIndicatorType } from "../../../../common/types/overscroll-indicator-type";
-import { INtOverscrollIndicatorService } from "../../nt-overscroll-indicator/interfaces";
+import { INtOverscrollIndicatorPublicApi } from "../../nt-overscroll-indicator/interfaces";
 
 export interface INtOverscrollIndicatorContext {
-    api: INtOverscrollIndicatorService;
+    api: INtOverscrollIndicatorPublicApi;
     bounds: ISize;
     overscrollEvent: IOverscrollEvent | null;
     leftOffset: number;

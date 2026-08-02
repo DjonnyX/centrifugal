@@ -1,10 +1,11 @@
-import { Component, computed, ElementRef, inject, input, output, Signal, TemplateRef, viewChild } from "@angular/core";
+import { Component, computed, DestroyRef, ElementRef, inject, input, output, signal, Signal, TemplateRef, viewChild } from "@angular/core";
 import { IOverscrollEvent, ISize, OverscrollIndicatorTypes } from "../../../../common";
 import { OverscrollIndicatorType } from "../../../../common/types/overscroll-indicator-type";
 import { HEIGHT_PROP_NAME, PX, WIDTH_PROP_NAME, ZERO } from "../../../../common/const/base-prop-names";
 import { PART } from "./const";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { BehaviorSubject, combineLatest, debounceTime, skip, tap } from "rxjs";
+import { combineLatest, debounceTime, filter, skip, switchMap, tap } from "rxjs";
+import { INtOverscrollIndicatorPublicApi } from "../interfaces";
 
 /**
  * NtOverscrollIndicatorComponent
@@ -20,7 +21,11 @@ import { BehaviorSubject, combineLatest, debounceTime, skip, tap } from "rxjs";
 export abstract class NtBaseOverscrollIndicatorComponent {
     private _rect = viewChild<ElementRef<HTMLDivElement>>('rect');
 
+    readonly pinnable = signal<boolean>(false);
+
     readonly onTrigger = output<boolean>();
+
+    readonly api = input<INtOverscrollIndicatorPublicApi & { trigger: (v: boolean) => void; } | null>(null);
 
     readonly bounds = input<ISize>({ width: 0, height: 0 });
 
@@ -40,9 +45,6 @@ export abstract class NtBaseOverscrollIndicatorComponent {
 
     protected _classes: Signal<{ [className: string]: boolean }>;
 
-    protected _$triggered = new BehaviorSubject<boolean>(false);
-    readonly $triggered = this._$triggered.asObservable();
-
     protected _part: Signal<string>;
 
     protected _position: Signal<number>;
@@ -51,13 +53,31 @@ export abstract class NtBaseOverscrollIndicatorComponent {
 
     protected _offset: Signal<number>;
 
+    protected _pinned = signal<boolean>(false);
+
     protected _styles: Signal<{ [styleName: string]: string }>;
 
     protected _containerStyles: Signal<{ [styleName: string]: string }>;
 
     protected _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
+    protected _destroyRef = inject(DestroyRef);
+
     constructor() {
+        const $api = toObservable(this.api);
+        $api.pipe(
+            takeUntilDestroyed(),
+            filter(v => !!v),
+            switchMap(api => {
+                return api.$trigger.pipe(
+                    takeUntilDestroyed(this._destroyRef),
+                    tap(v => {
+                        this._pinned.set(v);
+                    }),
+                );
+            }),
+        ).subscribe();
+
         this._classes = computed(() => {
             return { [this.type()]: true, grabbing: this.overscrollEvent()?.grabbing ?? false };
         });
@@ -126,8 +146,9 @@ export abstract class NtBaseOverscrollIndicatorComponent {
             }
             const overscrollEvent = this.overscrollEvent(),
                 offset = this._offset(),
-                pos = (isVertical ? (overscrollEvent?.dragY ?? 0) : (overscrollEvent?.dragX ?? 0)) - size;
-            return pos >= offset ? offset : pos;
+                pos = (isVertical ? (overscrollEvent?.dragY ?? 0) : (overscrollEvent?.dragX ?? 0)) - size,
+                pinned = this.pinnable() && this._pinned();
+            return pinned ? offset : (pos >= offset ? offset : pos);
         });
 
         this._styles = computed(() => {
@@ -137,11 +158,10 @@ export abstract class NtBaseOverscrollIndicatorComponent {
             }
 
             const type = this.type(),
-                offset = this._offset(),
                 bounds = this.bounds(),
                 isVertical = type === OverscrollIndicatorTypes.TOP || type === OverscrollIndicatorTypes.BOTTOM,
                 pos = this._position();
-            return { [type]: `${pos >= offset ? offset : pos}${PX}`, [isVertical ? WIDTH_PROP_NAME : HEIGHT_PROP_NAME]: `${isVertical ? bounds.width : bounds.height}${PX}` } as any;
+            return { [type]: `${pos}${PX}`, [isVertical ? WIDTH_PROP_NAME : HEIGHT_PROP_NAME]: `${isVertical ? bounds.width : bounds.height}${PX}` } as any;
         });
 
         this._containerStyles = computed(() => {
@@ -180,22 +200,13 @@ export abstract class NtBaseOverscrollIndicatorComponent {
 
         const $pos = toObservable(this._position),
             $offset = toObservable(this._offset);
-        combineLatest([$pos, $offset]).pipe(
+        combineLatest([$api, $pos, $offset]).pipe(
             takeUntilDestroyed(),
             skip(1),
             debounceTime(50),
-            tap(([pos, offset]) => {
-                this._$triggered.next(pos >= offset);
+            tap(([api, pos, offset]) => {
+                api?.trigger(pos >= offset);
             }),
         ).subscribe();
-
-        const $triggered = this.$triggered;
-        $triggered.pipe(
-            takeUntilDestroyed(),
-            debounceTime(0),
-            tap(v => {
-                this.onTrigger.emit(v);
-            }),
-        ).subscribe()
     }
 }

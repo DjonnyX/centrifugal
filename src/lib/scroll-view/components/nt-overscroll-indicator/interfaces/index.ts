@@ -1,5 +1,5 @@
-import { INtOverscrollIndicatorService } from './nt-overscroll-indicator-public-api';
+import { INtOverscrollIndicatorPublicApi } from './nt-overscroll-indicator-public-api';
 
 export type {
-    INtOverscrollIndicatorService,
+    INtOverscrollIndicatorPublicApi,
 }

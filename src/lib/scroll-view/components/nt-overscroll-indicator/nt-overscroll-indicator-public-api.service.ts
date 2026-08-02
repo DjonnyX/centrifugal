@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
-import { BehaviorSubject } from "rxjs";
-import { INtOverscrollIndicatorService } from "./interfaces";
+import { BehaviorSubject, Subject } from "rxjs";
+import { INtOverscrollIndicatorPublicApi } from "./interfaces";
 
 /**
  * NtOverscrollIndicatorService
@@ -11,15 +11,11 @@ import { INtOverscrollIndicatorService } from "./interfaces";
 @Injectable({
     providedIn: 'root',
 })
-export class NtOverscrollIndicatorService  implements INtOverscrollIndicatorService {
-    private _$pinned = new BehaviorSubject<boolean>(false);
-    readonly $pinned = this._$pinned.asObservable();
+export class NtOverscrollIndicatorService implements INtOverscrollIndicatorPublicApi {
+    private _$trigger = new Subject<boolean>();
+    readonly $trigger = this._$trigger.asObservable();
 
-    pin() {
-        this._$pinned?.next(true);
-    }
-
-    unpin() {
-        this._$pinned?.next(false);
+    trigger(v: boolean) {
+        this._$trigger?.next(v);
     }
 }
