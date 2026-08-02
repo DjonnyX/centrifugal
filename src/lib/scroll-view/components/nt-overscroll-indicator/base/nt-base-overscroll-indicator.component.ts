@@ -1,7 +1,10 @@
-import { Component, computed, effect, ElementRef, inject, input, output, Signal, TemplateRef, viewChild } from "@angular/core";
+import { Component, computed, ElementRef, inject, input, output, Signal, TemplateRef, viewChild } from "@angular/core";
 import { IOverscrollEvent, ISize, OverscrollIndicatorTypes } from "../../../../common";
 import { OverscrollIndicatorType } from "../../../../common/types/overscroll-indicator-type";
 import { HEIGHT_PROP_NAME, PX, WIDTH_PROP_NAME, ZERO } from "../../../../common/const/base-prop-names";
+import { PART } from "./const";
+import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
+import { BehaviorSubject, combineLatest, debounceTime, skip, tap } from "rxjs";
 
 /**
  * NtOverscrollIndicatorComponent
@@ -17,7 +20,7 @@ import { HEIGHT_PROP_NAME, PX, WIDTH_PROP_NAME, ZERO } from "../../../../common/
 export class NtBaseOverscrollIndicatorComponent {
     private _rect = viewChild<ElementRef<HTMLDivElement>>('rect');
 
-    readonly onPinned = output<boolean>();
+    readonly onTrigger = output<boolean>();
 
     readonly bounds = input<ISize>({ width: 0, height: 0 });
 
@@ -37,6 +40,13 @@ export class NtBaseOverscrollIndicatorComponent {
 
     protected _classes: Signal<{ [className: string]: boolean }>;
 
+    protected _$triggered = new BehaviorSubject<boolean>(false);
+    readonly $triggered = this._$triggered.asObservable();
+
+    protected _part: Signal<string>;
+
+    protected _position: Signal<number>;
+
     protected _enabled: Signal<boolean>;
 
     protected _offset: Signal<number>;
@@ -50,6 +60,10 @@ export class NtBaseOverscrollIndicatorComponent {
     constructor() {
         this._classes = computed(() => {
             return { [this.type()]: true, grabbing: this.overscrollEvent()?.grabbing ?? false };
+        });
+
+        this._part = computed(() => {
+            return `${PART}${this.type()}`;
         });
 
         this._enabled = computed(() => {
@@ -102,18 +116,31 @@ export class NtBaseOverscrollIndicatorComponent {
             return offset;
         });
 
+        this._position = computed(() => {
+            const enabled = this._enabled(),
+                type = this.type(),
+                isVertical = type === OverscrollIndicatorTypes.TOP || type === OverscrollIndicatorTypes.BOTTOM,
+                size = isVertical ? (this._rect()?.nativeElement?.offsetHeight ?? 0) : (this._rect()?.nativeElement?.offsetWidth ?? 0);
+            if (!enabled) {
+                return -size;
+            }
+            const overscrollEvent = this.overscrollEvent(),
+                offset = this._offset(),
+                pos = (isVertical ? (overscrollEvent?.dragY ?? 0) : (overscrollEvent?.dragX ?? 0)) - size;
+            return pos >= offset ? offset : pos;
+        });
+
         this._styles = computed(() => {
             const enabled = this._enabled();
             if (!enabled) {
                 return {};
             }
 
-            const type = this.type(), overscrollEvent = this.overscrollEvent(),
+            const type = this.type(),
                 offset = this._offset(),
                 bounds = this.bounds(),
                 isVertical = type === OverscrollIndicatorTypes.TOP || type === OverscrollIndicatorTypes.BOTTOM,
-                size = isVertical ? (this._rect()?.nativeElement?.offsetHeight ?? 0) : (this._rect()?.nativeElement?.offsetWidth ?? 0),
-                pos = (isVertical ? (overscrollEvent?.dragY ?? 0) : (overscrollEvent?.dragX ?? 0)) - size;
+                pos = this._position();
             return { [type]: `${pos >= offset ? offset : pos}${PX}`, [isVertical ? WIDTH_PROP_NAME : HEIGHT_PROP_NAME]: `${isVertical ? bounds.width : bounds.height}${PX}` } as any;
         });
 
@@ -150,5 +177,25 @@ export class NtBaseOverscrollIndicatorComponent {
             }
             return { clipPath: clip, width: `${width}${PX}`, height: `${height}${PX}` } as any;
         });
+
+        const $pos = toObservable(this._position),
+            $offset = toObservable(this._offset);
+        combineLatest([$pos, $offset]).pipe(
+            takeUntilDestroyed(),
+            skip(1),
+            debounceTime(50),
+            tap(([pos, offset]) => {
+                this._$triggered.next(pos >= offset);
+            }),
+        ).subscribe();
+
+        const $triggered = this.$triggered;
+        $triggered.pipe(
+            takeUntilDestroyed(),
+            debounceTime(0),
+            tap(v => {
+                this.onTrigger.emit(v);
+            }),
+        ).subscribe()
     }
 }

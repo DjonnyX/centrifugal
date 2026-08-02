@@ -44,9 +44,9 @@
   [overscrollIndicatorTopRenderer]="overscrollIndicatorTopRenderer()"
   [overscrollIndicatorRightRenderer]="overscrollIndicatorRightRenderer()"
   [overscrollIndicatorBottomRenderer]="overscrollIndicatorBottomRenderer()"
-  (onLeftOverscrollIndiatorPinned)="onLeftOverscrollIndiatorPinned.emit($event)"
-  (onTopOverscrollIndiatorPinned)="onTopOverscrollIndiatorPinned.emit($event)"
-  (onRightOverscrollIndiatorPinned)="onRightOverscrollIndiatorPinned.emit($event)"
-  (onBottomOverscrollIndiatorPinned)="onBottomOverscrollIndiatorPinned.emit($event)">
+  (onLeftOverscrollIndiatorTrigger)="onLeftOverscrollIndiatorTrigger.emit($event)"
+  (onTopOverscrollIndiatorTrigger)="onTopOverscrollIndiatorTrigger.emit($event)"
+  (onRightOverscrollIndiatorTrigger)="onRightOverscrollIndiatorTrigger.emit($event)"
+  (onBottomOverscrollIndiatorTrigger)="onBottomOverscrollIndiatorTrigger.emit($event)">
   <ng-container #renderersContainer></ng-container>
 </nt-scroller>

@@ -1,4 +1,4 @@
-import { Component, input, output, signal, TemplateRef } from "@angular/core";
+import { Component, input, output, TemplateRef } from "@angular/core";
 import { IOverscrollEvent, ISize } from "../../../common";
 
 /**
@@ -23,13 +23,13 @@ import { IOverscrollEvent, ISize } from "../../../common";
     standalone: false,
 })
 export class NtOverscrollIndicatorContainerComponent {
-    readonly onLeftIndiatorPinned = output<boolean>();
+    readonly onLeftIndiatorTrigger = output<boolean>();
 
-    readonly onTopIndiatorPinned = output<boolean>();
+    readonly onTopIndiatorTrigger = output<boolean>();
 
-    readonly onRightIndiatorPinned = output<boolean>();
+    readonly onRightIndiatorTrigger = output<boolean>();
 
-    readonly onBottomIndiatorPinned = output<boolean>();
+    readonly onBottomIndiatorTrigger = output<boolean>();
 
     readonly bounds = input<ISize>({ width: 0, height: 0 });
 
@@ -58,12 +58,4 @@ export class NtOverscrollIndicatorContainerComponent {
     readonly rightIndicatorRenderer = input<TemplateRef<any> | null>(null);
 
     readonly bottomIndicatorRenderer = input<TemplateRef<any> | null>(null);
-
-    readonly leftIndicatorPinned = signal<boolean>(false);
-
-    readonly topIndicatorPinned = signal<boolean>(false);
-
-    readonly rightIndicatorPinned = signal<boolean>(false);
-
-    readonly bottomIndicatorPinned = signal<boolean>(false);
 }

@@ -25,8 +25,8 @@
                 [rightIndicatorEnabled]="_actualOverscrollIndicatorRightEnabled()" [bottomIndicatorEnabled]="_actualOverscrollIndicatorBottomEnabled()"
                 [leftIndicatorRenderer]="overscrollIndicatorLeftRenderer()" [topIndicatorRenderer]="overscrollIndicatorTopRenderer()"
                 [rightIndicatorRenderer]="overscrollIndicatorRightRenderer()" [bottomIndicatorRenderer]="overscrollIndicatorBottomRenderer()"
-                (onLeftIndiatorPinned)="onLeftOverscrollIndiatorPinned.emit($event)" (onTopIndiatorPinned)="onTopOverscrollIndiatorPinned.emit($event)" 
-                (onRightIndiatorPinned)="onRightOverscrollIndiatorPinned.emit($event)" (onBottomIndiatorPinned)="onBottomOverscrollIndiatorPinned.emit($event)"/>
+                (onLeftIndiatorTrigger)="onLeftOverscrollIndiatorTrigger.emit($event)" (onTopIndiatorTrigger)="onTopOverscrollIndiatorTrigger.emit($event)" 
+                (onRightIndiatorTrigger)="onRightOverscrollIndiatorTrigger.emit($event)" (onBottomIndiatorTrigger)="onBottomOverscrollIndiatorTrigger.emit($event)"/>
         </foreignObject>
     </svg>
     @if (scrollbarEnabled()) {

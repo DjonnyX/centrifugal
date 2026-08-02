@@ -35,13 +35,13 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     readonly onOverscroll = output<IOverscrollEvent>();
 
-    readonly onLeftOverscrollIndiatorPinned = output<boolean>();
+    readonly onLeftOverscrollIndiatorTrigger = output<boolean>();
 
-    readonly onTopOverscrollIndiatorPinned = output<boolean>();
+    readonly onTopOverscrollIndiatorTrigger = output<boolean>();
 
-    readonly onRightOverscrollIndiatorPinned = output<boolean>();
+    readonly onRightOverscrollIndiatorTrigger = output<boolean>();
 
-    readonly onBottomOverscrollIndiatorPinned = output<boolean>();
+    readonly onBottomOverscrollIndiatorTrigger = output<boolean>();
 
     readonly overscrollIndicatorShowAutomatically = input<boolean>(true);
 

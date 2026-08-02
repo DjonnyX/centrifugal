@@ -104,6 +104,10 @@ Outputs
 | onScrollReachRight | void | Fires when the scroll reaches the right. |
 | onScrollReachTop | void | Fires when the scroll reaches the top. |
 | onScrollReachBottom | void | Fires when the scroll reaches the bottom. |
+| onLeftOverscrollIndiatorTrigger | boolean | Fires when the left overscroll indicator has reached its position limit. |
+| onTopOverscrollIndiatorTrigger | boolean | Fires when the top overscroll indicator has reached its position limit. |
+| onRightOverscrollIndiatorTrigger | boolean | Fires when the right overscroll indicator has reached its position limit. |
+| onBottomOverscrollIndiatorTrigger | boolean | Fires when the bottom overscroll indicator has reached its position limit. |
 
 <br/>
 
@@ -204,6 +208,10 @@ Outputs
 | onScrollReachStart | void | Fires when the scroll reaches the start. |
 | onScrollReachEnd | void | Fires when the scroll reaches the end. |
 | onOverscroll | [IOverscrollEvent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/overscroll-event.ts) | Dispatches an overscroll event. |
+| onLeftOverscrollIndiatorTrigger | boolean | Fires when the left overscroll indicator has reached its position limit. |
+| onTopOverscrollIndiatorTrigger | boolean | Fires when the top overscroll indicator has reached its position limit. |
+| onRightOverscrollIndiatorTrigger | boolean | Fires when the right overscroll indicator has reached its position limit. |
+| onBottomOverscrollIndiatorTrigger | boolean | Fires when the bottom overscroll indicator has reached its position limit. |
 
 <br/>
 

@@ -44,24 +44,24 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
     onOverscroll = output<IOverscrollEvent>();
 
     /**
-     * Fires when the left overscroll indicator is pinned to the screen.
+     * Fires when the left overscroll indicator has reached its position limit.
      */
-    onLeftOverscrollIndiatorPinned = output<boolean>();
+    onLeftOverscrollIndiatorTrigger = output<boolean>();
 
     /**
-     * Fires when the top overscroll indicator is pinned to the screen.
+     * Fires when the top overscroll indicator has reached its position limit.
      */
-    onTopOverscrollIndiatorPinned = output<boolean>();
+    onTopOverscrollIndiatorTrigger = output<boolean>();
 
     /**
-     * Fires when the right overscroll indicator is pinned to the screen.
+     * Fires when the right overscroll indicator has reached its position limit.
      */
-    onRightOverscrollIndiatorPinned = output<boolean>();
+    onRightOverscrollIndiatorTrigger = output<boolean>();
 
     /**
-     * Fires when the bottom overscroll indicator is pinned to the screen.
+     * Fires when the bottom overscroll indicator has reached its position limit.
      */
-    onBottomOverscrollIndiatorPinned = output<boolean>();
+    onBottomOverscrollIndiatorTrigger = output<boolean>();
 
     protected _overscrollIndicatorShowAutomaticallyOptions = {
         transform: (v: boolean) => {
