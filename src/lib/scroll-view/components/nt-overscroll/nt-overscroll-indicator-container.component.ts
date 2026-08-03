@@ -1,9 +1,9 @@
 import { Component, computed, input, output, Signal, TemplateRef } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { debounceTime, filter, tap } from "rxjs";
 import { IOverscrollEvent, ISize, OverscrollIndicatorTypes } from "../../../common";
 import { INtOverscrollIndicatorContext } from "./interfaces";
 import { NtOverscrollIndicatorService } from "../nt-overscroll-indicator/nt-overscroll-indicator-public-api.service";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { debounceTime, filter, tap } from "rxjs";
 import { validateBoolean } from "../../../common/utils";
 
 /**
