@@ -1,10 +1,10 @@
 import { Component, computed, DestroyRef, ElementRef, inject, input, output, signal, Signal, TemplateRef, viewChild } from "@angular/core";
+import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
+import { combineLatest, debounceTime, filter, skip, switchMap, tap } from "rxjs";
 import { IOverscrollEvent, ISize, OverscrollIndicatorTypes } from "../../../../common";
 import { OverscrollIndicatorType } from "../../../../common/types/overscroll-indicator-type";
 import { HEIGHT_PROP_NAME, PX, WIDTH_PROP_NAME, ZERO } from "../../../../common/const/base-prop-names";
 import { PART } from "./const";
-import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { combineLatest, debounceTime, filter, skip, switchMap, tap } from "rxjs";
 import { INtOverscrollIndicatorPublicApi } from "../interfaces";
 
 /**

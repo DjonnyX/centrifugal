@@ -2,6 +2,7 @@ import {
     Component, computed, DestroyRef, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild,
 } from '@angular/core';
 import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ScrollerDirection, ScrollerDirections } from '../enums';
 import {
     CONTROL_CONTAINER_SERVICE, IOverscrollEvent, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
@@ -13,7 +14,6 @@ import { INtControlContainerService } from '../../../../control-container/interf
 import { IScrollToParams } from '../../../../common/interfaces/scroll-to-params';
 import { INtBaseScrollViewService } from '../../../../common/interfaces/nt-base-scroll-view-service';
 import { INtBaseScrollView } from '../../../../common/interfaces/nt-base-scroll-view';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 
 /**
  * NtBaseScrollView
