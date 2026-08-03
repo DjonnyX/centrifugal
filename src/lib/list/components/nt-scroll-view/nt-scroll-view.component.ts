@@ -775,11 +775,8 @@ export class NtScrollView extends NtBaseScrollView {
         if (options?.released && !this._service.overscroll.x && !this._service.overscroll.y && !!this._controlContainerService) {
             this._controlContainerService.overscrollCancel({ element: (options?.event?.target as HTMLElement) ?? this._elementRef.nativeElement, scroller: this, type: this._type!, id: this._service.id });
         }
-        if (!this.overscrollEnabled()) {
-            return;
-        }
         this._overscrollIteration = this._dragX = this._dragY = 0;
-        this.emitOverscrollEvent(false);
+        this.emitOverscrollEvent(false, !this.overscrollEnabled());
     }
 
     private checkOverscrollByAxis(e: Event, pos: number, limit: number) {
