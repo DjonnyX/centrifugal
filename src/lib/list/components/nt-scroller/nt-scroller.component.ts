@@ -430,6 +430,8 @@ export class NtScrollerComponent extends NtScrollView {
     this.totalSize = 0;
     this.onResizeContent(0);
     this.stopScrollbar();
+    this.resetDrag();
+    this.emitOverscrollEvent(true, false);
     this.refresh(true, true);
     this.prepared = false;
   }
