@@ -865,7 +865,7 @@ export class NtScrollView extends NtBaseScrollView {
         }
     }
 
-    private emitOverscrollEvent(grabbing: boolean = true) {
+    protected emitOverscrollEvent(grabbing: boolean = true, output: boolean = true) {
         if (this.isInfinity()) {
             return;
         }
@@ -878,7 +878,9 @@ export class NtScrollView extends NtBaseScrollView {
                 positionY: (isVertical ? (this._scrollRatioWhenGrabbing === 1 ? 1 : 0) : 0),
             });
         this._$overscroll.next(event);
-        this.onOverscroll.emit(event);
+        if (output) {
+            this.onOverscroll.emit(event);
+        }
     }
 
     private calculateVelocity(offsets: Array<[number, number]>, delta: number, timestamp: number, indexOffset: number = 10) {
@@ -1257,6 +1259,10 @@ export class NtScrollView extends NtBaseScrollView {
         return false;
     }
 
+    protected resetDrag() {
+        this._dragX = this._dragY = 0;
+    }
+
     override scroll(params: IListScrollToParams) {
         const posX = params.x || params.left || 0,
             posY = params.y || params.top || 0,
@@ -1295,6 +1301,8 @@ export class NtScrollView extends NtBaseScrollView {
                         const scrollHeight = Math.abs(this.scrollHeight),
                             yy = Math.abs(this._y);
                         this._scrollRatio = scrollHeight !== 0 ? yy / scrollHeight : 0;
+                        this._scrollRatioWhenGrabbing = this._scrollRatio === 0 ? 0 : 1;
+                        this.resetDrag();
                     }
                     this.emitScrollableEvent();
                     if (fireUpdate) {
@@ -1308,6 +1316,8 @@ export class NtScrollView extends NtBaseScrollView {
                         const scrollWidth = Math.abs(this.scrollWidth),
                             xx = Math.abs(this._x);
                         this._scrollRatio = scrollWidth !== 0 ? xx / scrollWidth : 0;
+                        this._scrollRatioWhenGrabbing = this._scrollRatio === 0 ? 0 : 1;
+                        this.resetDrag();
                     }
                     this.emitScrollableEvent();
                     if (fireUpdate) {
@@ -1316,6 +1326,7 @@ export class NtScrollView extends NtBaseScrollView {
                 }
             }
         }
+        this.emitOverscrollEvent(true, false);
         return -1;
     }
 

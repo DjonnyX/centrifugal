@@ -889,7 +889,7 @@ export class NtScrollView extends NtBaseScrollView {
         }
     }
 
-    private emitOverscrollEvent(grabbing: boolean = true) {
+    protected emitOverscrollEvent(grabbing: boolean = true, output: boolean = true) {
         const bounds = this.viewportBounds(), event = new OverscrollEvent({
             grabbing,
             dragX: transitionExponent(this._dragX, bounds.width, DEFAULT_TRANSITION_EXPONENT),
@@ -898,7 +898,9 @@ export class NtScrollView extends NtBaseScrollView {
             positionY: this._verticalScrollRatioWhenGrabbing === 1 ? 1 : 0,
         });
         this._$overscroll.next(event);
-        this.onOverscroll.emit(event);
+        if (output) {
+            this.onOverscroll.emit(event);
+        }
     }
 
     private calculateVelocity(enabled: boolean, offsets: Array<[number, number]>, delta: number, timestamp: number, indexOffset: number = 10) {
@@ -1110,6 +1112,10 @@ export class NtScrollView extends NtBaseScrollView {
         return false;
     }
 
+    protected resetDrag() {
+        this._dragX = this._dragY = 0;
+    }
+
     override scroll(params: IScrollToParams): Array<number> | null {
         const animationIds = new Array<number>(),
             posX = params.x ?? params.left ?? null,
@@ -1149,6 +1155,8 @@ export class NtScrollView extends NtBaseScrollView {
                         const scrollWidth = Math.abs(this.scrollWidth),
                             xx = Math.abs(this._x);
                         this._horizontalScrollRatio = scrollWidth !== 0 ? (xx / scrollWidth) : 0;
+                        this._horizontalScrollRatioWhenGrabbing = this._horizontalScrollRatio === 0 ? 0 : 1;
+                        this.resetDrag();
                     }
                     this.emitScrollableEvent();
                     if (fireUpdate) {
@@ -1165,6 +1173,8 @@ export class NtScrollView extends NtBaseScrollView {
                         const scrollHeight = Math.abs(this.scrollHeight),
                             yy = Math.abs(this._y);
                         this._verticalScrollRatio = scrollHeight !== 0 ? yy / scrollHeight : 0;
+                        this._verticalScrollRatioWhenGrabbing = this._verticalScrollRatio === 0 ? 0 : 1;
+                        this.resetDrag();
                     }
                     this.emitScrollableEvent();
                     if (fireUpdate) {
@@ -1175,6 +1185,7 @@ export class NtScrollView extends NtBaseScrollView {
                 this.updateDirectionY(y, this._y);
             }
         }
+        this.emitOverscrollEvent(true, false);
         return null;
     }
 
