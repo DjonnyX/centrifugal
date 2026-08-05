@@ -6,8 +6,8 @@ import { KeyboardKey } from "../types";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface IKeyboardCharset {
+export interface IKeyboardCharset<K = KeyboardKey> {
     name: string,
     type: string,
-    keys: Array<Array<KeyboardKey>>;
+    keys: Array<Array<K>>;
 }

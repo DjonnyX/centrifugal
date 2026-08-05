@@ -1,10 +1,11 @@
 import { Injectable } from "@angular/core";
-import { BehaviorSubject, combineLatest, tap } from "rxjs";
-import { DEFAULT_KEYBOARD_LOCALE, DEFAULT_KEYBOARD_POSITION, DEFAULT_KEYBOARD_SETTINGS } from "../common/const/keyboard";
+import { BehaviorSubject, combineLatest, filter, tap } from "rxjs";
+import { DEFAULT_KEYBOARD_LOCALE, DEFAULT_KEYBOARD_POSITION } from "../common/const/keyboard";
 import { IKeyboardSettings, KeyboardPosition } from "../common";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { KEYBOARD_VERTICAL_POSITIONS } from "./const";
 import { IKeyboardCharset } from "../common/interfaces/keyboard-charset";
+import { NormalizedKeyboardKey } from "./types";
 
 /**
  * NtKeyboardService
@@ -28,7 +29,7 @@ export class NtKeyboardService {
     readonly $charsetIndex = this._$charsetIndex.asObservable();
     get charsetIndex() { return this._$charsetIndex.getValue(); }
 
-    private _$charset = new BehaviorSubject<IKeyboardCharset | null>(null);
+    private _$charset = new BehaviorSubject<IKeyboardCharset<NormalizedKeyboardKey> | null>(null);
     readonly $charset = this._$charset.asObservable();
     get charset() { return this._$charset.getValue(); }
 
@@ -40,10 +41,10 @@ export class NtKeyboardService {
     readonly $isVertical = this._$isVertical.asObservable();
     get isVertical() { return this._$isVertical.getValue(); }
 
-    private _$settings = new BehaviorSubject<IKeyboardSettings>(DEFAULT_KEYBOARD_SETTINGS);
+    private _$settings = new BehaviorSubject<IKeyboardSettings<NormalizedKeyboardKey> | null>(null);
     readonly $settings = this._$settings.asObservable();
     get settings() { return this._$settings.getValue(); }
-    set settings(v: IKeyboardSettings) {
+    set settings(v: IKeyboardSettings<NormalizedKeyboardKey> | null) {
         if (this.settings !== v) {
             this._$settings.next(v);
         }
@@ -53,6 +54,7 @@ export class NtKeyboardService {
         const $settings = this.$settings
         $settings.pipe(
             takeUntilDestroyed(),
+            filter(v => !!v),
             tap(settings => {
                 this._$position.next(settings.common.position);
                 this._$isVertical.next(KEYBOARD_VERTICAL_POSITIONS.indexOf(settings.common.position) > -1);
@@ -64,7 +66,7 @@ export class NtKeyboardService {
         $presetIndex.pipe(
             takeUntilDestroyed(),
             tap(v => {
-                const settings = this.settings, preset = v > -1 ? settings.preset[v] : null;
+                const settings = this.settings, preset = !!settings && v > -1 ? settings.preset[v] : null;
                 this._$charsetIndex.next(v > -1 && preset?.charset && preset?.charset?.length > 0 ? 0 : -1);
                 this._$locale.next(preset?.locale ?? DEFAULT_KEYBOARD_LOCALE);
             }),
@@ -74,7 +76,7 @@ export class NtKeyboardService {
         combineLatest([$presetIndex, $charsetIndex]).pipe(
             takeUntilDestroyed(),
             tap(([p, c]) => {
-                const settings = this.settings, preset = p > -1 ? settings.preset[p] : null,
+                const settings = this.settings, preset = !!settings && p > -1 ? settings.preset[p] : null,
                     charset = preset !== null && c > -1 ? preset.charset[c] : null;
                 this._$charset.next(charset);
             }),

@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, Signal, TemplateRef, ViewEncapsulation } from "@angular/core";
 import { NtKeyboardService } from "./nt-keyboard.service";
-import { IKeyboardSettings, KeyboardKey, KeyboardKeyValue, TextDirection, TextDirections } from "../common";
+import { IKeyboardSettings, TextDirection, TextDirections } from "../common";
 import { DEFAULT_KEYBOARD_SETTINGS } from "../common/const/keyboard";
 import { takeUntilDestroyed, toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { fromEvent, switchMap, tap } from "rxjs";
 import { KEY_DOWN, KEY_UP } from "../common/const/event-names";
+import { normalizeSettings } from "./utils";
+import { DomSanitizer } from "@angular/platform-browser";
 
 /**
  * NtKeyboardComponent
@@ -39,7 +41,11 @@ export class NtKeyboardComponent {
 
     get $isVertical() { return this._service.$isVertical; }
 
+    get normalizedSettings() { return this._service.$settings; }
+
     protected _containerClass: Signal<{ [className: string]: boolean }>;
+
+    protected _sanitizer = inject(DomSanitizer);
 
     protected _destroyRef = inject(DestroyRef);
 
@@ -48,7 +54,8 @@ export class NtKeyboardComponent {
         $settings.pipe(
             takeUntilDestroyed(),
             tap(v => {
-                this._service.settings = v;
+                const normalizedSettings = normalizeSettings(v, this._sanitizer);
+                this._service.settings = normalizedSettings;
             }),
         ).subscribe();
 
@@ -75,23 +82,5 @@ export class NtKeyboardComponent {
                 );
             }),
         ).subscribe();
-    }
-
-    normalizeKey(key: KeyboardKey) {
-        let classes: string | null | undefined, style: string | null | undefined, value: KeyboardKeyValue = null;
-        if (typeof key === 'object') {
-            classes = key?.class ?? '';
-            style = key?.style ?? '';
-            value = key?.value ?? null;
-        } else {
-            value = key ?? '';
-            classes = '';
-            style = '';
-        }
-        return {
-            class: classes,
-            style,
-            value,
-        };
     }
 }

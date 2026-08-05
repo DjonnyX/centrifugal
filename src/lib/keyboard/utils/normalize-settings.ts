@@ -1,0 +1,59 @@
+import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
+import { IKeyboardSettings, KeyboardKey, KeyboardKeyValue } from "../../common";
+import { NormalizedKeyboardKey } from '../types/normalized-keyboard-key';
+import { copyValueAsReadonly } from "../../common/utils";
+
+/**
+ * normalizeSettings
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/keyboard/utils/normalize-settings.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ */
+export const normalizeSettings = (settings: IKeyboardSettings, sanitizer?: DomSanitizer): IKeyboardSettings<NormalizedKeyboardKey> => {
+    const result: IKeyboardSettings<NormalizedKeyboardKey> = JSON.parse(JSON.stringify(settings));
+    for (let i = 0, l = result.preset.length; i < l; i++) {
+        const preset = result.preset[i];
+        for (let j = 0, l1 = preset.charset.length; j < l1; j++) {
+            const charset = preset.charset[j];
+            for (let k = 0, l2 = charset.keys.length; k < l2; k++) {
+                const keyRow = charset.keys[k];
+                for (let m = 0, l3 = keyRow.length; m < l3; m++) {
+                    const key = keyRow[m];
+                    keyRow[m] = normalizeKey(key as KeyboardKey, sanitizer);
+                }
+            }
+        }
+    }
+    return copyValueAsReadonly(result);
+}
+
+/**
+ * normalizeKey
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/keyboard/utils/normalize-settings.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ */
+const normalizeKey = (key: KeyboardKey, sanitizer?: DomSanitizer): NormalizedKeyboardKey => {
+    let classes: string | null | undefined, style: string | null | undefined, name: string | null, icon: SafeHtml | null,
+        value: KeyboardKeyValue = null;
+    if (typeof key === 'object') {
+        classes = key?.class ?? '';
+        style = key?.style ?? '';
+        value = key?.value ?? null;
+        name = key?.name ?? value ?? null;
+        icon = !!key?.icon && !!sanitizer ? sanitizer.bypassSecurityTrustHtml(key.icon) : null;
+    } else {
+        value = key ?? '';
+        classes = '';
+        style = '';
+        name = value;
+        icon = null;
+    }
+    return {
+        class: classes,
+        style,
+        value,
+        name,
+        icon,
+    };
+}
