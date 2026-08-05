@@ -15,13 +15,23 @@
         [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()"
         [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()">
         <ng-container #renderersContainer>
-            @let contentOffset = _contentOffset();
-            <div class="ntcc__content"
-                [ngStyle]="{width: container.offsetWidth + 'px', height: container.offsetHeight - contentOffset + 'px', paddingTop: contentOffset + 'px'}">
-                <ng-content></ng-content>
-            </div>
-            <div class="ntcc__keyboard">
-                Keyboard
+            @let keyboardVisible = keyboardEnabled();
+            @let keyboardPosition = keyboardSettings().common.position;
+            <div class="ntcc__content-wrapper" [ngClass]="_contentClasses()">
+                @if (keyboardVisible && (keyboardPosition === 'left' || keyboardPosition === 'top')) {
+                    <div class="ntcc__keyboard" [ngStyle]="_keyboardStyles()">
+                        Keyboard
+                    </div>
+                }
+                <div class="ntcc__content"
+                    [ngStyle]="_contentStyle()">
+                    <ng-content></ng-content>
+                </div>
+                @if (keyboardVisible && (keyboardPosition === 'right' || keyboardPosition === 'bottom')) {
+                    <div class="ntcc__keyboard" [ngStyle]="_keyboardStyles()">
+                        Keyboard
+                    </div>
+                }
             </div>
         </ng-container>
     </nt-scroller>

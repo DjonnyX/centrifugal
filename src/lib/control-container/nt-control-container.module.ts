@@ -1,14 +1,13 @@
 import { NgModule, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { NtScrollerModule } from '../scroll-view';
+import { NtScrollerModule, NtScrollViewModule } from '../scroll-view';
 import { NtControlContainerComponent } from './nt-control-container.component';
-import { NtLocaleSensitiveModule } from '../common';
-import { NtDrawerContainerModule } from '../drawer-container';
+import { NtLocaleSensitiveModule, NtVirtualClickModule } from '../common';
 
 @NgModule({
   declarations: [NtControlContainerComponent],
   exports: [NtControlContainerComponent],
-  imports: [CommonModule, NtDrawerContainerModule, NtScrollerModule, NtLocaleSensitiveModule],
+  imports: [CommonModule, NtScrollViewModule, NtScrollerModule, NtLocaleSensitiveModule, NtVirtualClickModule],
   schemas: [NO_ERRORS_SCHEMA],
 })
 export class NtControlContainerModule { }

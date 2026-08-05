@@ -19,6 +19,16 @@ export interface INtScroller<S extends INtBaseScrollViewService> {
 
     get parent(): INtBaseScrollView<S, S> | null;
 
+    get contentElement(): HTMLDivElement | null;
+
+    get offsetLeft(): number;
+
+    get offsetTop(): number;
+
+    get offsetRight(): number;
+
+    get offsetBottom(): number;
+
     set scrollLeft(v: number);
     get scrollLeft(): number;
 

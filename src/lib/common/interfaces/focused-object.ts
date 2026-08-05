@@ -12,4 +12,5 @@ export interface IFocusedObject {
     type: string;
     element: HTMLElement;
     scroller: INtScroller<INtBaseScrollViewService> | null;
+    animated?: boolean;
 }

@@ -33,3 +33,23 @@
     background-color: rgb(38, 30, 49);
     color: white;
 }
+
+.ntcc__content-wrapper {
+    display: grid;
+
+    &.left {
+        grid-template-columns: auto auto;
+    }
+
+    &.right {
+        grid-template-columns: auto auto;
+    }
+
+    &.top {
+        grid-template-rows: auto auto;
+    }
+
+    &.bottom {
+        grid-template-rows: auto auto;
+    }
+}
