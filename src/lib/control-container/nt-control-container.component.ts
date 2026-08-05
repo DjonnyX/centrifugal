@@ -1,6 +1,6 @@
 import { Component, computed, ElementRef, inject, input, Signal, signal, TemplateRef, viewChild, ViewEncapsulation } from "@angular/core";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { combineLatest, debounceTime, filter, fromEvent, map, of, skip, skipUntil, startWith, Subject, switchMap, tap, timer } from "rxjs";
+import { combineLatest, debounceTime, filter, fromEvent, map, of, skipUntil, Subject, switchMap, tap, timer } from "rxjs";
 import { INtScrollViewService, NtScrollViewComponent, NtScrollViewService } from "../scroll-view";
 import {
   CONTROL_CONTAINER_SERVICE, ElementNames, IKeyboardSettings, INtBaseControlContainerService, KeyboardPosition, KeyboardPositions, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
@@ -18,7 +18,6 @@ import { DEFAULT_KEYBOARD_ENABLED, DEFAULT_KEYBOARD_SETTINGS } from "./const";
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
 import { IScrollToParams } from "../common/interfaces/scroll-to-params";
 import { PX } from "../common/const/base-prop-names";
-import { INtScroller } from "../common/interfaces/nt-scroller";
 
 /**
  * NtScrollViewComponent
@@ -548,23 +547,16 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
       }),
     ).subscribe();
 
-    this.$hostScroll.pipe(
-      takeUntilDestroyed(this._destroyRef),
-      tap(e => {
-        this.hostScrollTo(e);
-      }),
-      debounceTime(250),
-      tap(e => {
-        this.hostScrollTo(e);
-      }),
-    ).subscribe();
-
-    combineLatest([$scroller, $keyboardSettings]).pipe(
+    $scroller.pipe(
       takeUntilDestroyed(),
-      filter(([s, k]) => !!s && !!k),
-      switchMap(([scroller, keyboardSettings]) => {
-        return combineLatest([scroller.$scroll, scroller.$resizeContent, scroller.$resizeViewport]).pipe(
+      filter(s => !!s),
+      switchMap(scroller => {
+        return combineLatest([scroller.$scroll, scroller.$resizeViewport.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          debounceTime(100),
+        )]).pipe(
           tap(() => {
+            const keyboardSettings = this.keyboardSettings();
             this._contentOffset.set((this._isVertical() ? scroller.verticalScrollRatio : scroller.horizontalScrollRatio) * keyboardSettings.common.size * keyboardSettings.common.scrollerOffsetWhenFocused);
           }),
         );
@@ -590,10 +582,11 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
           return of({ visible: true, target });
         }
       }
-      const scrollParams: IScrollToParams = {
-        behavior: animated && keyboardSettings.animation.transition.in > 0 ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
-        duration: animated ? keyboardSettings.animation.transition.out : 0
-      };
+      const behavior = animated && keyboardSettings.animation.transition.in > 0 ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
+        scrollParams: IScrollToParams = {
+          behavior,
+          duration: animated ? keyboardSettings.animation.transition.out : 0
+        };
       switch (keyboardSettings.common.position) {
         case KeyboardPositions.LEFT: {
           scrollParams.left = scrollerComponent.scrollWidth;
@@ -615,6 +608,12 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
       }
       this._keyboardShown.set(false);
       scrollerComponent.scrollTo(scrollParams) ?? null;
+      if (behavior === BEHAVIOR_INSTANT) {
+        scrollerComponent.refresh(true);
+      }
+      if (!!e) {
+        this._$hostScroll.next(e);
+      }
     }
     return of({ visible: false, target: null });
   }
@@ -622,14 +621,17 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
   private updateKeyboardAnimation(e: IFocusedObject, keyboardEnabled: boolean, keyboardSettings: IKeyboardSettings,
     animated: boolean = true) {
     if (keyboardEnabled) {
-      const scrollParams: IScrollToParams = {
-        behavior: animated && keyboardSettings.animation.transition.in > 0 ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
-        duration: animated ? keyboardSettings.animation.transition.out : 0, onUpdate: () => {
-          this.hostScrollTo(e, true, animated);
-        }, onComplete: () => {
-          this.hostScrollTo(e, true, animated);
-        }
-      };
+      const behavior = animated && keyboardSettings.animation.transition.in > 0 ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
+        scrollParams: IScrollToParams = {
+          behavior,
+          duration: animated ? keyboardSettings.animation.transition.out : 0, onUpdate: () => {
+            this.hostScrollTo(e, true, animated);
+          }, onComplete: () => {
+            this.hostScrollTo(e, true, animated);
+          }
+        };
+
+      this.hostScrollTo(e, true, animated);
       switch (keyboardSettings.common.position) {
         case KeyboardPositions.LEFT: {
           scrollParams.left = this.scrollWidth - keyboardSettings.common.size;
@@ -650,6 +652,9 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
         }
       }
       this.scrollTo(scrollParams);
+      if (behavior === BEHAVIOR_INSTANT) {
+        this._scrollerComponent()?.refresh(true);
+      }
     }
   }
 
@@ -657,15 +662,16 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
     if (!!e && !!e.element) {
       const target = e.element,
         scroller = e.scroller,
-        { width: targetWidth, height: targetHeight } = target.getBoundingClientRect();
-      let offsetTop = target.offsetTop, offsetLeft = target.offsetLeft;
+        position = this._keyboardPosition(),
+        useOffsets = position === KeyboardPositions.LEFT || position === KeyboardPositions.TOP,
+        { left, top, width: targetWidth, height: targetHeight } = target.getBoundingClientRect();
+      let offsetTop = top, offsetLeft = left;
       if (!!scroller) {
         let s = scroller.service, hostService: INtBaseScrollViewService | null = null;
         while (true) {
           if (!!s?.scrollView?.parent?.host) {
-            const { left, top } = s.scrollView.parent.host.getBoundingClientRect();
-            offsetLeft += left
-            offsetTop += top;
+            offsetLeft += useOffsets ? (s?.scrollView.scrollLeft - s.scrollView.offsetLeft) : s?.scrollView.scrollLeft;
+            offsetTop += useOffsets ? (s?.scrollView.scrollTop - s.scrollView.offsetTop) : s?.scrollView.scrollTop;
           }
           if (s === this._service) {
             break;
@@ -676,26 +682,27 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
             break;
           }
         }
-        const keyboardSettings = this.keyboardSettings(), position = this._keyboardPosition(),
+
+        const keyboardSettings = this.keyboardSettings(),
           { width: scrollerViewportWidth, height: scrollerViewportHeight } = this._scrollerComponent()?.viewportBounds() ?? { width: 0, height: 0 };
         let x: number, y: number;
 
         switch (position) {
           case KeyboardPositions.LEFT: {
-            x = offsetLeft + (keyboardSettings.common.size + keyboardSettings.common.focusedTargetOffset);
+            x = offsetLeft - keyboardSettings.common.size - keyboardSettings.common.focusedTargetOffset;
             break;
           }
           case KeyboardPositions.TOP: {
-            y = offsetTop + (keyboardSettings.common.size + keyboardSettings.common.focusedTargetOffset);
+            y = offsetTop - keyboardSettings.common.size - keyboardSettings.common.focusedTargetOffset;
             break;
           }
           case KeyboardPositions.RIGHT: {
-            x = (offsetLeft + targetWidth + keyboardSettings.common.focusedTargetOffset) - (scrollerViewportWidth - keyboardSettings.common.size);
+            x = (offsetLeft + targetWidth + keyboardSettings.common.focusedTargetOffset) - scrollerViewportWidth;
             break;
           }
           case KeyboardPositions.BOTTOM:
           default: {
-            y = (offsetTop + targetHeight + keyboardSettings.common.focusedTargetOffset) - (scrollerViewportHeight - keyboardSettings.common.size);
+            y = (offsetTop + targetHeight + keyboardSettings.common.focusedTargetOffset) - scrollerViewportHeight;
             break;
           }
         }

@@ -80,6 +80,14 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     protected _bottomOffset: Signal<number>;
 
+    get offsetLeft() { return this._leftOffset(); }
+
+    get offsetTop() { return this._topOffset(); }
+
+    get offsetRight() { return this._rightOffset(); }
+
+    get offsetBottom() { return this._bottomOffset(); }
+
     protected _actualOverscrollIndicatorLeftEnabled = signal<boolean>(false);
 
     protected _actualOverscrollIndicatorTopEnabled = signal<boolean>(false);
@@ -92,6 +100,10 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     readonly context = input<INtBaseScrollView<INtBaseScrollViewService, INtBaseScrollViewService> | null>(null);
     get parent() { return this.context(); }
+
+    get contentElement(): HTMLDivElement | null {
+        return this.scrollContent()?.nativeElement ?? null;
+    }
 
     protected _type = inject(SCROLL_VIEW_TYPE, { optional: true });
     get type() { return this._type; }

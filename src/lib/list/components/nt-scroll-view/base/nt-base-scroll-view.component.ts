@@ -69,6 +69,14 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     protected _bottomOffset = signal<number>(0);
 
+    get offsetLeft() { return this._leftOffset(); }
+
+    get offsetTop() { return this._topOffset(); }
+
+    get offsetRight() { return this._rightOffset(); }
+
+    get offsetBottom() { return this._bottomOffset(); }
+
     protected _actualOverscrollIndicatorLeftEnabled = signal<boolean>(false);
 
     protected _actualOverscrollIndicatorTopEnabled = signal<boolean>(false);
@@ -89,6 +97,10 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     readonly context = input<INtBaseScrollView<INtBaseScrollViewService, INtBaseScrollViewService> | null>(null);
     get parent() { return this.context(); }
+
+    get contentElement(): HTMLDivElement | null {
+        return this.scrollContent()?.nativeElement ?? null;
+    }
 
     readonly langTextDir = input<TextDirection>(TextDirections.LTR);
 
