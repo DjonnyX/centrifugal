@@ -1,6 +1,6 @@
 export enum KeyboardKeys {
     // System keys
-    SYS_NEXT_LOCALE,
+    SYS_NEXT_LOCALE = 'sys::next-locale',
     // Service keys
     SHIFT = 'shift',
     BACK_SPACE = 'backspace',
@@ -29,8 +29,8 @@ export enum KeyboardKeys {
     T = 'T',
     U = 'U',
     X = 'X',
-    W = 'W',
     V = 'V',
+    W = 'W',
     Y = 'Y',
     Z = 'Z',
 }

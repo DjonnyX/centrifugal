@@ -2,10 +2,11 @@
 @let scrollRightOffset = _precalculatedScrollRightOffset();
 @let scrollTopOffset = _precalculatedScrollTopOffset();
 @let scrollBottomOffset = _precalculatedScrollBottomOffset();
+@let textDir = langTextDir();
 
 <div #container class="ntcc__container">
     <nt-scroller #scroller class="ntcc__scroller" [classes]="classes()" [context]="this" [scrollable]="scrollable()"
-        [langTextDir]="langTextDir()" [leftOffset]="scrollLeftOffset" [rightOffset]="scrollRightOffset"
+        [langTextDir]="textDir" [leftOffset]="scrollLeftOffset" [rightOffset]="scrollRightOffset"
         [topOffset]="scrollTopOffset" [bottomOffset]="scrollBottomOffset" [direction]="direction()"
         [scrollbarThumbRenderer]="scrollbarThumbRenderer()" [scrollbarThickness]="scrollbarThickness()"
         [scrollbarThumbParams]="scrollbarThumbParams()" [animationParams]="animationParams()"
@@ -20,7 +21,7 @@
             <div class="ntcc__content-wrapper" [ngClass]="_contentClasses()">
                 @if (keyboardVisible && (keyboardPosition === 'left' || keyboardPosition === 'top')) {
                     <div class="ntcc__keyboard" [ngStyle]="_keyboardStyles()">
-                        Keyboard
+                        <nt-keyboard [settings]="keyboardSettings()" [langTextDir]="textDir"></nt-keyboard>
                     </div>
                 }
                 <div class="ntcc__content"
@@ -29,7 +30,7 @@
                 </div>
                 @if (keyboardVisible && (keyboardPosition === 'right' || keyboardPosition === 'bottom')) {
                     <div class="ntcc__keyboard" [ngStyle]="_keyboardStyles()">
-                        Keyboard
+                       <nt-keyboard [settings]="keyboardSettings()" [langTextDir]="textDir"></nt-keyboard>
                     </div>
                 }
             </div>

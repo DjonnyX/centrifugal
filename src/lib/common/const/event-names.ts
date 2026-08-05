@@ -39,3 +39,5 @@ export const POINTER_OUT = 'pointerout';
 export const CLICK = 'click';
 
 export const KEY_DOWN = 'keydown';
+
+export const KEY_UP = 'keyup';

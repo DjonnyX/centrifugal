@@ -1,4 +1,4 @@
-import { PERCENTAGE_VALUE_PATTERN } from "../const";
+import { PERCENTAGE_VALUE_PATTERN } from "../const/calc";
 
 /**
  * isPercentageValue

@@ -1,0 +1,27 @@
+@let vertical = $isVertical | async;
+<div localeSensitive [langTextDir]="langTextDir()" class="ntk-container" [ngClass]="{vertical}">
+    @let charset = $charset | async;
+    @if (!!charset) {
+        <div class="ntk-keys" [ngClass]="_containerClass()">
+            @for (keyRow of charset.keys; track $index) {
+                <div class="ntk-key-row" part="ntk-key-row">
+                    @for (key of keyRow; track $index) {
+                        @let normalizedKey = normalizeKey(key);
+                        <div virtualClick part="ntk-key" [classList]="!!normalizedKey.class? normalizedKey.class + ' ntk-key':'ntk-key'" [style]="normalizedKey.style" [ngClass]="{empty: normalizedKey?.value === undefined || normalizedKey?.value === null || normalizedKey?.value === ''}">
+                            <div class="button-wrapper">
+                                @let renderer = keyRenderer();
+                                @if (!!renderer) {
+                                    <ng-container [ngTemplateOutlet]="renderer" [ngTemplateOutletContext]="normalizedKey"></ng-container>
+                                } @else {
+                                    <button>
+                                        {{normalizedKey.value ?? ''}}
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>

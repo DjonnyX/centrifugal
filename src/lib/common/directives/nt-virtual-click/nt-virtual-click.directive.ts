@@ -10,6 +10,7 @@ import { INtBaseControlContainerService } from '../../interfaces';
 import { GRABBING, NOT_GRABBING } from '../../const/class-names';
 import { DomSanitizer } from '@angular/platform-browser';
 import { INtBaseScrollViewService } from '../../interfaces/nt-base-scroll-view-service';
+import { NOT_PRESSED, PRESSED } from './const/classes';
 
 /**
  * VirtualClickDirective
@@ -90,6 +91,9 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
     private _$elementTarget = new BehaviorSubject<HTMLElement | null>(null);
     protected $elementTarget = this._$elementTarget.asObservable();
 
+    private _$pressed = new BehaviorSubject<boolean>(false);
+    protected $pressed = this._$pressed.asObservable();
+
     private _elementRef = inject(ElementRef);
 
     private _sanitizer = inject(DomSanitizer);
@@ -109,6 +113,14 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                     const aTarget = host as HTMLAnchorElement;
                     aTarget.draggable = v;
                 }
+            }),
+        ).subscribe();
+
+        const $pressed = this.$pressed;
+        $pressed.pipe(
+            takeUntilDestroyed(),
+            tap(v => {
+                toggleClassName(this._elementRef.nativeElement, v ? PRESSED : NOT_PRESSED, [v ? NOT_PRESSED : PRESSED]);
             }),
         ).subscribe();
 
@@ -158,6 +170,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                 this._$elementTarget.next(e.target as HTMLElement);
                 const x = Math.abs(e.clientX),
                     y = Math.abs(e.clientY);
+                this._$pressed.next(true);
                 this.onVirtualClickPress.emit(e);
                 return $pointerRelease.pipe(
                     takeUntilDestroyed(this._destroyRef),
@@ -166,6 +179,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                             $pointerCancel.pipe(
                                 takeUntilDestroyed(this._destroyRef),
                                 tap(() => {
+                                    this._$pressed.next(false);
                                     this.onVirtualClickCancel.emit();
                                     this._$elementTarget.next(null);
                                 }),
@@ -178,6 +192,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                                         dist = Math.sqrt(Math.pow(xx, 2) + Math.pow(yy, 2));
 
                                     if (dist > maxDistance) {
+                                        this._$pressed.next(false);
                                         this.onVirtualClickCancel.emit();
                                         return of(true);
                                     }
@@ -196,6 +211,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                                 e.preventDefault();
                             }
 
+                            this._$pressed.next(false);
                             this.onVirtualClick.emit(e);
 
                             if (this.emitNativeClick()) {
