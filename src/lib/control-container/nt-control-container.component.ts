@@ -398,9 +398,9 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                     this._keyboardService.nextPreset();
                   }
                 } else if (keyValue.indexOf(KEY_CHARSET) === 0) {
-                  const preset = this._keyboardService.preset, isCharset = (preset?.charset?.findIndex(v => `${KEY_CHARSET}${(v?.name ?? '')}` === keyValue) ?? 0) > -1;
+                  const preset = this._keyboardService.preset, index = (preset?.charset?.findIndex(v => `${KEY_CHARSET}${(v?.name ?? '')}` === keyValue) ?? 0), isCharset = index > -1;
                   if (isCharset) {
-                    this._keyboardService.nextCharset();
+                    this._keyboardService.nextCharset({ index });
                   }
                 } else if (keyValue.indexOf(KEY_SYS) === -1) {
                   switch (keyValue) {

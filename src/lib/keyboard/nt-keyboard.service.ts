@@ -91,7 +91,7 @@ export class NtKeyboardService {
             tap(settings => {
                 this._$position.next(settings.common.position);
                 this._$isVertical.next(KEYBOARD_VERTICAL_POSITIONS.indexOf(settings.common.position) > -1);
-                    const currentPresetIndex = this.presetIndex, presetLength = settings?.preset?.length ?? 0;
+                const currentPresetIndex = this.presetIndex, presetLength = settings?.preset?.length ?? 0;
                 this._$presetIndex.next(currentPresetIndex > -1 && presetLength > 0 && presetLength - 1 >= currentPresetIndex ? currentPresetIndex : presetLength > 0 ? 0 : -1);
             }),
         ).subscribe();
@@ -168,13 +168,31 @@ export class NtKeyboardService {
         }
     }
 
-    nextCharset() {
-        const preset = this.preset;
-        if (!!preset) {
-            const index = this.charsetIndex, length = this.preset?.charset.length ?? 0,
-                nextIndex = length == 0 || index === length - 1 ? 0 : index + 1;
-            this._$charset.next(this.preset.charset[nextIndex]);
-            this._$charsetIndex.next(nextIndex);
+    nextCharset(options?: { name?: string; index?: number; }) {
+        const index = options?.index ?? -1, name = options?.name ?? null;
+        if (index > -1) {
+            const preset = this.preset;
+            if (!!preset) {
+                this._$charset.next(this.preset.charset[index]);
+                this._$charsetIndex.next(index);
+            }
+        } else if (!!name) {
+            const preset = this.preset;
+            if (!!preset) {
+                const index = (preset?.charset?.findIndex(v => `${KEY_CHARSET}${(v?.name ?? '')}` === name) ?? 0);
+                if (index > -1) {
+                    this._$charset.next(this.preset.charset[index]);
+                    this._$charsetIndex.next(index);
+                }
+            }
+        } else {
+            const preset = this.preset;
+            if (!!preset) {
+                const index = this.charsetIndex, length = this.preset?.charset.length ?? 0,
+                    nextIndex = length == 0 || index === length - 1 ? 0 : index + 1;
+                this._$charset.next(this.preset.charset[nextIndex]);
+                this._$charsetIndex.next(nextIndex);
+            }
         }
     }
 
