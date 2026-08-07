@@ -101,15 +101,7 @@ export class NtKeyboardComponent {
         this._service.fireKeyEvent(key, KeyboardKeyStates.CLICK);
     }
 
-    onLongPressActivateHandler(value: boolean, key: NormalizedKeyboardKey) {
-        this._service.fireKeyEvent(key, KeyboardKeyStates.LONG_PRESS);
-    }
-
-    onLongClickCancelHandler(key: NormalizedKeyboardKey) {
-        this._service.fireKeyEvent(key, KeyboardKeyStates.LONG_CANCEL);
-    }
-
-    onLongPressHandler(key: NormalizedKeyboardKey) {
-        this._service.fireKeyEvent(key, KeyboardKeyStates.LONG_PRESS);
+    onLongClickHandler(key: NormalizedKeyboardKey) {
+        this._service.fireKeyEvent(key, KeyboardKeyStates.LONG_CLICK);
     }
 }

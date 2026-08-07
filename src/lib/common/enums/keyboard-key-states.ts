@@ -8,7 +8,5 @@ export enum KeyboardKeyStates {
     PRESS = 'press',
     CLICK_CANCEL = 'clickcancel',
     CLICK = 'click',
-    LONG_PRESS = 'longpress',
-    LONG_CANCEL = 'longclickcancel',
     LONG_CLICK = 'longclick',
 }

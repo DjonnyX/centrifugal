@@ -7,16 +7,17 @@
                 <div class="ntk-key-row" part="ntk-key-row">
                     @for (key of keyRow; track $index) {
                         @if (!!key) {
-                            <div keyState virtualClick part="ntk-key" [key]="key.value" [classList]="!!key.class ? key.class + ' ntk-key' : 'ntk-key'" [style]="key.style"
-                             [ngClass]="{empty: key.value === undefined || key.value === null || key.value === ''}"
-                             (onVirtualClick)="onClickHandler($event, key)"(onVirtualClickCancel)="onClickCancelHandler(key)" (onVirtualClickPress)="onPressHandler($event, key)"
-                             (onLongPressActive)="onLongPressActivateHandler($event, key)"(onVirtualClickCancel)="onLongClickCancelHandler(key)"  (onLongPress)="onLongPressHandler(key)">
-                                <div  class="button-wrapper">
+                            <div keyState virtualClick part="ntk-key" [longPressEnable]="true" [key]="key.value"
+                                [classList]="!!key.class ? key.class + ' ntk-key' : 'ntk-key'" [style]="key.style"
+                                [ngClass]="{empty: key.value === undefined || key.value === null || key.value === ''}"
+                                (onVirtualClick)="onClickHandler($event, key)" (onVirtualClickCancel)="onClickCancelHandler(key)"
+                                (onVirtualClickPress)="onPressHandler($event, key)" (onLongPress)="onLongClickHandler(key)">
+                                <div class="button-wrapper">
                                     @let renderer = keyRenderer();
                                     @if (!!renderer) {
                                         <ng-container [ngTemplateOutlet]="renderer" [ngTemplateOutletContext]="key"></ng-container>
                                     } @else {
-                                        @if (!!key.icon) {
+                                    @if (!!key.icon) {
                                             <button [innerHTML]="key.icon"></button>
                                         } @else {
                                             <button>

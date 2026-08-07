@@ -1,5 +1,5 @@
 import { DestroyRef, inject, Injectable } from "@angular/core";
-import { BehaviorSubject, combineLatest, filter, of, Subject, switchMap, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, delay, filter, of, Subject, switchMap, tap } from "rxjs";
 import { DEFAULT_KEYBOARD_LANG_DIR, DEFAULT_KEYBOARD_LOCALE, DEFAULT_KEYBOARD_POSITION, KEY_CHARSET, KEY_SYS } from "../common/const/keyboard";
 import { IKeyboardSettings, KeyboardKey, KeyboardKeys, KeyboardKeyStates, KeyboardPosition, TextDirection, TextDirections } from "../common";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
@@ -132,27 +132,16 @@ export class NtKeyboardService {
             }),
         ).subscribe();
 
-        const $caps = this.$caps;
-        $caps.pipe(
-            takeUntilDestroyed(),
-            switchMap(v => {
-                if (v) {
-                    return combineLatest([this.$keyClick.pipe(
-                        takeUntilDestroyed(this._destroyRef),
-                        filter(v => v !== KeyboardKeys.SHIFT),
-                    ), this.$keyRelease.pipe(
-                        takeUntilDestroyed(this._destroyRef),
-                        filter(v => v !== KeyboardKeys.SHIFT),
-                    )]).pipe(
-                        takeUntilDestroyed(this._destroyRef),
-                        tap(() => {
-                            this._$caps.next(false);
-                        }),
-                    );
+        this.$keyClick.pipe(
+            takeUntilDestroyed(this._destroyRef),
+            filter(v => v !== KeyboardKeys.SHIFT),
+            delay(1),
+            tap(() => {
+                if (this.capsOnce) {
+                    this._$caps.next(false);
                 }
-                return of(null);
             }),
-        ).subscribe()
+        ).subscribe();
     }
 
     nextPreset() {
@@ -211,9 +200,8 @@ export class NtKeyboardService {
                         this._$capsOnce.next(true);
                         this._$caps.next(!this.caps);
                     } else if (state === KeyboardKeyStates.LONG_CLICK) {
-                        const caps = this.caps;
-                        this._$capsOnce.next(!caps);
-                        this._$caps.next(!caps);
+                        this._$capsOnce.next(false);
+                        this._$caps.next(true);
                     }
                     break;
                 }
@@ -232,10 +220,6 @@ export class NtKeyboardService {
                 break;
             }
             case KeyboardKeyStates.CLICK_CANCEL: {
-                this._$keyRelease.next(value);
-                break;
-            }
-            case KeyboardKeyStates.LONG_CANCEL: {
                 this._$keyRelease.next(value);
                 break;
             }
