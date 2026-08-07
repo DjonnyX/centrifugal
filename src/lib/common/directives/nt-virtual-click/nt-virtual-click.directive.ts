@@ -1,16 +1,15 @@
-import { DestroyRef, Directive, ElementRef, inject, input, output, SecurityContext } from '@angular/core';
+import { DestroyRef, Directive, ElementRef, inject, Input, input, output, SecurityContext } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, combineLatest, fromEvent, of, race } from 'rxjs';
-import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, fromEvent, of, race, Subject, timer } from 'rxjs';
+import { delay, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from '../../injection';
 import { toggleClassName, validateBoolean, validateFloat } from '../../utils';
-import { ANCHOR, DEFAULT_CLICK_DISTANCE } from './const';
+import { ANCHOR, DEFAULT_CLICK_DISTANCE, DEFAULT_DURATION } from './const';
 import { CLICK, POINTER_DOWN, POINTER_LEAVE, POINTER_MOVE, POINTER_UP } from '../../const/event-names';
 import { INtBaseControlContainerService } from '../../interfaces';
 import { GRABBING, NOT_GRABBING } from '../../const/class-names';
 import { DomSanitizer } from '@angular/platform-browser';
 import { INtBaseScrollViewService } from '../../interfaces/nt-base-scroll-view-service';
-import { NOT_PRESSED, PRESSED } from './const/classes';
 
 /**
  * VirtualClickDirective
@@ -26,6 +25,49 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
     protected _service = inject<S>(SCROLL_VIEW_SERVICE);
 
     protected _controlService = inject<C>(CONTROL_CONTAINER_SERVICE);
+
+    onLongPress = output<void>();
+
+    onLongPressActive = output<boolean>();
+
+    private _$duration = new BehaviorSubject<number>(DEFAULT_DURATION);
+    readonly $duration = this._$duration.asObservable();
+    get duration() { return this._$duration.getValue(); }
+
+    protected _durationTransform = {
+        transform: (v: number) => {
+            const valid = validateFloat(v);
+            if (!valid) {
+                console.error('The "longPress" parameter must be of type `number`.');
+                return DEFAULT_DURATION;
+            }
+            return v;
+        },
+    } as any;
+
+    @Input('longPress')
+    set duration(v: number) {
+        const value = this._durationTransform.transform(v);
+        if (this.duration !== v) {
+            this._$duration.next(value);
+        }
+    }
+
+    protected _longPressDisabledTransform = {
+        transform: (v: boolean) => {
+            const valid = validateBoolean(v);
+            if (!valid) {
+                console.error('The "longPressDisabled" parameter must be of type `boolean`.');
+                return false;
+            }
+            return v;
+        },
+    } as any;
+
+    longPressDisabled = input<boolean>(false, { ...this._longPressDisabledTransform });
+
+    protected _$longPressPrevent = new Subject();
+    readonly $longPressPrevent = this._$longPressPrevent.asObservable();
 
     protected _maxClickDistanceTransform = {
         transform: (v: number) => {
@@ -91,9 +133,6 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
     private _$elementTarget = new BehaviorSubject<HTMLElement | null>(null);
     protected $elementTarget = this._$elementTarget.asObservable();
 
-    private _$pressed = new BehaviorSubject<boolean>(false);
-    protected $pressed = this._$pressed.asObservable();
-
     private _elementRef = inject(ElementRef);
 
     private _sanitizer = inject(DomSanitizer);
@@ -116,13 +155,12 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
             }),
         ).subscribe();
 
-        const $pressed = this.$pressed;
-        $pressed.pipe(
+        const $longPressDisabled = toObservable(this.longPressDisabled).pipe(
             takeUntilDestroyed(),
-            tap(v => {
-                toggleClassName(this._elementRef.nativeElement, v ? PRESSED : NOT_PRESSED, [v ? NOT_PRESSED : PRESSED]);
-            }),
-        ).subscribe();
+            filter(v => !!v),
+        );
+
+        const $longPressPrevent = this.$longPressPrevent;
 
         let maxDistance = this.maxClickDistance() ?? DEFAULT_CLICK_DISTANCE;
 
@@ -155,6 +193,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
 
         const $pointerPressed = fromEvent<PointerEvent>(host, POINTER_DOWN),
             $pointerCancel = race([
+                $longPressPrevent,
                 fromEvent(root, POINTER_UP).pipe(
                     takeUntilDestroyed(),
                 ),
@@ -167,10 +206,66 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
         $pointerPressed.pipe(
             takeUntilDestroyed(),
             switchMap(e => {
+                const x = Math.abs(e.clientX),
+                    y = Math.abs(e.clientY);
+                return timer(this.duration).pipe(
+                    takeUntilDestroyed(this._destroyRef),
+                    takeUntil($longPressDisabled),
+                    takeUntil($pointerCancel),
+                    tap(() => {
+                        this.onLongPressActive.emit(true);
+                    }),
+                    switchMap(() => {
+                        return $pointerRelease.pipe(
+                            takeUntilDestroyed(this._destroyRef),
+                            takeUntil(
+                                race([
+                                    $longPressDisabled,
+                                    $pointerCancel.pipe(
+                                        takeUntilDestroyed(this._destroyRef),
+                                        tap(() => {
+                                            this.onLongPressActive.emit(false);
+                                        }),
+
+                                    ),
+                                    fromEvent<MouseEvent>(window, 'mousemove').pipe(
+                                        takeUntilDestroyed(this._destroyRef),
+                                        switchMap(e => {
+                                            const xx = x - Math.abs(e.clientX),
+                                                yy = y - Math.abs(e.clientY),
+                                                dist = Math.sqrt(Math.pow(xx, 2) + Math.pow(yy, 2));
+
+                                            if (dist > maxDistance) {
+                                                return of(true);
+                                            }
+
+                                            return of(false);
+                                        }),
+                                        takeUntilDestroyed(this._destroyRef),
+                                        filter(v => !!v),
+                                        tap(() => {
+                                            this.onLongPressActive.emit(false);
+                                        }),
+                                    ),
+                                ])
+                            ),
+                            delay(1),
+                            takeUntilDestroyed(this._destroyRef),
+                            tap(() => {
+                                this.onLongPress.emit();
+                            }),
+                        );
+                    })
+                );
+            }),
+        ).subscribe();
+
+        $pointerPressed.pipe(
+            takeUntilDestroyed(),
+            switchMap(e => {
                 this._$elementTarget.next(e.target as HTMLElement);
                 const x = Math.abs(e.clientX),
                     y = Math.abs(e.clientY);
-                this._$pressed.next(true);
                 this.onVirtualClickPress.emit(e);
                 return $pointerRelease.pipe(
                     takeUntilDestroyed(this._destroyRef),
@@ -179,7 +274,6 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                             $pointerCancel.pipe(
                                 takeUntilDestroyed(this._destroyRef),
                                 tap(() => {
-                                    this._$pressed.next(false);
                                     this.onVirtualClickCancel.emit();
                                     this._$elementTarget.next(null);
                                 }),
@@ -192,7 +286,6 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                                         dist = Math.sqrt(Math.pow(xx, 2) + Math.pow(yy, 2));
 
                                     if (dist > maxDistance) {
-                                        this._$pressed.next(false);
                                         this.onVirtualClickCancel.emit();
                                         return of(true);
                                     }
@@ -211,7 +304,6 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                                 e.preventDefault();
                             }
 
-                            this._$pressed.next(false);
                             this.onVirtualClick.emit(e);
 
                             if (this.emitNativeClick()) {

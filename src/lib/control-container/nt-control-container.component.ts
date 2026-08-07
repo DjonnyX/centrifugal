@@ -3,7 +3,7 @@ import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
 import { combineLatest, debounceTime, filter, fromEvent, map, of, skipUntil, Subject, switchMap, tap, timer } from "rxjs";
 import { INtScrollViewService, NtScrollViewComponent, NtScrollViewService } from "../scroll-view";
 import {
-  CONTROL_CONTAINER_SERVICE, ElementNames, IKeyboardSettings, INtBaseControlContainerService, KeyboardPosition, KeyboardPositions, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
+  CONTROL_CONTAINER_SERVICE, ElementNames, IKeyboardSettings, INtBaseControlContainerService, KeyboardKeys, KeyboardPosition, KeyboardPositions, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
   SCROLL_VIEW_USER_INTERACTION_ENABLED,
 } from "../common";
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
@@ -15,10 +15,12 @@ import { IFocusedObject } from "../common/interfaces/focused-object";
 import { validateArray, validateBoolean, validateInt, validateObject, validateString } from "../common/utils";
 import { DEFAULT_EXCLUDE_ELEMETN_LIST } from "../drawer-container/const";
 import { DEFAULT_KEYBOARD_ENABLED } from "./const";
-import { DEFAULT_KEYBOARD_SETTINGS } from '../common/const/keyboard';
+import { DEFAULT_KEYBOARD_SETTINGS, KEY_CHARSET, KEY_SYS } from '../common/const/keyboard';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
 import { IScrollToParams } from "../common/interfaces/scroll-to-params";
 import { PX } from "../common/const/base-prop-names";
+import { NtKeyboardService } from "../keyboard/nt-keyboard.service";
+import { SERVICE_KEYS } from "../keyboard/const";
 
 /**
  * NtScrollViewComponent
@@ -40,12 +42,15 @@ import { PX } from "../common/const/base-prop-names";
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: false },
     { provide: CONTROL_CONTAINER_SERVICE, useClass: NtControlContainerService },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
+    NtKeyboardService,
   ],
 })
 export class NtControlContainerComponent extends NtScrollViewComponent<INtScrollViewService, INtScrollViewService> {
   protected _containerComponent = viewChild<ElementRef<HTMLDivElement>>('container');
 
   protected _controlService = inject<INtBaseControlContainerService>(CONTROL_CONTAINER_SERVICE);
+
+  protected _keyboardService = inject(NtKeyboardService);
 
   protected override _scrollbarThickness = {
     transform: (v: number) => {
@@ -361,6 +366,92 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
     super();
     this._controlService.initialize(this._id, this._parentService?.id ?? -1, this.host);
 
+    const $keyClick = this._keyboardService.$keyPress,
+      $focusedElement = this._controlService.$focusedElement;
+    $keyClick.pipe(
+      takeUntilDestroyed(),
+      filter(key => !!key),
+      tap(key => {
+        const element = this._controlService?.focusedElement?.element ?? null, targetTagName = element?.tagName?.toLocaleLowerCase();
+        if (!!targetTagName && isInteractive(targetTagName)) {
+          const inputElement = element as HTMLInputElement;
+          if (!!inputElement) {
+            const keyValue = key as string;
+            console.log(keyValue)
+            let value = inputElement.value ?? '';
+            if (keyValue.indexOf(KEY_SYS) === 0) {
+              if (keyValue === KeyboardKeys.SYS_NEXT_LOCALE) {
+                // next locale
+              }
+            } else if (keyValue.indexOf(KEY_CHARSET) === 0) {
+              const preset = this._keyboardService.preset, isCharset = (preset?.charset?.findIndex(v => `${KEY_CHARSET}${(v?.name ?? '')}` === keyValue) ?? 0) > -1;
+              if (isCharset) {
+                this._keyboardService.nextCharset();
+              }
+            } else if (keyValue.indexOf(KEY_SYS) === -1) {
+              switch (keyValue) {
+                case KeyboardKeys.BACK_SPACE: {
+                  value = value.length > 0 ? value.slice(0, value.length - 1) : '';
+                  break;
+                }
+                case KeyboardKeys.SPACE: {
+                  value += ' ';
+                  break;
+                }
+                case KeyboardKeys.SYS_NEXT_LOCALE:
+                case KeyboardKeys.CAPS_LOCK:
+                case KeyboardKeys.ALT:
+                case KeyboardKeys.CTRL:
+                case KeyboardKeys.NUM_LOCK:
+                case KeyboardKeys.INSERT:
+                case KeyboardKeys.END:
+                case KeyboardKeys.HOME:
+                case KeyboardKeys.ARROW_LEFT:
+                case KeyboardKeys.ARROW_RIGHT:
+                case KeyboardKeys.ARROW_UP:
+                case KeyboardKeys.ARROW_DOWN:
+                case KeyboardKeys.PAGE_LEFT:
+                case KeyboardKeys.PAGE_RIGHT:
+                case KeyboardKeys.PAGE_UP:
+                case KeyboardKeys.PAGE_DOWN:
+                case KeyboardKeys.SHIFT: {
+                  // skip
+                  break;
+                }
+                case KeyboardKeys.CLEAR: {
+                  value = '';
+                  break;
+                }
+                case KeyboardKeys.ENTER: {
+                  this._controlService.focus({
+                    id: -1, element: null,
+                    type: ScrollerTypes.SCROLL_VIEW_SCROLLER,
+                    scroller: null,
+                  })
+                  break;
+                }
+                case KeyboardKeys.ESCAPE: {
+                  this._controlService.focus({
+                    id: -1, element: null,
+                    type: ScrollerTypes.SCROLL_VIEW_SCROLLER,
+                    scroller: null,
+                  })
+                  break;
+                }
+                default: {
+                  if (keyValue.length === 1) {
+                    value += keyValue;
+                  }
+                  break;
+                }
+              }
+              inputElement.value = value;
+            }
+          }
+        }
+      }),
+    ).subscribe()
+
     this._keyboardPosition = computed(() => {
       return this.keyboardSettings().common.position;
     });
@@ -522,12 +613,12 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
         this._controlService.focus({
           id: -1, element: this._elementRef.nativeElement,
           type: scroller.type ?? ScrollerTypes.SCROLL_VIEW_SCROLLER,
-          scroller, animated: false,
+          scroller: null, animated: false,
         });
       }),
     ).subscribe();
 
-    this._controlService.$focusedElement.pipe(
+    $focusedElement.pipe(
       takeUntilDestroyed(this._destroyRef),
       filter(e => !!e),
       switchMap(e => this.updateKeyboardPosition(e, this.keyboardEnabled(), this.keyboardSettings(), e.animated ?? true)),
@@ -541,7 +632,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
             this._controlService.focus({
               id: -1, element: this._elementRef.nativeElement,
               type: scroller.type ?? ScrollerTypes.SCROLL_VIEW_SCROLLER,
-              scroller,
+              scroller: null,
             });
           }),
         );

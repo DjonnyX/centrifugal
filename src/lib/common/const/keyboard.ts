@@ -4,6 +4,10 @@ import { IKeyboardSettings } from "../interfaces";
 import { IKeyboardPreset } from "../interfaces/keyboard-preset";
 import { copyValueAsReadonly } from "../utils";
 
+export const KEY_SYS = 'sys::';
+
+export const KEY_CHARSET = 'charset::';
+
 export const DEFAULT_KEYBOARD_LOCALE: string = 'en-gb';
 
 export const DEFAULT_KEYBOARD_POSITION = KeyboardPositions.BOTTOM;
@@ -60,10 +64,10 @@ export const DEFAULT_KEYBOARD_HORIZONTAL_PRESET: Array<IKeyboardPreset> = copyVa
                 name: 'symbols',
                 type: 'text',
                 keys: [
-                    ['~', '`', '|', '', '', '', '', '', '', ''],
-                    ['', '', '', '', '^', '', '=', '{', '}', '\\'],
-                    [{ class: 'secondary', value: 'charset::numeric-extend', name: '?123' }, '%', '', '', '', '', '[', ']', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }],
-                    [{ class: 'secondary', value: 'charset::text', name: 'Abc' }, { class: 'secondary', value: '<' }, { value: 'charset::numeric', name: '123' }, KeyboardKeys.SPACE, { class: 'secondary', value: '>' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
+                    ['~', '`', '|', '•', '√', 'π', '÷', '×', '§', 'Δ'],
+                    ['£', '€', '¥', 'ש', '^', '°', '=', '{', '}', '\\'],
+                    [{ class: 'secondary', value: 'charset::numeric-extend', name: '?123' }, '%', '©', '®', '™', '№', '[', ']', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }],
+                    [{ class: 'secondary', value: 'charset::text', name: 'Abc' }, { class: 'secondary', value: '<' }, { value: 'charset::numeric', name: '123' }, {style: 'flex: 4;', value: KeyboardKeys.SPACE}, { class: 'secondary', value: '>' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
                 ],
             },
             {
@@ -83,7 +87,7 @@ export const DEFAULT_KEYBOARD_HORIZONTAL_PRESET: Array<IKeyboardPreset> = copyVa
                     ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
                     ['@', '#', '$', '_', '&', '-', '+', '(', ')', '/'],
                     [{ class: 'secondary', value: 'charset::symbols', name: '?@' }, '*', '"', '\'', ':', ';', '!', '?', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }],
-                    [{ class: 'secondary', value: 'charset::text', name: 'Abc' }, { class: 'secondary', value: ',' }, 'charset::numeric', KeyboardKeys.SPACE, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
+                    [{ class: 'secondary', value: 'charset::text', name: 'Abc' }, { class: 'secondary', value: ',' }, { class: 'secondary', value: 'charset::numeric', name: '123' }, KeyboardKeys.SPACE, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
                 ],
             },
         ],
@@ -96,7 +100,7 @@ export const DEFAULT_KEYBOARD_SETTINGS: IKeyboardSettings = {
         focusedTargetOffset: 20,
         position: DEFAULT_KEYBOARD_POSITION,
         scrollerOffsetWhenFocused: .9,
-        size: 200,
+        size: 220,
     },
     animation: {
         transition: {

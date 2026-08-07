@@ -2,6 +2,7 @@ import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
 import { IKeyboardSettings, KeyboardKey, KeyboardKeyValue } from "../../common";
 import { NormalizedKeyboardKey } from '../types/normalized-keyboard-key';
 import { copyValueAsReadonly } from "../../common/utils";
+import { SERVICE_KEYS } from "../const";
 
 /**
  * normalizeSettings
@@ -9,7 +10,7 @@ import { copyValueAsReadonly } from "../../common/utils";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export const normalizeSettings = (settings: IKeyboardSettings, sanitizer?: DomSanitizer): IKeyboardSettings<NormalizedKeyboardKey> => {
+export const normalizeSettings = (settings: IKeyboardSettings, caps: boolean, sanitizer?: DomSanitizer): IKeyboardSettings<NormalizedKeyboardKey> => {
     const result: IKeyboardSettings<NormalizedKeyboardKey> = JSON.parse(JSON.stringify(settings));
     for (let i = 0, l = result.preset.length; i < l; i++) {
         const preset = result.preset[i];
@@ -19,7 +20,7 @@ export const normalizeSettings = (settings: IKeyboardSettings, sanitizer?: DomSa
                 const keyRow = charset.keys[k];
                 for (let m = 0, l3 = keyRow.length; m < l3; m++) {
                     const key = keyRow[m];
-                    keyRow[m] = normalizeKey(key as KeyboardKey, sanitizer);
+                    keyRow[m] = normalizeKey(key as KeyboardKey, caps, sanitizer);
                 }
             }
         }
@@ -33,17 +34,17 @@ export const normalizeSettings = (settings: IKeyboardSettings, sanitizer?: DomSa
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-const normalizeKey = (key: KeyboardKey, sanitizer?: DomSanitizer): NormalizedKeyboardKey => {
+const normalizeKey = (key: KeyboardKey, caps: boolean, sanitizer?: DomSanitizer): NormalizedKeyboardKey => {
     let classes: string | null | undefined, style: string | null | undefined, name: string | null, icon: SafeHtml | null,
         value: KeyboardKeyValue = null;
     if (typeof key === 'object') {
         classes = key?.class ?? '';
         style = key?.style ?? '';
-        value = key?.value ?? null;
+        value = transform(key?.value ?? null, caps);
         name = key?.name ?? value ?? null;
         icon = !!key?.icon && !!sanitizer ? sanitizer.bypassSecurityTrustHtml(key.icon) : null;
     } else {
-        value = key ?? '';
+        value = transform(key ?? '', caps);
         classes = '';
         style = '';
         name = value;
@@ -56,4 +57,11 @@ const normalizeKey = (key: KeyboardKey, sanitizer?: DomSanitizer): NormalizedKey
         name,
         icon,
     };
+}
+
+const transform = (value: KeyboardKeyValue, caps: boolean): KeyboardKeyValue => {
+    if (!!value && SERVICE_KEYS.indexOf(value as any) > -1) {
+        return value;
+    }
+    return caps ? (value?.toUpperCase() ?? null) : (value?.toLowerCase() ?? null);
 }

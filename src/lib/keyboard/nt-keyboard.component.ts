@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, Signal, TemplateRef, ViewEncapsulation } from "@angular/core";
 import { NtKeyboardService } from "./nt-keyboard.service";
-import { IKeyboardSettings, TextDirection, TextDirections } from "../common";
+import { IKeyboardSettings, KeyboardKeys, KeyboardKeyStates, TextDirection, TextDirections } from "../common";
 import { DEFAULT_KEYBOARD_SETTINGS } from "../common/const/keyboard";
 import { takeUntilDestroyed, toObservable, toSignal } from "@angular/core/rxjs-interop";
-import { fromEvent, switchMap, tap } from "rxjs";
+import { combineLatest, fromEvent, switchMap, tap } from "rxjs";
 import { KEY_DOWN, KEY_UP } from "../common/const/event-names";
 import { normalizeSettings } from "./utils";
 import { DomSanitizer } from "@angular/platform-browser";
+import { NormalizedKeyboardKey } from "./types";
 
 /**
  * NtKeyboardComponent
@@ -24,12 +25,11 @@ import { DomSanitizer } from "@angular/platform-browser";
     standalone: false,
     changeDetection: ChangeDetectionStrategy.OnPush,
     encapsulation: ViewEncapsulation.ShadowDom,
-    providers: [
-        NtKeyboardService,
-    ],
 })
 export class NtKeyboardComponent {
     private _service = inject(NtKeyboardService);
+
+    get $caps() { return this._service.$caps; }
 
     settings = input<IKeyboardSettings>(DEFAULT_KEYBOARD_SETTINGS);
 
@@ -51,10 +51,10 @@ export class NtKeyboardComponent {
 
     constructor() {
         const $settings = toObservable(this.settings);
-        $settings.pipe(
+        combineLatest([$settings, this._service.$caps]).pipe(
             takeUntilDestroyed(),
-            tap(v => {
-                const normalizedSettings = normalizeSettings(v, this._sanitizer);
+            tap(([settings, caps]) => {
+                const normalizedSettings = normalizeSettings(settings, caps, this._sanitizer);
                 this._service.settings = normalizedSettings;
             }),
         ).subscribe();
@@ -68,19 +68,48 @@ export class NtKeyboardComponent {
             return { [c.name]: true, [c.type]: true };
         });
 
-        const $keyDown = fromEvent(window, KEY_DOWN),
-            $keyUp = fromEvent(window, KEY_UP);
+        const $keyDown = fromEvent<KeyboardEvent>(window, KEY_DOWN),
+            $keyUp = fromEvent<KeyboardEvent>(window, KEY_UP);
 
         $keyDown.pipe(
             takeUntilDestroyed(),
             switchMap(e => {
+                const isCaps = e.getModifierState(KeyboardKeys.CAPS_LOCK);
+                this._service.setCaps(e.shiftKey || isCaps);
+                this._service.fireKeyEvent({ value: e.key, name: e.key }, KeyboardKeyStates.PRESS);
                 return $keyUp.pipe(
                     takeUntilDestroyed(this._destroyRef),
                     tap(e => {
-
+                        const isCaps = e.getModifierState(KeyboardKeys.CAPS_LOCK);
+                        this._service.setCaps(e.shiftKey || isCaps);
+                        this._service.fireKeyEvent({ value: e.key, name: e.key }, KeyboardKeyStates.CLICK);
                     }),
                 );
             }),
         ).subscribe();
+    }
+
+    onPressHandler(e: Event, key: NormalizedKeyboardKey) {
+        this._service.fireKeyEvent(key, KeyboardKeyStates.PRESS);
+    }
+
+    onClickCancelHandler(key: NormalizedKeyboardKey) {
+        this._service.fireKeyEvent(key, KeyboardKeyStates.CLICK_CANCEL);
+    }
+
+    onClickHandler(e: Event, key: NormalizedKeyboardKey) {
+        this._service.fireKeyEvent(key, KeyboardKeyStates.CLICK);
+    }
+
+    onLongPressActivateHandler(value: boolean, key: NormalizedKeyboardKey) {
+        this._service.fireKeyEvent(key, KeyboardKeyStates.LONG_PRESS);
+    }
+
+    onLongClickCancelHandler(key: NormalizedKeyboardKey) {
+        this._service.fireKeyEvent(key, KeyboardKeyStates.LONG_CANCEL);
+    }
+
+    onLongPressHandler(key: NormalizedKeyboardKey) {
+        this._service.fireKeyEvent(key, KeyboardKeyStates.LONG_PRESS);
     }
 }
