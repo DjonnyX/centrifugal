@@ -14,6 +14,12 @@ export const DEFAULT_KEYBOARD_LANG_DIR: string = TextDirections.LTR;
 
 export const DEFAULT_KEYBOARD_POSITION = KeyboardPositions.BOTTOM;
 
+/**
+ * DEFAULT_KEYBOARD_VERTICAL_PRESET
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/const/keyboard.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ */
 export const DEFAULT_KEYBOARD_VERTICAL_PRESET: Array<IKeyboardPreset> = copyValueAsReadonly([
     {
         locale: DEFAULT_KEYBOARD_LOCALE,
@@ -81,6 +87,12 @@ export const DEFAULT_KEYBOARD_VERTICAL_PRESET: Array<IKeyboardPreset> = copyValu
     },
 ]);
 
+/**
+ * DEFAULT_KEYBOARD_HORIZONTAL_PRESET
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/const/keyboard.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ */
 export const DEFAULT_KEYBOARD_HORIZONTAL_PRESET: Array<IKeyboardPreset> = copyValueAsReadonly([
     {
         locale: DEFAULT_KEYBOARD_LOCALE,
@@ -136,9 +148,9 @@ export const DEFAULT_KEYBOARD_HORIZONTAL_PRESET: Array<IKeyboardPreset> = copyVa
                 name: 'text',
                 type: 'text',
                 keys: [
-                    [{ class: 'empty', style: 'flex: 1', value: null }, 'ק', 'ר', 'א', 'ט', 'ו', 'ן', 'ם', 'פ', { class: 'empty', style: 'flex: 1', value: null }],
-                    [{ class: 'empty', style: 'flex: 0.5', value: null }, 'ש', 'ד', 'ג', 'כ', 'ע', 'י', 'ח', 'ל', 'ך', { class: 'empty', style: 'flex: 0.5', value: null }],
-                    [{ class: 'secondary', value: KeyboardKeys.SHIFT, name: 'Shift', switch: true }, 'ז', 'ס', 'ב', 'ה', 'נ', 'מ', 'צ', 'ת', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE_RTL }],
+                    [{ class: 'empty', style: 'flex: 1', value: null }, 'פ', 'ם', 'ן', 'ו', 'ט', 'א', 'ר', 'ק', { class: 'empty', style: 'flex: 1', value: null }],
+                    [{ class: 'empty', style: 'flex: 0.5', value: null }, 'ך', 'ל', 'ח', 'י', 'ע', 'כ', 'ג', 'ד', 'ש', { class: 'empty', style: 'flex: 0.5', value: null }],
+                    [{ class: 'secondary', value: KeyboardKeys.SHIFT, name: 'Shift', switch: true }, 'ת', 'צ', 'מ', 'נ', 'ה', 'ב', 'ס', 'ז', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE_RTL }],
                     [{ class: 'secondary', value: 'charset::numeric', name: '123' }, { class: 'secondary', value: '/' }, { name: 'EN', value: KeyboardKeys.SYS_NEXT_LOCALE }, { style: 'flex: 5', value: KeyboardKeys.SPACE, name: 'Space' }, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
                 ],
             },
@@ -176,7 +188,12 @@ export const DEFAULT_KEYBOARD_HORIZONTAL_PRESET: Array<IKeyboardPreset> = copyVa
     },
 ]);
 
-
+/**
+ * DEFAULT_KEYBOARD_SETTINGS
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/const/keyboard.ts
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ */
 export const DEFAULT_KEYBOARD_SETTINGS: IKeyboardSettings = {
     common: {
         focusedTargetOffset: 20,
