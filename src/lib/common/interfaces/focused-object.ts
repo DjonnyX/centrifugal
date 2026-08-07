@@ -10,7 +10,7 @@ import { INtScroller } from "./nt-scroller";
 export interface IFocusedObject {
     id: number;
     type: string;
-    element: HTMLElement;
+    element: HTMLElement | null;
     scroller: INtScroller<INtBaseScrollViewService> | null;
     animated?: boolean;
 }

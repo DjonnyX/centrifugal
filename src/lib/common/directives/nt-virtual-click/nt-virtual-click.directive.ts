@@ -1,10 +1,10 @@
-import { DestroyRef, Directive, ElementRef, inject, input, output, SecurityContext } from '@angular/core';
+import { DestroyRef, Directive, ElementRef, inject, Input, input, output, SecurityContext } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, combineLatest, fromEvent, of, race } from 'rxjs';
+import { BehaviorSubject, combineLatest, fromEvent, of, race, timer } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from '../../injection';
 import { toggleClassName, validateBoolean, validateFloat } from '../../utils';
-import { ANCHOR, DEFAULT_CLICK_DISTANCE } from './const';
+import { ANCHOR, DEFAULT_CLICK_DISTANCE, DEFAULT_DURATION } from './const';
 import { CLICK, POINTER_DOWN, POINTER_LEAVE, POINTER_MOVE, POINTER_UP } from '../../const/event-names';
 import { INtBaseControlContainerService } from '../../interfaces';
 import { GRABBING, NOT_GRABBING } from '../../const/class-names';
@@ -25,6 +25,44 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
     protected _service = inject<S>(SCROLL_VIEW_SERVICE);
 
     protected _controlService = inject<C>(CONTROL_CONTAINER_SERVICE);
+
+    onLongPress = output<void>();
+
+    private _$duration = new BehaviorSubject<number>(DEFAULT_DURATION);
+    readonly $duration = this._$duration.asObservable();
+    get duration() { return this._$duration.getValue(); }
+
+    protected _durationTransform = {
+        transform: (v: number) => {
+            const valid = validateFloat(v);
+            if (!valid) {
+                console.error('The "longPress" parameter must be of type `number`.');
+                return DEFAULT_DURATION;
+            }
+            return v;
+        },
+    } as any;
+
+    @Input('longPress')
+    set duration(v: number) {
+        const value = this._durationTransform.transform(v);
+        if (this.duration !== v) {
+            this._$duration.next(value);
+        }
+    }
+
+    protected _longPressEnableTransform = {
+        transform: (v: boolean) => {
+            const valid = validateBoolean(v);
+            if (!valid) {
+                console.error('The "longPressEnable" parameter must be of type `boolean`.');
+                return false;
+            }
+            return v;
+        },
+    } as any;
+
+    longPressEnable = input<boolean>(false, { ...this._longPressEnableTransform });
 
     protected _maxClickDistanceTransform = {
         transform: (v: number) => {
@@ -90,6 +128,12 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
     private _$elementTarget = new BehaviorSubject<HTMLElement | null>(null);
     protected $elementTarget = this._$elementTarget.asObservable();
 
+    private _$timer = new BehaviorSubject<number>(0);
+    protected $timer = this._$timer.asObservable();
+
+    private _$timerComplited = new BehaviorSubject<boolean>(false);
+    protected $timerComplited = this._$timerComplited.asObservable();
+
     private _elementRef = inject(ElementRef);
 
     private _sanitizer = inject(DomSanitizer);
@@ -99,7 +143,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
     constructor() {
         const root = this._controlService?.emitter ?? window,
             host = this._elementRef.nativeElement,
-            targetTagName = host.tagName.toLocaleLowerCase();
+            targetTagName = host.tagName.toLowerCase();
 
         const $allowedAnchorDraggable = toObservable(this.allowedAnchorDraggable);
         $allowedAnchorDraggable.pipe(
@@ -152,6 +196,18 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
             ]),
             $pointerRelease = fromEvent<PointerEvent>(host, POINTER_UP, { passive: false });
 
+        const $timer = this.$timer;
+        $timer.pipe(
+            takeUntilDestroyed(),
+            filter(v => v > 0),
+            switchMap(v => {
+                return timer(v);
+            }),
+            tap(() => {
+                this._$timerComplited.next(true);
+            }),
+        ).subscribe();
+
         $pointerPressed.pipe(
             takeUntilDestroyed(),
             switchMap(e => {
@@ -159,6 +215,10 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                 const x = Math.abs(e.clientX),
                     y = Math.abs(e.clientY);
                 this.onVirtualClickPress.emit(e);
+                if (this.longPressEnable()) {
+                    this._$timerComplited.next(false);
+                    this._$timer.next(this.duration);
+                }
                 return $pointerRelease.pipe(
                     takeUntilDestroyed(this._destroyRef),
                     takeUntil(
@@ -166,6 +226,9 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                             $pointerCancel.pipe(
                                 takeUntilDestroyed(this._destroyRef),
                                 tap(() => {
+                                    if (this.longPressEnable()) {
+                                        this._$timer.next(0);
+                                    }
                                     this.onVirtualClickCancel.emit();
                                     this._$elementTarget.next(null);
                                 }),
@@ -178,6 +241,9 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                                         dist = Math.sqrt(Math.pow(xx, 2) + Math.pow(yy, 2));
 
                                     if (dist > maxDistance) {
+                                        if (this.longPressEnable()) {
+                                            this._$timer.next(0);
+                                        }
                                         this.onVirtualClickCancel.emit();
                                         return of(true);
                                     }
@@ -188,38 +254,43 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                             ),
                         ]),
                     ),
-                    takeUntilDestroyed(this._destroyRef),
-                    tap(e => {
-                        if (!!e) {
-                            if (!!this._controlService && e.cancelable) {
-                                e.stopImmediatePropagation();
-                                e.preventDefault();
-                            }
+                );
+            }),
+            takeUntilDestroyed(this._destroyRef),
+            tap(e => {
+                if (!!e) {
+                    if (!!this._controlService && e.cancelable) {
+                        e.stopImmediatePropagation();
+                        e.preventDefault();
+                    }
 
-                            this.onVirtualClick.emit(e);
+                    if (!!this.longPressEnable() && this._$timerComplited.getValue()) {
+                        this.onLongPress.emit();
+                    } else {
+                        this.onVirtualClick.emit(e);
+                    }
+                    this._$timer.next(0);
 
-                            if (this.emitNativeClick()) {
-                                const target = e.target as HTMLElement,
-                                    targetTagName = target.tagName.toLocaleLowerCase();
-                                if (!!targetTagName) {
-                                    if (targetTagName === ANCHOR) {
-                                        const aTarget = target as HTMLAnchorElement,
-                                            url = String(aTarget.href),
-                                            sanitizedUrl = this._sanitizer.sanitize(SecurityContext.URL, url);
-                                        if (sanitizedUrl !== null) {
-                                            window.open(sanitizedUrl, aTarget.target);
-                                        }
-                                    } else {
-                                        if (this.focusElement() && !!this._controlService) {
-                                            this._controlService.focusEcho(target, this._service.id);
-                                        }
-                                    }
+                    if (this.emitNativeClick()) {
+                        const target = e.target as HTMLElement,
+                            targetTagName = target.tagName.toLowerCase();
+                        if (!!targetTagName) {
+                            if (targetTagName === ANCHOR) {
+                                const aTarget = target as HTMLAnchorElement,
+                                    url = String(aTarget.href),
+                                    sanitizedUrl = this._sanitizer.sanitize(SecurityContext.URL, url);
+                                if (sanitizedUrl !== null) {
+                                    window.open(sanitizedUrl, aTarget.target);
+                                }
+                            } else {
+                                if (this.focusElement() && !!this._controlService) {
+                                    this._controlService.focusEcho(target, this._service.id);
                                 }
                             }
                         }
-                        this._$elementTarget.next(null);
-                    }),
-                );
+                    }
+                }
+                this._$elementTarget.next(null);
             }),
         ).subscribe();
 

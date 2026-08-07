@@ -1,3 +1,4 @@
+import { KeyboardKey } from "../types";
 import { KeyboardPosition } from "../types/keyboard-position";
 import { IKeyboardPreset } from "./keyboard-preset";
 
@@ -7,7 +8,7 @@ import { IKeyboardPreset } from "./keyboard-preset";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface IKeyboardSettings {
+export interface IKeyboardSettings<K = KeyboardKey> {
     common: {
         focusedTargetOffset: number;
         position: KeyboardPosition;
@@ -21,5 +22,5 @@ export interface IKeyboardSettings {
             focusedScroller: number;
         };
     };
-    preset: Array<IKeyboardPreset>;
+    preset: Array<IKeyboardPreset<K>>;
 }

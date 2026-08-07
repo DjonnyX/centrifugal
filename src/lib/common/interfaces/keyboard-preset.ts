@@ -1,3 +1,4 @@
+import { KeyboardKey, TextDirection } from "../types";
 import { IKeyboardCharset } from "./keyboard-charset";
 
 /**
@@ -6,7 +7,8 @@ import { IKeyboardCharset } from "./keyboard-charset";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface IKeyboardPreset {
+export interface IKeyboardPreset<K = KeyboardKey> {
         locale: string;
-        charset: Array<IKeyboardCharset>,
+        dir: TextDirection;
+        charset: Array<IKeyboardCharset<K>>,
 }

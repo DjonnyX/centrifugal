@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { DestroyRef, inject, Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { Id, IRect } from '../common';
 import { INtControlContainerService } from './interfaces';
@@ -40,6 +40,8 @@ export class NtControlContainerService extends NtBaseScrollViewService implement
   get overscrollCanceled() {
     return this._$overscrollCanceled.getValue();
   }
+
+  protected _destroyRef = inject(DestroyRef);
 
   constructor() {
     super();
