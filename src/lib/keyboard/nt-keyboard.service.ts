@@ -1,7 +1,7 @@
 import { DestroyRef, inject, Injectable } from "@angular/core";
 import { BehaviorSubject, combineLatest, filter, of, Subject, switchMap, tap } from "rxjs";
-import { DEFAULT_KEYBOARD_LOCALE, DEFAULT_KEYBOARD_POSITION, KEY_CHARSET, KEY_SYS } from "../common/const/keyboard";
-import { IKeyboardSettings, KeyboardKey, KeyboardKeys, KeyboardKeyStates, KeyboardPosition } from "../common";
+import { DEFAULT_KEYBOARD_LANG_DIR, DEFAULT_KEYBOARD_LOCALE, DEFAULT_KEYBOARD_POSITION, KEY_CHARSET, KEY_SYS } from "../common/const/keyboard";
+import { IKeyboardSettings, KeyboardKey, KeyboardKeys, KeyboardKeyStates, KeyboardPosition, TextDirection, TextDirections } from "../common";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { KEYBOARD_VERTICAL_POSITIONS, SERVICE_KEYS } from "./const";
 import { IKeyboardCharset } from "../common/interfaces/keyboard-charset";
@@ -22,6 +22,10 @@ export class NtKeyboardService {
     private _$locale = new BehaviorSubject<string>(DEFAULT_KEYBOARD_LOCALE);
     readonly $locale = this._$locale.asObservable();
     get locale() { return this._$locale.getValue(); }
+
+    private _$dir = new BehaviorSubject<string>(DEFAULT_KEYBOARD_LANG_DIR);
+    readonly $dir = this._$dir.asObservable();
+    get dir() { return this._$dir.getValue(); }
 
     private _$presetIndex = new BehaviorSubject<number>(-1);
     readonly $presetIndex = this._$presetIndex.asObservable();
@@ -56,6 +60,10 @@ export class NtKeyboardService {
         }
     }
 
+    private _$latgTextDir = new BehaviorSubject<TextDirection>(TextDirections.LTR);
+    readonly $latgTextDir = this._$latgTextDir.asObservable();
+    get latgTextDir() { return this._$latgTextDir.getValue(); }
+
     private _$caps = new BehaviorSubject<boolean>(false);
     readonly $caps = this._$caps.asObservable();
     get caps() { return this._$caps.getValue(); }
@@ -83,7 +91,8 @@ export class NtKeyboardService {
             tap(settings => {
                 this._$position.next(settings.common.position);
                 this._$isVertical.next(KEYBOARD_VERTICAL_POSITIONS.indexOf(settings.common.position) > -1);
-                this._$presetIndex.next(settings.preset.length > 0 ? 0 : -1);
+                    const currentPresetIndex = this.presetIndex, presetLength = settings?.preset?.length ?? 0;
+                this._$presetIndex.next(currentPresetIndex > -1 && presetLength > 0 && presetLength - 1 >= currentPresetIndex ? currentPresetIndex : presetLength > 0 ? 0 : -1);
             }),
         ).subscribe();
 
@@ -91,10 +100,14 @@ export class NtKeyboardService {
         $presetIndex.pipe(
             takeUntilDestroyed(),
             tap(v => {
-                const settings = this.settings, preset = !!settings && v > -1 ? settings.preset[v] : null;
-                this._$preset.next(preset);
-                this._$charsetIndex.next(v > -1 && preset?.charset && preset?.charset?.length > 0 ? 0 : -1);
-                this._$locale.next(preset?.locale ?? DEFAULT_KEYBOARD_LOCALE);
+                const settings = this.settings;
+                if (!!settings) {
+                    const preset = !!settings && v > -1 ? settings.preset[v] : null;
+                    this._$preset.next(preset);
+                    const currentCharsetIndex = this.charsetIndex, charsetLength = preset?.charset?.length ?? 0;
+                    this._$charsetIndex.next(currentCharsetIndex > -1 && charsetLength > 0 && charsetLength - 1 >= currentCharsetIndex ? currentCharsetIndex : charsetLength > 0 ? 0 : -1);
+                    this._$locale.next(preset?.locale ?? DEFAULT_KEYBOARD_LOCALE);
+                }
             }),
         ).subscribe();
 
@@ -102,9 +115,20 @@ export class NtKeyboardService {
         combineLatest([$presetIndex, $charsetIndex]).pipe(
             takeUntilDestroyed(),
             tap(([p, c]) => {
-                const settings = this.settings, preset = !!settings && p > -1 ? settings.preset[p] : null,
-                    charset = preset !== null && c > -1 ? preset.charset[c] : null;
-                this._$charset.next(charset);
+                const settings = this.settings;
+                if (!!settings) {
+                    const preset = !!settings && p > -1 ? settings.preset[p] : null,
+                        charset = preset !== null && c > -1 ? preset.charset[c] : null;
+                    this._$charset.next(charset);
+                }
+            }),
+        ).subscribe();
+
+        const $preset = this.$preset;
+        $preset.pipe(
+            takeUntilDestroyed(),
+            tap(v => {
+                this._$latgTextDir.next(v?.dir ?? TextDirections.LTR);
             }),
         ).subscribe();
 
@@ -131,12 +155,24 @@ export class NtKeyboardService {
         ).subscribe()
     }
 
+    nextPreset() {
+        const settings = this.settings;
+        if (!!settings) {
+            const index = this.presetIndex, length = settings.preset?.length ?? 0,
+                nextIndex = length == 0 || index === length - 1 ? 0 : index + 1,
+                nextPreset = settings.preset[nextIndex];
+            this._$preset.next(nextPreset);
+            this._$presetIndex.next(nextIndex);
+            this._$charset.next(nextPreset.charset[0]);
+            this._$charsetIndex.next(0);
+        }
+    }
+
     nextCharset() {
         const preset = this.preset;
         if (!!preset) {
             const index = this.charsetIndex, length = this.preset?.charset.length ?? 0,
                 nextIndex = length == 0 || index === length - 1 ? 0 : index + 1;
-                console.log('next', nextIndex)
             this._$charset.next(this.preset.charset[nextIndex]);
             this._$charsetIndex.next(nextIndex);
         }
@@ -167,7 +203,7 @@ export class NtKeyboardService {
         }
 
         const value = this.caps && !!key?.value && key.value?.indexOf(KEY_SYS) === -1 && key.value?.indexOf(KEY_CHARSET) === -1 && SERVICE_KEYS.indexOf(key.value as any) === -1 ?
-            key.value?.toLocaleUpperCase() ?? null : key.value ?? null;
+            key.value?.toUpperCase() ?? null : key.value ?? null;
         switch (state) {
             case KeyboardKeyStates.PRESS: {
                 this._$keyPress.next(value);

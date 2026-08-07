@@ -142,7 +142,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
     constructor() {
         const root = this._controlService?.emitter ?? window,
             host = this._elementRef.nativeElement,
-            targetTagName = host.tagName.toLocaleLowerCase();
+            targetTagName = host.tagName.toLowerCase();
 
         const $allowedAnchorDraggable = toObservable(this.allowedAnchorDraggable);
         $allowedAnchorDraggable.pipe(
@@ -308,7 +308,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
 
                             if (this.emitNativeClick()) {
                                 const target = e.target as HTMLElement,
-                                    targetTagName = target.tagName.toLocaleLowerCase();
+                                    targetTagName = target.tagName.toLowerCase();
                                 if (!!targetTagName) {
                                     if (targetTagName === ANCHOR) {
                                         const aTarget = target as HTMLAnchorElement,

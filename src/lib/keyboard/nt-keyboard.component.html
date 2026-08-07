@@ -1,5 +1,5 @@
 @let vertical = $isVertical | async;
-<div localeSensitive [langTextDir]="langTextDir()" class="ntk-container" [ngClass]="{vertical}">
+<div localeSensitive [langTextDir]="($latgTextDir | async)!" class="ntk-container" [ngClass]="{vertical}">
     @let charset = $charset | async;
     @if (!!charset) {
         <div class="ntk-keys" [ngClass]="_containerClass()">

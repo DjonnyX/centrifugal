@@ -1,4 +1,4 @@
-import { KeyboardKeys, KeyboardPositions } from "../enums";
+import { KeyboardKeys, KeyboardPositions, TextDirections } from "../enums";
 import { KeyboardIcons } from "../icons";
 import { IKeyboardSettings } from "../interfaces";
 import { IKeyboardPreset } from "../interfaces/keyboard-preset";
@@ -10,11 +10,14 @@ export const KEY_CHARSET = 'charset::';
 
 export const DEFAULT_KEYBOARD_LOCALE: string = 'en-gb';
 
+export const DEFAULT_KEYBOARD_LANG_DIR: string = TextDirections.LTR;
+
 export const DEFAULT_KEYBOARD_POSITION = KeyboardPositions.BOTTOM;
 
 export const DEFAULT_KEYBOARD_VERTICAL_PRESET: Array<IKeyboardPreset> = copyValueAsReadonly([
     {
         locale: DEFAULT_KEYBOARD_LOCALE,
+        dir: 'ltr',
         charset: [
             {
                 name: 'text',
@@ -27,7 +30,39 @@ export const DEFAULT_KEYBOARD_VERTICAL_PRESET: Array<IKeyboardPreset> = copyValu
                     ['Q', 'R', 'S', 'T'],
                     ['U', 'X', 'V', 'W'],
                     [{ class: 'secondary', value: KeyboardKeys.SHIFT, name: 'Shift' }, 'Y', 'Z', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, icon: KeyboardIcons.BACKSPACE }],
-                    [{ style: 'flex: 2;', value: KeyboardKeys.SPACE, name: 'Space' }],
+                    [{ name: 'HE', value: KeyboardKeys.SYS_NEXT_LOCALE }, { style: 'flex: 3;', value: KeyboardKeys.SPACE, name: 'Space' }],
+                    [null],
+                    ['7', '8', '9', '-'],
+                    ['4', '5', '6', '+'],
+                    ['1', '2', '3', '.'],
+                    [{ class: 'secondary', value: '=' }, '0', { class: 'secondary', style: 'flex: 2', value: KeyboardKeys.ENTER, name: 'Enter' }],
+                    [null],
+                    ['@', '#', '$', '_'],
+                    ['&', '\\', '(', ')'],
+                    ['\\', '*', '^', '/'],
+                    ['~', '`', '|', '/'],
+                    ['%', '×', '[', ']'],
+                    ['÷', '·', '<', '>']
+                ],
+            },
+        ],
+    },
+    {
+        locale: 'he-Il',
+        dir: 'rtl',
+        charset: [
+            {
+                name: 'text',
+                type: 'text',
+                keys: [
+                    ['ו', 'ן', 'ם', 'פ',],
+                    ['ק', 'ר', 'א', 'ט',],
+                    ['י', 'ח', 'ל', 'ך',],
+                    ['ד', 'ג', 'כ', 'ע',],
+                    ['מ', 'צ', 'ת', 'ש',],
+                    ['ס', 'ב', 'ה', 'נ',],
+                    [{ class: 'secondary', value: KeyboardKeys.SHIFT, name: 'Shift' }, 'ז', { style: 'flex: 2;', class: 'secondary', value: KeyboardKeys.BACK_SPACE, icon: KeyboardIcons.BACKSPACE }],
+                    [{ name: 'EN', value: KeyboardKeys.SYS_NEXT_LOCALE }, { style: 'flex: 3;', value: KeyboardKeys.SPACE, name: 'Space' }],
                     [null],
                     ['7', '8', '9', '-'],
                     ['4', '5', '6', '+'],
@@ -49,15 +84,16 @@ export const DEFAULT_KEYBOARD_VERTICAL_PRESET: Array<IKeyboardPreset> = copyValu
 export const DEFAULT_KEYBOARD_HORIZONTAL_PRESET: Array<IKeyboardPreset> = copyValueAsReadonly([
     {
         locale: DEFAULT_KEYBOARD_LOCALE,
+        dir: 'ltr',
         charset: [
             {
                 name: 'text',
                 type: 'text',
                 keys: [
-                    [{ class: 'empty', style: 'flex: 0.5', value: null }, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', { class: 'empty', style: 'flex: 0.5', value: null }],
+                    [{ class: 'empty', style: 'flex: 0.5', value: null }, 'Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P', { class: 'empty', style: 'flex: 0.5', value: null }],
                     [{ class: 'empty', value: null }, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', { class: 'empty', value: null }],
-                    [{ class: 'secondary', value: KeyboardKeys.SHIFT, name: 'Shift', switch: true }, 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'I', 'O', 'P', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }],
-                    [{ class: 'secondary', value: 'charset::numeric', name: '123' }, { class: 'secondary', value: '/' }, { name: 'EN', value: KeyboardKeys.SYS_NEXT_LOCALE }, { style: 'flex: 6', value: KeyboardKeys.SPACE, name: 'Space' }, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
+                    [{ style: 'flex: 2;', class: 'secondary', value: KeyboardKeys.SHIFT, name: 'Shift', switch: true }, 'Y', 'X', 'C', 'V', 'B', 'N', 'M', { style: 'flex: 2;', class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }],
+                    [{ class: 'secondary', value: 'charset::numeric', name: '123' }, { class: 'secondary', value: '/' }, { name: 'HE', value: KeyboardKeys.SYS_NEXT_LOCALE }, { style: 'flex: 6', value: KeyboardKeys.SPACE, name: 'Space' }, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
                 ],
             },
             {
@@ -67,7 +103,7 @@ export const DEFAULT_KEYBOARD_HORIZONTAL_PRESET: Array<IKeyboardPreset> = copyVa
                     ['~', '`', '|', '•', '√', 'π', '÷', '×', '§', 'Δ'],
                     ['£', '€', '¥', 'ש', '^', '°', '=', '{', '}', '\\'],
                     [{ class: 'secondary', value: 'charset::numeric-extend', name: '?123' }, '%', '©', '®', '™', '№', '[', ']', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }],
-                    [{ class: 'secondary', value: 'charset::text', name: 'Abc' }, { class: 'secondary', value: '<' }, { value: 'charset::numeric', name: '123' }, {style: 'flex: 4;', value: KeyboardKeys.SPACE}, { class: 'secondary', value: '>' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
+                    [{ class: 'secondary', value: 'charset::text', name: 'Abc' }, { class: 'secondary', value: '<' }, { value: 'charset::numeric', name: '123' }, { style: 'flex: 4;', value: KeyboardKeys.SPACE }, { class: 'secondary', value: '>' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
                 ],
             },
             {
@@ -87,7 +123,53 @@ export const DEFAULT_KEYBOARD_HORIZONTAL_PRESET: Array<IKeyboardPreset> = copyVa
                     ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
                     ['@', '#', '$', '_', '&', '-', '+', '(', ')', '/'],
                     [{ class: 'secondary', value: 'charset::symbols', name: '?@' }, '*', '"', '\'', ':', ';', '!', '?', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }],
-                    [{ class: 'secondary', value: 'charset::text', name: 'Abc' }, { class: 'secondary', value: ',' }, { class: 'secondary', value: 'charset::numeric', name: '123' }, KeyboardKeys.SPACE, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
+                    [{ class: 'secondary', value: 'charset::text', name: 'Abc' }, { class: 'secondary', value: ',' }, { class: 'secondary', value: 'charset::numeric', name: '123' }, { style: 'flex: 4;', value: KeyboardKeys.SPACE, name: 'Space' }, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
+                ],
+            },
+        ],
+    },
+    {
+        locale: 'he-Il',
+        dir: 'rtl',
+        charset: [
+            {
+                name: 'text',
+                type: 'text',
+                keys: [
+                    [{ class: 'empty', style: 'flex: 1', value: null }, 'ק', 'ר', 'א', 'ט', 'ו', 'ן', 'ם', 'פ', { class: 'empty', style: 'flex: 1', value: null }],
+                    [{ class: 'empty', value: null }, 'ש', 'ד', 'ג', 'כ', 'ע', 'י', 'ח', 'ל', 'ך', { class: 'empty', value: null }],
+                    [{ class: 'secondary', value: KeyboardKeys.SHIFT, name: 'Shift', switch: true }, 'ז', 'ס', 'ב', 'ה', 'נ', 'מ', 'צ', 'ת', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE_RTL }],
+                    [{ class: 'secondary', value: 'charset::numeric', name: '123' }, { class: 'secondary', value: '/' }, { name: 'EN', value: KeyboardKeys.SYS_NEXT_LOCALE }, { style: 'flex: 6', value: KeyboardKeys.SPACE, name: 'Space' }, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
+                ],
+            },
+            {
+                name: 'symbols',
+                type: 'text',
+                keys: [
+                    ['~', '`', '|', '•', '√', 'π', '÷', '×', '§', 'Δ'],
+                    ['£', '€', '¥', 'ש', '^', '°', '=', '{', '}', '\\'],
+                    [{ class: 'secondary', value: 'charset::numeric-extend', name: '?123' }, '%', '©', '®', '™', '№', '[', ']', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }],
+                    [{ class: 'secondary', value: 'charset::text', name: 'Abc' }, { class: 'secondary', value: '<' }, { value: 'charset::numeric', name: '123' }, { style: 'flex: 4;', value: KeyboardKeys.SPACE }, { class: 'secondary', value: '>' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
+                ],
+            },
+            {
+                name: 'numeric',
+                type: 'number',
+                keys: [
+                    [{ class: 'secondary', value: '+' }, '1', '2', '3', { class: 'secondary', value: '%' }],
+                    [{ class: 'secondary', value: '-' }, '4', '5', '6', { class: 'secondary', value: KeyboardKeys.SPACE }],
+                    [{ class: 'secondary', value: '*' }, '7', '8', '9', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }],
+                    [{ class: 'secondary', value: 'charset::text', name: 'Abc' }, { class: 'secondary', value: ',' }, { value: 'charset::numeric-extend', name: '?123' }, '0', '=', { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
+                ],
+            },
+            {
+                name: 'numeric-extend',
+                type: 'number',
+                keys: [
+                    ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
+                    ['@', '#', '$', '_', '&', '-', '+', '(', ')', '/'],
+                    [{ class: 'secondary', value: 'charset::symbols', name: '?@' }, '*', '"', '\'', ':', ';', '!', '?', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }],
+                    [{ class: 'secondary', value: 'charset::text', name: 'Abc' }, { class: 'secondary', value: ',' }, { class: 'secondary', value: 'charset::numeric', name: '123' }, { style: 'flex: 4;', value: KeyboardKeys.SPACE, name: 'Space' }, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
                 ],
             },
         ],

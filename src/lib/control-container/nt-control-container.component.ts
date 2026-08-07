@@ -3,8 +3,8 @@ import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
 import { combineLatest, debounceTime, filter, fromEvent, map, of, skipUntil, Subject, switchMap, tap, timer } from "rxjs";
 import { INtScrollViewService, NtScrollViewComponent, NtScrollViewService } from "../scroll-view";
 import {
-  CONTROL_CONTAINER_SERVICE, ElementNames, IKeyboardSettings, INtBaseControlContainerService, KeyboardKeys, KeyboardPosition, KeyboardPositions, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
-  SCROLL_VIEW_USER_INTERACTION_ENABLED,
+  CONTROL_CONTAINER_SERVICE, ElementNames, IKeyboardSettings, INtBaseControlContainerService, KeyboardKeys, KeyboardPosition, KeyboardPositions,
+  SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
 } from "../common";
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
 import { NtControlContainerService } from "./nt-control-container.service";
@@ -20,7 +20,6 @@ import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
 import { IScrollToParams } from "../common/interfaces/scroll-to-params";
 import { PX } from "../common/const/base-prop-names";
 import { NtKeyboardService } from "../keyboard/nt-keyboard.service";
-import { SERVICE_KEYS } from "../keyboard/const";
 
 /**
  * NtScrollViewComponent
@@ -364,93 +363,110 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
 
   constructor() {
     super();
-    this._controlService.initialize(this._id, this._parentService?.id ?? -1, this.host);
 
     const $keyClick = this._keyboardService.$keyPress,
-      $focusedElement = this._controlService.$focusedElement;
-    $keyClick.pipe(
+      $focusedElement = this._controlService.$focusedElement,
+      $keyboardEnabled = toObservable(this.keyboardEnabled);
+
+    combineLatest([$keyboardEnabled, this._keyboardService.$latgTextDir, $focusedElement]).pipe(
       takeUntilDestroyed(),
-      filter(key => !!key),
-      tap(key => {
-        const element = this._controlService?.focusedElement?.element ?? null, targetTagName = element?.tagName?.toLocaleLowerCase();
-        if (!!targetTagName && isInteractive(targetTagName)) {
-          const inputElement = element as HTMLInputElement;
-          if (!!inputElement) {
-            const keyValue = key as string;
-            console.log(keyValue)
-            let value = inputElement.value ?? '';
-            if (keyValue.indexOf(KEY_SYS) === 0) {
-              if (keyValue === KeyboardKeys.SYS_NEXT_LOCALE) {
-                // next locale
-              }
-            } else if (keyValue.indexOf(KEY_CHARSET) === 0) {
-              const preset = this._keyboardService.preset, isCharset = (preset?.charset?.findIndex(v => `${KEY_CHARSET}${(v?.name ?? '')}` === keyValue) ?? 0) > -1;
-              if (isCharset) {
-                this._keyboardService.nextCharset();
-              }
-            } else if (keyValue.indexOf(KEY_SYS) === -1) {
-              switch (keyValue) {
-                case KeyboardKeys.BACK_SPACE: {
-                  value = value.length > 0 ? value.slice(0, value.length - 1) : '';
-                  break;
-                }
-                case KeyboardKeys.SPACE: {
-                  value += ' ';
-                  break;
-                }
-                case KeyboardKeys.SYS_NEXT_LOCALE:
-                case KeyboardKeys.CAPS_LOCK:
-                case KeyboardKeys.ALT:
-                case KeyboardKeys.CTRL:
-                case KeyboardKeys.NUM_LOCK:
-                case KeyboardKeys.INSERT:
-                case KeyboardKeys.END:
-                case KeyboardKeys.HOME:
-                case KeyboardKeys.ARROW_LEFT:
-                case KeyboardKeys.ARROW_RIGHT:
-                case KeyboardKeys.ARROW_UP:
-                case KeyboardKeys.ARROW_DOWN:
-                case KeyboardKeys.PAGE_LEFT:
-                case KeyboardKeys.PAGE_RIGHT:
-                case KeyboardKeys.PAGE_UP:
-                case KeyboardKeys.PAGE_DOWN:
-                case KeyboardKeys.SHIFT: {
-                  // skip
-                  break;
-                }
-                case KeyboardKeys.CLEAR: {
-                  value = '';
-                  break;
-                }
-                case KeyboardKeys.ENTER: {
-                  this._controlService.focus({
-                    id: -1, element: null,
-                    type: ScrollerTypes.SCROLL_VIEW_SCROLLER,
-                    scroller: null,
-                  })
-                  break;
-                }
-                case KeyboardKeys.ESCAPE: {
-                  this._controlService.focus({
-                    id: -1, element: null,
-                    type: ScrollerTypes.SCROLL_VIEW_SCROLLER,
-                    scroller: null,
-                  })
-                  break;
-                }
-                default: {
-                  if (keyValue.length === 1) {
-                    value += keyValue;
-                  }
-                  break;
-                }
-              }
-              inputElement.value = value;
-            }
-          }
+      filter(([keyboardEnabled]) => !!keyboardEnabled),
+      tap(([, dir, element]) => {
+        const el = element?.element;
+        if (!!el) {
+          el.dir = dir;
         }
       }),
-    ).subscribe()
+    ).subscribe();
+
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      switchMap(() => {
+        return $keyClick.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          filter(key => !!key),
+          tap(key => {
+            const element = this._controlService?.focusedElement?.element ?? null, targetTagName = element?.tagName?.toLowerCase();
+            if (!!targetTagName && isInteractive(targetTagName)) {
+              const inputElement = element as HTMLInputElement;
+              if (!!inputElement) {
+                const keyValue = key as string;
+                let value = inputElement.value ?? '';
+                if (keyValue.indexOf(KEY_SYS) === 0) {
+                  if (keyValue === KeyboardKeys.SYS_NEXT_LOCALE) {
+                    this._keyboardService.nextPreset();
+                  }
+                } else if (keyValue.indexOf(KEY_CHARSET) === 0) {
+                  const preset = this._keyboardService.preset, isCharset = (preset?.charset?.findIndex(v => `${KEY_CHARSET}${(v?.name ?? '')}` === keyValue) ?? 0) > -1;
+                  if (isCharset) {
+                    this._keyboardService.nextCharset();
+                  }
+                } else if (keyValue.indexOf(KEY_SYS) === -1) {
+                  switch (keyValue) {
+                    case KeyboardKeys.BACK_SPACE: {
+                      value = value.length > 0 ? value.slice(0, value.length - 1) : '';
+                      break;
+                    }
+                    case KeyboardKeys.SPACE: {
+                      value += ' ';
+                      break;
+                    }
+                    case KeyboardKeys.SYS_NEXT_LOCALE:
+                    case KeyboardKeys.CAPS_LOCK:
+                    case KeyboardKeys.ALT:
+                    case KeyboardKeys.CTRL:
+                    case KeyboardKeys.NUM_LOCK:
+                    case KeyboardKeys.INSERT:
+                    case KeyboardKeys.END:
+                    case KeyboardKeys.HOME:
+                    case KeyboardKeys.ARROW_LEFT:
+                    case KeyboardKeys.ARROW_RIGHT:
+                    case KeyboardKeys.ARROW_UP:
+                    case KeyboardKeys.ARROW_DOWN:
+                    case KeyboardKeys.PAGE_LEFT:
+                    case KeyboardKeys.PAGE_RIGHT:
+                    case KeyboardKeys.PAGE_UP:
+                    case KeyboardKeys.PAGE_DOWN:
+                    case KeyboardKeys.SHIFT: {
+                      // skip
+                      break;
+                    }
+                    case KeyboardKeys.CLEAR: {
+                      value = '';
+                      break;
+                    }
+                    case KeyboardKeys.ENTER: {
+                      this._controlService.focus({
+                        id: -1, element: null,
+                        type: ScrollerTypes.SCROLL_VIEW_SCROLLER,
+                        scroller: null,
+                      })
+                      break;
+                    }
+                    case KeyboardKeys.ESCAPE: {
+                      this._controlService.focus({
+                        id: -1, element: null,
+                        type: ScrollerTypes.SCROLL_VIEW_SCROLLER,
+                        scroller: null,
+                      })
+                      break;
+                    }
+                    default: {
+                      if (keyValue.length === 1) {
+                        value += keyValue;
+                      }
+                      break;
+                    }
+                  }
+                  inputElement.value = value;
+                }
+              }
+            }
+          }),
+        );
+      }),
+    ).subscribe();
 
     this._keyboardPosition = computed(() => {
       return this.keyboardSettings().common.position;
@@ -656,18 +672,26 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
     ).subscribe();
   }
 
+  ngOnInit() {
+    this._controlService.initialize(this._id, this._parentService?.id ?? -1, this.keyboardEnabled() ? this.host : window as any);
+  }
+
   private updateKeyboardPosition(e: IFocusedObject, keyboardEnabled: boolean, keyboardSettings: IKeyboardSettings, animated: boolean = true) {
     const scrollerComponent = this._scrollerComponent();
     if (!!scrollerComponent) {
       if (!!e && !!e.element) {
-        const target = e.element, targetTagName = target.tagName?.toLocaleLowerCase();
+        const target = e.element, targetTagName = target.tagName?.toLowerCase();
         if (!!targetTagName && isInteractive(targetTagName)) {
           if (keyboardEnabled && target.blur instanceof Function) {
             target.blur();
+          } else if (!keyboardEnabled && target.focus instanceof Function) {
+            target.focus();
           }
           const scroller = e.scroller;
           if (!!scroller) {
-            this._keyboardShown.set(true);
+            if (keyboardEnabled) {
+              this._keyboardShown.set(true);
+            }
             this.updateKeyboardAnimation(e, keyboardEnabled, keyboardSettings, animated);
             this._$hostScroll.next(e);
           }
@@ -698,7 +722,9 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
           break;
         }
       }
-      this._keyboardShown.set(false);
+      if (keyboardEnabled) {
+        this._keyboardShown.set(false);
+      }
       scrollerComponent.scrollTo(scrollParams) ?? null;
       if (behavior === BEHAVIOR_INSTANT) {
         scrollerComponent.refresh(true);

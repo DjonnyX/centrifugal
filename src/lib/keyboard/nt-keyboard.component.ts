@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, Signal, TemplateRef, ViewEncapsulation } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, signal, Signal, TemplateRef, ViewEncapsulation } from "@angular/core";
 import { NtKeyboardService } from "./nt-keyboard.service";
 import { IKeyboardSettings, KeyboardKeys, KeyboardKeyStates, TextDirection, TextDirections } from "../common";
 import { DEFAULT_KEYBOARD_SETTINGS } from "../common/const/keyboard";
@@ -35,11 +35,11 @@ export class NtKeyboardComponent {
 
     keyRenderer = input<TemplateRef<any> | null>(null);
 
-    langTextDir = input<TextDirection>(TextDirections.LTR);
-
     get $charset() { return this._service.$charset };
 
     get $isVertical() { return this._service.$isVertical; }
+
+    get $latgTextDir() { return this._service.$latgTextDir; };
 
     get normalizedSettings() { return this._service.$settings; }
 
