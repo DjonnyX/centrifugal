@@ -425,7 +425,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                     this._keyboardService.nextPreset();
                   }
                 } else if (keyValue.indexOf(KEY_LAYOUT) === 0) {
-                  const preset = this._keyboardService.preset, index = (preset?.layout?.findIndex(v => `${KEY_LAYOUT}${(v?.name ?? '')}` === keyValue) ?? 0), isLayout = index > -1;
+                  const preset = this._keyboardService.preset, index = (preset?.layout?.findIndex(v => (v?.name ? `${KEY_LAYOUT}${(v.name)}` : null) === keyValue && keyValue !== null) ?? -1), isLayout = index > -1;
                   if (isLayout) {
                     this._keyboardService.nextLayout({ index });
                   }

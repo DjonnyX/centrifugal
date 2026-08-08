@@ -1,5 +1,5 @@
 import { DestroyRef, inject, Injectable } from "@angular/core";
-import { BehaviorSubject, combineLatest, delay, filter, of, Subject, switchMap, tap } from "rxjs";
+import { BehaviorSubject, debounceTime, delay, distinctUntilChanged, filter, Subject, tap } from "rxjs";
 import { DEFAULT_KEYBOARD_LANG_DIR, DEFAULT_KEYBOARD_LOCALE, DEFAULT_KEYBOARD_POSITION, KEY_LAYOUT, KEY_SYS } from "../common/const/keyboard";
 import { IKeyboardSettings, KeyboardKey, KeyboardKeys, KeyboardKeyStates, KeyboardPosition, TextDirection, TextDirections } from "../common";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
@@ -87,12 +87,16 @@ export class NtKeyboardService {
         const $settings = this.$settings
         $settings.pipe(
             takeUntilDestroyed(),
+            distinctUntilChanged(),
             filter(v => !!v),
             tap(settings => {
                 this._$position.next(settings.common.position);
                 this._$isVertical.next(KEYBOARD_VERTICAL_POSITIONS.indexOf(settings.common.position) > -1);
-                const currentPresetIndex = this.presetIndex, presetLength = settings?.preset?.length ?? 0;
-                this._$presetIndex.next(currentPresetIndex > -1 && presetLength > 0 && presetLength - 1 >= currentPresetIndex ? currentPresetIndex : presetLength > 0 ? 0 : -1);
+                const currentPresetIndex = this.presetIndex, presetLength = settings?.preset?.length ?? 0,
+                    actualPresetIndex = currentPresetIndex > -1 && presetLength > 0 && presetLength - 1 >= currentPresetIndex ? currentPresetIndex : presetLength > 0 ? 0 : -1;
+                if (currentPresetIndex !== actualPresetIndex) {
+                    this._$presetIndex.next(actualPresetIndex);
+                }
             }),
         ).subscribe();
 
@@ -104,22 +108,6 @@ export class NtKeyboardService {
                 if (!!settings) {
                     const preset = !!settings && v > -1 ? settings.preset[v] : null;
                     this._$preset.next(preset);
-                    const currentLayoutIndex = this.layoutIndex, layoutLength = preset?.layout?.length ?? 0;
-                    this._$layoutIndex.next(currentLayoutIndex > -1 && layoutLength > 0 && layoutLength - 1 >= currentLayoutIndex ? currentLayoutIndex : layoutLength > 0 ? 0 : -1);
-                    this._$locale.next(preset?.locale ?? DEFAULT_KEYBOARD_LOCALE);
-                }
-            }),
-        ).subscribe();
-
-        const $layoutIndex = this.$layoutIndex;
-        combineLatest([$presetIndex, $layoutIndex]).pipe(
-            takeUntilDestroyed(),
-            tap(([p, c]) => {
-                const settings = this.settings;
-                if (!!settings) {
-                    const preset = !!settings && p > -1 ? settings.preset[p] : null,
-                        layout = preset !== null && c > -1 ? preset.layout[c] : null;
-                    this._$layout.next(layout);
                 }
             }),
         ).subscribe();
@@ -128,7 +116,21 @@ export class NtKeyboardService {
         $preset.pipe(
             takeUntilDestroyed(),
             tap(v => {
+                this._$layoutIndex.next(0);
                 this._$latgTextDir.next(v?.dir ?? TextDirections.LTR);
+            }),
+        ).subscribe();
+
+        const $layoutIndex = this.$layoutIndex;
+        $layoutIndex.pipe(
+            takeUntilDestroyed(),
+            debounceTime(0),
+            tap(l => {
+                const preset = this.preset;
+                if (!!preset) {
+                    const layout = preset !== null && l > -1 ? preset.layout[l] : null;
+                    this._$layout.next(layout);
+                }
             }),
         ).subscribe();
 
@@ -148,12 +150,8 @@ export class NtKeyboardService {
         const settings = this.settings;
         if (!!settings) {
             const index = this.presetIndex, length = settings.preset?.length ?? 0,
-                nextIndex = length == 0 || index === length - 1 ? 0 : index + 1,
-                nextPreset = settings.preset[nextIndex];
-            this._$preset.next(nextPreset);
+                nextIndex = length == 0 || index === length - 1 ? 0 : index + 1;
             this._$presetIndex.next(nextIndex);
-            this._$layout.next(nextPreset.layout[0]);
-            this._$layoutIndex.next(0);
         }
     }
 
@@ -162,7 +160,6 @@ export class NtKeyboardService {
         if (index > -1) {
             const preset = this.preset;
             if (!!preset) {
-                this._$layout.next(this.preset.layout[index]);
                 this._$layoutIndex.next(index);
             }
         } else if (!!name) {
@@ -170,23 +167,20 @@ export class NtKeyboardService {
             if (!!preset) {
                 const index = (preset?.layout?.findIndex(v => `${KEY_LAYOUT}${(v?.name ?? '')}` === name) ?? 0);
                 if (index > -1) {
-                    this._$layout.next(this.preset.layout[index]);
                     this._$layoutIndex.next(index);
                 }
             }
-        } if (!!type) {
+        } else if (!!type) {
             const preset = this.preset;
             if (!!preset && !!preset.layout) {
                 for (let i = 0, l = preset.layout.length; i < l; i++) {
                     const l = preset.layout[i];
                     if (!!l.type && l.type.indexOf(type) > -1) {
-                        this._$layout.next(this.preset.layout[i]);
                         this._$layoutIndex.next(i);
                         return;
                     }
                 }
                 if (preset.layout.length > 0) {
-                    this._$layout.next(this.preset.layout[0]);
                     this._$layoutIndex.next(0);
                 }
             }
@@ -195,7 +189,6 @@ export class NtKeyboardService {
             if (!!preset) {
                 const index = this.layoutIndex, length = this.preset?.layout.length ?? 0,
                     nextIndex = length == 0 || index === length - 1 ? 0 : index + 1;
-                this._$layout.next(this.preset.layout[nextIndex]);
                 this._$layoutIndex.next(nextIndex);
             }
         }
