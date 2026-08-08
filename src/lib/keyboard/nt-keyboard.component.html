@@ -1,9 +1,9 @@
 @let vertical = $isVertical | async;
 <div localeSensitive [langTextDir]="($latgTextDir | async)!" class="ntk-container" [ngClass]="{vertical}">
-    @let charset = $charset | async;
-    @if (!!charset) {
+    @let layout = $layout | async;
+    @if (!!layout) {
         <div class="ntk-keys" [ngClass]="_containerClass()">
-            @for (keyRow of charset.keys; track $index) {
+            @for (keyRow of layout.keys; track $index) {
                 <div class="ntk-key-row" part="ntk-key-row">
                     @for (key of keyRow; track $index) {
                         @if (!!key) {

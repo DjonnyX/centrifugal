@@ -35,7 +35,7 @@ export class NtKeyboardComponent {
 
     keyRenderer = input<TemplateRef<any> | null>(null);
 
-    get $charset() { return this._service.$charset };
+    get $layout() { return this._service.$layout };
 
     get $isVertical() { return this._service.$isVertical; }
 
@@ -59,13 +59,13 @@ export class NtKeyboardComponent {
             }),
         ).subscribe();
 
-        const charset = toSignal(this.$charset);
+        const layout = toSignal(this.$layout);
         this._containerClass = computed(() => {
-            const c = charset();
+            const c = layout();
             if (!c) {
                 return {};
             }
-            return { [c.name]: true, [c.type]: true };
+            return { [c.name]: true, [(c.type ?? []).join(' ')]: true };
         });
 
         const $keyDown = fromEvent<KeyboardEvent>(window, KEY_DOWN),

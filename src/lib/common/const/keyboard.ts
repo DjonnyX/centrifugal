@@ -6,7 +6,7 @@ import { copyValueAsReadonly } from "../utils";
 
 export const KEY_SYS = 'sys::';
 
-export const KEY_CHARSET = 'charset::';
+export const KEY_LAYOUT = 'layout::';
 
 export const DEFAULT_KEYBOARD_LOCALE: string = 'en-gb';
 
@@ -24,10 +24,10 @@ export const DEFAULT_KEYBOARD_VERTICAL_PRESET: Array<IKeyboardPreset> = copyValu
     {
         locale: DEFAULT_KEYBOARD_LOCALE,
         dir: 'ltr',
-        charset: [
+        layout: [
             {
                 name: 'text',
-                type: 'text',
+                type: ['text'],
                 keys: [
                     ['7', '8', '9', '-'],
                     ['4', '5', '6', '+'],
@@ -56,10 +56,10 @@ export const DEFAULT_KEYBOARD_VERTICAL_PRESET: Array<IKeyboardPreset> = copyValu
     {
         locale: 'he-Il',
         dir: 'rtl',
-        charset: [
+        layout: [
             {
                 name: 'text',
-                type: 'text',
+                type: ['text'],
                 keys: [
                     ['7', '8', '9', '-'],
                     ['4', '5', '6', '+'],
@@ -97,45 +97,65 @@ export const DEFAULT_KEYBOARD_HORIZONTAL_PRESET: Array<IKeyboardPreset> = copyVa
     {
         locale: DEFAULT_KEYBOARD_LOCALE,
         dir: 'ltr',
-        charset: [
+        layout: [
             {
                 name: 'text',
-                type: 'text',
+                type: ['text', 'password'],
                 keys: [
                     [{ class: 'empty', style: 'flex: 0.5', value: null }, 'Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P', { class: 'empty', style: 'flex: 0.5', value: null }],
                     [{ class: 'empty', value: null }, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', { class: 'empty', value: null }],
                     [{ style: 'flex: 2;', class: 'secondary', value: KeyboardKeys.SHIFT, name: 'Shift' }, 'Y', 'X', 'C', 'V', 'B', 'N', 'M', { style: 'flex: 2;', class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }],
-                    [{ class: 'secondary', value: 'charset::numeric', name: '123' }, { class: 'secondary', value: '/' }, { name: 'HE', value: KeyboardKeys.SYS_NEXT_LOCALE }, { style: 'flex: 6', value: KeyboardKeys.SPACE, name: 'Space' }, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
+                    [{ class: 'secondary', value: 'layout::numeric', name: '123' }, { class: 'secondary', value: '/' }, { name: 'HE', value: KeyboardKeys.SYS_NEXT_LOCALE }, { style: 'flex: 6', value: KeyboardKeys.SPACE, name: 'Space' }, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
                 ],
             },
             {
                 name: 'symbols',
-                type: 'text',
+                type: ['text', 'password'],
                 keys: [
                     ['~', '`', '|', '•', '√', 'π', '÷', '×', '§', 'Δ'],
                     ['£', '€', '¥', 'ש', '^', '°', '=', '{', '}', '\\'],
-                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'charset::numeric-extend', name: '?123' }, '%', '©', '®', '™', '№', '[', ']', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }, { class: 'empty', style: 'flex: 0.5', value: null }],
-                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'charset::text', name: 'Abc' }, { class: 'secondary', value: '<' }, { value: 'charset::numeric', name: '123' }, { style: 'flex: 4;', value: KeyboardKeys.SPACE }, { class: 'secondary', value: '>' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }, { class: 'empty', style: 'flex: 0.5', value: null }],
+                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'layout::numeric-extend', name: '?123' }, '%', '©', '®', '™', '№', '[', ']', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }, { class: 'empty', style: 'flex: 0.5', value: null }],
+                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'layout::text', name: 'Abc' }, { class: 'secondary', value: '<' }, { value: 'layout::numeric', name: '123' }, { style: 'flex: 4;', value: KeyboardKeys.SPACE }, { class: 'secondary', value: '>' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }, { class: 'empty', style: 'flex: 0.5', value: null }],
                 ],
             },
             {
                 name: 'numeric',
-                type: 'number',
+                type: ['text', 'password'],
                 keys: [
                     [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'secondary', value: '+' }, '1', '2', '3', { class: 'secondary', value: '%' }, { class: 'empty', style: 'flex: 1', value: null }],
                     [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'secondary', value: '-' }, '4', '5', '6', { class: 'secondary', value: KeyboardKeys.SPACE }, { class: 'empty', style: 'flex: 1', value: null }],
                     [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'secondary', value: '*' }, '7', '8', '9', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }, { class: 'empty', style: 'flex: 1', value: null }],
-                    [{ class: 'secondary', value: 'charset::text', name: 'Abc' }, { class: 'secondary', value: ',' }, { value: 'charset::numeric-extend', name: '?123' }, '0', '=', { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
+                    [{ class: 'secondary', value: 'layout::text', name: 'Abc' }, { class: 'secondary', value: ',' }, { value: 'layout::numeric-extend', name: '?123' }, '0', '=', { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
                 ],
             },
             {
                 name: 'numeric-extend',
-                type: 'number',
+                type: ['text', 'password'],
                 keys: [
                     ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
                     ['@', '#', '$', '_', '&', '-', '+', '(', ')', '/'],
-                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'charset::symbols', name: '?@' }, '*', '"', '\'', ':', ';', '!', '?', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }, { class: 'empty', style: 'flex: 0.5', value: null }],
-                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'charset::text', name: 'Abc' }, { class: 'secondary', value: ',' }, { class: 'secondary', value: 'charset::numeric', name: '123' }, { style: 'flex: 4;', value: KeyboardKeys.SPACE, name: 'Space' }, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }, { class: 'empty', style: 'flex: 0.5', value: null }],
+                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'layout::symbols', name: '?@' }, '*', '"', '\'', ':', ';', '!', '?', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }, { class: 'empty', style: 'flex: 0.5', value: null }],
+                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'layout::text', name: 'Abc' }, { class: 'secondary', value: ',' }, { class: 'secondary', value: 'layout::numeric', name: '123' }, { style: 'flex: 4;', value: KeyboardKeys.SPACE, name: 'Space' }, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }, { class: 'empty', style: 'flex: 0.5', value: null }],
+                ],
+            },
+            {
+                name: 'only-numeric',
+                type: ['number'],
+                keys: [
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, '0', '1', '2', '3', { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, '4', '5', '6', '7', { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, '8', '9', { style: 'flex: 1', value: '.' }, { class: 'secondary', style: 'flex: 1', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }, { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, { class: 'secondary', style: 'flex: 4', value: KeyboardKeys.ENTER, name: 'Enter' }, { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
+                ],
+            },
+            {
+                name: 'tel',
+                type: ['tel'],
+                keys: [
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, '0', '1', '2', '3', { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, '4', '5', '6', '7', { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, '8', '9', { style: 'flex: 1', value: '+' }, { class: 'secondary', style: 'flex: 1', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }, { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, { class: 'secondary', style: 'flex: 4', value: KeyboardKeys.ENTER, name: 'Enter' }, { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
                 ],
             },
         ],
@@ -143,45 +163,65 @@ export const DEFAULT_KEYBOARD_HORIZONTAL_PRESET: Array<IKeyboardPreset> = copyVa
     {
         locale: 'he-Il',
         dir: 'rtl',
-        charset: [
+        layout: [
             {
                 name: 'text',
-                type: 'text',
+                type: ['text', 'password'],
                 keys: [
                     [{ class: 'empty', style: 'flex: 1', value: null }, 'פ', 'ם', 'ן', 'ו', 'ט', 'א', 'ר', 'ק', { class: 'empty', style: 'flex: 1', value: null }],
                     [{ class: 'empty', style: 'flex: 0.5', value: null }, 'ך', 'ל', 'ח', 'י', 'ע', 'כ', 'ג', 'ד', 'ש', { class: 'empty', style: 'flex: 0.5', value: null }],
                     [{ class: 'secondary', value: KeyboardKeys.SHIFT, name: 'Shift' }, 'ת', 'צ', 'מ', 'נ', 'ה', 'ב', 'ס', 'ז', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE_RTL }],
-                    [{ class: 'secondary', value: 'charset::numeric', name: '123' }, { class: 'secondary', value: '/' }, { name: 'EN', value: KeyboardKeys.SYS_NEXT_LOCALE }, { style: 'flex: 5', value: KeyboardKeys.SPACE, name: 'Space' }, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
+                    [{ class: 'secondary', value: 'layout::numeric', name: '123' }, { class: 'secondary', value: '/' }, { name: 'אבג', value: KeyboardKeys.SYS_NEXT_LOCALE }, { style: 'flex: 5', value: KeyboardKeys.SPACE, name: 'Space' }, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
                 ],
             },
             {
                 name: 'symbols',
-                type: 'text',
+                type: ['text', 'password'],
                 keys: [
                     ['~', '`', '|', '•', '√', 'π', '÷', '×', '§', 'Δ'],
                     ['£', '€', '¥', 'ש', '^', '°', '=', '{', '}', '\\'],
-                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'charset::numeric-extend', name: '?123' }, '%', '©', '®', '™', '№', '[', ']', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }, { class: 'empty', style: 'flex: 0.5', value: null }],
-                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'charset::text', name: 'אבג' }, { class: 'secondary', value: '<' }, { value: 'charset::numeric', name: '123' }, { style: 'flex: 4;', value: KeyboardKeys.SPACE }, { class: 'secondary', value: '>' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }, { class: 'empty', style: 'flex: 0.5', value: null }],
+                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'layout::numeric-extend', name: '?123' }, '%', '©', '®', '™', '№', '[', ']', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }, { class: 'empty', style: 'flex: 0.5', value: null }],
+                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'layout::text', name: 'אבג' }, { class: 'secondary', value: '<' }, { value: 'layout::numeric', name: '123' }, { style: 'flex: 4;', value: KeyboardKeys.SPACE }, { class: 'secondary', value: '>' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }, { class: 'empty', style: 'flex: 0.5', value: null }],
                 ],
             },
             {
                 name: 'numeric',
-                type: 'number',
+                type: ['text', 'password'],
                 keys: [
                     [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'secondary', value: '+' }, '1', '2', '3', { class: 'secondary', value: '%' }, { class: 'empty', style: 'flex: 1', value: null }],
                     [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'secondary', value: '-' }, '4', '5', '6', { class: 'secondary', value: KeyboardKeys.SPACE }, { class: 'empty', style: 'flex: 1', value: null }],
                     [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'secondary', value: '*' }, '7', '8', '9', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }, { class: 'empty', style: 'flex: 1', value: null }],
-                    [{ class: 'secondary', value: 'charset::text', name: 'אבג' }, { class: 'secondary', value: ',' }, { value: 'charset::numeric-extend', name: '?123' }, '0', '=', { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
+                    [{ class: 'secondary', value: 'layout::text', name: 'אבג' }, { class: 'secondary', value: ',' }, { value: 'layout::numeric-extend', name: '?123' }, '0', '=', { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],
                 ],
             },
             {
                 name: 'numeric-extend',
-                type: 'number',
+                type: ['text', 'password'],
                 keys: [
                     ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
                     ['@', '#', '$', '_', '&', '-', '+', '(', ')', '/'],
-                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'charset::symbols', name: '?@' }, '*', '"', '\'', ':', ';', '!', '?', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }, { class: 'empty', style: 'flex: 0.5', value: null }],
-                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'charset::text', name: 'אבג' }, { class: 'secondary', value: ',' }, { class: 'secondary', value: 'charset::numeric', name: '123' }, { style: 'flex: 4;', value: KeyboardKeys.SPACE, name: 'Space' }, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }, { class: 'empty', style: 'flex: 0.5', value: null }],
+                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'layout::symbols', name: '?@' }, '*', '"', '\'', ':', ';', '!', '?', { class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }, { class: 'empty', style: 'flex: 0.5', value: null }],
+                    [{ class: 'empty', style: 'flex: 0.5', value: null }, { class: 'secondary', value: 'layout::text', name: 'אבג' }, { class: 'secondary', value: ',' }, { class: 'secondary', value: 'layout::numeric', name: '123' }, { style: 'flex: 4;', value: KeyboardKeys.SPACE, name: 'Space' }, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }, { class: 'empty', style: 'flex: 0.5', value: null }],
+                ],
+            },
+            {
+                name: 'only-numeric',
+                type: ['number'],
+                keys: [
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, '0', '1', '2', '3', { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, '4', '5', '6', '7', { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, '8', '9', { style: 'flex: 1', value: '.' }, { class: 'secondary', style: 'flex: 1', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE_RTL }, { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, { class: 'secondary', style: 'flex: 4', value: KeyboardKeys.ENTER, name: 'Enter' }, { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
+                ],
+            },
+            {
+                name: 'tel',
+                type: ['tel'],
+                keys: [
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, '0', '1', '2', '3', { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, '4', '5', '6', '7', { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, '8', '9', { style: 'flex: 1', value: '+' }, { class: 'secondary', style: 'flex: 1', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE_RTL }, { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
+                    [{ class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }, { class: 'secondary', style: 'flex: 4', value: KeyboardKeys.ENTER, name: 'Enter' }, { class: 'empty', style: 'flex: 1', value: null }, { class: 'empty', style: 'flex: 1', value: null }],
                 ],
             },
         ],
