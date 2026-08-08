@@ -2,6 +2,7 @@ import { NgControl } from "@angular/forms";
 import { Observable } from "rxjs";
 import { INtBaseScrollViewService } from "./nt-base-scroll-view-service";
 import { IFocusedObject } from "./focused-object";
+import { KeyboardKeyValue } from "../types";
 
 /**
  * INtBaseControlContainerService
@@ -14,6 +15,9 @@ export interface INtBaseControlContainerService extends INtBaseScrollViewService
 
     readonly $keyboardEnabled: Observable<boolean>;
     get keyboardEnabled(): boolean;
+
+    readonly $input: Observable<KeyboardKeyValue | null>;
+    get input(): KeyboardKeyValue | null;
 
     readonly $focusedElement: Observable<IFocusedObject | null>;
     get focusedElement(): IFocusedObject | null;

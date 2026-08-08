@@ -1,17 +1,19 @@
-import { DestroyRef, Directive, ElementRef, inject, Input, input, output, SecurityContext } from '@angular/core';
+import { DestroyRef, Directive, ElementRef, inject, Input, input, OnInit, output, SecurityContext } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { NgControl } from '@angular/forms';
 import { BehaviorSubject, combineLatest, fromEvent, of, race, timer } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from '../../injection';
 import { toggleClassName, validateBoolean, validateFloat } from '../../utils';
-import { ANCHOR, DEFAULT_CLICK_DISTANCE, DEFAULT_DURATION } from './const';
+import { ANCHOR, DEFAULT_CLICK_DISTANCE, DEFAULT_DURATION, INPUT } from './const';
 import { CLICK, FOCUS, POINTER_DOWN, POINTER_LEAVE, POINTER_MOVE, POINTER_UP } from '../../const/event-names';
 import { INtBaseControlContainerService } from '../../interfaces';
 import { GRABBING, NOT_GRABBING } from '../../const/class-names';
 import { DomSanitizer } from '@angular/platform-browser';
 import { INtBaseScrollViewService } from '../../interfaces/nt-base-scroll-view-service';
-import { NT_SERVICE_ID } from '../../const/attribute-names';
+import { ATTR_TYPE, NT_SERVICE_ID } from '../../const/attribute-names';
+import { NT_VALUE } from '../../../control-container/const';
+import { PATTERN_DOT } from '../../const/pattern';
 
 /**
  * VirtualClickDirective
@@ -23,7 +25,7 @@ import { NT_SERVICE_ID } from '../../const/attribute-names';
     selector: '[virtualClick]',
     standalone: false,
 })
-export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C extends INtBaseControlContainerService> {
+export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C extends INtBaseControlContainerService> implements OnInit {
     protected _service = inject<S>(SCROLL_VIEW_SERVICE);
 
     protected _controlService = inject<C>(CONTROL_CONTAINER_SERVICE);
@@ -331,5 +333,18 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                 }),
             ).subscribe();
         }
+    }
+
+    ngOnInit(): void {
+        this._ngControl?.valueChanges?.pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(v => {
+                const target = this._elementRef.nativeElement,
+                    targetTagName = target.tagName.toLowerCase();
+                if (!(this._controlService.input === PATTERN_DOT && targetTagName === INPUT && target.getAttribute(ATTR_TYPE))) {
+                    this._elementRef.nativeElement.setAttribute(NT_VALUE, v ?? '');
+                }
+            }),
+        ).subscribe();
     }
 }

@@ -1,7 +1,7 @@
 import { DestroyRef, inject, Injectable, OnDestroy } from '@angular/core';
 import { NgControl } from '@angular/forms';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { Id, IRect } from '../common';
+import { Id, IRect, KeyboardKeyValue } from '../common';
 import { INtControlContainerService } from './interfaces';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
 import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-view-service';
@@ -25,6 +25,13 @@ export class NtControlContainerService extends NtBaseScrollViewService implement
   get emitter() {
     return this._emitter;
   }
+
+  protected _$input = new BehaviorSubject<KeyboardKeyValue | null>(null);
+  readonly $input = this._$input.asObservable();
+  set input(v: KeyboardKeyValue | null) {
+    this._$input.next(v);
+  }
+  get input() { return this._$input.getValue(); }
 
   focusedScroller: INtScroller<INtBaseScrollViewService> | null = null;
 
