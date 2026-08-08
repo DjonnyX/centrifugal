@@ -11,6 +11,9 @@ import { IFocusedObject } from "./focused-object";
 export interface INtBaseControlContainerService extends INtBaseScrollViewService {
     get emitter(): HTMLElement;
 
+    readonly $keyboardEnabled: Observable<boolean>;
+    get keyboardEnabled(): boolean;
+
     readonly $focusedElement: Observable<IFocusedObject | null>;
     get focusedElement(): IFocusedObject | null;
 

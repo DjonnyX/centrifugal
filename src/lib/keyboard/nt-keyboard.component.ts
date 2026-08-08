@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, signal, Signal, TemplateRef, ViewEncapsulation } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, input, Signal, TemplateRef, ViewEncapsulation } from "@angular/core";
 import { NtKeyboardService } from "./nt-keyboard.service";
-import { IKeyboardSettings, KeyboardKeys, KeyboardKeyStates, TextDirection, TextDirections } from "../common";
+import { IKeyboardSettings, KeyboardKeys, KeyboardKeyStates } from "../common";
 import { DEFAULT_KEYBOARD_SETTINGS } from "../common/const/keyboard";
 import { takeUntilDestroyed, toObservable, toSignal } from "@angular/core/rxjs-interop";
-import { combineLatest, fromEvent, switchMap, tap } from "rxjs";
+import { combineLatest, distinctUntilChanged, fromEvent, switchMap, tap } from "rxjs";
 import { KEY_DOWN, KEY_UP } from "../common/const/event-names";
 import { normalizeSettings } from "./utils";
 import { DomSanitizer } from "@angular/platform-browser";
@@ -35,7 +35,7 @@ export class NtKeyboardComponent {
 
     keyRenderer = input<TemplateRef<any> | null>(null);
 
-    get $charset() { return this._service.$charset };
+    get $layout() { return this._service.$layout };
 
     get $isVertical() { return this._service.$isVertical; }
 
@@ -51,7 +51,13 @@ export class NtKeyboardComponent {
 
     constructor() {
         const $settings = toObservable(this.settings);
-        combineLatest([$settings, this._service.$caps]).pipe(
+        combineLatest([$settings.pipe(
+            takeUntilDestroyed(),
+            distinctUntilChanged(),
+        ), this._service.$caps.pipe(
+            takeUntilDestroyed(),
+            distinctUntilChanged(),
+        )]).pipe(
             takeUntilDestroyed(),
             tap(([settings, caps]) => {
                 const normalizedSettings = normalizeSettings(settings, caps, this._sanitizer);
@@ -59,13 +65,19 @@ export class NtKeyboardComponent {
             }),
         ).subscribe();
 
-        const charset = toSignal(this.$charset);
+        const layout = toSignal(this.$layout);
         this._containerClass = computed(() => {
-            const c = charset();
+            const c = layout();
             if (!c) {
                 return {};
             }
-            return { [c.name]: true, [c.type]: true };
+            const cls = { [c.name]: true };
+            if (!!c.type) {
+                for (const t of c.type) {
+                    cls[t] = true;
+                }
+            }
+            return cls;
         });
 
         const $keyDown = fromEvent<KeyboardEvent>(window, KEY_DOWN),

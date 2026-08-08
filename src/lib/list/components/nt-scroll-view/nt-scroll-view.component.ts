@@ -759,8 +759,8 @@ export class NtScrollView extends NtBaseScrollView {
         if (!enabled) {
             return { position: isVertical ? this._y : this._x, currentPos: null, endTime: Date.now(), scrollDelta: 0 };
         }
-        const coord = (isVertical ? (e instanceof TouchEvent) ? Array.from(e.targetTouches)?.find(({ identifier }) => identifier === touchId)?.clientY : e.clientY :
-            (e instanceof TouchEvent) ? Array.from(e.targetTouches)?.find(({ identifier }) => identifier === touchId)?.clientX : e.clientX),
+        const coord = (isVertical ? !!e.targetTouches ? Array.from((e as TouchEvent).targetTouches)?.find(({ identifier }) => identifier === touchId)?.clientY : e.clientY :
+            !!e.targetTouches ? Array.from((e as TouchEvent).targetTouches)?.find(({ identifier }) => identifier === touchId)?.clientX : e.clientX),
             currentPos = coord * (axisInversion ? -1 : 1),
             scrollSize = isVertical ? this.scrollHeight : this.scrollWidth, delta = (inversion ? -1 : 1) * (startClientPos - currentPos),
             dp = (isVertical ? this._startPositionY : this._startPositionX) + delta, position = this.isInfinity() ? dp : dp < 0 ? 0 : dp > scrollSize ? scrollSize : dp,

@@ -6,6 +6,7 @@ import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.
 import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-view-service';
 import { INtScroller } from '../common/interfaces/nt-scroller';
 import { IFocusedObject } from '../common/interfaces/focused-object';
+import { DEFAULT_KEYBOARD_ENABLED } from './const';
 
 /**
  * NtControlContainerService
@@ -25,6 +26,17 @@ export class NtControlContainerService extends NtBaseScrollViewService implement
   }
 
   focusedScroller: INtScroller<INtBaseScrollViewService> | null = null;
+
+  private _$keyboardEnabled = new BehaviorSubject<boolean>(DEFAULT_KEYBOARD_ENABLED);
+  readonly $keyboardEnabled = this._$keyboardEnabled.asObservable();
+  set keyboardEnabled(v: boolean) {
+    if (this.keyboardEnabled !== v) {
+      this._$keyboardEnabled.next(v);
+    }
+  }
+  get keyboardEnabled() {
+    return this._$keyboardEnabled.getValue();
+  }
 
   private _$focusEcho = new Subject<{ element: HTMLElement, serviceId: number }>();
   readonly $focusEcho = this._$focusEcho.asObservable();

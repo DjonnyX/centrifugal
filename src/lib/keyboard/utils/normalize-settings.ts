@@ -14,10 +14,10 @@ export const normalizeSettings = (settings: IKeyboardSettings, caps: boolean, sa
     const result: IKeyboardSettings<NormalizedKeyboardKey> = JSON.parse(JSON.stringify(settings));
     for (let i = 0, l = result.preset.length; i < l; i++) {
         const preset = result.preset[i];
-        for (let j = 0, l1 = preset.charset.length; j < l1; j++) {
-            const charset = preset.charset[j];
-            for (let k = 0, l2 = charset.keys.length; k < l2; k++) {
-                const keyRow = charset.keys[k];
+        for (let j = 0, l1 = preset.layout.length; j < l1; j++) {
+            const layout = preset.layout[j];
+            for (let k = 0, l2 = layout.keys.length; k < l2; k++) {
+                const keyRow = layout.keys[k];
                 for (let m = 0, l3 = keyRow.length; m < l3; m++) {
                     const key = keyRow[m];
                     keyRow[m] = normalizeKey(key as KeyboardKey, caps, sanitizer);

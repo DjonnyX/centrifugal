@@ -6,7 +6,7 @@ import {
   CONTROL_CONTAINER_SERVICE, ElementNames, IKeyboardSettings, INtBaseControlContainerService, KeyboardKeys, KeyboardPosition, KeyboardPositions,
   SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
 } from "../common";
-import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
+import { FOCUS, MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
 import { NtControlContainerService } from "./nt-control-container.service";
 import { INtBaseScrollViewService } from "../common/interfaces/nt-base-scroll-view-service";
 import { isInteractive } from "../common/utils/is-interactive";
@@ -14,15 +14,17 @@ import { ScrollerTypes } from "../common/enums/scroller-types";
 import { IFocusedObject } from "../common/interfaces/focused-object";
 import { validateArray, validateBoolean, validateInt, validateObject, validateString } from "../common/utils";
 import { DEFAULT_EXCLUDE_ELEMETN_LIST } from "../drawer-container/const";
-import { DEFAULT_KEYBOARD_ENABLED } from "./const";
-import { DEFAULT_KEYBOARD_SETTINGS, KEY_CHARSET, KEY_SYS } from '../common/const/keyboard';
+import { DEFAULT_KEYBOARD_ENABLED, NT_VALUE, TEXT_FIELD_TYPE_PROP_NAME } from "./const";
+import { DEFAULT_KEYBOARD_SETTINGS, KEY_LAYOUT, KEY_SYS } from '../common/const/keyboard';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
 import { IScrollToParams } from "../common/interfaces/scroll-to-params";
 import { PX } from "../common/const/base-prop-names";
 import { NtKeyboardService } from "../keyboard/nt-keyboard.service";
+import { normalizeValueForTextField } from "./utils/normalize-value-for-text-field";
+import { TextFieldTypes } from "./enums";
 
 /**
- * NtScrollViewComponent
+ * NtControlContainerComponent
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/nt-control-container.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -290,45 +292,52 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
           console.error('The "keyboardSettings.preset[index].locale" parameter must be of type `string`.');
           return DEFAULT_KEYBOARD_SETTINGS;
         }
-        valid = validateArray(p.charset);
+        valid = validateArray(p.layout);
         if (!valid) {
-          console.error('The "keyboardSettings.preset[index].charset" parameter must be of type `Array<IKeyboardCharset>`.');
+          console.error('The "keyboardSettings.preset[index].layout" parameter must be of type `Array<IKeyboardLayout>`.');
           return DEFAULT_KEYBOARD_SETTINGS;
         }
-        for (let j = 0, l1 = p.charset.length; j < l1; j++) {
-          const c = p.charset[j];
+        for (let j = 0, l1 = p.layout.length; j < l1; j++) {
+          const c = p.layout[j];
           valid = validateObject(c);
           if (!valid) {
-            console.error('The "keyboardSettings.preset[index].charset[index]" parameter must be of type `IKeyboardCharset`.');
+            console.error('The "keyboardSettings.preset[index].layout[index]" parameter must be of type `IKeyboardLayout`.');
             return DEFAULT_KEYBOARD_SETTINGS;
           }
           valid = validateString(c.name);
           if (!valid) {
-            console.error('The "keyboardSettings.preset[index].charset[index].name" parameter must be of type `string`.');
+            console.error('The "keyboardSettings.preset[index].layout[index].name" parameter must be of type `string`.');
             return DEFAULT_KEYBOARD_SETTINGS;
           }
-          valid = validateString(c.type);
+          valid = validateArray(c.type);
           if (!valid) {
-            console.error('The "keyboardSettings.preset[index].charset[index].type" parameter must be of type `type`.');
+            console.error('The "keyboardSettings.preset[index].layout[index].type" parameter must be of type `Array<string>`.');
             return DEFAULT_KEYBOARD_SETTINGS;
+          }
+          for (const t of c.type) {
+            valid = validateString(t);
+            if (!valid) {
+              console.error('The "keyboardSettings.preset[index].layout[index].type[index]" parameter must be of type `string`.');
+              return DEFAULT_KEYBOARD_SETTINGS;
+            }
           }
           valid = validateArray(c.keys);
           if (!valid) {
-            console.error('The "keyboardSettings.preset[index].charset[index].keys" parameter must be of type `Array<Array<KeyboardKey>>`.');
+            console.error('The "keyboardSettings.preset[index].layout[index].keys" parameter must be of type `Array<Array<KeyboardKey>>`.');
             return DEFAULT_KEYBOARD_SETTINGS;
           }
           for (let k = 0, l2 = c.keys.length; k < l2; k++) {
             const keys = c.keys[k];
             valid = validateArray(keys);
             if (!valid) {
-              console.error('The "keyboardSettings.preset[index].charset[index].keys[index]" parameter must be of type `Array<KeyboardKey>`.');
+              console.error('The "keyboardSettings.preset[index].layout[index].keys[index]" parameter must be of type `Array<KeyboardKey>`.');
               return DEFAULT_KEYBOARD_SETTINGS;
             }
             for (let m = 0, l3 = keys.length; m < l3; m++) {
               const key = keys[m];
               valid = (validateInt((key as any)?.value, true) || validateString((key as any)?.value, true, true) || (key as any)?.value === null) || (validateObject(key as any) && validateString((key as any)?.class, true, true) && (validateInt((key as any)?.value, true) || validateString((key as any)?.value, true, true) || (key as any)?.value === null));
               if (!valid) {
-                console.error('The "keyboardSettings.preset[index].charset[index].keys[index][index]" parameter must be of type `KeyboardKey`.');
+                console.error('The "keyboardSettings.preset[index].layout[index].keys[index][index]" parameter must be of type `KeyboardKey`.');
                 return DEFAULT_KEYBOARD_SETTINGS;
               }
             }
@@ -368,6 +377,24 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
       $focusedElement = this._controlService.$focusedElement,
       $keyboardEnabled = toObservable(this.keyboardEnabled);
 
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      switchMap(() => {
+        return fromEvent(this._elementRef.nativeElement, FOCUS, { passive: false }).pipe(
+          takeUntilDestroyed(this._destroyRef),
+          tap(e => {
+            if (!!e) {
+              if (e.cancelable) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+              }
+            }
+          }),
+        );
+      }),
+    ).subscribe();
+
     combineLatest([$keyboardEnabled, this._keyboardService.$latgTextDir, $focusedElement]).pipe(
       takeUntilDestroyed(),
       filter(([keyboardEnabled]) => !!keyboardEnabled),
@@ -391,16 +418,16 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
             if (!!targetTagName && isInteractive(targetTagName)) {
               const inputElement = element as HTMLInputElement;
               if (!!inputElement) {
-                const keyValue = key as string;
-                let value = inputElement.value ?? '';
+                const keyValue = key as string, ntValue = inputElement.getAttribute(NT_VALUE);
+                let value = ntValue ?? inputElement.value ?? '';
                 if (keyValue.indexOf(KEY_SYS) === 0) {
                   if (keyValue === KeyboardKeys.SYS_NEXT_LOCALE) {
                     this._keyboardService.nextPreset();
                   }
-                } else if (keyValue.indexOf(KEY_CHARSET) === 0) {
-                  const preset = this._keyboardService.preset, index = (preset?.charset?.findIndex(v => `${KEY_CHARSET}${(v?.name ?? '')}` === keyValue) ?? 0), isCharset = index > -1;
-                  if (isCharset) {
-                    this._keyboardService.nextCharset({ index });
+                } else if (keyValue.indexOf(KEY_LAYOUT) === 0) {
+                  const preset = this._keyboardService.preset, index = (preset?.layout?.findIndex(v => (v?.name ? `${KEY_LAYOUT}${(v.name)}` : null) === keyValue && keyValue !== null) ?? -1), isLayout = index > -1;
+                  if (isLayout) {
+                    this._keyboardService.nextLayout({ index });
                   }
                 } else if (keyValue.indexOf(KEY_SYS) === -1) {
                   switch (keyValue) {
@@ -437,19 +464,11 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                       break;
                     }
                     case KeyboardKeys.ENTER: {
-                      this._controlService.focus({
-                        id: -1, element: null,
-                        type: ScrollerTypes.SCROLL_VIEW_SCROLLER,
-                        scroller: null,
-                      })
+                      this.blur();
                       break;
                     }
                     case KeyboardKeys.ESCAPE: {
-                      this._controlService.focus({
-                        id: -1, element: null,
-                        type: ScrollerTypes.SCROLL_VIEW_SCROLLER,
-                        scroller: null,
-                      })
+                      this.blur();
                       break;
                     }
                     default: {
@@ -459,7 +478,10 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                       break;
                     }
                   }
-                  inputElement.value = value;
+                  const type = inputElement.getAttribute(TEXT_FIELD_TYPE_PROP_NAME) ?? TextFieldTypes.TEXT,
+                    { normalizedValue, ntValue } = normalizeValueForTextField(type, value);
+                  inputElement.setAttribute(NT_VALUE, ntValue);
+                  inputElement.value = normalizedValue;
                 }
               }
             }
@@ -625,12 +647,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
       takeUntilDestroyed(),
       filter(v => !!v),
       tap(keyboardSettings => {
-        const scroller = this._scrollerComponent()!;
-        this._controlService.focus({
-          id: -1, element: this._elementRef.nativeElement,
-          type: scroller.type ?? ScrollerTypes.SCROLL_VIEW_SCROLLER,
-          scroller: null, animated: false,
-        });
+        this.blur(false);
       }),
     ).subscribe();
 
@@ -644,12 +661,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
           takeUntilDestroyed(this._destroyRef),
           skipUntil(timer(100).pipe(switchMap(() => of(true)))),
           tap(event => {
-            const scroller = this._scrollerComponent()!;
-            this._controlService.focus({
-              id: -1, element: this._elementRef.nativeElement,
-              type: scroller.type ?? ScrollerTypes.SCROLL_VIEW_SCROLLER,
-              scroller: null,
-            });
+            this.blur();
           }),
         );
       }),
@@ -686,6 +698,10 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
             target.blur();
           } else if (!keyboardEnabled && target.focus instanceof Function) {
             target.focus();
+          }
+          const type = target.getAttribute('type') ?? null;
+          if (!!type) {
+            this._keyboardService.nextLayout({ type });
           }
           const scroller = e.scroller;
           if (!!scroller) {
@@ -832,6 +848,17 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
           userAction: true,
         });
       }
+    }
+  }
+
+  private blur(animated: boolean = true) {
+    const scroller = this._scrollerComponent();
+    if (!!scroller) {
+      this._controlService.focus({
+        id: -1, element: this._elementRef.nativeElement,
+        type: scroller.type ?? ScrollerTypes.SCROLL_VIEW_SCROLLER,
+        scroller: null, animated,
+      });
     }
   }
 }

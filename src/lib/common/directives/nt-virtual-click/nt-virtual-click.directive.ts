@@ -5,11 +5,12 @@ import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from '../../injection';
 import { toggleClassName, validateBoolean, validateFloat } from '../../utils';
 import { ANCHOR, DEFAULT_CLICK_DISTANCE, DEFAULT_DURATION } from './const';
-import { CLICK, POINTER_DOWN, POINTER_LEAVE, POINTER_MOVE, POINTER_UP } from '../../const/event-names';
+import { CLICK, FOCUS, POINTER_DOWN, POINTER_LEAVE, POINTER_MOVE, POINTER_UP } from '../../const/event-names';
 import { INtBaseControlContainerService } from '../../interfaces';
 import { GRABBING, NOT_GRABBING } from '../../const/class-names';
 import { DomSanitizer } from '@angular/platform-browser';
 import { INtBaseScrollViewService } from '../../interfaces/nt-base-scroll-view-service';
+import { NT_SERVICE_ID } from '../../const/attribute-names';
 
 /**
  * VirtualClickDirective
@@ -134,7 +135,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
     private _$timerComplited = new BehaviorSubject<boolean>(false);
     protected $timerComplited = this._$timerComplited.asObservable();
 
-    private _elementRef = inject(ElementRef);
+    private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
     private _sanitizer = inject(DomSanitizer);
 
@@ -144,6 +145,31 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
         const root = this._controlService?.emitter ?? window,
             host = this._elementRef.nativeElement,
             targetTagName = host.tagName.toLowerCase();
+
+        host.setAttribute(NT_SERVICE_ID, this._service.id.toString());
+
+        this._controlService.$keyboardEnabled.pipe(
+            takeUntilDestroyed(),
+            switchMap(keyboardEnabled => {
+                return fromEvent(this._elementRef.nativeElement, FOCUS, { passive: false }).pipe(
+                    takeUntilDestroyed(this._destroyRef),
+                    tap(e => {
+                        if (!!e) {
+                            const target = e.target as HTMLElement;
+                            if (!!target) {
+                                if (keyboardEnabled && target.blur instanceof Function) {
+                                    target.blur();
+                                } else if (!keyboardEnabled && target.focus instanceof Function) {
+                                    target.focus();
+                                }
+
+                                this._controlService.focusEcho(target, this._service.id);
+                            }
+                        }
+                    }),
+                )
+            })
+        ).subscribe();
 
         const $allowedAnchorDraggable = toObservable(this.allowedAnchorDraggable);
         $allowedAnchorDraggable.pipe(

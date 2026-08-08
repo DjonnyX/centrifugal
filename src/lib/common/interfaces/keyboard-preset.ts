@@ -1,5 +1,5 @@
 import { KeyboardKey, TextDirection } from "../types";
-import { IKeyboardCharset } from "./keyboard-charset";
+import { IKeyboardLayout } from "./keyboard-layout";
 
 /**
  * IKeyboardPreset
@@ -10,5 +10,5 @@ import { IKeyboardCharset } from "./keyboard-charset";
 export interface IKeyboardPreset<K = KeyboardKey> {
         locale: string;
         dir: TextDirection;
-        charset: Array<IKeyboardCharset<K>>,
+        layout: Array<IKeyboardLayout<K>>,
 }
