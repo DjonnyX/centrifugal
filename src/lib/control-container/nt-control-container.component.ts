@@ -482,6 +482,10 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                     { normalizedValue, ntValue } = normalizeValueForTextField(type, value);
                   inputElement.setAttribute(NT_VALUE, ntValue);
                   inputElement.value = normalizedValue;
+                  const ngControl = this._controlService?.focusedElement?.ngControl ?? null;
+                  if (!!ngControl?.control) {
+                    ngControl.control.setValue(normalizedValue);
+                  }
                 }
               }
             }
@@ -855,7 +859,9 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
     const scroller = this._scrollerComponent();
     if (!!scroller) {
       this._controlService.focus({
-        id: -1, element: this._elementRef.nativeElement,
+        id: -1,
+        element: this._elementRef.nativeElement,
+        ngControl: null,
         type: scroller.type ?? ScrollerTypes.SCROLL_VIEW_SCROLLER,
         scroller: null, animated,
       });

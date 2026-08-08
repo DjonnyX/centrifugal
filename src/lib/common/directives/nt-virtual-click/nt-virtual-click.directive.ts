@@ -1,5 +1,6 @@
 import { DestroyRef, Directive, ElementRef, inject, Input, input, output, SecurityContext } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { NgControl } from '@angular/forms';
 import { BehaviorSubject, combineLatest, fromEvent, of, race, timer } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from '../../injection';
@@ -135,6 +136,8 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
     private _$timerComplited = new BehaviorSubject<boolean>(false);
     protected $timerComplited = this._$timerComplited.asObservable();
 
+    private _ngControl = inject(NgControl, { self: true, optional: true });
+
     private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
     private _sanitizer = inject(DomSanitizer);
@@ -163,7 +166,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                                     target.focus();
                                 }
 
-                                this._controlService.focusEcho(target, this._service.id);
+                                this._controlService.focusEcho(target, this._ngControl, this._service.id);
                             }
                         }
                     }),
@@ -310,7 +313,7 @@ export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C exten
                                 }
                             } else {
                                 if (this.focusElement() && !!this._controlService) {
-                                    this._controlService.focusEcho(target, this._service.id);
+                                    this._controlService.focusEcho(target, this._ngControl, this._service.id);
                                 }
                             }
                         }

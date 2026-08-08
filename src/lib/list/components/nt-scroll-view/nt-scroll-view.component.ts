@@ -306,7 +306,7 @@ export class NtScrollView extends NtBaseScrollView {
                     filter(v => !!v),
                     tap(e => {
                         if (e.serviceId === this._service.id && this._type === ScrollerTypes.LIST_SCROLLER) {
-                            this._controlContainerService.focus({ element: e.element, scroller: this, type: this._type, id: e.serviceId });
+                            this._controlContainerService.focus({ element: e.element, ngControl: e.ngControl, scroller: this, type: this._type, id: e.serviceId });
                         }
                     }),
                 ).subscribe();
@@ -773,7 +773,10 @@ export class NtScrollView extends NtBaseScrollView {
 
     private cancelOverscroll(options?: ICancelOverscrollOptions) {
         if (options?.released && !this._service.overscroll.x && !this._service.overscroll.y && !!this._controlContainerService) {
-            this._controlContainerService.overscrollCancel({ element: (options?.event?.target as HTMLElement) ?? this._elementRef.nativeElement, scroller: this, type: this._type!, id: this._service.id });
+            this._controlContainerService.overscrollCancel({
+                element: (options?.event?.target as HTMLElement) ?? this._elementRef.nativeElement,
+                ngControl: null, scroller: this, type: this._type!, id: this._service.id,
+            });
         }
         this._overscrollIteration = this._dragX = this._dragY = 0;
         this.emitOverscrollEvent(false, !this.overscrollEnabled());

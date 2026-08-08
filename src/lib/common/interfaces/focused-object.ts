@@ -1,3 +1,4 @@
+import { NgControl } from "@angular/forms";
 import { INtBaseScrollViewService } from "./nt-base-scroll-view-service";
 import { INtScroller } from "./nt-scroller";
 
@@ -11,6 +12,7 @@ export interface IFocusedObject {
     id: number;
     type: string;
     element: HTMLElement | null;
+    ngControl: NgControl | null;
     scroller: INtScroller<INtBaseScrollViewService> | null;
     animated?: boolean;
 }

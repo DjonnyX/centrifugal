@@ -1,4 +1,5 @@
 import { DestroyRef, inject, Injectable, OnDestroy } from '@angular/core';
+import { NgControl } from '@angular/forms';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { Id, IRect } from '../common';
 import { INtControlContainerService } from './interfaces';
@@ -38,7 +39,7 @@ export class NtControlContainerService extends NtBaseScrollViewService implement
     return this._$keyboardEnabled.getValue();
   }
 
-  private _$focusEcho = new Subject<{ element: HTMLElement, serviceId: number }>();
+  private _$focusEcho = new Subject<{ element: HTMLElement, ngControl: NgControl | null, serviceId: number }>();
   readonly $focusEcho = this._$focusEcho.asObservable();
 
   private _$focusedElement = new BehaviorSubject<IFocusedObject | null>(null);
@@ -75,8 +76,8 @@ export class NtControlContainerService extends NtBaseScrollViewService implement
     return null;
   }
 
-  focusEcho(element: HTMLElement, serviceId: number) {
-    this._$focusEcho.next({ element, serviceId });
+  focusEcho(element: HTMLElement, ngControl: NgControl | null, serviceId: number) {
+    this._$focusEcho.next({ element, ngControl, serviceId });
   }
 
   focus(focusedObject: IFocusedObject) {
