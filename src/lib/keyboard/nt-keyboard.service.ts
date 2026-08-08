@@ -84,6 +84,7 @@ export class NtKeyboardService {
     private _destroyRef = inject(DestroyRef);
 
     constructor() {
+        let prevCaps = this.caps;
         const $settings = this.$settings
         $settings.pipe(
             takeUntilDestroyed(),
@@ -92,11 +93,16 @@ export class NtKeyboardService {
             tap(settings => {
                 this._$position.next(settings.common.position);
                 this._$isVertical.next(KEYBOARD_VERTICAL_POSITIONS.indexOf(settings.common.position) > -1);
-                const currentPresetIndex = this.presetIndex, presetLength = settings?.preset?.length ?? 0,
-                    actualPresetIndex = currentPresetIndex > -1 && presetLength > 0 && presetLength - 1 >= currentPresetIndex ? currentPresetIndex : presetLength > 0 ? 0 : -1;
-                if (currentPresetIndex !== actualPresetIndex) {
-                    this._$presetIndex.next(actualPresetIndex);
+                if (prevCaps !== this.caps) {
+                    const currentPresetIndex = this.presetIndex, presetLength = settings?.preset?.length ?? 0,
+                        actualPresetIndex = currentPresetIndex > -1 && presetLength > 0 && presetLength - 1 >= currentPresetIndex ? currentPresetIndex : presetLength > 0 ? 0 : -1;
+                    if (currentPresetIndex !== actualPresetIndex) {
+                        this._$presetIndex.next(actualPresetIndex);
+                    }
+                } else {
+                    this._$presetIndex.next(0);
                 }
+                prevCaps = this.caps;
             }),
         ).subscribe();
 

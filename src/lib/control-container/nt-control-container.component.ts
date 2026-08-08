@@ -647,7 +647,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
       takeUntilDestroyed(),
       filter(v => !!v),
       tap(keyboardSettings => {
-        this.blur();
+        this.blur(false);
       }),
     ).subscribe();
 
@@ -851,13 +851,13 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
     }
   }
 
-  private blur() {
+  private blur(animated: boolean = true) {
     const scroller = this._scrollerComponent();
     if (!!scroller) {
       this._controlService.focus({
         id: -1, element: this._elementRef.nativeElement,
         type: scroller.type ?? ScrollerTypes.SCROLL_VIEW_SCROLLER,
-        scroller: null, animated: false,
+        scroller: null, animated,
       });
     }
   }
