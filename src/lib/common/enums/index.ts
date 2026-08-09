@@ -1,12 +1,12 @@
 import { TextDirections } from './text-directions';
-import { OverscrollIndicatorTypes } from './overscroll-indicator-types';
+import { OverscrollAreaTypes } from './overscroll-area-types';
 import { KeyboardPositions } from './keyboard-positions';
 import { KeyboardKeys } from './keyboard-keys';
 import { KeyboardKeyStates } from './keyboard-key-states';
 
 export {
     TextDirections,
-    OverscrollIndicatorTypes,
+    OverscrollAreaTypes,
     KeyboardPositions,
     KeyboardKeys,
     KeyboardKeyStates,

@@ -1,5 +1,5 @@
-import { INtOverscrollIndicatorContext } from './nt-overscroll-indicator-context'
+import { INtOverscrollAreaContext } from './nt-overscroll-area-context'
 
 export type {
-    INtOverscrollIndicatorContext,
+    INtOverscrollAreaContext,
 }

@@ -35,25 +35,25 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     readonly onOverscroll = output<IOverscrollEvent>();
 
-    readonly onLeftOverscrollIndiatorTrigger = output<boolean>();
+    readonly onLeftOverscrollAreaTrigger = output<boolean>();
 
-    readonly onTopOverscrollIndiatorTrigger = output<boolean>();
+    readonly onTopOverscrollAreaTrigger = output<boolean>();
 
-    readonly onRightOverscrollIndiatorTrigger = output<boolean>();
+    readonly onRightOverscrollAreaTrigger = output<boolean>();
 
-    readonly onBottomOverscrollIndiatorTrigger = output<boolean>();
+    readonly onBottomOverscrollAreaTrigger = output<boolean>();
 
-    readonly overscrollIndicatorShowAutomatically = input<boolean>(true);
+    readonly overscrollAreaShowAutomatically = input<boolean>(true);
 
-    readonly overscrollIndicatorUseOffsets = input<boolean>(false);
+    readonly overscrollAreaUseOffsets = input<boolean>(false);
 
-    readonly overscrollIndicatorStartEnabled = input<boolean>(false);
+    readonly overscrollAreaStartEnabled = input<boolean>(false);
 
-    readonly overscrollIndicatorEndEnabled = input<boolean>(false);
+    readonly overscrollAreaEndEnabled = input<boolean>(false);
 
-    readonly overscrollIndicatorStartRenderer = input<TemplateRef<any> | null>(null);
+    readonly overscrollAreaStartRenderer = input<TemplateRef<any> | null>(null);
 
-    readonly overscrollIndicatorEndRenderer = input<TemplateRef<any> | null>(null);
+    readonly overscrollAreaEndRenderer = input<TemplateRef<any> | null>(null);
 
     readonly direction = input<ScrollerDirections>(ScrollerDirection.VERTICAL);
 
@@ -77,13 +77,13 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     get offsetBottom() { return this._bottomOffset(); }
 
-    protected _actualOverscrollIndicatorLeftEnabled = signal<boolean>(false);
+    protected _actualOverscrollAreaLeftEnabled = signal<boolean>(false);
 
-    protected _actualOverscrollIndicatorTopEnabled = signal<boolean>(false);
+    protected _actualOverscrollAreaTopEnabled = signal<boolean>(false);
 
-    protected _actualOverscrollIndicatorRightEnabled = signal<boolean>(false);
+    protected _actualOverscrollAreaRightEnabled = signal<boolean>(false);
 
-    protected _actualOverscrollIndicatorBottomEnabled = signal<boolean>(false);
+    protected _actualOverscrollAreaBottomEnabled = signal<boolean>(false);
 
     readonly alignmentStartOffset = input<number>(0);
 
@@ -253,28 +253,28 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
         const $viewportBounds = toObservable(this.viewportBounds),
             $contentBounds = toObservable(this.contentBounds),
             $isVertical = toObservable(this.isVertical),
-            $overscrollIndicatorShowAutomatically = toObservable(this.overscrollIndicatorShowAutomatically),
-            $overscrollIndicatorStartEnabled = toObservable(this.overscrollIndicatorStartEnabled),
-            $overscrollIndicatorEndEnabled = toObservable(this.overscrollIndicatorEndEnabled),
-            $overscrollIndicatorUseOffsets = toObservable(this.overscrollIndicatorUseOffsets),
+            $overscrollAreaShowAutomatically = toObservable(this.overscrollAreaShowAutomatically),
+            $overscrollAreaStartEnabled = toObservable(this.overscrollAreaStartEnabled),
+            $overscrollAreaEndEnabled = toObservable(this.overscrollAreaEndEnabled),
+            $overscrollAreaUseOffsets = toObservable(this.overscrollAreaUseOffsets),
             $startOffset = toObservable(this.startOffset),
             $endOffset = toObservable(this.endOffset);
 
-        combineLatest([$viewportBounds, $contentBounds, $isVertical, $overscrollIndicatorShowAutomatically, $overscrollIndicatorStartEnabled,
-            $overscrollIndicatorEndEnabled]).pipe(
+        combineLatest([$viewportBounds, $contentBounds, $isVertical, $overscrollAreaShowAutomatically, $overscrollAreaStartEnabled,
+            $overscrollAreaEndEnabled]).pipe(
                 takeUntilDestroyed(),
                 debounceTime(0),
                 tap(([, , isVertical, showAutomatically, startEnabled, endEnabled]) => {
                     const start = (startEnabled || showAutomatically) ? this.scrollable : false,
                         end = (endEnabled || showAutomatically) ? this.scrollable : false;
-                    this._actualOverscrollIndicatorLeftEnabled.set(isVertical ? false : start);
-                    this._actualOverscrollIndicatorTopEnabled.set(isVertical ? start : false);
-                    this._actualOverscrollIndicatorRightEnabled.set(isVertical ? false : end);
-                    this._actualOverscrollIndicatorBottomEnabled.set(isVertical ? end : false);
+                    this._actualOverscrollAreaLeftEnabled.set(isVertical ? false : start);
+                    this._actualOverscrollAreaTopEnabled.set(isVertical ? start : false);
+                    this._actualOverscrollAreaRightEnabled.set(isVertical ? false : end);
+                    this._actualOverscrollAreaBottomEnabled.set(isVertical ? end : false);
                 }),
             ).subscribe();
 
-        combineLatest([$isVertical, $startOffset, $overscrollIndicatorUseOffsets, $overscrollIndicatorShowAutomatically, $overscrollIndicatorStartEnabled]).pipe(
+        combineLatest([$isVertical, $startOffset, $overscrollAreaUseOffsets, $overscrollAreaShowAutomatically, $overscrollAreaStartEnabled]).pipe(
             takeUntilDestroyed(),
             debounceTime(0),
             tap(([isVertical, startOffset, useOffsets, showAutomatically, startEnabled]) => {
@@ -286,8 +286,8 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
             }),
         ).subscribe();
 
-        combineLatest([$isVertical, $endOffset, $overscrollIndicatorUseOffsets, $overscrollIndicatorShowAutomatically,
-            $overscrollIndicatorEndEnabled]).pipe(
+        combineLatest([$isVertical, $endOffset, $overscrollAreaUseOffsets, $overscrollAreaShowAutomatically,
+            $overscrollAreaEndEnabled]).pipe(
                 takeUntilDestroyed(),
                 debounceTime(0),
                 tap(([isVertical, endOffset, useOffsets, showAutomatically, endEnabled]) => {
