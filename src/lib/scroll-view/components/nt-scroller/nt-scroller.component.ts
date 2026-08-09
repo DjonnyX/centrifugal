@@ -3,8 +3,8 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, debounceTime, filter, from, Subject, tap } from 'rxjs';
 import { ScrollBox } from './utils';
 import {
-  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR,
-  DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, SCROLLER_SCROLL,
+  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
+  DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, SCROLLER_SCROLL,
 } from '../../const';
 import { NtScrollView } from '../nt-scroll-view';
 import { ScrollerDirection } from '../nt-scroll-view/enums';
