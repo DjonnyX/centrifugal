@@ -1,4 +1,4 @@
-import { DEFAULT_INPUT_ELEMETNS } from "../directives/nt-virtual-click/const";
+import { DEFAULT_INPUT_ELEMETNS } from "../directives/nt-control/const";
 
 /**
  * isInteractive

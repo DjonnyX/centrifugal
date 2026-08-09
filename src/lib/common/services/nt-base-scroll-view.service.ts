@@ -5,7 +5,7 @@ import { combineLatest, distinctUntilChanged, tap } from 'rxjs';
 import { IScrollable } from '../interfaces/scrollable';
 import { TextDirection } from '../types';
 import { TextDirections } from '../enums';
-import { DEFAULT_CLICK_DISTANCE } from '../directives/nt-virtual-click/const';
+import { DEFAULT_CLICK_DISTANCE } from '../directives/nt-control/const';
 import { IOverscroll } from '../interfaces/overscroll';
 import { INtBaseScrollViewService } from '../interfaces/nt-base-scroll-view-service';
 import { INtScroller } from '../interfaces/nt-scroller';
