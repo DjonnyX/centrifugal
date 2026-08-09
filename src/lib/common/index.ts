@@ -1,15 +1,15 @@
 import {
     NtLocaleSensitiveModule,
     NtLocaleSensitiveDirective,
-    NtVirtualClickModule,
-    NtVirtualClickDirective,
+    NtControlModule,
+    NtControlDirective,
 } from './directives';
 
 export {
     NtLocaleSensitiveModule,
     NtLocaleSensitiveDirective,
-    NtVirtualClickModule,
-    NtVirtualClickDirective,
+    NtControlModule,
+    NtControlDirective,
 }
 
 export * from './injection';

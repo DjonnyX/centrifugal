@@ -16,16 +16,16 @@ import { NT_VALUE } from '../../../control-container/const';
 import { PATTERN_DOT } from '../../const/pattern';
 
 /**
- * VirtualClickDirective
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/directives/nt-item-click/nt-item-click.directive.ts
+ * NtControlDirective
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/directives/nt-control/nt-control.directive.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
 @Directive({
-    selector: '[virtualClick]',
+    selector: '[ntControl]',
     standalone: false,
 })
-export class NtVirtualClickDirective<S extends INtBaseScrollViewService, C extends INtBaseControlContainerService> implements OnInit {
+export class NtControlDirective<S extends INtBaseScrollViewService, C extends INtBaseControlContainerService> implements OnInit {
     protected _service = inject<S>(SCROLL_VIEW_SERVICE);
 
     protected _controlService = inject<C>(CONTROL_CONTAINER_SERVICE);

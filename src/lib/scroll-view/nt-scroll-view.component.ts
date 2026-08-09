@@ -36,7 +36,7 @@ import {
   isPercentageValue, parseArithmeticExpression, toggleClassName, validateBoolean, validateFloat, validateInt, validateObject, validateString,
 } from '../common/utils';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from '../common/const/base-prop-names';
-import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-virtual-click/const';
+import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-control/const';
 import { NtBaseScrollComponent } from '../common/components/nt-base-scroll-component';
 import { IScrollToParams } from '../common/interfaces/scroll-to-params';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from '../common/const/behavior';

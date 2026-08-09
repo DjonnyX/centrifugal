@@ -74,7 +74,7 @@ import { INtListService } from './interfaces';
 import { FOCUS, KEY_DOWN, MOUSE_DOWN, TOUCH_START } from '../common/const/event-names';
 import { KEY_TAB } from '../common/const/key-names';
 import { HEIGHT_PROP_NAME, LEFT_PROP_NAME, PX, TOP_PROP_NAME, WIDTH_PROP_NAME } from '../common/const/base-prop-names';
-import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-virtual-click/const';
+import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-control/const';
 import { NtBaseScrollComponent } from '../common/components/nt-base-scroll-component';
 import { INtScrollViewService } from '../scroll-view';
 import { IListScrollToParams } from '../common/interfaces/list-scroll-to-params';

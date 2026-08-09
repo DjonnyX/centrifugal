@@ -1,12 +1,12 @@
 import { NgModule, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { NtVirtualClickDirective } from './nt-virtual-click.directive';
+import { NtControlDirective } from './nt-control.directive';
 
 @NgModule({
-  declarations: [NtVirtualClickDirective],
-  exports: [NtVirtualClickDirective],
+  declarations: [NtControlDirective],
+  exports: [NtControlDirective],
   imports: [CommonModule, FormsModule],
   schemas: [NO_ERRORS_SCHEMA],
 })
-export class NtVirtualClickModule { }
+export class NtControlModule { }

@@ -1,6 +1,6 @@
 import { Component, computed, ElementRef, inject, input, Signal, signal, TemplateRef, viewChild, ViewEncapsulation } from "@angular/core";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { combineLatest, debounceTime, filter, fromEvent, map, of, skipUntil, Subject, switchMap, tap, timer } from "rxjs";
+import { combineLatest, debounceTime, delay, filter, fromEvent, map, of, skipUntil, Subject, switchMap, tap, timer } from "rxjs";
 import { INtScrollViewService, NtScrollViewComponent, NtScrollViewService } from "../scroll-view";
 import {
   CONTROL_CONTAINER_SERVICE, ElementNames, IKeyboardSettings, INtBaseControlContainerService, KeyboardKeys, KeyboardPosition, KeyboardPositions,
@@ -14,7 +14,7 @@ import { ScrollerTypes } from "../common/enums/scroller-types";
 import { IFocusedObject } from "../common/interfaces/focused-object";
 import { validateArray, validateBoolean, validateInt, validateObject, validateString } from "../common/utils";
 import { DEFAULT_EXCLUDE_ELEMETN_LIST } from "../drawer-container/const";
-import { DEFAULT_KEYBOARD_ENABLED, NT_VALUE, TEXT_FIELD_TYPE_PROP_NAME } from "./const";
+import { DEFAULT_KEYBOARD_ENABLED, NT_VALUE } from "./const";
 import { DEFAULT_KEYBOARD_SETTINGS, KEY_LAYOUT, KEY_SYS } from '../common/const/keyboard';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
 import { IScrollToParams } from "../common/interfaces/scroll-to-params";
@@ -22,6 +22,7 @@ import { PX } from "../common/const/base-prop-names";
 import { NtKeyboardService } from "../keyboard/nt-keyboard.service";
 import { normalizeValueForTextField } from "./utils/normalize-value-for-text-field";
 import { TextFieldTypes } from "./enums";
+import { ATTR_PATTERN, ATTR_TYPE } from "../common/const/attribute-names";
 
 /**
  * NtControlContainerComponent
@@ -418,14 +419,19 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
             if (!!targetTagName && isInteractive(targetTagName)) {
               const inputElement = element as HTMLInputElement;
               if (!!inputElement) {
-                const keyValue = key as string, ntValue = inputElement.getAttribute(NT_VALUE);
-                let value = ntValue ?? inputElement.value ?? '';
+                const keyValue = key as string, ngControl = this._controlService?.focusedElement?.ngControl ?? null,
+                  ngControlValue = ngControl?.control?.value ?? null,
+                  isNgControl = ngControlValue !== null,
+                  ntValue = inputElement.getAttribute(NT_VALUE);
+                let value = String(ngControlValue ?? ntValue ?? inputElement.value ?? '');
                 if (keyValue.indexOf(KEY_SYS) === 0) {
                   if (keyValue === KeyboardKeys.SYS_NEXT_LOCALE) {
                     this._keyboardService.nextPreset();
                   }
                 } else if (keyValue.indexOf(KEY_LAYOUT) === 0) {
-                  const preset = this._keyboardService.preset, index = (preset?.layout?.findIndex(v => (v?.name ? `${KEY_LAYOUT}${(v.name)}` : null) === keyValue && keyValue !== null) ?? -1), isLayout = index > -1;
+                  const preset = this._keyboardService.preset,
+                    index = (preset?.layout?.findIndex(v => (v?.name ? `${KEY_LAYOUT}${(v.name)}` : null) === keyValue && keyValue !== null) ?? -1),
+                    isLayout = index > -1;
                   if (isLayout) {
                     this._keyboardService.nextLayout({ index });
                   }
@@ -478,13 +484,22 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                       break;
                     }
                   }
-                  const type = inputElement.getAttribute(TEXT_FIELD_TYPE_PROP_NAME) ?? TextFieldTypes.TEXT,
-                    { normalizedValue, ntValue } = normalizeValueForTextField(type, value);
-                  inputElement.setAttribute(NT_VALUE, ntValue);
+                  (this._controlService as any).input = keyValue;
+                  const type = inputElement.getAttribute(ATTR_TYPE) ?? TextFieldTypes.TEXT,
+                    pattern = inputElement.getAttribute(ATTR_PATTERN) ?? null,
+                    { normalizedValue, normalizedNtValue } = normalizeValueForTextField(type, value, ntValue, keyValue, pattern, isNgControl);
+                  inputElement.setAttribute(NT_VALUE, normalizedNtValue ?? '');
                   inputElement.value = normalizedValue;
+                  if (!!ngControl?.control) {
+                    ngControl.control.setValue(normalizedValue);
+                  }
                 }
               }
             }
+          }),
+          delay(0),
+          tap(() => {
+            (this._controlService as any).input = null;
           }),
         );
       }),
@@ -699,7 +714,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
           } else if (!keyboardEnabled && target.focus instanceof Function) {
             target.focus();
           }
-          const type = target.getAttribute('type') ?? null;
+          const type = target.getAttribute(ATTR_TYPE) ?? null;
           if (!!type) {
             this._keyboardService.nextLayout({ type });
           }
@@ -855,7 +870,9 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
     const scroller = this._scrollerComponent();
     if (!!scroller) {
       this._controlService.focus({
-        id: -1, element: this._elementRef.nativeElement,
+        id: -1,
+        element: this._elementRef.nativeElement,
+        ngControl: null,
         type: scroller.type ?? ScrollerTypes.SCROLL_VIEW_SCROLLER,
         scroller: null, animated,
       });

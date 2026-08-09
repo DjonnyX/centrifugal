@@ -1,11 +1,11 @@
 import { NtLocaleSensitiveModule } from './nt-locale-sensitive/nt-locale-sensitive.module';
 import { NtLocaleSensitiveDirective } from './nt-locale-sensitive/nt-locale-sensitive.directive';
-import { NtVirtualClickModule } from './nt-virtual-click/nt-virtual-click.module';
-import { NtVirtualClickDirective } from './nt-virtual-click/nt-virtual-click.directive';
+import { NtControlModule } from './nt-control/nt-control.module';
+import { NtControlDirective } from './nt-control/nt-control.directive';
 
 export {
     NtLocaleSensitiveModule,
     NtLocaleSensitiveDirective,
-    NtVirtualClickModule,
-    NtVirtualClickDirective,
+    NtControlModule,
+    NtControlDirective,
 }

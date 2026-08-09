@@ -4,7 +4,7 @@ import { KeyboardKeys, KeyboardKeyValue } from "../../common";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { filter, tap } from "rxjs";
 import { toggleClassName } from "../../common/utils";
-import { NOT_PRESSED, PRESSED } from "../../common/directives/nt-virtual-click/const/classes";
+import { NOT_PRESSED, PRESSED } from "../../common/directives/nt-control/const/classes";
 
 /**
  * NtKeyStateDirective

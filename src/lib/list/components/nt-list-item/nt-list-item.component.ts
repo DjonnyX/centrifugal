@@ -15,7 +15,7 @@ import {
 } from './const';
 import { Id } from '../../../common';
 import { VISIBILITY_HIDDEN } from '../../../common/const/base-prop-names';
-import { DEFAULT_CLICK_DISTANCE } from '../../../common/directives/nt-virtual-click/const';
+import { DEFAULT_CLICK_DISTANCE } from '../../../common/directives/nt-control/const';
 
 /**
  * Virtual list component.
