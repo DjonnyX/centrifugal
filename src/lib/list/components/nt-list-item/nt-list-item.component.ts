@@ -266,6 +266,10 @@ export class NtListItemComponent extends NtBaseVirtualListItemComponent implemen
 
   onClickHandler() {
     this._service.virtualClick(this._data);
+    this._controlService?.focus({
+      id: this._service.id, element: this._item()?.nativeElement ?? null, type: this._service.scrollView.type!,
+      ngControl: null, scroller: this._service.scrollView,
+    });
   }
 
   onClickPressHandler() {

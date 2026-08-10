@@ -17,7 +17,7 @@ import {
 import { NtListPublicService } from '../../../nt-list-public.service';
 import { createDisplayId, matrix3d } from '../utils';
 import { INtBaseVirtualListItemComponent } from '../../../interfaces/base-virtual-list-item-component';
-import { Color, ISize, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../../../../common';
+import { Color, CONTROL_CONTAINER_SERVICE, ISize, SCROLL_VIEW_SERVICE, TextDirection, TextDirections } from '../../../../common';
 import { INtListService } from '../../../interfaces/nt-list-service';
 import {
   DEFAULT_ZINDEX, DISPLAY_BLOCK, DISPLAY_NONE, HIDDEN_ZINDEX, PX, SIZE_100_PERSENT, SIZE_AUTO, TRANSLATE_3D, VISIBILITY_HIDDEN, VISIBILITY_VISIBLE,
@@ -44,6 +44,8 @@ export class NtBaseVirtualListItemComponent implements INtBaseVirtualListItemCom
   private _apiService = inject(NtListPublicService);
 
   protected _service = inject<INtListService>(SCROLL_VIEW_SERVICE);
+
+  protected _controlService = inject(CONTROL_CONTAINER_SERVICE);
 
   protected _id!: number;
   get id() {

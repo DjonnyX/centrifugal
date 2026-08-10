@@ -2,7 +2,7 @@ import { DestroyRef, Directive, ElementRef, inject, Input, input, OnInit, output
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { NgControl } from '@angular/forms';
 import { BehaviorSubject, combineLatest, fromEvent, of, race, timer } from 'rxjs';
-import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from '../../injection';
 import { toggleClassName, validateBoolean, validateFloat } from '../../utils';
 import { ANCHOR, DEFAULT_CLICK_DISTANCE, DEFAULT_DURATION, INPUT } from './const';
@@ -14,6 +14,7 @@ import { INtBaseScrollViewService } from '../../interfaces/nt-base-scroll-view-s
 import { ATTR_TYPE, NT_SERVICE_ID } from '../../const/attribute-names';
 import { NT_VALUE } from '../../../control-container/const';
 import { PATTERN_DOT } from '../../const/pattern';
+import { isInteractive } from '../../utils/is-interactive';
 
 /**
  * NtControlDirective
@@ -156,23 +157,22 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
         this._controlService.$keyboardEnabled.pipe(
             takeUntilDestroyed(),
             switchMap(keyboardEnabled => {
-                return fromEvent(this._elementRef.nativeElement, FOCUS, { passive: false }).pipe(
+                return fromEvent(this._elementRef.nativeElement, FOCUS).pipe(
                     takeUntilDestroyed(this._destroyRef),
-                    tap(e => {
-                        if (!!e) {
-                            const target = e.target as HTMLElement;
-                            if (!!target) {
-                                if (keyboardEnabled && target.blur instanceof Function) {
-                                    target.blur();
-                                } else if (!keyboardEnabled && target.focus instanceof Function) {
-                                    target.focus();
-                                }
-
-                                this._controlService.focusEcho(target, this._ngControl, this._service.id);
+                    map(e => e.target as HTMLElement),
+                    filter(target => !!target),
+                    distinctUntilChanged(),
+                    tap(target => {
+                        this._controlService.focusEcho(target, this._ngControl, this._service.id);
+                        if (keyboardEnabled) {
+                            if (isInteractive(targetTagName) && target.blur instanceof Function) {
+                                target.blur();
                             }
+                        } else if (!keyboardEnabled && target.focus instanceof Function) {
+                            target.focus({ preventScroll: true });
                         }
                     }),
-                )
+                );
             })
         ).subscribe();
 

@@ -398,7 +398,19 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
     ).subscribe();
 
     let prevFocusedElement: HTMLElement | null = null;
-    combineLatest([$keyboardEnabled, this._keyboardService.$latgTextDir, $focusedElement]).pipe(
+    combineLatest([$keyboardEnabled, this._keyboardService.$latgTextDir, $focusedElement.pipe(
+      takeUntilDestroyed(),
+      tap(element => {
+        const el = element?.element ?? null;
+        if (el !== prevFocusedElement) {
+          if (!!el && !isInteractive(el.tagName)) {
+            if (typeof el.focus === 'function') {
+              el.focus({ preventScroll: true });
+            }
+          }
+        }
+      }),
+    )]).pipe(
       takeUntilDestroyed(),
       filter(([keyboardEnabled]) => !!keyboardEnabled),
       tap(([, dir, element]) => {
@@ -893,14 +905,16 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
     const scroller = this._scrollerComponent();
     if (!!scroller) {
       const element = this._controlService.focusedElement?.element ?? null;
-      if (!!element && DEFAULT_INPUT_ELEMETNS.indexOf(element.tagName?.toLowerCase()) > -1) {
-        const ntDir = element.getAttribute(NT_DIR);
-        if (ntDir) {
-          element.setAttribute(ATTR_DIR, ntDir);
-        } else {
-          element.removeAttribute(ATTR_DIR);
+      if (!!element) {
+        if (DEFAULT_INPUT_ELEMETNS.indexOf(element.tagName?.toLowerCase()) > -1) {
+          const ntDir = element.getAttribute(NT_DIR);
+          if (ntDir) {
+            element.setAttribute(ATTR_DIR, ntDir);
+          } else {
+            element.removeAttribute(ATTR_DIR);
+          }
+          element.removeAttribute(NT_DIR);
         }
-        element.removeAttribute(NT_DIR);
       }
       this._controlService.focus({
         id: -1,
