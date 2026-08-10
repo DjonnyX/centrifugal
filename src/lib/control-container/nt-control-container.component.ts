@@ -22,7 +22,8 @@ import { PX } from "../common/const/base-prop-names";
 import { NtKeyboardService } from "../keyboard/nt-keyboard.service";
 import { normalizeValueForTextField } from "./utils/normalize-value-for-text-field";
 import { TextFieldTypes } from "./enums";
-import { ATTR_PATTERN, ATTR_TYPE } from "../common/const/attribute-names";
+import { ATTR_DIR, ATTR_PATTERN, ATTR_TYPE, NT_DIR } from "../common/const/attribute-names";
+import { DEFAULT_INPUT_ELEMETNS } from "../common/directives/nt-control/const";
 
 /**
  * NtControlContainerComponent
@@ -396,14 +397,36 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
       }),
     ).subscribe();
 
+    let prevFocusedElement: HTMLElement | null = null;
     combineLatest([$keyboardEnabled, this._keyboardService.$latgTextDir, $focusedElement]).pipe(
       takeUntilDestroyed(),
       filter(([keyboardEnabled]) => !!keyboardEnabled),
       tap(([, dir, element]) => {
-        const el = element?.element;
-        if (!!el) {
-          el.dir = dir;
+        const el = element?.element ?? null;
+        if (!!prevFocusedElement && el !== prevFocusedElement) {
+          const ntDir = prevFocusedElement.getAttribute(NT_DIR);
+          if (ntDir) {
+            prevFocusedElement.setAttribute(ATTR_DIR, ntDir);
+          } else {
+            prevFocusedElement.removeAttribute(NT_DIR);
+            prevFocusedElement.removeAttribute(ATTR_DIR);
+          }
         }
+        if (!!el) {
+          if (!!el && DEFAULT_INPUT_ELEMETNS.indexOf(el.tagName?.toLowerCase()) > -1) {
+            const nodeDir = el.getAttribute(ATTR_DIR),
+              ntDir = el.getAttribute(NT_DIR);
+            if (nodeDir) {
+              if (!ntDir) {
+                el.setAttribute(NT_DIR, nodeDir);
+              }
+            } else {
+              el.removeAttribute(NT_DIR);
+            }
+            el.dir = dir;
+          }
+        }
+        prevFocusedElement = el;
       }),
     ).subscribe();
 
@@ -869,9 +892,19 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
   private blur(animated: boolean = true) {
     const scroller = this._scrollerComponent();
     if (!!scroller) {
+      const element = this._controlService.focusedElement?.element ?? null;
+      if (!!element && DEFAULT_INPUT_ELEMETNS.indexOf(element.tagName?.toLowerCase()) > -1) {
+        const ntDir = element.getAttribute(NT_DIR);
+        if (ntDir) {
+          element.setAttribute(ATTR_DIR, ntDir);
+        } else {
+          element.removeAttribute(ATTR_DIR);
+        }
+        element.removeAttribute(NT_DIR);
+      }
       this._controlService.focus({
         id: -1,
-        element: this._elementRef.nativeElement,
+        element: null,
         ngControl: null,
         type: scroller.type ?? ScrollerTypes.SCROLL_VIEW_SCROLLER,
         scroller: null, animated,
