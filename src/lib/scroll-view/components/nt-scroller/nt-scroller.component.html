@@ -3,7 +3,7 @@
 @let textDir = langTextDir();
 <div localeSensitive [langTextDir]="textDir" [listDir]="direction()" class="ntvs__container"
     [ngClass]="containerClasses()">
-    <svg part="viewport" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
+    <svg part="nt-scroller-viewport" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
         xmlns:xlink="http://www.w3.org/1999/xlink">
         <filter [id]="_filterId">
             <feGaussianBlur #filter></feGaussianBlur>
@@ -11,9 +11,9 @@
         <foreignObject xmlns="http://www.w3.org/1999/xhtml" width="100%" height="100%" class="ntvs__viewport">
             <div class="ntvs__scroller-wrapper" [class.filtered]="filtered"
                 [style.filter]="filtered ? _filter : 'unset'">
-                <div cdkScrollable #scrollViewport part="scroller" class="ntvs__scroller">
+                <div cdkScrollable #scrollViewport part="nt-scroller" class="ntvs__scroller">
                     <div #scrollContent [attr.aria-orientation]="direction()"
-                        [attr.aria-activedescendant]="focusedElement()" tabindex="0" part="content"
+                        [attr.aria-activedescendant]="focusedElement()" tabindex="0" part="nt-scroller-content"
                         class="ntvs__content" [ngClass]="actualClasses()" [ngStyle]="listStyles()">
                         <ng-content></ng-content>
                     </div>
