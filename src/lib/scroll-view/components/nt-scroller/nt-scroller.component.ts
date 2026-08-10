@@ -216,17 +216,6 @@ export class NtScrollerComponent extends NtScrollView {
       $maxMotionBlur = toObservable(this.maxMotionBlur),
       $motionBlurEnabled = toObservable(this.motionBlurEnabled);
 
-    this.$resizeViewport.pipe(
-      takeUntilDestroyed(),
-      tap(() => {
-        this.resizeViewport();
-      }),
-      debounceTime(50),
-      tap(() => {
-        this.resizeViewport();
-      }),
-    ).subscribe();
-
     const $scrollbarScroll = this.$scrollbarScroll;
     $scrollbarScroll.pipe(
       takeUntilDestroyed(),

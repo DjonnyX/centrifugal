@@ -278,20 +278,6 @@ export class NtScrollView extends NtBaseScrollView {
             $viewportBounds = toObservable(this.viewportBounds),
             $contentBounds = toObservable(this.contentBounds);
 
-        $viewportBounds.pipe(
-            takeUntilDestroyed(),
-            debounceTime(0),
-            tap(() => {
-                this._isMoving = false;
-                this.grabbing.set(false);
-                if (!mouseCanceled || !touchCanceled) {
-                    this.stopMoving();
-                }
-                mouseCanceled = touchCanceled = true;
-                this._$scrollEnd.next(false);
-            }),
-        ).subscribe();
-
         combineLatest([$direction, $viewportBounds, $contentBounds]).pipe(
             takeUntilDestroyed(),
             tap(([direction]) => {

@@ -188,34 +188,6 @@ export class NtScrollerComponent extends NtScrollView {
     this._filterId = `${this._service.id}-${MOTION_BLUR}`;
     this._filter = `url(#${this._filterId})`;
 
-    this.$resizeViewport.pipe(
-      takeUntilDestroyed(),
-      debounceTime(0),
-      tap(() => {
-        this.snapIfNeed();
-      }),
-      switchMap(() => {
-        return this.$scroll.pipe(
-          takeUntilDestroyed(this._destroyRef),
-          take(1),
-          tap(() => {
-            this.snapIfNeed();
-          }),
-        );
-      }),
-    ).subscribe();
-
-    this.$resizeViewport.pipe(
-      takeUntilDestroyed(),
-      tap(() => {
-        this.resizeViewport();
-      }),
-      debounceTime(50),
-      tap(() => {
-        this.resizeViewport();
-      }),
-    ).subscribe();
-
     const $filter = toObservable(this.filter),
       $motionBlur = toObservable(this.motionBlur),
       $maxMotionBlur = toObservable(this.maxMotionBlur),

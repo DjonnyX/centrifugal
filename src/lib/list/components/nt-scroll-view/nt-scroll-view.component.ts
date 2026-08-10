@@ -246,23 +246,6 @@ export class NtScrollView extends NtBaseScrollView {
         const $isVertical = toObservable(this.isVertical),
             $viewportBounds = toObservable(this.viewportBounds),
             $contentBounds = toObservable(this.contentBounds);
-        $viewportBounds.pipe(
-            takeUntilDestroyed(),
-            debounceTime(0),
-            tap(() => {
-                this._isMoving = false;
-                this.grabbing.set(false);
-                if (!mouseCanceled || !touchCanceled) {
-                    this.stopMoving();
-                }
-                mouseCanceled = touchCanceled = true;
-                if (this.snapToItem() || this.scrollingOneByOne()) {
-                    this.stopScrolling(true);
-                    this.alignPosition(true, true);
-                }
-                this._$scrollEnd.next(false);
-            }),
-        ).subscribe();
 
         combineLatest([$isVertical, $viewportBounds, $contentBounds]).pipe(
             takeUntilDestroyed(),
@@ -1168,7 +1151,11 @@ export class NtScrollView extends NtBaseScrollView {
 
         if (position !== null && position !== cPos) {
             this.stopScrolling(true);
-            this.animate(cPos, position, animated ? this.animationParams().snapToItem : 1, easeOutQuad, false, false, false, true, fireUpdate);
+            if (animated) {
+                this.animate(cPos, position, this.animationParams().snapToItem, easeOutQuad, false, false, false, true, fireUpdate);
+            } else {
+                this.move(isVertical, position, false, false, true);
+            }
             return true;
         }
         return false;
