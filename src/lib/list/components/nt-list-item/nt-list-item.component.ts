@@ -10,12 +10,12 @@ import { SelectingModesTypes } from '../../enums/selecting-modes-types';
 import { IDisplayObjectConfig } from '../../models';
 import { getListElementByIndex } from './utils';
 import {
-  ATTR_AREA_SELECTED, EVENT_FOCUS_IN, EVENT_FOCUS_OUT, EVENT_KEY_DOWN, KEY_ARR_DOWN, KEY_ARR_LEFT,
-  KEY_ARR_RIGHT, KEY_ARR_UP, KEY_SPACE, NTVL_VISIBILITY,
+  ATTR_AREA_SELECTED, EVENT_KEY_DOWN, KEY_SPACE, NTVL_VISIBILITY,
 } from './const';
-import { Id } from '../../../common';
+import { Id, KeyboardKeys } from '../../../common';
 import { VISIBILITY_HIDDEN } from '../../../common/const/base-prop-names';
 import { DEFAULT_CLICK_DISTANCE } from '../../../common/directives/nt-control/const';
+import { EVENT_FOCUS_IN, EVENT_FOCUS_OUT } from '../../../common/const/event-names';
 
 /**
  * Virtual list component.
@@ -153,22 +153,22 @@ export class NtListItemComponent extends NtBaseVirtualListItemComponent implemen
             }
             break;
           }
-          case KEY_ARR_LEFT:
+          case KeyboardKeys.ARROW_LEFT:
             if (!this.config().isVertical) {
               return this.toPrevItem(e);
             }
             break;
-          case KEY_ARR_UP:
+          case KeyboardKeys.ARROW_UP:
             if (this.config().isVertical) {
               return this.toPrevItem(e);
             }
             break;
-          case KEY_ARR_RIGHT:
+          case KeyboardKeys.ARROW_RIGHT:
             if (!this.config().isVertical) {
               return this.toNextItem(e);
             }
             break;
-          case KEY_ARR_DOWN:
+          case KeyboardKeys.ARROW_DOWN:
             if (this.config().isVertical) {
               return this.toNextItem(e);
             }

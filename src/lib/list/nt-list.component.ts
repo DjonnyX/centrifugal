@@ -58,7 +58,7 @@ import { NtPrerenderContainer } from './components/nt-prerender-container/nt-pre
 import { IScrollParams } from './interfaces';
 import { formatActualDisplayItems, formatScreenReaderMessage } from './utils/screen-reader-formatter';
 import { validateId, validateIteration, validateScrollBehavior, validateScrollIteration } from './utils/list-validators';
-import { EVENT_KEY_DOWN, KEY_ARR_DOWN, KEY_ARR_LEFT, KEY_ARR_RIGHT, KEY_ARR_UP } from './components/nt-list-item/const';
+import { EVENT_KEY_DOWN } from './components/nt-list-item/const';
 import { NtListPublicService } from './nt-list-public.service';
 import { normalizeCollection } from './utils/normalize-collection';
 import { CollapsingModes } from './enums';
@@ -66,7 +66,7 @@ import { isSpreadingMode } from './utils/is-spreading-mode';
 import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interfaces';
 import { getScrollStateVersion } from './utils/get-scroll-state-version';
 import {
-  ArithmeticExpression, Id, IOverscrollEvent, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
+  ArithmeticExpression, Id, IOverscrollEvent, ISize, KeyboardKeys, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
   SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
 } from '../common';
 import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, parseArithmeticExpression, toggleClassName } from '../common/utils';
@@ -1788,22 +1788,22 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
           takeUntilDestroyed(this._destroyRef),
           switchMap(e => {
             switch (e.key) {
-              case KEY_ARR_LEFT:
+              case KeyboardKeys.ARROW_LEFT:
                 if (!this.isVertical) {
                   preventKeyboardEvent(e, this.isVertical);
                 }
                 break;
-              case KEY_ARR_UP:
+              case KeyboardKeys.ARROW_UP:
                 if (this.isVertical) {
                   preventKeyboardEvent(e, this.isVertical);
                 }
                 break;
-              case KEY_ARR_RIGHT:
+              case KeyboardKeys.ARROW_RIGHT:
                 if (!this.isVertical) {
                   preventKeyboardEvent(e, this.isVertical);
                 }
                 break;
-              case KEY_ARR_DOWN:
+              case KeyboardKeys.ARROW_DOWN:
                 if (this.isVertical) {
                   preventKeyboardEvent(e, this.isVertical);
                 }

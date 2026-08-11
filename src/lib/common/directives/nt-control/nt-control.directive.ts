@@ -157,6 +157,14 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
 
         host.setAttribute(NT_SERVICE_ID, this._service.id.toString());
 
+        const $focusedObject = this._controlService.$focusedElement;
+        $focusedObject.pipe(
+            takeUntilDestroyed(),
+            tap(e => {
+                toggleClassName(host, e?.element === host ? FOCUS : null, e?.element === host ? [] : [FOCUS]);
+            }),
+        ).subscribe();
+
         this._controlService.$keyboardEnabled.pipe(
             takeUntilDestroyed(),
             switchMap(keyboardEnabled => {

@@ -6,6 +6,10 @@ export const WHEEL = 'wheel';
 
 export const SCROLLER_WHEEL = 'wheel';
 
+export const EVENT_FOCUS_IN = 'focusin';
+
+export const EVENT_FOCUS_OUT = 'focusout';
+
 export const TOUCH_MOVE = 'touchmove';
 
 export const TOUCH_START = 'touchstart';
