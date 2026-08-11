@@ -63,16 +63,16 @@ Inputs
 | motionBlurEnabled | boolean = false | Determines whether to apply motion blur or not. The default value is `false`. |
 | overscrollEnabled | boolean? = true | Determines whether the overscroll (re-scroll) feature will work. The default value is "true". |
 | overlappingScrollbar | boolean? = false | Determines whether the scroll bar will overlap the list. The default value is "false". |
-| overscrollIndicatorShowAutomatically | boolean = true | Sets whether overscroll indicators are automatically displayed if the value is true. |
-| overscrollIndicatorUseOffsets | boolean = false | If true, scrollLeftOffset, scrollTopOffset, scrollRightOffset, and scrollBottomOffset will be used when calculating the re-scroll indicator positions. |
-| overscrollIndicatorLeftEnabled | boolean = false | Determines whether to display the left overscroll indicator if the parameter value is true or not if it is false. If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorLeftEnabled="false", the indicator will be used if horizontal scrolling is available. |
-| overscrollIndicatorTopEnabled | boolean = false | Determines whether to display the top overscroll indicator if the parameter value is true or not if it is false. If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorTopEnabled="false", the indicator will be used if vertical scrolling is available. |
-| overscrollIndicatorRightEnabled | boolean = false | Determines whether to display the right overscroll indicator if the parameter value is true or not if it is false. If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorRightEnabled="false", the indicator will be used if horizontal scrolling is available. |
-| overscrollIndicatorBottomEnabled | boolean = false | Determines whether to display the bottom overscroll indicator if the parameter value is true or not if it is false. If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorBottomEnabled="false", the indicator will be used if vertical scrolling is available. |
-| overscrollIndicatorLeftRenderer | TemplateRef<any> \| null = null | Specifies a custom template for the left overscroll indicator. |
-| overscrollIndicatorTopRenderer | TemplateRef<any> \| null = null boolean = false | Specifies a custom template for the top overscroll indicator. |
-| overscrollIndicatorRightRenderer | TemplateRef<any> \| null = null | Specifies a custom template for the right overscroll indicator. |
-| overscrollIndicatorBottomRenderer | TemplateRef<any> \| null = null | Specifies a custom template for the bottom overscroll indicator. |
+| overscrollAreaShowAutomatically | boolean = true | Sets whether overscroll areas are automatically displayed if the value is true. |
+| overscrollAreaUseOffsets | boolean = false | If true, scrollLeftOffset, scrollTopOffset, scrollRightOffset, and scrollBottomOffset will be used when calculating the re-scroll indicator positions. |
+| overscrollAreaLeftEnabled | boolean = false | Determines whether to display the left overscroll area if the parameter value is true or not if it is false. If the overscrollAreaShowAutomatically property is set to true and overscrollAreaLeftEnabled="false", the indicator will be used if horizontal scrolling is available. |
+| overscrollAreaTopEnabled | boolean = false | Determines whether to display the top overscroll area if the parameter value is true or not if it is false. If the overscrollAreaShowAutomatically property is set to true and overscrollAreaTopEnabled="false", the indicator will be used if vertical scrolling is available. |
+| overscrollAreaRightEnabled | boolean = false | Determines whether to display the right overscroll area if the parameter value is true or not if it is false. If the overscrollAreaShowAutomatically property is set to true and overscrollAreaRightEnabled="false", the indicator will be used if horizontal scrolling is available. |
+| overscrollAreaBottomEnabled | boolean = false | Determines whether to display the bottom overscroll area if the parameter value is true or not if it is false. If the overscrollAreaShowAutomatically property is set to true and overscrollAreaBottomEnabled="false", the indicator will be used if vertical scrolling is available. |
+| overscrollAreaLeftRenderer | TemplateRef<any> \| null = null | Specifies a custom template for the left overscroll area. |
+| overscrollAreaTopRenderer | TemplateRef<any> \| null = null boolean = false | Specifies a custom template for the top overscroll area. |
+| overscrollAreaRightRenderer | TemplateRef<any> \| null = null | Specifies a custom template for the right overscroll area. |
+| overscrollAreaBottomRenderer | TemplateRef<any> \| null = null | Specifies a custom template for the bottom overscroll area. |
 | scrollLeftOffset | [FloatOrPersentageValue](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/float-or-persentage-value.ts) = 0 | Sets the scroll left offset value. Can be specified in absolute or percentage values. Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0". |
 | scrollRightOffset | [FloatOrPersentageValue](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/float-or-persentage-value.ts) = 0 | Sets the scroll right offset value. Can be specified in absolute or percentage values. Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0". |
 | scrollTopOffset | [FloatOrPersentageValue](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/float-or-persentage-value.ts) = 0 | Sets the scroll top offset value. Can be specified in absolute or percentage values. Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0". |
@@ -104,10 +104,10 @@ Outputs
 | onScrollReachRight | void | Fires when the scroll reaches the right. |
 | onScrollReachTop | void | Fires when the scroll reaches the top. |
 | onScrollReachBottom | void | Fires when the scroll reaches the bottom. |
-| onLeftOverscrollIndiatorTrigger | boolean | Fires when the left overscroll indicator has reached its position limit. |
-| onTopOverscrollIndiatorTrigger | boolean | Fires when the top overscroll indicator has reached its position limit. |
-| onRightOverscrollIndiatorTrigger | boolean | Fires when the right overscroll indicator has reached its position limit. |
-| onBottomOverscrollIndiatorTrigger | boolean | Fires when the bottom overscroll indicator has reached its position limit. |
+| onLeftOverscrollAreaTrigger | boolean | Fires when the left overscroll area has reached its position limit. |
+| onTopOverscrollAreaTrigger | boolean | Fires when the top overscroll area has reached its position limit. |
+| onRightOverscrollAreaTrigger | boolean | Fires when the right overscroll area has reached its position limit. |
+| onBottomOverscrollAreaTrigger | boolean | Fires when the bottom overscroll area has reached its position limit. |
 
 <br/>
 
@@ -155,16 +155,16 @@ Inputs
 | motionBlurEnabled | boolean = false | Determines whether to apply motion blur or not. The default value is `false`. |
 | overscrollEnabled | boolean? = true | Determines whether the overscroll (re-scroll) feature will work. The default value is "true". |
 | overlappingScrollbar | boolean? = false | Determines whether the scroll bar will overlap the list. The default value is "false". |
-| overscrollIndicatorShowAutomatically | boolean = true | Sets whether overscroll indicators are automatically displayed if the value is true. |
-| overscrollIndicatorUseOffsets | boolean = false | If true, scrollLeftOffset, scrollTopOffset, scrollRightOffset, and scrollBottomOffset will be used when calculating the re-scroll indicator positions. |
-| overscrollIndicatorLeftEnabled | boolean = false | Determines whether to display the left overscroll indicator if the parameter value is true or not if it is false. If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorLeftEnabled="false", the indicator will be used if horizontal scrolling is available. |
-| overscrollIndicatorTopEnabled | boolean = false | Determines whether to display the top overscroll indicator if the parameter value is true or not if it is false. If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorTopEnabled="false", the indicator will be used if vertical scrolling is available. |
-| overscrollIndicatorRightEnabled | boolean = false | Determines whether to display the right overscroll indicator if the parameter value is true or not if it is false. If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorRightEnabled="false", the indicator will be used if horizontal scrolling is available. |
-| overscrollIndicatorBottomEnabled | boolean = false | Determines whether to display the bottom overscroll indicator if the parameter value is true or not if it is false. If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorBottomEnabled="false", the indicator will be used if vertical scrolling is available. |
-| overscrollIndicatorLeftRenderer | TemplateRef<any> \| null = null | Specifies a custom template for the left overscroll indicator. |
-| overscrollIndicatorTopRenderer | TemplateRef<any> \| null = null | Specifies a custom template for the top overscroll indicator. |
-| overscrollIndicatorRightRenderer | TemplateRef<any> \| null = null | Specifies a custom template for the right overscroll indicator. |
-| overscrollIndicatorBottomRenderer | TemplateRef<any> \| null = null | Specifies a custom template for the bottom overscroll indicator. |
+| overscrollAreaShowAutomatically | boolean = true | Sets whether overscroll areas are automatically displayed if the value is true. |
+| overscrollAreaUseOffsets | boolean = false | If true, scrollLeftOffset, scrollTopOffset, scrollRightOffset, and scrollBottomOffset will be used when calculating the re-scroll indicator positions. |
+| overscrollAreaLeftEnabled | boolean = false | Determines whether to display the left overscroll area if the parameter value is true or not if it is false. If the overscrollAreaShowAutomatically property is set to true and overscrollAreaLeftEnabled="false", the indicator will be used if horizontal scrolling is available. |
+| overscrollAreaTopEnabled | boolean = false | Determines whether to display the top overscroll area if the parameter value is true or not if it is false. If the overscrollAreaShowAutomatically property is set to true and overscrollAreaTopEnabled="false", the indicator will be used if vertical scrolling is available. |
+| overscrollAreaRightEnabled | boolean = false | Determines whether to display the right overscroll area if the parameter value is true or not if it is false. If the overscrollAreaShowAutomatically property is set to true and overscrollAreaRightEnabled="false", the indicator will be used if horizontal scrolling is available. |
+| overscrollAreaBottomEnabled | boolean = false | Determines whether to display the bottom overscroll area if the parameter value is true or not if it is false. If the overscrollAreaShowAutomatically property is set to true and overscrollAreaBottomEnabled="false", the indicator will be used if vertical scrolling is available. |
+| overscrollAreaLeftRenderer | TemplateRef<any> \| null = null | Specifies a custom template for the left overscroll area. |
+| overscrollAreaTopRenderer | TemplateRef<any> \| null = null | Specifies a custom template for the top overscroll area. |
+| overscrollAreaRightRenderer | TemplateRef<any> \| null = null | Specifies a custom template for the right overscroll area. |
+| overscrollAreaBottomRenderer | TemplateRef<any> \| null = null | Specifies a custom template for the bottom overscroll area. |
 | selectByClick | boolean? = true | If `false`, the element is selected using the config.select method passed to the template; if `true`, the element is selected by clicking on it. The default value is `true`. |
 | stickyEnabled | boolean? = false | Determines whether items with the given `sticky` in `itemConfigMap` will stick to the edges. Default value is "false". |
 | selectedIds | Array<[Id](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/id.ts)> \| [Id](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/id.ts) \| null | Sets the selected items. |
@@ -208,10 +208,10 @@ Outputs
 | onScrollReachStart | void | Fires when the scroll reaches the start. |
 | onScrollReachEnd | void | Fires when the scroll reaches the end. |
 | onOverscroll | [IOverscrollEvent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/overscroll-event.ts) | Dispatches an overscroll event. |
-| onLeftOverscrollIndiatorTrigger | boolean | Fires when the left overscroll indicator has reached its position limit. |
-| onTopOverscrollIndiatorTrigger | boolean | Fires when the top overscroll indicator has reached its position limit. |
-| onRightOverscrollIndiatorTrigger | boolean | Fires when the right overscroll indicator has reached its position limit. |
-| onBottomOverscrollIndiatorTrigger | boolean | Fires when the bottom overscroll indicator has reached its position limit. |
+| onLeftOverscrollAreaTrigger | boolean | Fires when the left overscroll area has reached its position limit. |
+| onTopOverscrollAreaTrigger | boolean | Fires when the top overscroll area has reached its position limit. |
+| onRightOverscrollAreaTrigger | boolean | Fires when the right overscroll area has reached its position limit. |
+| onBottomOverscrollAreaTrigger | boolean | Fires when the bottom overscroll area has reached its position limit. |
 
 <br/>
 
@@ -247,25 +247,25 @@ Properties
 
 <br/>
 
-### [NtVirtualClickModule](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/directives/nt-virtual-click/nt-virtual-click.module.ts)
+### [NtControlModule](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/directives/nt-control/nt-control.module.ts)
 
-### Virtual click directive
+### NtControl directive
 
-To correctly handle interactive elements within a list, such as buttons, you need to use the VirtualClick directive.
+To correctly handle interactive elements within a list, such as buttons, you need to use the NtControl directive.
 
 ```ts
-import { NtListModule, NtVirtualClickModule } from 'centrifugal';
+import { NtListModule, NtControlModule } from 'centrifugal';
 
 @Component({
   selector: 'example',
-  imports: [NtListModule, NtVirtualClickModule],
+  imports: [NtListModule, NtControlModule],
 })
 ```
 
 ```html
 <ng-template #itemRenderer let-data="data" let-config="config" let-api="api">
   @if (data) {
-    <div virtualClick (onVirtualClick)="api.select(data.id, true)">
+    <div ntControl (onVirtualClick)="api.select(data.id, true)">
       <span>{{data.name}}</span>
     </div>
   }

@@ -1,35 +1,35 @@
 import { Component, computed, DestroyRef, ElementRef, inject, input, output, signal, Signal, TemplateRef, viewChild } from "@angular/core";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
 import { combineLatest, debounceTime, filter, skip, switchMap, tap } from "rxjs";
-import { IOverscrollEvent, ISize, OverscrollIndicatorTypes } from "../../../../common";
-import { OverscrollIndicatorType } from "../../../../common/types/overscroll-indicator-type";
+import { IOverscrollEvent, ISize, OverscrollAreaTypes } from "../../../../common";
+import { OverscrollAreaType } from "../../../../common/types/overscroll-area-type";
 import { HEIGHT_PROP_NAME, PX, WIDTH_PROP_NAME, ZERO } from "../../../../common/const/base-prop-names";
-import { PART } from "./const";
-import { INtOverscrollIndicatorPublicApi } from "../interfaces";
+import { NT_OVERSCROLL_AREA_PART } from "./const";
+import { INtOverscrollAreaPublicApi } from "../interfaces";
 
 /**
- * NtOverscrollIndicatorComponent
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/nt-overscroll-indicator/base/nt-base-overscroll-indicator.component.ts
+ * NtOverscrollAreaComponent
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/nt-overscroll-area/base/nt-base-overscroll-area.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
 @Component({
-    selector: 'nt-base-overscroll-indicator',
+    selector: 'nt-base-overscroll-area',
     template: '',
     standalone: false,
 })
-export abstract class NtBaseOverscrollIndicatorComponent {
+export abstract class NtBaseOverscrollAreaComponent {
     private _rect = viewChild<ElementRef<HTMLDivElement>>('rect');
 
     readonly pinnable = signal<boolean>(false);
 
     readonly onTrigger = output<boolean>();
 
-    readonly api = input<INtOverscrollIndicatorPublicApi & { trigger: (v: boolean) => void; } | null>(null);
+    readonly api = input<INtOverscrollAreaPublicApi & { trigger: (v: boolean) => void; } | null>(null);
 
     readonly bounds = input<ISize>({ width: 0, height: 0 });
 
-    readonly type = input.required<OverscrollIndicatorType>();
+    readonly type = input.required<OverscrollAreaType>();
 
     readonly leftOffset = input<number>(0);
 
@@ -83,26 +83,26 @@ export abstract class NtBaseOverscrollIndicatorComponent {
         });
 
         this._part = computed(() => {
-            return `${PART}${this.type()}`;
+            return `${NT_OVERSCROLL_AREA_PART}${this.type()}`;
         });
 
         this._enabled = computed(() => {
             const type = this.type(), overscrollEvent = this.overscrollEvent();
             let enabled = false;
             switch (type) {
-                case OverscrollIndicatorTypes.LEFT: {
+                case OverscrollAreaTypes.LEFT: {
                     enabled = overscrollEvent?.positionX === 0;
                     break;
                 }
-                case OverscrollIndicatorTypes.RIGHT: {
+                case OverscrollAreaTypes.RIGHT: {
                     enabled = overscrollEvent?.positionX === 1;
                     break;
                 }
-                case OverscrollIndicatorTypes.BOTTOM: {
+                case OverscrollAreaTypes.BOTTOM: {
                     enabled = overscrollEvent?.positionY === 1;
                     break;
                 }
-                case OverscrollIndicatorTypes.TOP:
+                case OverscrollAreaTypes.TOP:
                 default: {
                     enabled = overscrollEvent?.positionY === 0;
                     break;
@@ -115,19 +115,19 @@ export abstract class NtBaseOverscrollIndicatorComponent {
             const type = this.type();
             let offset = 0;
             switch (type) {
-                case OverscrollIndicatorTypes.LEFT: {
+                case OverscrollAreaTypes.LEFT: {
                     offset = this.leftOffset();
                     break;
                 }
-                case OverscrollIndicatorTypes.RIGHT: {
+                case OverscrollAreaTypes.RIGHT: {
                     offset = this.rightOffset();
                     break;
                 }
-                case OverscrollIndicatorTypes.BOTTOM: {
+                case OverscrollAreaTypes.BOTTOM: {
                     offset = this.bottomOffset();
                     break;
                 }
-                case OverscrollIndicatorTypes.TOP:
+                case OverscrollAreaTypes.TOP:
                 default: {
                     offset = this.topOffset();
                     break;
@@ -139,7 +139,7 @@ export abstract class NtBaseOverscrollIndicatorComponent {
         this._position = computed(() => {
             const enabled = this._enabled(),
                 type = this.type(),
-                isVertical = type === OverscrollIndicatorTypes.TOP || type === OverscrollIndicatorTypes.BOTTOM,
+                isVertical = type === OverscrollAreaTypes.TOP || type === OverscrollAreaTypes.BOTTOM,
                 size = isVertical ? (this._rect()?.nativeElement?.offsetHeight ?? 0) : (this._rect()?.nativeElement?.offsetWidth ?? 0);
             if (!enabled) {
                 return -size;
@@ -159,7 +159,7 @@ export abstract class NtBaseOverscrollIndicatorComponent {
 
             const type = this.type(),
                 bounds = this.bounds(),
-                isVertical = type === OverscrollIndicatorTypes.TOP || type === OverscrollIndicatorTypes.BOTTOM,
+                isVertical = type === OverscrollAreaTypes.TOP || type === OverscrollAreaTypes.BOTTOM,
                 pos = this._position();
             return { [type]: `${pos}${PX}`, [isVertical ? WIDTH_PROP_NAME : HEIGHT_PROP_NAME]: `${isVertical ? bounds.width : bounds.height}${PX}` } as any;
         });
@@ -171,25 +171,25 @@ export abstract class NtBaseOverscrollIndicatorComponent {
             }
 
             const type = this.type(), bounds = this.bounds(), leftOffset = this.leftOffset(), topOffset = this.topOffset(), rightOffset = this.rightOffset(),
-                bottomOffset = this.bottomOffset(), isVertical = type === OverscrollIndicatorTypes.TOP || type === OverscrollIndicatorTypes.BOTTOM,
+                bottomOffset = this.bottomOffset(), isVertical = type === OverscrollAreaTypes.TOP || type === OverscrollAreaTypes.BOTTOM,
                 size = isVertical ? (this._rect()?.nativeElement?.offsetHeight ?? 0) : (this._rect()?.nativeElement?.offsetWidth ?? 0);
             let clip: string = '', width = 0, height = 0;
             switch (type) {
-                case OverscrollIndicatorTypes.LEFT: {
+                case OverscrollAreaTypes.LEFT: {
                     clip = `rect(${topOffset}${PX} ${leftOffset + size}${PX} ${bounds.height - bottomOffset}${PX} ${leftOffset}${PX})`;
                     break;
                 }
-                case OverscrollIndicatorTypes.RIGHT: {
+                case OverscrollAreaTypes.RIGHT: {
                     clip = `rect(${topOffset}${PX} ${size}${PX} ${bounds.height - bottomOffset}${PX} ${ZERO}${PX})`;
                     width = rightOffset + size;
                     break;
                 }
-                case OverscrollIndicatorTypes.BOTTOM: {
+                case OverscrollAreaTypes.BOTTOM: {
                     clip = `rect(${ZERO}${PX} ${bounds.width - rightOffset}${PX} ${size}${PX} ${leftOffset}${PX})`;
                     height = bottomOffset + size;
                     break;
                 }
-                case OverscrollIndicatorTypes.TOP:
+                case OverscrollAreaTypes.TOP:
                 default: {
                     clip = `rect(${topOffset}${PX} ${bounds.width - rightOffset}${PX} ${topOffset + size}${PX} ${leftOffset}${PX})`;
                     break;

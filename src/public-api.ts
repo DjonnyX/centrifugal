@@ -19,11 +19,11 @@ export {
     NtScrollViewModule,
     NtScrollViewComponent,
     NtScrollViewService,
-    NtBaseOverscrollIndicatorComponent,
+    NtBaseOverscrollAreaComponent,
 } from './lib/scroll-view';
 export type {
     INtScrollViewService,
-    INtOverscrollIndicatorPublicApi,
+    INtOverscrollAreaPublicApi,
 } from './lib/scroll-view';
 
 /*

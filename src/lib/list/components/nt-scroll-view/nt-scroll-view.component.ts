@@ -246,23 +246,6 @@ export class NtScrollView extends NtBaseScrollView {
         const $isVertical = toObservable(this.isVertical),
             $viewportBounds = toObservable(this.viewportBounds),
             $contentBounds = toObservable(this.contentBounds);
-        $viewportBounds.pipe(
-            takeUntilDestroyed(),
-            debounceTime(0),
-            tap(() => {
-                this._isMoving = false;
-                this.grabbing.set(false);
-                if (!mouseCanceled || !touchCanceled) {
-                    this.stopMoving();
-                }
-                mouseCanceled = touchCanceled = true;
-                if (this.snapToItem() || this.scrollingOneByOne()) {
-                    this.stopScrolling(true);
-                    this.alignPosition(true, true);
-                }
-                this._$scrollEnd.next(false);
-            }),
-        ).subscribe();
 
         combineLatest([$isVertical, $viewportBounds, $contentBounds]).pipe(
             takeUntilDestroyed(),
@@ -815,9 +798,7 @@ export class NtScrollView extends NtBaseScrollView {
         }
         const overscrollX = this._service.overscroll.x,
             overscrollY = this._service.overscroll.y;
-        if (!overscrollX && !overscrollY) {
-            this._userScrollDirectionIsHorizontal = this._scrollDirectionValueX > this._scrollDirectionValueY;
-        }
+        this._userScrollDirectionIsHorizontal = this._scrollDirectionValueX > this._scrollDirectionValueY;
         if (this._userScrollDirectionIsHorizontal) {
             const scrollable = getScrollable(this._service, X_PROP_NAME, true);
             if (!overscrollY && scrollable) {
@@ -872,8 +853,8 @@ export class NtScrollView extends NtBaseScrollView {
         const bounds = this.viewportBounds(), isVertical = this.isVertical(),
             event = new OverscrollEvent({
                 grabbing,
-                dragX: transitionExponent(this._dragX, bounds.width, DEFAULT_TRANSITION_EXPONENT),
-                dragY: transitionExponent(this._dragY, bounds.height, DEFAULT_TRANSITION_EXPONENT),
+                dragX: transitionExponent(this.scrollRatio <= 0 || this.scrollRatio >= 1 ? this._dragX : 0, bounds.width, DEFAULT_TRANSITION_EXPONENT),
+                dragY: transitionExponent(this.scrollRatio <= 0 || this.scrollRatio >= 1 ? this._dragY : 0, bounds.height, DEFAULT_TRANSITION_EXPONENT),
                 positionX: (isVertical ? 0 : (this.langTextDir() === TextDirections.LTR ? (this._scrollRatioWhenGrabbing === 1 ? 1 : 0) : (this._scrollRatioWhenGrabbing === 1 ? 0 : 1))),
                 positionY: (isVertical ? (this._scrollRatioWhenGrabbing === 1 ? 1 : 0) : 0),
             });
@@ -1170,7 +1151,11 @@ export class NtScrollView extends NtBaseScrollView {
 
         if (position !== null && position !== cPos) {
             this.stopScrolling(true);
-            this.animate(cPos, position, animated ? this.animationParams().snapToItem : 1, easeOutQuad, false, false, false, true, fireUpdate);
+            if (animated) {
+                this.animate(cPos, position, this.animationParams().snapToItem, easeOutQuad, false, false, false, true, fireUpdate);
+            } else {
+                this.move(isVertical, position, false, false, true);
+            }
             return true;
         }
         return false;
@@ -1302,7 +1287,6 @@ export class NtScrollView extends NtBaseScrollView {
                             yy = Math.abs(this._y);
                         this._scrollRatio = scrollHeight !== 0 ? yy / scrollHeight : 0;
                         this._scrollRatioWhenGrabbing = this._scrollRatio === 0 ? 0 : 1;
-                        this.resetDrag();
                     }
                     this.emitScrollableEvent();
                     if (fireUpdate) {
@@ -1317,7 +1301,6 @@ export class NtScrollView extends NtBaseScrollView {
                             xx = Math.abs(this._x);
                         this._scrollRatio = scrollWidth !== 0 ? xx / scrollWidth : 0;
                         this._scrollRatioWhenGrabbing = this._scrollRatio === 0 ? 0 : 1;
-                        this.resetDrag();
                     }
                     this.emitScrollableEvent();
                     if (fireUpdate) {

@@ -188,39 +188,23 @@ export class NtScrollerComponent extends NtScrollView {
     this._filterId = `${this._service.id}-${MOTION_BLUR}`;
     this._filter = `url(#${this._filterId})`;
 
-    this.$resizeViewport.pipe(
-      takeUntilDestroyed(),
-      debounceTime(0),
-      tap(() => {
-        this.snapIfNeed();
-      }),
-      switchMap(() => {
-        return this.$scroll.pipe(
-          takeUntilDestroyed(this._destroyRef),
-          take(1),
-          tap(() => {
-            this.snapIfNeed();
-          }),
-        );
-      }),
-    ).subscribe();
-
-    this.$resizeViewport.pipe(
-      takeUntilDestroyed(),
-      tap(() => {
-        this.resizeViewport();
-      }),
-      debounceTime(50),
-      tap(() => {
-        this.resizeViewport();
-      }),
-    ).subscribe();
-
     const $filter = toObservable(this.filter),
       $motionBlur = toObservable(this.motionBlur),
       $maxMotionBlur = toObservable(this.maxMotionBlur),
       $motionBlurEnabled = toObservable(this.motionBlurEnabled),
-      $isVertical = toObservable(this.isVertical);
+      $isVertical = toObservable(this.isVertical),
+      $scrollContent = toObservable(this.scrollContent);
+
+    $scrollContent.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      tap(v => {
+        this._controlContainerService.focus({
+          element: v.nativeElement, ngControl: null,
+          scroller: this, type: this._type, id: this._service.id,
+        });
+      }),
+    ).subscribe();
 
     const $scrollbarScroll = this.$scrollbarScroll;
     $scrollbarScroll.pipe(

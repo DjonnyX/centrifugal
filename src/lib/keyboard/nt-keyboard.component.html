@@ -7,7 +7,7 @@
                 <div class="ntk-key-row" part="ntk-key-row">
                     @for (key of keyRow; track $index) {
                         @if (!!key) {
-                            <div keyState ntControl part="ntk-key" [longPressEnable]="true" [key]="key.value"
+                            <div keyState ntControl [ntFocusable]="false" part="ntk-key" [ntLongPressEnable]="true" [key]="key.value"
                                 [classList]="!!key.class ? key.class + ' ntk-key' : 'ntk-key'" [style]="key.style"
                                 [ngClass]="{empty: key.value === undefined || key.value === null || key.value === ''}"
                                 (onVirtualClick)="onClickHandler($event, key)" (onVirtualClickCancel)="onClickCancelHandler(key)"

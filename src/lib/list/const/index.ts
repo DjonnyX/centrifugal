@@ -139,45 +139,45 @@ export const CLASS_LIST_HORIZONTAL = 'horizontal';
 
 // styles
 
-export const PART_DEFAULT_ITEM = 'item';
+export const PART_DEFAULT_ITEM = 'nt-list-item';
 
-export const PART_ITEM_NEW = ' item-new';
+export const PART_ITEM_NEW = ' nt-list-item-new';
 
-export const PART_ITEM_ODD = ' item-odd';
+export const PART_ITEM_ODD = ' nt-list-item-odd';
 
-export const PART_ITEM_EVEN = ' item-even';
+export const PART_ITEM_EVEN = ' nt-list-item-even';
 
-export const PART_ITEM_ROW_ODD = ' item-row-odd';
+export const PART_ITEM_ROW_ODD = ' nt-list-item-row-odd';
 
-export const PART_ITEM_ROW_EVEN = ' item-row-even';
+export const PART_ITEM_ROW_EVEN = ' nt-list-item-row-even';
 
-export const PART_ITEM_SNAPPED = ' item-snapped';
+export const PART_ITEM_SNAPPED = ' nt-list-item-snapped';
 
-export const PART_ITEM_SELECTED = ' item-selected';
+export const PART_ITEM_SELECTED = ' nt-list-item-selected';
 
-export const PART_ITEM_COLLAPSED = ' item-collapsed';
+export const PART_ITEM_COLLAPSED = ' nt-list-item-collapsed';
 
-export const PART_ITEM_FOCUSED = ' item-focused';
+export const PART_ITEM_FOCUSED = ' nt-list-item-focused';
 
-export const PART_DEFAULT_ITEM_FX = 'item-fx';
+export const PART_DEFAULT_ITEM_FX = 'nt-list-item-fx';
 
-export const PART_ITEM_FX_NEW = ' item-fx-new';
+export const PART_ITEM_FX_NEW = ' nt-list-item-fx-new';
 
-export const PART_ITEM_FX_ODD = ' item-fx-odd';
+export const PART_ITEM_FX_ODD = ' nt-list-item-fx-odd';
 
-export const PART_ITEM_FX_EVEN = ' item-fx-even';
+export const PART_ITEM_FX_EVEN = ' nt-list-item-fx-even';
 
-export const PART_ITEM_ROW_FX_ODD = ' item-row-fx-odd';
+export const PART_ITEM_ROW_FX_ODD = ' nt-list-item-row-fx-odd';
 
-export const PART_ITEM_ROW_FX_EVEN = ' item-row-fx-even';
+export const PART_ITEM_ROW_FX_EVEN = ' nt-list-item-row-fx-even';
 
-export const PART_ITEM_FX_SNAPPED = ' item-fx-snapped';
+export const PART_ITEM_FX_SNAPPED = ' nt-list-item-fx-snapped';
 
-export const PART_ITEM_FX_SELECTED = ' item-fx-selected';
+export const PART_ITEM_FX_SELECTED = ' nt-list-item-fx-selected';
 
-export const PART_ITEM_FX_COLLAPSED = ' item-fx-collapsed';
+export const PART_ITEM_FX_COLLAPSED = ' nt-list-item-fx-collapsed';
 
-export const PART_ITEM_FX_FOCUSED = ' item-fx-focused';
+export const PART_ITEM_FX_FOCUSED = ' nt-list-item-fx-focused';
 
 export const MIN_PIXELS_FOR_PREVENT_SNAPPING = 10;
 

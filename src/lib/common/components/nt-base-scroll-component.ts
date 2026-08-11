@@ -44,31 +44,31 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
     onOverscroll = output<IOverscrollEvent>();
 
     /**
-     * Fires when the left overscroll indicator has reached its position limit.
+     * Fires when the left overscroll area has reached its position limit.
      */
-    onLeftOverscrollIndiatorTrigger = output<boolean>();
+    onLeftOverscrollAreaTrigger = output<boolean>();
 
     /**
-     * Fires when the top overscroll indicator has reached its position limit.
+     * Fires when the top overscroll area has reached its position limit.
      */
-    onTopOverscrollIndiatorTrigger = output<boolean>();
+    onTopOverscrollAreaTrigger = output<boolean>();
 
     /**
-     * Fires when the right overscroll indicator has reached its position limit.
+     * Fires when the right overscroll area has reached its position limit.
      */
-    onRightOverscrollIndiatorTrigger = output<boolean>();
+    onRightOverscrollAreaTrigger = output<boolean>();
 
     /**
-     * Fires when the bottom overscroll indicator has reached its position limit.
+     * Fires when the bottom overscroll area has reached its position limit.
      */
-    onBottomOverscrollIndiatorTrigger = output<boolean>();
+    onBottomOverscrollAreaTrigger = output<boolean>();
 
-    protected _overscrollIndicatorShowAutomaticallyOptions = {
+    protected _overscrollAreaShowAutomaticallyOptions = {
         transform: (v: boolean) => {
             const valid = validateBoolean(v);
 
             if (!valid) {
-                console.error('The "overscrollIndicatorShowAutomatically" parameter must be of type `boolean`.');
+                console.error('The "overscrollAreaShowAutomatically" parameter must be of type `boolean`.');
                 return true;
             }
             return v;
@@ -76,16 +76,16 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
     } as any;
 
     /**
-     *  Sets whether overscroll indicators are automatically displayed if the value is true.
+     *  Sets whether overscroll areas are automatically displayed if the value is true.
      */
-    overscrollIndicatorShowAutomatically = input<boolean>(true, { ...this._overscrollIndicatorShowAutomaticallyOptions });
+    overscrollAreaShowAutomatically = input<boolean>(true, { ...this._overscrollAreaShowAutomaticallyOptions });
 
-    protected _overscrollIndicatorUseOffsetsOptions = {
+    protected _overscrollAreaUseOffsetsOptions = {
         transform: (v: boolean) => {
             const valid = validateBoolean(v);
 
             if (!valid) {
-                console.error('The "overscrollIndicatorUseOffsets" parameter must be of type `boolean`.');
+                console.error('The "overscrollAreaUseOffsets" parameter must be of type `boolean`.');
                 return false;
             }
             return v;
@@ -95,14 +95,14 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
     /**
      *  If true, scrollLeftOffset, scrollTopOffset, scrollRightOffset, and scrollBottomOffset will be used when calculating the re-scroll indicator positions.
      */
-    overscrollIndicatorUseOffsets = input<boolean>(false, { ...this._overscrollIndicatorUseOffsetsOptions });
+    overscrollAreaUseOffsets = input<boolean>(false, { ...this._overscrollAreaUseOffsetsOptions });
 
-    protected _overscrollIndicatorLeftEnabledOptions = {
+    protected _overscrollAreaLeftEnabledOptions = {
         transform: (v: boolean) => {
             const valid = validateBoolean(v);
 
             if (!valid) {
-                console.error('The "overscrollIndicatorLeftEnabled" parameter must be of type `boolean`.');
+                console.error('The "overscrollAreaLeftEnabled" parameter must be of type `boolean`.');
                 return false;
             }
             return v;
@@ -110,17 +110,17 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
     } as any;
 
     /**
-     * Determines whether to display the left overscroll indicator if the parameter value is true or not if it is false. 
-     * If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorLeftEnabled="false", the indicator will be used if horizontal scrolling is available.
+     * Determines whether to display the left overscroll area if the parameter value is true or not if it is false. 
+     * If the overscrollAreaShowAutomatically property is set to true and overscrollAreaLeftEnabled="false", the indicator will be used if horizontal scrolling is available.
      */
-    overscrollIndicatorLeftEnabled = input<boolean>(false, { ...this._overscrollIndicatorLeftEnabledOptions });
+    overscrollAreaLeftEnabled = input<boolean>(false, { ...this._overscrollAreaLeftEnabledOptions });
 
-    protected _overscrollIndicatorTopEnabledOptions = {
+    protected _overscrollAreaTopEnabledOptions = {
         transform: (v: boolean) => {
             const valid = validateBoolean(v);
 
             if (!valid) {
-                console.error('The "overscrollIndicatorTopEnabled" parameter must be of type `boolean`.');
+                console.error('The "overscrollAreaTopEnabled" parameter must be of type `boolean`.');
                 return false;
             }
             return v;
@@ -128,17 +128,17 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
     } as any;
 
     /**
-     * Determines whether to display the top overscroll indicator if the parameter value is true or not if it is false. 
-     * If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorTopEnabled="false", the indicator will be used if vertical scrolling is available.
+     * Determines whether to display the top overscroll area if the parameter value is true or not if it is false. 
+     * If the overscrollAreaShowAutomatically property is set to true and overscrollAreaTopEnabled="false", the indicator will be used if vertical scrolling is available.
      */
-    overscrollIndicatorTopEnabled = input<boolean>(false, { ...this._overscrollIndicatorTopEnabledOptions });
+    overscrollAreaTopEnabled = input<boolean>(false, { ...this._overscrollAreaTopEnabledOptions });
 
-    protected _overscrollIndicatorRightEnabledOptions = {
+    protected _overscrollAreaRightEnabledOptions = {
         transform: (v: boolean) => {
             const valid = validateBoolean(v);
 
             if (!valid) {
-                console.error('The "overscrollIndicatorRightEnabled" parameter must be of type `boolean`.');
+                console.error('The "overscrollAreaRightEnabled" parameter must be of type `boolean`.');
                 return false;
             }
             return v;
@@ -146,17 +146,17 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
     } as any;
 
     /**
-     * Determines whether to display the right overscroll indicator if the parameter value is true or not if it is false. 
-     * If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorRightEnabled="false", the indicator will be used if horizontal scrolling is available.
+     * Determines whether to display the right overscroll area if the parameter value is true or not if it is false. 
+     * If the overscrollAreaShowAutomatically property is set to true and overscrollAreaRightEnabled="false", the indicator will be used if horizontal scrolling is available.
      */
-    overscrollIndicatorRightEnabled = input<boolean>(false, { ...this._overscrollIndicatorRightEnabledOptions });
+    overscrollAreaRightEnabled = input<boolean>(false, { ...this._overscrollAreaRightEnabledOptions });
 
-    protected _overscrollIndicatorBottomEnabledOptions = {
+    protected _overscrollAreaBottomEnabledOptions = {
         transform: (v: boolean) => {
             const valid = validateBoolean(v);
 
             if (!valid) {
-                console.error('The "overscrollIndicatorBottomEnabled" parameter must be of type `boolean`.');
+                console.error('The "overscrollAreaBottomEnabled" parameter must be of type `boolean`.');
                 return false;
             }
             return v;
@@ -164,17 +164,17 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
     } as any;
 
     /**
-     * Determines whether to display the bottom overscroll indicator if the parameter value is true or not if it is false. 
-     * If the overscrollIndicatorShowAutomatically property is set to true and overscrollIndicatorBottomEnabled="false", the indicator will be used if vertical scrolling is available.
+     * Determines whether to display the bottom overscroll area if the parameter value is true or not if it is false. 
+     * If the overscrollAreaShowAutomatically property is set to true and overscrollAreaBottomEnabled="false", the indicator will be used if vertical scrolling is available.
      */
-    overscrollIndicatorBottomEnabled = input<boolean>(false, { ...this._overscrollIndicatorBottomEnabledOptions });
+    overscrollAreaBottomEnabled = input<boolean>(false, { ...this._overscrollAreaBottomEnabledOptions });
 
-    protected _overscrollIndicatorLeftRendererOptions = {
+    protected _overscrollAreaLeftRendererOptions = {
         transform: (v: TemplateRef<any> | null) => {
             const valid = validateObject(v, true, true);
 
             if (!valid) {
-                console.error('The "overscrollIndicatorLeftRenderer" parameter must be of type `TemplateRef<any>`.');
+                console.error('The "overscrollAreaLeftRenderer" parameter must be of type `TemplateRef<any>`.');
                 return false;
             }
             return v;
@@ -182,16 +182,16 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
     } as any;
 
     /**
-     * Specifies a custom template for the left overscroll indicator.
+     * Specifies a custom template for the left overscroll area.
      */
-    overscrollIndicatorLeftRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollIndicatorLeftRendererOptions });
+    overscrollAreaLeftRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollAreaLeftRendererOptions });
 
-    protected _overscrollIndicatorTopRendererOptions = {
+    protected _overscrollAreaTopRendererOptions = {
         transform: (v: TemplateRef<any> | null) => {
             const valid = validateObject(v, true, true);
 
             if (!valid) {
-                console.error('The "overscrollIndicatorTopRenderer" parameter must be of type `TemplateRef<any>`.');
+                console.error('The "overscrollAreaTopRenderer" parameter must be of type `TemplateRef<any>`.');
                 return false;
             }
             return v;
@@ -199,16 +199,16 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
     } as any;
 
     /**
-     * Specifies a custom template for the top overscroll indicator.
+     * Specifies a custom template for the top overscroll area.
      */
-    overscrollIndicatorTopRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollIndicatorTopRendererOptions });
+    overscrollAreaTopRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollAreaTopRendererOptions });
 
-    protected _overscrollIndicatorRightRendererOptions = {
+    protected _overscrollAreaRightRendererOptions = {
         transform: (v: TemplateRef<any> | null) => {
             const valid = validateObject(v, true, true);
 
             if (!valid) {
-                console.error('The "overscrollIndicatorRightRenderer" parameter must be of type `TemplateRef<any>`.');
+                console.error('The "overscrollAreaRightRenderer" parameter must be of type `TemplateRef<any>`.');
                 return false;
             }
             return v;
@@ -216,16 +216,16 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
     } as any;
 
     /**
-     * Specifies a custom template for the right overscroll indicator.
+     * Specifies a custom template for the right overscroll area.
      */
-    overscrollIndicatorRightRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollIndicatorRightRendererOptions });
+    overscrollAreaRightRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollAreaRightRendererOptions });
 
-    protected _overscrollIndicatorBottomRendererOptions = {
+    protected _overscrollAreaBottomRendererOptions = {
         transform: (v: TemplateRef<any> | null) => {
             const valid = validateObject(v, true, true);
 
             if (!valid) {
-                console.error('The "overscrollIndicatorBottomRenderer" parameter must be of type `TemplateRef<any>`.');
+                console.error('The "overscrollAreaBottomRenderer" parameter must be of type `TemplateRef<any>`.');
                 return false;
             }
             return v;
@@ -233,9 +233,9 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
     } as any;
 
     /**
-     * Specifies a custom template for the bottom overscroll indicator.
+     * Specifies a custom template for the bottom overscroll area.
      */
-    overscrollIndicatorBottomRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollIndicatorBottomRendererOptions });
+    overscrollAreaBottomRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollAreaBottomRendererOptions });
 
     protected _bounds = signal<ISize | null>(null);
     get bounds(): ISize { return this._bounds() ?? { width: 0, height: 0 }; }

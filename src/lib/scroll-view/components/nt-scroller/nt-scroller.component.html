@@ -3,7 +3,7 @@
 @let textDir = langTextDir();
 <div localeSensitive [langTextDir]="textDir" [listDir]="direction()" class="ntvs__container"
     [ngClass]="containerClasses()">
-    <svg part="viewport" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
+    <svg part="nt-scroller-viewport" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
         xmlns:xlink="http://www.w3.org/1999/xlink">
         <filter [id]="_filterId">
             <feGaussianBlur #filter></feGaussianBlur>
@@ -11,22 +11,22 @@
         <foreignObject xmlns="http://www.w3.org/1999/xhtml" width="100%" height="100%" class="ntvs__viewport">
             <div class="ntvs__scroller-wrapper" [class.filtered]="filtered"
                 [style.filter]="filtered ? _filter : 'unset'">
-                <div cdkScrollable #scrollViewport part="scroller" class="ntvs__scroller">
+                <div cdkScrollable #scrollViewport part="nt-scroller" class="ntvs__scroller">
                     <div #scrollContent [attr.aria-orientation]="direction()"
-                        [attr.aria-activedescendant]="focusedElement()" tabindex="0" part="content"
+                        [attr.aria-activedescendant]="focusedElement()" tabindex="-1" part="nt-scroller-content"
                         class="ntvs__content" [ngClass]="actualClasses()" [ngStyle]="listStyles()">
                         <ng-content></ng-content>
                     </div>
                 </div>
             </div>
-            <nt-overscroll-indicator-container class="ntoi" dir="ltr" [bounds]="viewportBounds()" [leftOffset]="_leftOffset()" [topOffset]="_topOffset()"
+            <nt-overscroll-container class="ntoa" dir="ltr" [bounds]="viewportBounds()" [leftOffset]="_leftOffset()" [topOffset]="_topOffset()"
                 [rightOffset]="_rightOffset()" [bottomOffset]="_bottomOffset()" [overscrollEvent]="$overscroll | async"
-                [leftIndicatorEnabled]="_actualOverscrollIndicatorLeftEnabled()" [topIndicatorEnabled]="_actualOverscrollIndicatorTopEnabled()"
-                [rightIndicatorEnabled]="_actualOverscrollIndicatorRightEnabled()" [bottomIndicatorEnabled]="_actualOverscrollIndicatorBottomEnabled()"
-                [leftIndicatorRenderer]="overscrollIndicatorLeftRenderer()" [topIndicatorRenderer]="overscrollIndicatorTopRenderer()"
-                [rightIndicatorRenderer]="overscrollIndicatorRightRenderer()" [bottomIndicatorRenderer]="overscrollIndicatorBottomRenderer()"
-                (onLeftIndiatorTrigger)="onLeftOverscrollIndiatorTrigger.emit($event)" (onTopIndiatorTrigger)="onTopOverscrollIndiatorTrigger.emit($event)" 
-                (onRightIndiatorTrigger)="onRightOverscrollIndiatorTrigger.emit($event)" (onBottomIndiatorTrigger)="onBottomOverscrollIndiatorTrigger.emit($event)"/>
+                [leftIndicatorEnabled]="_actualOverscrollAreaLeftEnabled()" [topIndicatorEnabled]="_actualOverscrollAreaTopEnabled()"
+                [rightIndicatorEnabled]="_actualOverscrollAreaRightEnabled()" [bottomIndicatorEnabled]="_actualOverscrollAreaBottomEnabled()"
+                [leftIndicatorRenderer]="overscrollAreaLeftRenderer()" [topIndicatorRenderer]="overscrollAreaTopRenderer()"
+                [rightIndicatorRenderer]="overscrollAreaRightRenderer()" [bottomIndicatorRenderer]="overscrollAreaBottomRenderer()"
+                (onLeftAreaTrigger)="onLeftOverscrollAreaTrigger.emit($event)" (onTopAreaTrigger)="onTopOverscrollAreaTrigger.emit($event)" 
+                (onRightAreaTrigger)="onRightOverscrollAreaTrigger.emit($event)" (onBottomAreaTrigger)="onBottomOverscrollAreaTrigger.emit($event)"/>
         </foreignObject>
     </svg>
     @if (scrollbarEnabled()) {

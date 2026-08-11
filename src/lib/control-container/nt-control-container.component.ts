@@ -1,16 +1,15 @@
 import { Component, computed, ElementRef, inject, input, Signal, signal, TemplateRef, viewChild, ViewEncapsulation } from "@angular/core";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { combineLatest, debounceTime, delay, filter, fromEvent, map, of, skipUntil, Subject, switchMap, tap, timer } from "rxjs";
+import { BehaviorSubject, combineLatest, debounceTime, delay, filter, fromEvent, map, of, skipUntil, Subject, switchMap, tap, timer } from "rxjs";
 import { INtScrollViewService, NtScrollViewComponent, NtScrollViewService } from "../scroll-view";
 import {
   CONTROL_CONTAINER_SERVICE, ElementNames, IKeyboardSettings, INtBaseControlContainerService, KeyboardKeys, KeyboardPosition, KeyboardPositions,
   SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
 } from "../common";
-import { FOCUS, MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
+import { FOCUS, MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, POINTER_DOWN, POINTER_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
 import { NtControlContainerService } from "./nt-control-container.service";
 import { INtBaseScrollViewService } from "../common/interfaces/nt-base-scroll-view-service";
 import { isInteractive } from "../common/utils/is-interactive";
-import { ScrollerTypes } from "../common/enums/scroller-types";
 import { IFocusedObject } from "../common/interfaces/focused-object";
 import { validateArray, validateBoolean, validateInt, validateObject, validateString } from "../common/utils";
 import { DEFAULT_EXCLUDE_ELEMETN_LIST } from "../drawer-container/const";
@@ -20,9 +19,10 @@ import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
 import { IScrollToParams } from "../common/interfaces/scroll-to-params";
 import { PX } from "../common/const/base-prop-names";
 import { NtKeyboardService } from "../keyboard/nt-keyboard.service";
-import { normalizeValueForTextField } from "./utils/normalize-value-for-text-field";
 import { TextFieldTypes } from "./enums";
-import { ATTR_PATTERN, ATTR_TYPE } from "../common/const/attribute-names";
+import { ATTR_DIR, ATTR_PATTERN, ATTR_TABINDEX, ATTR_TYPE, NT_DIR, NT_SERVICE_ID } from "../common/const/attribute-names";
+import { DEFAULT_INPUT_ELEMETNS } from "../common/directives/nt-control/const";
+import { normalizeValueForTextField, querySelectorAllShadowRoots } from './utils';
 
 /**
  * NtControlContainerComponent
@@ -374,7 +374,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
   constructor() {
     super();
 
-    const $keyClick = this._keyboardService.$keyPress,
+    const $keyClick = this._keyboardService.$keyClick,
       $focusedElement = this._controlService.$focusedElement,
       $keyboardEnabled = toObservable(this.keyboardEnabled);
 
@@ -396,14 +396,54 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
       }),
     ).subscribe();
 
-    combineLatest([$keyboardEnabled, this._keyboardService.$latgTextDir, $focusedElement]).pipe(
+    let prevFocusedElement: HTMLElement | null = null;
+    combineLatest([$keyboardEnabled, this._keyboardService.$latgTextDir, $focusedElement.pipe(
       takeUntilDestroyed(),
+      tap(element => {
+        const el = element?.element ?? null;
+        if (el !== prevFocusedElement) {
+          this.setFocusedIndex(el);
+        }
+      }),
+    )]).pipe(
+      takeUntilDestroyed(),
+      debounceTime(0),
       filter(([keyboardEnabled]) => !!keyboardEnabled),
       tap(([, dir, element]) => {
-        const el = element?.element;
-        if (!!el) {
-          el.dir = dir;
+        const el = element?.element ?? null;
+        if (el !== prevFocusedElement) {
+          if (!!prevFocusedElement) {
+            if (typeof prevFocusedElement.blur === 'function') {
+              prevFocusedElement.blur();
+            }
+            const ntDir = prevFocusedElement.getAttribute(NT_DIR);
+            if (ntDir) {
+              prevFocusedElement.setAttribute(ATTR_DIR, ntDir);
+            } else {
+              prevFocusedElement.removeAttribute(NT_DIR);
+              prevFocusedElement.removeAttribute(ATTR_DIR);
+            }
+          }
+          const tagName = el?.tagName ?? null;
+          if (!tagName || !isInteractive(tagName)) {
+            this.updateKeyboardPosition(element, this.keyboardEnabled(), this.keyboardSettings(), element?.animated ?? true);
+          }
         }
+        if (!!el) {
+          if (!!el && DEFAULT_INPUT_ELEMETNS.indexOf(el.tagName?.toLowerCase()) > -1) {
+            const nodeDir = el.getAttribute(ATTR_DIR),
+              ntDir = el.getAttribute(NT_DIR);
+            if (nodeDir) {
+              if (!ntDir) {
+                el.setAttribute(NT_DIR, nodeDir);
+              }
+            } else {
+              el.removeAttribute(NT_DIR);
+            }
+            el.dir = dir;
+          }
+        }
+        prevFocusedElement = el;
       }),
     ).subscribe();
 
@@ -415,15 +455,16 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
           takeUntilDestroyed(this._destroyRef),
           filter(key => !!key),
           tap(key => {
-            const element = this._controlService?.focusedElement?.element ?? null, targetTagName = element?.tagName?.toLowerCase();
+            const keyValue = key as string, ngControl = this._controlService?.focusedElement?.ngControl ?? null,
+              ngControlValue = ngControl?.control?.value ?? null,
+              isNgControl = ngControlValue !== null,
+              element = this._controlService?.focusedElement?.element ?? null, targetTagName = element?.tagName?.toLowerCase();
+            let value: string = '';
             if (!!targetTagName && isInteractive(targetTagName)) {
               const inputElement = element as HTMLInputElement;
               if (!!inputElement) {
-                const keyValue = key as string, ngControl = this._controlService?.focusedElement?.ngControl ?? null,
-                  ngControlValue = ngControl?.control?.value ?? null,
-                  isNgControl = ngControlValue !== null,
-                  ntValue = inputElement.getAttribute(NT_VALUE);
-                let value = String(ngControlValue ?? ntValue ?? inputElement.value ?? '');
+                const ntValue = inputElement.getAttribute(NT_VALUE);
+                value = String(ngControlValue ?? ntValue ?? inputElement.value ?? '');
                 if (keyValue.indexOf(KEY_SYS) === 0) {
                   if (keyValue === KeyboardKeys.SYS_NEXT_LOCALE) {
                     this._keyboardService.nextPreset();
@@ -443,6 +484,10 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                     }
                     case KeyboardKeys.SPACE: {
                       value += ' ';
+                      break;
+                    }
+                    case KeyboardKeys.TAB: {
+                      this.focusNextElement();
                       break;
                     }
                     case KeyboardKeys.SYS_NEXT_LOCALE:
@@ -470,6 +515,10 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                       break;
                     }
                     case KeyboardKeys.ENTER: {
+                      if (!ngControl) {
+                        element?.dispatchEvent(new PointerEvent(POINTER_DOWN));
+                        element?.dispatchEvent(new PointerEvent(POINTER_UP));
+                      }
                       this.blur();
                       break;
                     }
@@ -493,7 +542,30 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                   if (!!ngControl?.control) {
                     ngControl.control.setValue(normalizedValue);
                   }
+                  return;
                 }
+              }
+            }
+            switch (keyValue) {
+              case KeyboardKeys.BACK_SPACE: {
+                value = value.length > 0 ? value.slice(0, value.length - 1) : '';
+                break;
+              }
+              case KeyboardKeys.SPACE: {
+                value += ' ';
+                break;
+              }
+              case KeyboardKeys.ENTER: {
+                if (!ngControl) {
+                  element?.dispatchEvent(new PointerEvent(POINTER_DOWN));
+                  element?.dispatchEvent(new PointerEvent(POINTER_UP));
+                }
+                this.blur();
+                break;
+              }
+              case KeyboardKeys.TAB: {
+                this.focusNextElement();
+                break;
               }
             }
           }),
@@ -539,7 +611,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
       const keyboardSettings = this.keyboardSettings(), size = keyboardSettings.common.size, position = keyboardSettings.common.position;
       return {
         width: position === KeyboardPositions.LEFT || position === KeyboardPositions.RIGHT ? `${size}${PX}` : '100%',
-        height: position === KeyboardPositions.TOP || position === KeyboardPositions.BOTTOM ? `${size}${PX}` : '100%'
+        height: position === KeyboardPositions.TOP || position === KeyboardPositions.BOTTOM ? `${size}${PX}` : '100%',
       };
     });
 
@@ -703,7 +775,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
     this._controlService.initialize(this._id, this._parentService?.id ?? -1, this.keyboardEnabled() ? this.host : window as any);
   }
 
-  private updateKeyboardPosition(e: IFocusedObject, keyboardEnabled: boolean, keyboardSettings: IKeyboardSettings, animated: boolean = true) {
+  private updateKeyboardPosition(e: IFocusedObject | null, keyboardEnabled: boolean, keyboardSettings: IKeyboardSettings, animated: boolean = true) {
     const scrollerComponent = this._scrollerComponent();
     if (!!scrollerComponent) {
       if (!!e && !!e.element) {
@@ -711,8 +783,6 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
         if (!!targetTagName && isInteractive(targetTagName)) {
           if (keyboardEnabled && target.blur instanceof Function) {
             target.blur();
-          } else if (!keyboardEnabled && target.focus instanceof Function) {
-            target.focus();
           }
           const type = target.getAttribute(ATTR_TYPE) ?? null;
           if (!!type) {
@@ -869,13 +939,104 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
   private blur(animated: boolean = true) {
     const scroller = this._scrollerComponent();
     if (!!scroller) {
+      const element = this._controlService.focusedElement?.element ?? null;
+      if (!!element) {
+        if (DEFAULT_INPUT_ELEMETNS.indexOf(element.tagName?.toLowerCase()) > -1) {
+          const ntDir = element.getAttribute(NT_DIR);
+          if (ntDir) {
+            element.setAttribute(ATTR_DIR, ntDir);
+          } else {
+            element.removeAttribute(ATTR_DIR);
+          }
+          element.removeAttribute(NT_DIR);
+        }
+        if (typeof element.blur === 'function') {
+          element.blur();
+        }
+      }
+      this.setFocusedIndex(null);
       this._controlService.focus({
-        id: -1,
-        element: this._elementRef.nativeElement,
-        ngControl: null,
-        type: scroller.type ?? ScrollerTypes.SCROLL_VIEW_SCROLLER,
-        scroller: null, animated,
+        id: -1, element: null, type: null, scroller: null, ngControl: null, animated,
       });
     }
+  }
+
+  private _$focusedIndex = new BehaviorSubject<number>(-1);
+  readonly $focusedIndex = this._$focusedIndex.asObservable();
+  get focusedIndex() { return this._$focusedIndex.getValue(); }
+
+  private getFocusedElements(): {
+    element: HTMLElement | null;
+    focusedElements: Array<Element>;
+    length: number;
+  } {
+    const element = this._scrollerComponent()?.host ?? null;
+    if (!element) {
+      return {
+        element,
+        length: 0,
+        focusedElements: [],
+      };
+    }
+    const focusedElements = Array.from(querySelectorAllShadowRoots(element, `[${ATTR_TABINDEX}]:not([${ATTR_TABINDEX}=""])`) ?? []),
+      sortedElements = focusedElements.sort((a: Element, b: Element) => {
+        const at = a.getAttribute(ATTR_TABINDEX) ?? -2, bt = b.getAttribute(ATTR_TABINDEX) ?? -2;
+        if (at < bt) return -1;
+        if (at > bt) return 1;
+        return 0;
+      }),
+      length = sortedElements.length;
+    return {
+      element,
+      length,
+      focusedElements: sortedElements,
+    };
+  }
+
+  protected setFocusedIndex(src: HTMLElement | null = null) {
+    const { focusedElements } = this.getFocusedElements(),
+      currentIndex = this.focusedIndex;
+    let srcIndex: number = -1;
+    srcIndex = !!src ? focusedElements.findIndex(e => (e as any) === src) : -1;
+    if (currentIndex !== srcIndex) {
+      if (srcIndex > -1) {
+        const focusedElement = focusedElements[srcIndex] as HTMLElement;
+        if (!!focusedElement) {
+          if (typeof focusedElement.focus === 'function') {
+            focusedElement.focus({ preventScroll: true });
+          }
+        }
+
+        this._$focusedIndex.next(srcIndex);
+      }
+    }
+  }
+
+  protected focusNextElement(src: HTMLElement | null = null) {
+    const { element, focusedElements, length } = this.getFocusedElements();
+
+    const currentIndex = this.focusedIndex;
+    let nextIndex: number, srcIndex: number = -1;
+    if (!!src) {
+      srcIndex = focusedElements.findIndex(e => e === element);
+    }
+    if (srcIndex > -1) {
+      nextIndex = srcIndex;
+    } else {
+      if (currentIndex >= length) {
+        nextIndex = length > 0 ? 0 : -1;
+      } else {
+        nextIndex = length > 0 ? (currentIndex < length - 1 ? (currentIndex + 1) : 0) : -1;
+      }
+    }
+
+    if (nextIndex > -1) {
+      const focusedElement = focusedElements[nextIndex] as HTMLElement;
+      if (!!focusedElement) {
+        this._controlService.focusEcho(focusedElement, null, Number(focusedElement.getAttribute(NT_SERVICE_ID)));
+      }
+    }
+
+    this._$focusedIndex.next(nextIndex);
   }
 }

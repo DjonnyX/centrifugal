@@ -4,8 +4,8 @@
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export const toggleClassName = (el: HTMLElement, className: string, removeClassNames?: Array<string>) => {
-    if (!el.classList.contains(className)) {
+export const toggleClassName = (el: HTMLElement, className: string | null, removeClassNames?: Array<string>) => {
+    if (!!className && !el.classList.contains(className)) {
         el.classList.add(className);
     }
     if (!!removeClassNames) {

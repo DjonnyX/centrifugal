@@ -207,7 +207,7 @@ export class NtKeyboardService {
         }
     }
 
-    fireKeyEvent(key: NormalizedKeyboardKey, state: KeyboardKeyState) {
+    fireKeyEvent(key: NormalizedKeyboardKey, state: KeyboardKeyState, e: Event | null = null) {
         if (key.value?.indexOf(KEY_SYS) === -1 && key.value?.indexOf(KEY_LAYOUT) === -1) {
             switch (key.value) {
                 case KeyboardKeys.SHIFT: {
@@ -220,6 +220,15 @@ export class NtKeyboardService {
                     }
                     break;
                 }
+            }
+        }
+
+        switch (key.value) {
+            case KeyboardKeys.TAB: {
+                if (!!e) {
+                    e.preventDefault();
+                }
+                break;
             }
         }
 

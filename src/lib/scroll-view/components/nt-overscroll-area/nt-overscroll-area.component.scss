@@ -1,9 +1,9 @@
-.ntoi-container {
+.ntoa-container {
     position: relative;
     display: block;
     z-index: 1;
 
-    .ntoi-rect {
+    .ntoa-rect {
         position: absolute;
         display: block;
         width: 120px;
@@ -39,7 +39,7 @@
     }
 
     &:not(.grabbing) {
-        .ntoi-rect {
+        .ntoa-rect {
             transition: left ease-out 250ms, right ease-out 250ms, top ease-out 250ms, bottom ease-out 250ms;
         }
     }

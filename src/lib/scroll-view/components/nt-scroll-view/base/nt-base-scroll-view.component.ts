@@ -32,33 +32,33 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     readonly onOverscroll = output<IOverscrollEvent>();
 
-    readonly onLeftOverscrollIndiatorTrigger = output<boolean>();
+    readonly onLeftOverscrollAreaTrigger = output<boolean>();
 
-    readonly onTopOverscrollIndiatorTrigger = output<boolean>();
+    readonly onTopOverscrollAreaTrigger = output<boolean>();
 
-    readonly onRightOverscrollIndiatorTrigger = output<boolean>();
+    readonly onRightOverscrollAreaTrigger = output<boolean>();
 
-    readonly onBottomOverscrollIndiatorTrigger = output<boolean>();
+    readonly onBottomOverscrollAreaTrigger = output<boolean>();
 
-    readonly overscrollIndicatorShowAutomatically = input<boolean>(true);
+    readonly overscrollAreaShowAutomatically = input<boolean>(true);
 
-    readonly overscrollIndicatorUseOffsets = input<boolean>(false);
+    readonly overscrollAreaUseOffsets = input<boolean>(false);
 
-    readonly overscrollIndicatorLeftEnabled = input<boolean>(false);
+    readonly overscrollAreaLeftEnabled = input<boolean>(false);
 
-    readonly overscrollIndicatorTopEnabled = input<boolean>(false);
+    readonly overscrollAreaTopEnabled = input<boolean>(false);
 
-    readonly overscrollIndicatorRightEnabled = input<boolean>(false);
+    readonly overscrollAreaRightEnabled = input<boolean>(false);
 
-    readonly overscrollIndicatorBottomEnabled = input<boolean>(false);
+    readonly overscrollAreaBottomEnabled = input<boolean>(false);
 
-    readonly overscrollIndicatorLeftRenderer = input<TemplateRef<any> | null>(null);
+    readonly overscrollAreaLeftRenderer = input<TemplateRef<any> | null>(null);
 
-    readonly overscrollIndicatorTopRenderer = input<TemplateRef<any> | null>(null);
+    readonly overscrollAreaTopRenderer = input<TemplateRef<any> | null>(null);
 
-    readonly overscrollIndicatorRightRenderer = input<TemplateRef<any> | null>(null);
+    readonly overscrollAreaRightRenderer = input<TemplateRef<any> | null>(null);
 
-    readonly overscrollIndicatorBottomRenderer = input<TemplateRef<any> | null>(null);
+    readonly overscrollAreaBottomRenderer = input<TemplateRef<any> | null>(null);
 
     readonly direction = input<ScrollerDirections>(ScrollerDirection.BOTH);
 
@@ -88,13 +88,13 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     get offsetBottom() { return this._bottomOffset(); }
 
-    protected _actualOverscrollIndicatorLeftEnabled = signal<boolean>(false);
+    protected _actualOverscrollAreaLeftEnabled = signal<boolean>(false);
 
-    protected _actualOverscrollIndicatorTopEnabled = signal<boolean>(false);
+    protected _actualOverscrollAreaTopEnabled = signal<boolean>(false);
 
-    protected _actualOverscrollIndicatorRightEnabled = signal<boolean>(false);
+    protected _actualOverscrollAreaRightEnabled = signal<boolean>(false);
 
-    protected _actualOverscrollIndicatorBottomEnabled = signal<boolean>(false);
+    protected _actualOverscrollAreaBottomEnabled = signal<boolean>(false);
 
     readonly grabbing = signal<boolean>(false);
 
@@ -282,14 +282,14 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
         const $viewportBounds = toObservable(this.viewportBounds),
             $contentBounds = toObservable(this.contentBounds),
             $langTextDir = toObservable(this.langTextDir),
-            $overscrollIndicatorShowAutomatically = toObservable(this.overscrollIndicatorShowAutomatically),
-            $overscrollIndicatorLeftEnabled = toObservable(this.overscrollIndicatorLeftEnabled),
-            $overscrollIndicatorTopEnabled = toObservable(this.overscrollIndicatorTopEnabled),
-            $overscrollIndicatorRightEnabled = toObservable(this.overscrollIndicatorRightEnabled),
-            $overscrollIndicatorBottomEnabled = toObservable(this.overscrollIndicatorBottomEnabled);
+            $overscrollAreaShowAutomatically = toObservable(this.overscrollAreaShowAutomatically),
+            $overscrollAreaLeftEnabled = toObservable(this.overscrollAreaLeftEnabled),
+            $overscrollAreaTopEnabled = toObservable(this.overscrollAreaTopEnabled),
+            $overscrollAreaRightEnabled = toObservable(this.overscrollAreaRightEnabled),
+            $overscrollAreaBottomEnabled = toObservable(this.overscrollAreaBottomEnabled);
 
-        combineLatest([$viewportBounds, $contentBounds, $langTextDir, $overscrollIndicatorShowAutomatically, $overscrollIndicatorLeftEnabled,
-            $overscrollIndicatorTopEnabled, $overscrollIndicatorRightEnabled, $overscrollIndicatorBottomEnabled,
+        combineLatest([$viewportBounds, $contentBounds, $langTextDir, $overscrollAreaShowAutomatically, $overscrollAreaLeftEnabled,
+            $overscrollAreaTopEnabled, $overscrollAreaRightEnabled, $overscrollAreaBottomEnabled,
         ]).pipe(
             takeUntilDestroyed(),
             debounceTime(0),
@@ -298,27 +298,27 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
                     top = (topEnabled || showAutomatically) ? this.scrollableY : false,
                     right = (rightEnabled || showAutomatically) ? this.scrollableX : false,
                     bottom = (bottomEnabled || showAutomatically) ? this.scrollableY : false;
-                this._actualOverscrollIndicatorLeftEnabled.set(langTextDir === TextDirections.LTR ? left : right);
-                this._actualOverscrollIndicatorTopEnabled.set(top);
-                this._actualOverscrollIndicatorRightEnabled.set(langTextDir === TextDirections.LTR ? right : left);
-                this._actualOverscrollIndicatorBottomEnabled.set(bottom);
+                this._actualOverscrollAreaLeftEnabled.set(langTextDir === TextDirections.LTR ? left : right);
+                this._actualOverscrollAreaTopEnabled.set(top);
+                this._actualOverscrollAreaRightEnabled.set(langTextDir === TextDirections.LTR ? right : left);
+                this._actualOverscrollAreaBottomEnabled.set(bottom);
             }),
         ).subscribe();
 
         this._leftOffset = computed(() => {
-            return this.overscrollIndicatorUseOffsets() ? this.leftOffset() : 0;
+            return this.overscrollAreaUseOffsets() ? this.leftOffset() : 0;
         });
 
         this._topOffset = computed(() => {
-            return this.overscrollIndicatorUseOffsets() ? this.topOffset() : 0;
+            return this.overscrollAreaUseOffsets() ? this.topOffset() : 0;
         });
 
         this._rightOffset = computed(() => {
-            return this.overscrollIndicatorUseOffsets() ? this.rightOffset() : 0;
+            return this.overscrollAreaUseOffsets() ? this.rightOffset() : 0;
         });
 
         this._bottomOffset = computed(() => {
-            return this.overscrollIndicatorUseOffsets() ? this.bottomOffset() : 0;
+            return this.overscrollAreaUseOffsets() ? this.bottomOffset() : 0;
         });
     }
 

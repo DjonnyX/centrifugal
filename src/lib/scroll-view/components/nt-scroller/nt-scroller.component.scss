@@ -64,7 +64,7 @@
         }
     }
 
-    .ntoi {
+    .ntoa {
         position: relative;
     }
 
@@ -92,6 +92,11 @@
         min-width: 100%;
         min-height: 100%;
         opacity: 0;
+
+        &:focus {
+            outline: none;
+            border: none;
+        }
 
         &.prepared {
             opacity: 1;
