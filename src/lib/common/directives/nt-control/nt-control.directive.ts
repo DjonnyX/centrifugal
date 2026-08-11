@@ -11,7 +11,7 @@ import { INtBaseControlContainerService } from '../../interfaces';
 import { GRABBING, NOT_GRABBING } from '../../const/class-names';
 import { DomSanitizer } from '@angular/platform-browser';
 import { INtBaseScrollViewService } from '../../interfaces/nt-base-scroll-view-service';
-import { ATTR_TYPE, NT_SERVICE_ID } from '../../const/attribute-names';
+import { ATTR_TABINDEX, ATTR_TYPE, NT_SERVICE_ID } from '../../const/attribute-names';
 import { NT_VALUE } from '../../../control-container/const';
 import { PATTERN_DOT } from '../../const/pattern';
 import { isInteractive } from '../../utils/is-interactive';
@@ -152,6 +152,10 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
             host = this._elementRef.nativeElement,
             targetTagName = host.tagName.toLowerCase();
 
+        if (!this._elementRef.nativeElement.hasAttribute(ATTR_TABINDEX)) {
+            this._elementRef.nativeElement.tabIndex = -1;
+        }
+
         host.setAttribute(NT_SERVICE_ID, this._service.id.toString());
 
         this._controlService.$keyboardEnabled.pipe(
@@ -164,13 +168,6 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
                     distinctUntilChanged(),
                     tap(target => {
                         this._controlService.focusEcho(target, this._ngControl, this._service.id);
-                        if (keyboardEnabled) {
-                            if (isInteractive(targetTagName) && target.blur instanceof Function) {
-                                target.blur();
-                            }
-                        } else if (!keyboardEnabled && target.focus instanceof Function) {
-                            target.focus({ preventScroll: true });
-                        }
                     }),
                 );
             })

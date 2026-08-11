@@ -192,7 +192,19 @@ export class NtScrollerComponent extends NtScrollView {
       $motionBlur = toObservable(this.motionBlur),
       $maxMotionBlur = toObservable(this.maxMotionBlur),
       $motionBlurEnabled = toObservable(this.motionBlurEnabled),
-      $isVertical = toObservable(this.isVertical);
+      $isVertical = toObservable(this.isVertical),
+      $scrollContent = toObservable(this.scrollContent);
+
+    $scrollContent.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      tap(v => {
+        this._controlContainerService.focus({
+          element: v.nativeElement, ngControl: null,
+          scroller: this, type: this._type, id: this._service.id,
+        });
+      }),
+    ).subscribe();
 
     const $scrollbarScroll = this.$scrollbarScroll;
     $scrollbarScroll.pipe(

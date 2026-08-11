@@ -10,7 +10,7 @@ import { INtScroller } from "./nt-scroller";
  */
 export interface IFocusedObject {
     id: number;
-    type: string;
+    type: string | null;
     element: HTMLElement | null;
     ngControl: NgControl | null;
     scroller: INtScroller<INtBaseScrollViewService> | null;

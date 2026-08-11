@@ -10,8 +10,8 @@
             <div class="ntvl__scroller-wrapper" [class.filtered]="filtered"
                 [style.filter]="filtered ? _filter : 'unset'">
                 <div cdkScrollable #scrollViewport part="nt-scroller" class="ntvl__scroller">
-                    <div #scrollContent [attr.aria-orientation]="direction()"
-                        [attr.aria-activedescendant]="focusedElement()" tabindex="0" part="nt-list" class="ntvl__list"
+                    <div #scrollContent [attr.aria-orientation]="direction()" tabindex="-1"
+                        [attr.aria-activedescendant]="focusedElement()" part="nt-list" class="ntvl__list"
                         [ngClass]="actualClasses()" [ngStyle]="listStyles()">
                         <ng-content></ng-content>
                     </div>

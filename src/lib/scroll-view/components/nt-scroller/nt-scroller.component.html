@@ -13,7 +13,7 @@
                 [style.filter]="filtered ? _filter : 'unset'">
                 <div cdkScrollable #scrollViewport part="nt-scroller" class="ntvs__scroller">
                     <div #scrollContent [attr.aria-orientation]="direction()"
-                        [attr.aria-activedescendant]="focusedElement()" tabindex="0" part="nt-scroller-content"
+                        [attr.aria-activedescendant]="focusedElement()" tabindex="-1" part="nt-scroller-content"
                         class="ntvs__content" [ngClass]="actualClasses()" [ngStyle]="listStyles()">
                         <ng-content></ng-content>
                     </div>

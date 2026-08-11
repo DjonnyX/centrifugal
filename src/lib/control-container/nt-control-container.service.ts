@@ -1,6 +1,6 @@
 import { DestroyRef, inject, Injectable, OnDestroy } from '@angular/core';
 import { NgControl } from '@angular/forms';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { BehaviorSubject, map, skip, Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { Id, IRect, KeyboardKeyValue } from '../common';
 import { INtControlContainerService } from './interfaces';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
@@ -8,6 +8,7 @@ import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-vi
 import { INtScroller } from '../common/interfaces/nt-scroller';
 import { IFocusedObject } from '../common/interfaces/focused-object';
 import { DEFAULT_KEYBOARD_ENABLED } from './const';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 /**
  * NtControlContainerService
@@ -65,6 +66,25 @@ export class NtControlContainerService extends NtBaseScrollViewService implement
 
   constructor() {
     super();
+
+    const $focusEcho = this.$focusEcho,
+      $focusedElement = this.$focusedElement;
+    $focusEcho.pipe(
+      takeUntilDestroyed(),
+      switchMap(() => {
+        return timer(200).pipe(
+          takeUntilDestroyed(this._destroyRef),
+          takeUntil($focusedElement.pipe(
+            takeUntilDestroyed(this._destroyRef),
+            skip(1),
+          )),
+          map(() => true),
+        )
+      }),
+      tap(() => {
+        this._$focusedElement.next({ id: -1, element: null, type: null, scroller: null, ngControl: null });
+      }),
+    ).subscribe();
   }
 
   initialize(id: number, parentId: number, emitter: HTMLElement) {

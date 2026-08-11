@@ -8,6 +8,7 @@ export enum KeyboardKeys {
     // System keys
     SYS_NEXT_LOCALE = 'sys::next-locale',
     // Service keys
+    TAB = 'Tab',
     SHIFT = 'Shift',
     BACK_SPACE = 'Backspace',
     CAPS_LOCK = 'CapsLock',

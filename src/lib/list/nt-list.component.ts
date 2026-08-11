@@ -3634,7 +3634,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
    * Focus an list item by a given id.
    */
   focus(id: Id, align: FocusAlignment = FocusAlignments.NONE) {
-    this._elementRef.nativeElement.focus();
+    this._elementRef.nativeElement.focus({ preventScroll: true });
     this._service.focusById(id, align, this.scrollBehavior());
   }
 
@@ -3651,7 +3651,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
     validateScrollBehavior(behavior);
     validateIteration(iteration);
     const actualIteration = validateScrollIteration(iteration);
-    this._elementRef.nativeElement.focus();
+    this._elementRef.nativeElement.focus({ preventScroll: true });
     this._$scrollTo.next({
       id, behavior, blending, delay, iteration: actualIteration, isLastIteration: actualIteration === MAX_SCROLL_TO_ITERATIONS, cb: () => {
         this.scrollToFinalize(id, focused, cb);
@@ -3681,7 +3681,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
     const trackBy = this.trackBy(), items = this._actualItems(), firstItem = items.length > 0 ? items[0] ?? null : null, id = firstItem?.[trackBy] ?? null,
       actualIteration = validateScrollIteration(iteration);
     if (!!firstItem) {
-      this._elementRef.nativeElement.focus();
+      this._elementRef.nativeElement.focus({ preventScroll: true });
       this._$scrollTo.next({
         id, behavior, blending, delay, iteration: actualIteration, isLastIteration: actualIteration === MAX_SCROLL_TO_ITERATIONS, cb: () => {
           this._isScrollStart.set(true);
@@ -3720,7 +3720,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
     if (latItem === null) {
       return;
     }
-    this._elementRef.nativeElement.focus();
+    this._elementRef.nativeElement.focus({ preventScroll: true });
     if (!this._scrollerComponent()?.scrollable) {
       this.scrollToFinalize(id, focused, cb);
       return;

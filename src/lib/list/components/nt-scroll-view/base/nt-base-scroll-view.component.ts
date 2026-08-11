@@ -299,6 +299,7 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
                 }),
             ).subscribe();
     }
+
     stopScrolling(force?: boolean): void {
         throw new Error('Method not implemented.');
     }

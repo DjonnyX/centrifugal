@@ -9,3 +9,5 @@ export const ATTR_TYPE = 'type';
 export const ATTR_PATTERN = 'pattern';
 
 export const ATTR_DIR = 'dir';
+
+export const ATTR_TABINDEX = 'tabindex';

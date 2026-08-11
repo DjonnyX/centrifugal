@@ -88,13 +88,13 @@ export class NtKeyboardComponent {
             switchMap(e => {
                 const isCaps = e.getModifierState(KeyboardKeys.CAPS_LOCK);
                 this._service.setCaps(e.shiftKey || isCaps);
-                this._service.fireKeyEvent({ value: e.key, name: e.key }, KeyboardKeyStates.PRESS);
+                this._service.fireKeyEvent({ value: e.key, name: e.key }, KeyboardKeyStates.PRESS, e);
                 return $keyUp.pipe(
                     takeUntilDestroyed(this._destroyRef),
                     tap(e => {
                         const isCaps = e.getModifierState(KeyboardKeys.CAPS_LOCK);
                         this._service.setCaps(e.shiftKey || isCaps);
-                        this._service.fireKeyEvent({ value: e.key, name: e.key }, KeyboardKeyStates.CLICK);
+                        this._service.fireKeyEvent({ value: e.key, name: e.key }, KeyboardKeyStates.CLICK, e);
                     }),
                 );
             }),
