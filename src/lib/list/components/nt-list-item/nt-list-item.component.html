@@ -5,7 +5,7 @@
     @if (_blendColor) {
         <div class="ntvl-item__blend-color" [style.--blend-color]="_blendColor"></div>
     }
-    <div #container ntControl [part]="fxPart()" [maxClickDistance]="maxClickDistance()" class="ntvl-item__container"
+    <div #container ntControl [part]="fxPart()" [ntMaxClickDistance]="ntMaxClickDistance()" class="ntvl-item__container"
         [ngClass]="class" (onVirtualClick)="onClickHandler()" (onVirtualClickPress)="onClickPressHandler()"
         (onVirtualClickCancel)="onClickCancelHandler()">
         @if (renderer) {

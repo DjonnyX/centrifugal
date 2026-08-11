@@ -374,7 +374,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
   constructor() {
     super();
 
-    const $keyClick = this._keyboardService.$keyPress,
+    const $keyClick = this._keyboardService.$keyClick,
       $focusedElement = this._controlService.$focusedElement,
       $keyboardEnabled = toObservable(this.keyboardEnabled);
 
@@ -515,7 +515,10 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                       break;
                     }
                     case KeyboardKeys.ENTER: {
-                      element?.click();
+                      if (!ngControl) {
+                        element?.dispatchEvent(new PointerEvent(POINTER_DOWN));
+                        element?.dispatchEvent(new PointerEvent(POINTER_UP));
+                      }
                       this.blur();
                       break;
                     }

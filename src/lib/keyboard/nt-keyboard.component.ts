@@ -102,6 +102,10 @@ export class NtKeyboardComponent {
     }
 
     onPressHandler(e: Event, key: NormalizedKeyboardKey) {
+        if (e.cancelable) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+        }
         this._service.fireKeyEvent(key, KeyboardKeyStates.PRESS);
     }
 
@@ -110,6 +114,10 @@ export class NtKeyboardComponent {
     }
 
     onClickHandler(e: Event, key: NormalizedKeyboardKey) {
+        if (e.cancelable) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+        }
         this._service.fireKeyEvent(key, KeyboardKeyStates.CLICK);
     }
 

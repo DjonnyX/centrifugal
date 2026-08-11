@@ -35,7 +35,7 @@ import { DEFAULT_CLICK_DISTANCE } from '../../../common/directives/nt-control/co
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NtListItemComponent extends NtBaseVirtualListItemComponent implements OnInit {
-  protected readonly maxClickDistance = signal<number>(DEFAULT_CLICK_DISTANCE);
+  protected readonly ntMaxClickDistance = signal<number>(DEFAULT_CLICK_DISTANCE);
 
   protected _injector = inject(Injector);
 
@@ -47,7 +47,7 @@ export class NtListItemComponent extends NtBaseVirtualListItemComponent implemen
     this._service.$clickDistance.pipe(
       takeUntilDestroyed(this._destroyRef),
       tap(v => {
-        this.maxClickDistance.set(v);
+        this.ntMaxClickDistance.set(v);
       }),
     ).subscribe();
 

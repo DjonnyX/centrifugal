@@ -14,7 +14,6 @@ import { INtBaseScrollViewService } from '../../interfaces/nt-base-scroll-view-s
 import { ATTR_TABINDEX, ATTR_TYPE, NT_SERVICE_ID } from '../../const/attribute-names';
 import { NT_VALUE } from '../../../control-container/const';
 import { PATTERN_DOT } from '../../const/pattern';
-import { isInteractive } from '../../utils/is-interactive';
 
 /**
  * NtControlDirective
@@ -41,14 +40,14 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
         transform: (v: number) => {
             const valid = validateFloat(v);
             if (!valid) {
-                console.error('The "longPress" parameter must be of type `number`.');
+                console.error('The "ntLongPress" parameter must be of type `number`.');
                 return DEFAULT_DURATION;
             }
             return v;
         },
     } as any;
 
-    @Input('longPress')
+    @Input('ntLongPress')
     set duration(v: number) {
         const value = this._durationTransform.transform(v);
         if (this.duration !== v) {
@@ -56,63 +55,63 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
         }
     }
 
-    protected _longPressEnableTransform = {
+    protected _ntLongPressEnableTransform = {
         transform: (v: boolean) => {
             const valid = validateBoolean(v);
             if (!valid) {
-                console.error('The "longPressEnable" parameter must be of type `boolean`.');
+                console.error('The "ntLongPressEnable" parameter must be of type `boolean`.');
                 return false;
             }
             return v;
         },
     } as any;
 
-    longPressEnable = input<boolean>(false, { ...this._longPressEnableTransform });
+    ntLongPressEnable = input<boolean>(false, { ...this._ntLongPressEnableTransform });
 
-    protected _maxClickDistanceTransform = {
+    protected _ntMaxClickDistanceTransform = {
         transform: (v: number) => {
             const valid = validateFloat(v);
             if (!valid) {
-                console.error('The "maxClickDistance" parameter must be of type `number`.');
+                console.error('The "ntMaxClickDistance" parameter must be of type `number`.');
                 return DEFAULT_CLICK_DISTANCE;
             }
             return v;
         },
     } as any;
 
-    maxClickDistance = input<number>(DEFAULT_CLICK_DISTANCE, { ...this._maxClickDistanceTransform });
+    ntMaxClickDistance = input<number>(DEFAULT_CLICK_DISTANCE, { ...this._ntMaxClickDistanceTransform });
 
-    protected _emitNativeClickTransform = {
+    protected _ntEmitNativeClickTransform = {
         transform: (v: boolean) => {
             const valid = validateBoolean(v);
             if (!valid) {
-                console.error('The "emitNativeClick" parameter must be of type `boolean`.');
+                console.error('The "ntEmitNativeClick" parameter must be of type `boolean`.');
                 return true;
             }
             return v;
         },
     } as any;
 
-    emitNativeClick = input<boolean>(true, { ...this._emitNativeClickTransform });
+    ntEmitNativeClick = input<boolean>(true, { ...this._ntEmitNativeClickTransform });
 
-    protected _focusElementTransform = {
+    protected _ntFocusableTransform = {
         transform: (v: boolean) => {
             const valid = validateBoolean(v);
             if (!valid) {
-                console.error('The "focusElement" parameter must be of type `boolean`.');
+                console.error('The "ntFocusable" parameter must be of type `boolean`.');
                 return true;
             }
             return v;
         },
     } as any;
 
-    focusElement = input<boolean>(true, { ...this._focusElementTransform });
+    ntFocusable = input<boolean>(true, { ...this._ntFocusableTransform });
 
-    protected _allowedAnchorDraggableTransform = {
+    protected _ntAllowedAnchorDraggableTransform = {
         transform: (v: boolean) => {
             const valid = validateBoolean(v);
             if (!valid) {
-                console.error('The "allowedAnchorDraggable" parameter must be of type `boolean`.');
+                console.error('The "ntAllowedAnchorDraggable" parameter must be of type `boolean`.');
                 return false;
             }
             return v;
@@ -122,7 +121,7 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
     /**
      * Determines whether anchors can be moved by dragging. Default value is `false`.
      */
-    allowedAnchorDraggable = input<boolean>(false, { ...this._allowedAnchorDraggableTransform });
+    ntAllowedAnchorDraggable = input<boolean>(false, { ...this._ntAllowedAnchorDraggableTransform });
 
     onVirtualClick = output<PointerEvent | TouchEvent>();
 
@@ -173,8 +172,8 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
             })
         ).subscribe();
 
-        const $allowedAnchorDraggable = toObservable(this.allowedAnchorDraggable);
-        $allowedAnchorDraggable.pipe(
+        const $ntAllowedAnchorDraggable = toObservable(this.ntAllowedAnchorDraggable);
+        $ntAllowedAnchorDraggable.pipe(
             takeUntilDestroyed(),
             tap(v => {
                 if (targetTagName === ANCHOR) {
@@ -184,9 +183,9 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
             }),
         ).subscribe();
 
-        let maxDistance = this.maxClickDistance() ?? DEFAULT_CLICK_DISTANCE;
+        let maxDistance = this.ntMaxClickDistance() ?? DEFAULT_CLICK_DISTANCE;
 
-        const $maxDistance = toObservable(this.maxClickDistance);
+        const $maxDistance = toObservable(this.ntMaxClickDistance);
 
         if (!!this._service) {
             combineLatest([this._service.$grabbing, this.$elementTarget]).pipe(
@@ -243,7 +242,7 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
                 const x = Math.abs(e.clientX),
                     y = Math.abs(e.clientY);
                 this.onVirtualClickPress.emit(e);
-                if (this.longPressEnable()) {
+                if (this.ntLongPressEnable()) {
                     this._$timerComplited.next(false);
                     this._$timer.next(this.duration);
                 }
@@ -254,7 +253,7 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
                             $pointerCancel.pipe(
                                 takeUntilDestroyed(this._destroyRef),
                                 tap(() => {
-                                    if (this.longPressEnable()) {
+                                    if (this.ntLongPressEnable()) {
                                         this._$timer.next(0);
                                     }
                                     this.onVirtualClickCancel.emit();
@@ -269,7 +268,7 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
                                         dist = Math.sqrt(Math.pow(xx, 2) + Math.pow(yy, 2));
 
                                     if (dist > maxDistance) {
-                                        if (this.longPressEnable()) {
+                                        if (this.ntLongPressEnable()) {
                                             this._$timer.next(0);
                                         }
                                         this.onVirtualClickCancel.emit();
@@ -292,14 +291,14 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
                         e.preventDefault();
                     }
 
-                    if (!!this.longPressEnable() && this._$timerComplited.getValue()) {
+                    if (!!this.ntLongPressEnable() && this._$timerComplited.getValue()) {
                         this.onLongPress.emit();
                     } else {
                         this.onVirtualClick.emit(e);
                     }
                     this._$timer.next(0);
 
-                    if (this.emitNativeClick()) {
+                    if (this.ntEmitNativeClick()) {
                         const target = e.target as HTMLElement,
                             targetTagName = target.tagName.toLowerCase();
                         if (!!targetTagName) {
@@ -311,7 +310,7 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
                                     window.open(sanitizedUrl, aTarget.target);
                                 }
                             } else {
-                                if (this.focusElement() && !!this._controlService) {
+                                if (this.ntFocusable() && !!this._controlService) {
                                     this._controlService.focusEcho(target, this._ngControl, this._service.id);
                                 }
                             }
