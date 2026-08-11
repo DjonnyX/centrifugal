@@ -515,7 +515,6 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                       break;
                     }
                     case KeyboardKeys.ENTER: {
-                      console.log(element)
                       element?.click();
                       this.blur();
                       break;
