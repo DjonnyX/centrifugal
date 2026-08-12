@@ -89,6 +89,10 @@ export class NtScrollerComponent extends NtScrollView {
 
   public readonly listStyles = signal<{ perspectiveOrigin: string }>({ perspectiveOrigin: 'center' });
 
+  public readonly wrapperStyles = signal<{ [styleName: string]: string; }>({});
+
+  public readonly wrapperClass = signal<{ [className: string]: boolean; }>({});
+
   private _scrollBox = new ScrollBox();
 
   get host() {
@@ -193,7 +197,21 @@ export class NtScrollerComponent extends NtScrollView {
       $maxMotionBlur = toObservable(this.maxMotionBlur),
       $motionBlurEnabled = toObservable(this.motionBlurEnabled),
       $isVertical = toObservable(this.isVertical),
-      $scrollContent = toObservable(this.scrollContent);
+      $scrollContent = toObservable(this.scrollContent),
+      $overscrollEvent = this.$overscroll;
+
+    combineLatest([$overscrollEvent, this.$resizeViewport]).pipe(
+      takeUntilDestroyed(),
+      tap(([e, viewportBounds]) => {
+        const dx = e.dragX, dy = e.dragY, sx = viewportBounds.width !== 1 ? (dx !== 0 ? Math.pow((dx + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,
+          sy = viewportBounds.height !== 0 ? (dy !== 0 ? Math.pow((dy + viewportBounds.height) / viewportBounds.height, 0.1) : 1) : 1;
+        this.wrapperClass.set({ 'animated': !e.grabbing });
+        this.wrapperStyles.set({
+          transform: `scale(${sx}, ${sy})`,
+          transformOrigin: `${e.positionX === 1 ? 'right' : 'left'} ${e.positionY === 1 ? 'bottom' : 'top'}`,
+        });
+      }),
+    ).subscribe();
 
     $scrollContent.pipe(
       takeUntilDestroyed(),

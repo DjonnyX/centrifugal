@@ -4,8 +4,8 @@ import {
 import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
 import { ScrollerDirection, ScrollerDirections } from '../enums';
 import {
-    IOverscrollEvent,
-    ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, TextDirection, TextDirections,
+    IOverscrollEvent, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
+    TextDirection, TextDirections,
 } from '../../../../common';
 import { INtListService } from '../../../interfaces';
 import { INtScroller } from '../../../../common/interfaces/nt-scroller';
