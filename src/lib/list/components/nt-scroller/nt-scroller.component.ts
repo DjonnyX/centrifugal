@@ -1,6 +1,6 @@
 import { Component, computed, effect, ElementRef, input, output, Signal, signal, TemplateRef, viewChild, ViewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { combineLatest, debounceTime, filter, from, Subject, switchMap, take, tap } from 'rxjs';
+import { combineLatest, debounceTime, filter, Subject, tap } from 'rxjs';
 import { ScrollBox } from './utils';
 import {
   DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR,
@@ -244,7 +244,7 @@ export class NtScrollerComponent extends NtScrollView {
       $scrollbarMinSize = toObservable(this.scrollbarMinSize),
       $thumbSize = toObservable(this.thumbSize);
 
-    from([$endOffset, $startOffset, $thumbSize, $scrollbarMinSize, $isVertical]).pipe(
+    combineLatest([$endOffset, $startOffset, $thumbSize, $scrollbarMinSize, $isVertical]).pipe(
       takeUntilDestroyed(),
       debounceTime(0),
       tap(() => {
@@ -288,19 +288,6 @@ export class NtScrollerComponent extends NtScrollView {
         this.updateScrollBarHandler();
       }
     });
-  }
-
-  private resizeViewport() {
-    if (this.scrollable) {
-      const isVertical = this.isVertical();
-      let position: number;
-      if (isVertical) {
-        position = this._scrollRatio * this.scrollHeight;
-      } else {
-        position = this._scrollRatio * this.scrollWidth;
-      }
-      this.move(isVertical, position, true, false, false);
-    }
   }
 
   private recalculatePerspective() {

@@ -1,6 +1,6 @@
 import { Component, computed, effect, ElementRef, input, output, Signal, signal, TemplateRef, viewChild, ViewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { combineLatest, debounceTime, filter, from, Subject, tap } from 'rxjs';
+import { combineLatest, debounceTime, filter, Subject, tap } from 'rxjs';
 import { ScrollBox } from './utils';
 import {
   DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
@@ -272,7 +272,7 @@ export class NtScrollerComponent extends NtScrollView {
       $thumbSizeHorizontal = toObservable(this.thumbSizeHorizontal),
       $thumbSizeVertical = toObservable(this.thumbSizeVertical);
 
-    from([$rightOffset, $leftOffset, $thumbSizeHorizontal, $scrollbarMinSize]).pipe(
+    combineLatest([$rightOffset, $leftOffset, $thumbSizeHorizontal, $scrollbarMinSize]).pipe(
       takeUntilDestroyed(),
       debounceTime(0),
       tap(() => {
@@ -280,7 +280,7 @@ export class NtScrollerComponent extends NtScrollView {
       }),
     ).subscribe();
 
-    from([$bottomOffset, $topOffset, $thumbSizeVertical, $scrollbarMinSize]).pipe(
+    combineLatest([$bottomOffset, $topOffset, $thumbSizeVertical, $scrollbarMinSize]).pipe(
       takeUntilDestroyed(),
       debounceTime(0),
       tap(() => {
@@ -340,17 +340,6 @@ export class NtScrollerComponent extends NtScrollView {
         this.updateScrollBarHandler(true);
       }
     });
-  }
-
-  private resizeViewport() {
-    let x = this.scrollLeft, y = this.scrollTop;
-    if (this.scrollableX) {
-      x = this._horizontalScrollRatio * this.scrollWidth;
-    }
-    if (this.scrollableY) {
-      y = this._verticalScrollRatio * this.scrollHeight;
-    }
-    this.move(x, y, true, false, false);
   }
 
   private recalculatePerspective() {
