@@ -10,4 +10,5 @@ export interface IAnimatorUpdateData {
     elapsed: number;
     delta: number;
     value: number;
+    complete: () => void;
 }

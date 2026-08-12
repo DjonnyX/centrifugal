@@ -11,7 +11,7 @@ import {
 import {
     ACCELERATION_SCALE, ANIMATION_DURATION, DURATION, FRICTION_FORCE, MASS, MAX_DIST, MAX_DURATION, MAX_ITERATIONS_FOR_AVERAGE_CALCULATIONS,
     MAX_VELOCITY_TIMESTAMP, MAX_VELOCITIES_LENGTH, OVERSCROLL_START_ITERATION, SCROLL_EVENT, SPEED_SCALE,
-    MIN_ACCELERATION, MIN_DELTA,
+    MIN_ACCELERATION, MIN_DELTA, OVERSCROLL_EFFECT_TIME,
 } from './const';
 import { calculateDirection, matrix3d } from './utils';
 import { NtBaseScrollView } from './base';
@@ -245,7 +245,15 @@ export class NtScrollView extends NtBaseScrollView {
 
         const $isVertical = toObservable(this.isVertical),
             $viewportBounds = toObservable(this.viewportBounds),
-            $contentBounds = toObservable(this.contentBounds);
+            $contentBounds = toObservable(this.contentBounds),
+            $overscroll = this.$overscroll;
+
+        $overscroll.pipe(
+            takeUntilDestroyed(),
+            tap(e => {
+                this._$overscrollEffectEvent.next(e);
+            }),
+        ).subscribe();
 
         combineLatest([$isVertical, $viewportBounds, $contentBounds]).pipe(
             takeUntilDestroyed(),
@@ -853,18 +861,27 @@ export class NtScrollView extends NtBaseScrollView {
         }
     }
 
-    protected emitOverscrollEvent(grabbing: boolean = true, output: boolean = true) {
+    private createOverflowEvent(grabbing: boolean, exp: number = DEFAULT_TRANSITION_EXPONENT) {
+        const bounds = this.viewportBounds(), isVertical = this.isVertical(), event = new OverscrollEvent({
+            grabbing,
+            dragX: transitionExponent(this.scrollRatio <= 0 || this.scrollRatio >= 1 ? this._dragX : 0, bounds.width, DEFAULT_TRANSITION_EXPONENT),
+            dragY: transitionExponent(this.scrollRatio <= 0 || this.scrollRatio >= 1 ? this._dragY : 0, bounds.height, DEFAULT_TRANSITION_EXPONENT),
+            positionX: (isVertical ? 0 : (this.langTextDir() === TextDirections.LTR ? (this._scrollRatioWhenGrabbing === 1 ? 1 : 0) : (this._scrollRatioWhenGrabbing === 1 ? 0 : 1))),
+            positionY: (isVertical ? (this._scrollRatioWhenGrabbing === 1 ? 1 : 0) : 0),
+        });
+        return event;
+    }
+
+    protected emitOverscrollEffectEvent(grabbing: boolean = true, exp: number = DEFAULT_TRANSITION_EXPONENT) {
+        const event = this.createOverflowEvent(grabbing, exp);
+        this._$overscrollEffectEvent.next(event);
+    }
+
+    protected emitOverscrollEvent(grabbing: boolean = true, output: boolean = true, exp: number = DEFAULT_TRANSITION_EXPONENT) {
         if (this.isInfinity()) {
             return;
         }
-        const bounds = this.viewportBounds(), isVertical = this.isVertical(),
-            event = new OverscrollEvent({
-                grabbing,
-                dragX: transitionExponent(this.scrollRatio <= 0 || this.scrollRatio >= 1 ? this._dragX : 0, bounds.width, DEFAULT_TRANSITION_EXPONENT),
-                dragY: transitionExponent(this.scrollRatio <= 0 || this.scrollRatio >= 1 ? this._dragY : 0, bounds.height, DEFAULT_TRANSITION_EXPONENT),
-                positionX: (isVertical ? 0 : (this.langTextDir() === TextDirections.LTR ? (this._scrollRatioWhenGrabbing === 1 ? 1 : 0) : (this._scrollRatioWhenGrabbing === 1 ? 0 : 1))),
-                positionY: (isVertical ? (this._scrollRatioWhenGrabbing === 1 ? 1 : 0) : 0),
-            });
+        const event = this.createOverflowEvent(grabbing, exp);
         this._$overscroll.next(event);
         if (output) {
             this.onOverscroll.emit(event);
@@ -973,6 +990,7 @@ export class NtScrollView extends NtBaseScrollView {
             }
         }
 
+        let overflowTime: number | null = null, overscrollEffectCanceled = -1;
         return this._animator.animate({
             withDelta: this._service.dynamic && !this.isInfinity(),
             startValue,
@@ -982,7 +1000,30 @@ export class NtScrollView extends NtBaseScrollView {
             getPropValue: () => {
                 return isVertical ? this._y : this._x;
             }, onUpdate: data => {
-                const { value, timestamp, elapsed } = data;
+                const { value, timestamp, elapsed, complete } = data, time = Date.now(), scrollSize = (isVertical ? this.scrollHeight : this.scrollWidth);
+                if (!overflowTime && (value <= 0 || value >= scrollSize)) {
+                    overflowTime = Date.now();
+                }
+                if (!!overflowTime && ((time - overflowTime) < OVERSCROLL_EFFECT_TIME)) {
+                    overscrollEffectCanceled = 0;
+                    const dv = value,
+                        scrollable = this.scrollable,
+                        dragV = dv < 0 ? dv : (dv - scrollSize),
+                        normalizedDrag = scrollable ? Math.abs(dragV) : 0,
+                        dragSign = scrollable ? Math.sign(dragV) : 0,
+                        pos = dragSign > 0 ? 1 : 0;
+                    this._scrollRatioWhenGrabbing = pos;
+                    if (isVertical) {
+                        this._dragY = normalizedDrag;
+                    } else {
+                        this._dragX = normalizedDrag;
+                    }
+                    this.emitOverscrollEffectEvent(userAction);
+                } else if (overscrollEffectCanceled === 0) {
+                    overscrollEffectCanceled = 1;
+                    complete();
+                }
+
                 if (this._isCoordinatesOverrided && !skipOverridedCoordinates) {
                     this._isCoordinatesOverrided = false;
                     const currentCoordinate = isVertical ? this._y : this._x, delta = endValue - value;
@@ -1005,6 +1046,9 @@ export class NtScrollView extends NtBaseScrollView {
             }, onComplete: data => {
                 const { value, timestamp } = data;
                 this._isAlignmentAnimation = false;
+                overscrollEffectCanceled = 1;
+                this._dragX = this._dragY = 0;
+                this.emitOverscrollEffectEvent(false);
                 const v0 = calculateVelocity(position, value, timestamp);
                 if (alignmentAtComplete && !this._isAlignmentAnimation && !skipOverridedCoordinates) {
                     this.snapIfNecessary(v0);

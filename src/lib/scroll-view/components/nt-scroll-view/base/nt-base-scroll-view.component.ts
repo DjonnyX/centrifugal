@@ -117,6 +117,9 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
     protected _$overscroll = new Subject<IOverscrollEvent>();
     $overscroll = this._$overscroll.asObservable();
 
+    protected _$overscrollEffectEvent = new Subject<IOverscrollEvent>();
+    $overscrollEffectEvent = this._$overscroll.asObservable();
+
     protected _$updateScrollBarHorizontal = new Subject<void>();
     protected $updateScrollBarHorizontal = this._$updateScrollBarHorizontal.asObservable();
 
