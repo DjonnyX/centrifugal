@@ -465,8 +465,8 @@ export class NtScrollView extends NtBaseScrollView {
                                     this._scrollDirectionValueY += Math.abs(scrollDeltaY);
                                     const dx = (currentPosX ?? 0) - startClientPosX,
                                         dy = (currentPosY ?? 0) - startClientPosY,
-                                        dragX = dx > 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - this.scrollWidth)),
-                                        dragY = dy > 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - this.scrollHeight));
+                                        dragX = (dx - this._startPositionX),
+                                        dragY = (dy - this._startPositionY);
                                     this._dragX = this.scrollableX ? Math.abs(dragX) : 0;
                                     this._dragY = this.scrollableY ? Math.abs(dragY) : 0;
                                     this._horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
@@ -637,8 +637,8 @@ export class NtScrollView extends NtBaseScrollView {
                                     this._scrollDirectionValueY += Math.abs(scrollDeltaY);
                                     const dx = (currentPosX ?? 0) - startClientPosX,
                                         dy = (currentPosY ?? 0) - startClientPosY,
-                                        dragX = dx > 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - this.scrollWidth)),
-                                        dragY = dy > 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - this.scrollHeight));
+                                        dragX = (dx - this._startPositionX),
+                                        dragY = (dy - this._startPositionY);
                                     this._dragX = this.scrollableX ? Math.abs(dragX) : 0;
                                     this._dragY = this.scrollableY ? Math.abs(dragY) : 0;
                                     this._horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
