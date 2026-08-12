@@ -198,9 +198,9 @@ export class NtScrollerComponent extends NtScrollView {
       $motionBlurEnabled = toObservable(this.motionBlurEnabled),
       $isVertical = toObservable(this.isVertical),
       $scrollContent = toObservable(this.scrollContent),
-      $overscrollEvent = this.$overscroll;
+      $overscrollEffectEvent = this.$overscrollEffectEvent;
 
-    combineLatest([$overscrollEvent, this.$resizeViewport]).pipe(
+    combineLatest([$overscrollEffectEvent, this.$resizeViewport]).pipe(
       takeUntilDestroyed(),
       tap(([e, viewportBounds]) => {
         const dx = e.dragX, dy = e.dragY, sx = viewportBounds.width !== 1 ? (dx !== 0 ? Math.pow((dx + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,

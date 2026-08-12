@@ -45,6 +45,8 @@ export interface INtScroller<S extends INtBaseScrollViewService> {
 
     readonly $overscroll: Observable<IOverscrollEvent>;
 
+    readonly $overscrollEffectEvent: Observable<IOverscrollEvent>;
+
     scroll(params: IScrollToParams): Array<number> | number | null;
 
     stopScrolling(force?: boolean): void;

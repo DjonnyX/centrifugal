@@ -63,73 +63,102 @@ export class Animator {
     this._prevPos = startValue;
     this._diff = this._endValue - this._startValue;
 
-    const step = (currentTime: number) => {
-      if (id !== this._currentId) {
-        isCanceled = true;
-      }
+    let _elapsed = 0,
+      _currentValue = 0,
+      _actualFrameTimestamp = 0;
 
-      if (!!isCanceled) {
-        return;
-      }
+    const complete = () => {
+      if (onComplete !== undefined) {
+        this.stop(id);
 
-      const cPos = getPropValue?.() || 0;
-      let startDelta = 0;
-      if (cPos !== this._prevPos) {
-        startDelta = cPos - this._prevPos;
-        startPosDelta += startDelta;
-      }
-
-      const elapsed = currentTime - startTime,
-        progress = this._startValue === this._endValue ? 1 : Math.min(duration > 0 ? elapsed / duration : 0, 1),
-        easedProgress = easingFunction(progress),
-        val = (withDelta ? startPosDelta : 0) + this._startValue + this._diff * easedProgress,
-        currentValue = val,
-        t = performance.now();
-
-      isFinished = progress === 1;
-
-      delta = currentValue - startDelta - this._prevPos;
-
-      const frameTimestamp = t - prevTime,
-        actualFrameTimestamp = frameTimestamp < ANIMATOR_MIN_TIMESTAMP ? ANIMATOR_MIN_TIMESTAMP : frameTimestamp;
-
-      prevTime = t;
-      this._prevPos = currentValue;
-
-      if (isFinished) {
-        this._animationId = -1;
-      }
-
-      if (onUpdate !== undefined) {
         const data: IAnimatorUpdateData = {
           id,
           delta,
-          elapsed,
-          value: currentValue,
-          timestamp: actualFrameTimestamp,
+          elapsed: _elapsed,
+          value: _currentValue,
+          timestamp: _actualFrameTimestamp,
+          complete,
         };
-        onUpdate(data);
+        onComplete(data);
       }
+    },
+      step = (currentTime: number) => {
+        if (id !== this._currentId) {
+          isCanceled = true;
+        }
 
-      if (isFinished) {
-        if (onComplete !== undefined) {
+        if (!!isCanceled) {
+          return;
+        }
+
+        const cPos = getPropValue?.() || 0;
+        let startDelta = 0;
+        if (cPos !== this._prevPos) {
+          startDelta = cPos - this._prevPos;
+          startPosDelta += startDelta;
+        }
+
+        const elapsed = currentTime - startTime,
+          progress = this._startValue === this._endValue ? 1 : Math.min(duration > 0 ? elapsed / duration : 0, 1),
+          easedProgress = easingFunction(progress),
+          val = (withDelta ? startPosDelta : 0) + this._startValue + this._diff * easedProgress,
+          currentValue = val,
+          t = performance.now();
+
+        isFinished = progress === 1;
+
+        delta = currentValue - startDelta - this._prevPos;
+
+        const frameTimestamp = t - prevTime,
+          actualFrameTimestamp = frameTimestamp < ANIMATOR_MIN_TIMESTAMP ? ANIMATOR_MIN_TIMESTAMP : frameTimestamp;
+
+        prevTime = t;
+        this._prevPos = currentValue;
+
+        if (isFinished) {
+          this._animationId = -1;
+        }
+
+        _elapsed = elapsed;
+        _currentValue = currentValue;
+        _actualFrameTimestamp = actualFrameTimestamp;
+
+        if (onUpdate !== undefined) {
           const data: IAnimatorUpdateData = {
             id,
             delta,
             elapsed,
             value: currentValue,
             timestamp: actualFrameTimestamp,
+            complete,
           };
-          onComplete(data);
+          onUpdate(data);
         }
-      } else {
-        this._animationId = requestAnimationFrame(step);
+
+        if (isFinished) {
+          if (onComplete !== undefined) {
+            const data: IAnimatorUpdateData = {
+              id,
+              delta,
+              elapsed,
+              value: currentValue,
+              timestamp: actualFrameTimestamp,
+              complete,
+            };
+            onComplete(data);
+          }
+        } else {
+          this._animationId = requestAnimationFrame(step);
+        }
       }
-    }
 
     this._animationId = requestAnimationFrame(step);
 
     return this._currentId;
+  }
+
+  complete() {
+
   }
 
   hasAnimation(id: number = -1) {

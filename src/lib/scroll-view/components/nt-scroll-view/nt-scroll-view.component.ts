@@ -13,6 +13,7 @@ import {
 import {
     ACCELERATION_SCALE, ANIMATION_DURATION, DURATION, FRICTION_FORCE, MASS, MAX_DIST, MAX_DURATION, MAX_ITERATIONS_FOR_AVERAGE_CALCULATIONS,
     MAX_VELOCITY_TIMESTAMP, MAX_VELOCITIES_LENGTH, OVERSCROLL_START_ITERATION, SCROLL_EVENT, SPEED_SCALE, MIN_ACCELERATION, MIN_DELTA,
+    OVERSCROLL_EFFECT_TIME,
 } from './const';
 import { calculateDirection, matrix3d } from './utils';
 import { NtBaseScrollView } from './base';
@@ -273,10 +274,17 @@ export class NtScrollView extends NtBaseScrollView {
             return direction === ScrollerDirection.BOTH || direction === ScrollerDirection.VERTICAL;
         });
 
-
         const $direction = toObservable(this.direction),
             $viewportBounds = toObservable(this.viewportBounds),
-            $contentBounds = toObservable(this.contentBounds);
+            $contentBounds = toObservable(this.contentBounds),
+            $overscroll = this.$overscroll;
+
+        $overscroll.pipe(
+            takeUntilDestroyed(),
+            tap(e => {
+                this._$overscrollEffectEvent.next(e);
+            }),
+        ).subscribe();
 
         combineLatest([$direction, $viewportBounds, $contentBounds]).pipe(
             takeUntilDestroyed(),
@@ -881,14 +889,24 @@ export class NtScrollView extends NtBaseScrollView {
         }
     }
 
-    protected emitOverscrollEvent(grabbing: boolean = true, output: boolean = true) {
+    private createOverflowEvent(grabbing: boolean, exp: number = DEFAULT_TRANSITION_EXPONENT) {
         const bounds = this.viewportBounds(), event = new OverscrollEvent({
             grabbing,
-            dragX: transitionExponent(this._horizontalScrollRatio <= 0 || this._horizontalScrollRatio >= 1 ? this._dragX : 0, bounds.width, DEFAULT_TRANSITION_EXPONENT),
-            dragY: transitionExponent(this._verticalScrollRatio <= 0 || this._verticalScrollRatio >= 1 ? this._dragY : 0, bounds.height, DEFAULT_TRANSITION_EXPONENT),
+            dragX: transitionExponent(this._horizontalScrollRatio <= 0 || this._horizontalScrollRatio >= 1 ? this._dragX : 0, bounds.width, exp),
+            dragY: transitionExponent(this._verticalScrollRatio <= 0 || this._verticalScrollRatio >= 1 ? this._dragY : 0, bounds.height, exp),
             positionX: (this.langTextDir() === TextDirections.LTR ? (this._horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0) : (this._horizontalScrollRatioWhenGrabbing === 1 ? 0 : 1)),
             positionY: this._verticalScrollRatioWhenGrabbing === 1 ? 1 : 0,
         });
+        return event;
+    }
+
+    protected emitOverscrollEffectEvent(grabbing: boolean = true, exp: number = DEFAULT_TRANSITION_EXPONENT) {
+        const event = this.createOverflowEvent(grabbing, exp);
+        this._$overscrollEffectEvent.next(event);
+    }
+
+    protected emitOverscrollEvent(grabbing: boolean = true, output: boolean = true, exp: number = DEFAULT_TRANSITION_EXPONENT) {
+        const event = this.createOverflowEvent(grabbing, exp);
         this._$overscroll.next(event);
         if (output) {
             this.onOverscroll.emit(event);
@@ -1028,6 +1046,7 @@ export class NtScrollView extends NtBaseScrollView {
                 return animator.id;
             }
         }
+        let overflowTime: number | null = null, overscrollEffectCanceled = -1;
         return animator.animate({
             withDelta: true,
             startValue,
@@ -1037,7 +1056,31 @@ export class NtScrollView extends NtBaseScrollView {
             getPropValue: () => {
                 return isVertical ? this._y : this._x;
             }, onUpdate: data => {
-                const { value, timestamp } = data;
+                const { value, timestamp, complete } = data, time = Date.now(), scrollSize = (isVertical ? this.scrollHeight : this.scrollWidth);
+                if (!overflowTime && (value <= 0 || value >= scrollSize)) {
+                    overflowTime = Date.now();
+                }
+                if (!!overflowTime && ((time - overflowTime) < OVERSCROLL_EFFECT_TIME)) {
+                    overscrollEffectCanceled = 0;
+                    const dv = value,
+                        scrollable = isVertical ? this.scrollableY : this.scrollableX,
+                        dragV = dv < 0 ? dv : (dv - scrollSize),
+                        normalizedDrag = scrollable ? Math.abs(dragV) : 0,
+                        dragSign = scrollable ? Math.sign(dragV) : 0,
+                        pos = dragSign > 0 ? 1 : 0;
+                    if (isVertical) {
+                        this._dragY = normalizedDrag;
+                        this._verticalScrollRatioWhenGrabbing = pos;
+                    } else {
+                        this._dragX = normalizedDrag;
+                        this._horizontalScrollRatioWhenGrabbing = pos;
+                    }
+                    this.emitOverscrollEffectEvent(userAction);
+                } else if (overscrollEffectCanceled === 0) {
+                    overscrollEffectCanceled = 1;
+                    complete();
+                }
+
                 calculateVelocity(position, value - (isVertical ? this._deltaY : this._deltaX), timestamp) ?? (isVertical ? this.averageVelocityY : this.averageVelocityX);
                 position = value;
                 this.move(isVertical ? null : value, isVertical ? value : null, false, userAction);
@@ -1048,9 +1091,12 @@ export class NtScrollView extends NtBaseScrollView {
             }, onComplete: data => {
                 const { value, timestamp } = data;
                 calculateVelocity(position, value, timestamp);
+                overscrollEffectCanceled = 1;
+                this._dragX = this._dragY = 0;
+                this.emitOverscrollEffectEvent(false);
                 this.move(isVertical ? null : value, isVertical ? value : null, false, userAction);
                 this._$scrollEnd.next(userAction);
-                this._service.update(true);
+                this._service.update(true);;
                 this.onAnimationComplete(value);
                 if (typeof onComplete === 'function') {
                     onComplete(data);
