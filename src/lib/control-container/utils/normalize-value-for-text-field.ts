@@ -22,8 +22,8 @@ export const normalizeValueForTextField = (type: TextFieldType, value: string, n
                     v = value.replaceAll(TF_NUMBER_ALLOWED_CHARS, ''),
                     v1 = replaceWithPattern(regexp, v),
                     dotsMoreThanOne = Array.from(v1.matchAll(PATTERN_REGEX_DOT)).length > 1,
-                    v2 = isDot && value.length === 1 ? `0${value}` : (isDot && dotsMoreThanOne ? v1.substring(0, v1.length - 1) : v1),
-                    n = (isDot && keyValue !== KeyboardKeys.BACK_SPACE) ? ((isNtDot && v2.length > 1) ? `${v2.substring(0, v2.length - 2)}${v2.substring(v2.length - 1, v2.length)}` : `${v2}0`) : ((isDot && keyValue === KeyboardKeys.BACK_SPACE) ? v2.substring(0, v2.length - 1) : (((isDot || isNtDot) && keyValue !== KeyboardKeys.BACK_SPACE && v2.length > 1) ? `${v2.substring(0, v2.length - 2)}${v2.substring(v2.length - 1, v2.length)}` : v2));
+                    v2 = isDot && !dotsMoreThanOne && value.length === 1 ? `0${value}` : (isDot && dotsMoreThanOne ? v1.substring(0, v1.length - 1) : v1),
+                    n = (isDot && keyValue !== KeyboardKeys.BACK_SPACE) ? ((isNtDot && v2.length > 1) ? `${v2.substring(0, v2.length - 2)}${v2.substring(v2.length - 1, v2.length)}` : dotsMoreThanOne ? `${v2}.0` : `${v2}0`) : ((isDot && keyValue === KeyboardKeys.BACK_SPACE) ? v2.substring(0, v2.length - 1) : (((isDot || isNtDot) && keyValue !== KeyboardKeys.BACK_SPACE && v2.length > 1) ? `${v2.substring(0, v2.length - 2)}${v2.substring(v2.length - 1, v2.length)}` : v2));
                 normalizedNtValue = v2;
                 normalizedValue = n;
             } else {
