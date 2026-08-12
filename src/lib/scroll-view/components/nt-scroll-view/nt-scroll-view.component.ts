@@ -296,9 +296,13 @@ export class NtScrollView extends NtBaseScrollView {
                 switchMap(v => of({ v0X: this.averageVelocityX, v0Y: this.averageVelocityY })),
                 debounceTime(100),
                 tap(({ v0X, v0Y }) => {
+                    this._isMoving = false;
+                    this.grabbing.set(false);
                     this._overscrollIteration = this._overscrollXIteration = this._overscrollYIteration = 0;
+                    this._dragX = this._dragY = this._horizontalScrollRatioWhenGrabbing = this._verticalScrollRatioWhenGrabbing = 0;
                     this._service.overscroll = { x: false, y: false };
                     this.scrollDirectionX = this.scrollDirectionY = this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
+                    this.emitOverscrollEvent(false);
                 }),
             ).subscribe();
 
@@ -343,14 +347,22 @@ export class NtScrollView extends NtBaseScrollView {
                                 return;
                             }
                             this.emitScrollableEvent();
-                            this.checkOverscroll(e, true);
                             this.stopScrolling();
+                            this._isMoving = true;
+                            this.grabbing.set(true);
                             const scrollWidth = this.scrollWidth,
                                 scrollHeight = this.scrollHeight,
                                 startPosX = this._x,
                                 startPosY = this._y,
                                 deltaX = e.deltaX, dpX = (startPosX + deltaX),
-                                deltaY = e.deltaY, dpY = (startPosY + deltaY);
+                                deltaY = e.deltaY, dpY = (startPosY + deltaY),
+                                dragX = deltaX,
+                                dragY = deltaY;
+                            this._dragX += this.scrollableX && (this._x <= 0 || this._x >= this.scrollWidth) ? Math.abs(dragX) : 0;
+                            this._dragY += this.scrollableY && (this._y <= 0 || this._y >= this.scrollHeight) ? Math.abs(dragY) : 0;
+                            this._horizontalScrollRatioWhenGrabbing = Math.sign(-dragX) < 0 ? 1 : 0;
+                            this._verticalScrollRatioWhenGrabbing = Math.sign(-dragY) < 0 ? 1 : 0;
+                            this.checkOverscroll(e, true);
                             let positionX = 0, positionY = 0;
                             positionX = dpX < 0 ? 0 : dpX > scrollWidth ? scrollWidth : dpX;
                             positionY = dpY < 0 ? 0 : dpY > scrollHeight ? scrollHeight : dpY;
@@ -374,13 +386,13 @@ export class NtScrollView extends NtBaseScrollView {
                     takeUntilDestroyed(this._destroyRef),
                     delay(0),
                     tap(e => {
-                        this.cancelOverscroll({ event: e, released: true });
                         this._isMoving = false;
                         this.grabbing.set(false);
                         if (!mouseCanceled) {
                             this.stopMoving();
                         }
                         mouseCanceled = true;
+                        this.cancelOverscroll({ event: e, released: true });
                         this._$scrollEnd.next(true);
                     }),
                 );
@@ -397,13 +409,13 @@ export class NtScrollView extends NtBaseScrollView {
                                 takeUntil(fromEvent<MouseEvent>(root, MOUSE_MOVE, { passive: false })),
                                 takeUntil($scrollDisabled),
                                 tap(e => {
-                                    this.cancelOverscroll({ event: e, released: true });
                                     this._isMoving = false;
                                     this.grabbing.set(false);
                                     if (!mouseCanceled) {
                                         this.stopMoving();
                                     }
                                     mouseCanceled = true;
+                                    this.cancelOverscroll({ event: e, released: true });
                                     this._$scrollEnd.next(true);
                                 }),
                             );
@@ -451,9 +463,6 @@ export class NtScrollView extends NtBaseScrollView {
                                 takeUntilDestroyed(this._destroyRef),
                                 takeUntil($mouseDragCancel),
                                 takeUntil($scrollDisabled),
-                                tap(e => {
-                                    this.checkOverscroll(e);
-                                }),
                                 switchMap(e => {
                                     const { position: positionX, currentPos: currentPosX, endTime: endTimeX, scrollDelta: scrollDeltaX } =
                                         this.calculatePosition(false, this._horizontalAxisEnabled(), this._horizontalAxisInvertion(), e, inversion, startClientPosX, startTimeX, prevClientPositionX, offsetsX, velocitiesX),
@@ -465,12 +474,13 @@ export class NtScrollView extends NtBaseScrollView {
                                     this._scrollDirectionValueY += Math.abs(scrollDeltaY);
                                     const dx = (currentPosX ?? 0) - startClientPosX,
                                         dy = (currentPosY ?? 0) - startClientPosY,
-                                        dragX = (dx - this._startPositionX),
-                                        dragY = (dy - this._startPositionY);
+                                        dragX = dx >= 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - this.scrollWidth)),
+                                        dragY = dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - this.scrollHeight));
                                     this._dragX = this.scrollableX ? Math.abs(dragX) : 0;
                                     this._dragY = this.scrollableY ? Math.abs(dragY) : 0;
                                     this._horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
                                     this._verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
+                                    this.checkOverscroll(e);
                                     this.move(positionX, positionY, true, true, true);
                                     startTimeX = endTimeX;
                                     startTimeY = endTimeY;
@@ -480,7 +490,6 @@ export class NtScrollView extends NtBaseScrollView {
                                         takeUntil($scrollDisabled),
                                         tap(e => {
                                             mouseCanceled = true;
-                                            this.cancelOverscroll({ event: e, released: true });
                                             const endTime = Date.now(),
                                                 horizontalAxisEnabled = this._horizontalAxisEnabled(),
                                                 verticalAxisEnabled = this._verticalAxisEnabled(),
@@ -492,6 +501,7 @@ export class NtScrollView extends NtBaseScrollView {
                                                 { a0: a0Y } = this.calculateAcceleration(verticalAxisEnabled, velocitiesY, v0Y, timestampY);
                                             this._isMoving = false;
                                             this.grabbing.set(false);
+                                            this.cancelOverscroll({ event: e, released: true });
                                             if (this.scrollBehavior() !== BEHAVIOR_INSTANT) {
                                                 this.moveWithAcceleration(
                                                     positionX, v0X, a0X, timestampX,
@@ -528,7 +538,6 @@ export class NtScrollView extends NtBaseScrollView {
                     delay(0),
                     filter(e => Array.from(e.targetTouches).findIndex(({ identifier }) => identifier === this._touchId) === -1),
                     tap(e => {
-                        this.cancelOverscroll({ event: e, released: true });
                         this._touchId = -1;
                         this._isMoving = false;
                         this.grabbing.set(false);
@@ -536,6 +545,7 @@ export class NtScrollView extends NtBaseScrollView {
                             this.stopMoving();
                         }
                         touchCanceled = true;
+                        this.cancelOverscroll({ event: e, released: true });
                         this._$scrollEnd.next(true);
                     }),
                 ), $touchMove.pipe(
@@ -623,9 +633,6 @@ export class NtScrollView extends NtBaseScrollView {
                                 takeUntil($touchCanceler),
                                 map(([e1, e2]) => e1 ?? e2),
                                 filter(e => !!e),
-                                tap(e => {
-                                    this.checkOverscroll(e);
-                                }),
                                 switchMap(e => {
                                     const { position: positionX, currentPos: currentPosX, endTime: endTimeX, scrollDelta: scrollDeltaX } =
                                         this.calculatePosition(false, this._horizontalAxisEnabled(), this._horizontalAxisInvertion(), e, inversion, startClientPosX, startTimeX, prevClientPositionX, offsetsX, velocitiesX, this._touchId),
@@ -637,12 +644,13 @@ export class NtScrollView extends NtBaseScrollView {
                                     this._scrollDirectionValueY += Math.abs(scrollDeltaY);
                                     const dx = (currentPosX ?? 0) - startClientPosX,
                                         dy = (currentPosY ?? 0) - startClientPosY,
-                                        dragX = (dx - this._startPositionX),
-                                        dragY = (dy - this._startPositionY);
+                                        dragX = dx >= 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - this.scrollWidth)),
+                                        dragY = dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - this.scrollHeight));
                                     this._dragX = this.scrollableX ? Math.abs(dragX) : 0;
                                     this._dragY = this.scrollableY ? Math.abs(dragY) : 0;
                                     this._horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
                                     this._verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
+                                    this.checkOverscroll(e);
                                     this.move(positionX, positionY, true, true, true);
                                     startTimeX = endTimeX;
                                     startTimeY = endTimeY;
@@ -653,7 +661,6 @@ export class NtScrollView extends NtBaseScrollView {
                                         tap(e => {
                                             this._touchId = -1;
                                             touchCanceled = true;
-                                            this.cancelOverscroll({ event: e, released: true });
                                             const endTime = Date.now(),
                                                 timestampX = endTime - startTimeX,
                                                 timestampY = endTime - startTimeY,
@@ -665,6 +672,7 @@ export class NtScrollView extends NtBaseScrollView {
                                                 { a0: a0Y } = this.calculateAcceleration(verticalAxisEnabled, velocitiesY, v0Y, timestampY);
                                             this._isMoving = false;
                                             this.grabbing.set(false);
+                                            this.cancelOverscroll({ event: e, released: true });
                                             if (this.scrollBehavior() !== BEHAVIOR_INSTANT) {
                                                 this.moveWithAcceleration(
                                                     positionX, v0X, a0X, timestampX,
@@ -1167,7 +1175,7 @@ export class NtScrollView extends NtBaseScrollView {
                 this.updateDirectionY(y, this._y);
             }
         }
-        this.emitOverscrollEvent(true, false);
+        this.emitOverscrollEvent(this.grabbing(), false);
         return null;
     }
 

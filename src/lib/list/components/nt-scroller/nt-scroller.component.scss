@@ -103,6 +103,12 @@
         }
     }
 
+    .ntvl__scroller-wrapper {
+        &.animated {
+            transition: transform 250ms ease-out;
+        }
+    }
+
     .ntvl__list {
         position: absolute;
         list-style: none;

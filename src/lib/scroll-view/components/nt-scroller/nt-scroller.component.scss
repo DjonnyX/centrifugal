@@ -82,6 +82,12 @@
         z-index: 1;
     }
 
+    .ntvs__scroller-wrapper {
+        &.animated {
+            transition: transform 250ms ease-out;
+        }
+    }
+
     .ntvs__content {
         position: absolute;
         list-style: none;

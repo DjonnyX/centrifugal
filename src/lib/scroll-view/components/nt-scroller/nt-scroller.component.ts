@@ -1,6 +1,6 @@
 import { Component, computed, effect, ElementRef, input, output, Signal, signal, TemplateRef, viewChild, ViewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { combineLatest, debounceTime, filter, from, Subject, tap } from 'rxjs';
+import { combineLatest, debounceTime, filter, Subject, tap } from 'rxjs';
 import { ScrollBox } from './utils';
 import {
   DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
@@ -103,6 +103,10 @@ export class NtScrollerComponent extends NtScrollView {
   public readonly preparedSignal = signal<boolean>(false);
 
   public readonly listStyles = signal<{ perspectiveOrigin: string }>({ perspectiveOrigin: 'center' });
+
+  public readonly wrapperStyles = signal<{ [styleName: string]: string; }>({});
+
+  public readonly wrapperClass = signal<{ [className: string]: boolean; }>({});
 
   private _scrollBox = new ScrollBox();
 
@@ -215,7 +219,21 @@ export class NtScrollerComponent extends NtScrollView {
       $motionBlur = toObservable(this.motionBlur),
       $maxMotionBlur = toObservable(this.maxMotionBlur),
       $motionBlurEnabled = toObservable(this.motionBlurEnabled),
-      $scrollContent = toObservable(this.scrollContent);
+      $scrollContent = toObservable(this.scrollContent),
+      $overscrollEvent = this.$overscroll;
+
+    combineLatest([$overscrollEvent, this.$resizeViewport]).pipe(
+      takeUntilDestroyed(),
+      tap(([e, viewportBounds]) => {
+        const dx = e.dragX, dy = e.dragY, sx = viewportBounds.width !== 1 ? (dx !== 0 ? Math.pow((dx + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,
+          sy = viewportBounds.height !== 0 ? (dy !== 0 ? Math.pow((dy + viewportBounds.height) / viewportBounds.height, 0.1) : 1) : 1;
+        this.wrapperClass.set({ 'animated': !e.grabbing });
+        this.wrapperStyles.set({
+          transform: `scale(${sx}, ${sy})`,
+          transformOrigin: `${e.positionX === 1 ? 'right' : 'left'} ${e.positionY === 1 ? 'bottom' : 'top'}`,
+        });
+      }),
+    ).subscribe();
 
     $scrollContent.pipe(
       takeUntilDestroyed(),
@@ -272,7 +290,7 @@ export class NtScrollerComponent extends NtScrollView {
       $thumbSizeHorizontal = toObservable(this.thumbSizeHorizontal),
       $thumbSizeVertical = toObservable(this.thumbSizeVertical);
 
-    from([$rightOffset, $leftOffset, $thumbSizeHorizontal, $scrollbarMinSize]).pipe(
+    combineLatest([$rightOffset, $leftOffset, $thumbSizeHorizontal, $scrollbarMinSize]).pipe(
       takeUntilDestroyed(),
       debounceTime(0),
       tap(() => {
@@ -280,7 +298,7 @@ export class NtScrollerComponent extends NtScrollView {
       }),
     ).subscribe();
 
-    from([$bottomOffset, $topOffset, $thumbSizeVertical, $scrollbarMinSize]).pipe(
+    combineLatest([$bottomOffset, $topOffset, $thumbSizeVertical, $scrollbarMinSize]).pipe(
       takeUntilDestroyed(),
       debounceTime(0),
       tap(() => {
@@ -340,17 +358,6 @@ export class NtScrollerComponent extends NtScrollView {
         this.updateScrollBarHandler(true);
       }
     });
-  }
-
-  private resizeViewport() {
-    let x = this.scrollLeft, y = this.scrollTop;
-    if (this.scrollableX) {
-      x = this._horizontalScrollRatio * this.scrollWidth;
-    }
-    if (this.scrollableY) {
-      y = this._verticalScrollRatio * this.scrollHeight;
-    }
-    this.move(x, y, true, false, false);
   }
 
   private recalculatePerspective() {
