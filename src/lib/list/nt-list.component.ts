@@ -2486,21 +2486,21 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
       takeUntilDestroyed(),
       tap(v => {
         const el = this._list()?.nativeElement;
-        if (this.getIsMultiSelection(v || DEFAULT_SNAPPING_METHOD)) {
+        if (this.getIsMultiSelection(v || DEFAULT_SELECTING_MODES)) {
           this._isMultiSelection = true;
           this._isSingleSelection = false;
           if (!!el) {
             el.role = ROLE_LIST_BOX;
           }
           this._service.selectingMode = SelectingModesTypes.MULTI_SELECT;
-        } else if (this.getIsSingleSelection(v || DEFAULT_SNAPPING_METHOD)) {
+        } else if (this.getIsSingleSelection(v || DEFAULT_SELECTING_MODES)) {
           this._isSingleSelection = true;
           this._isMultiSelection = false;
           if (!!el) {
             el.role = ROLE_LIST_BOX;
           }
           this._service.selectingMode = SelectingModesTypes.SELECT;
-        } else if (this.getIsNoneSelection(v || DEFAULT_SNAPPING_METHOD)) {
+        } else if (this.getIsNoneSelection(v || DEFAULT_SELECTING_MODES)) {
           this._isSingleSelection = this._isMultiSelection = false;
           if (!!el) {
             el.role = ROLE_LIST;
