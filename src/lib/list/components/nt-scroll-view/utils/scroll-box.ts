@@ -1,8 +1,8 @@
-import { GradientColorPositions } from "../../../../common";
-import { ScrollerDirection, ScrollerDirections } from "../enums";
+import { Directions, GradientColorPositions } from "../../../../common";
+import { Direction } from "../../../types";
 
 interface ICalculateScrollParams {
-    direction: ScrollerDirections;
+    direction: Direction;
     viewportWidth: number;
     viewportHeight: number;
     contentWidth: number;
@@ -21,8 +21,6 @@ interface ICalculateScrollPositionParams {
 
 /**
  * ScrollBox
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/nt-scroll-view/utils/scroll-box.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -40,7 +38,7 @@ export class ScrollBox {
         positionY,
         minSize,
     }: ICalculateScrollParams) {
-        const isVertical = direction === ScrollerDirection.VERTICAL;
+        const isVertical = direction === Directions.VERTICAL;
         let x = 0, y = 0, thumbPosition = 0, thumbSize = 0, thumbGradientPositions: GradientColorPositions = [0, 0];
         if (isVertical) {
             y = positionY;

@@ -1,13 +1,13 @@
-import { ScrollerDirections } from "../../../nt-scroll-view/enums";
+import { Directions } from "../../../../../common";
 
 /**
- * ICalculateScrollMetrics
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/scroller/utils/interfaces/calculate-scroll-params.ts
+ * ICalculateScrollParams
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/nt-scroller/utils/interfaces/calculate-scroll-params.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
 export interface ICalculateScrollParams {
-    direction: ScrollerDirections;
+    direction: Directions;
     viewportWidth: number;
     viewportHeight: number;
     contentWidth: number;

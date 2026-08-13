@@ -1,5 +1,4 @@
-import { IRect } from "../../common";
-import { ScrollDirection } from "../types";
+import { IRect, ScrollDirection } from "../../common";
 
 /**
  * Measures for IRenderVirtualListItem

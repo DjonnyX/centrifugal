@@ -1,9 +1,8 @@
-import { TextDirections } from "../../common";
 import {
     Alignments, CollapsingModes, CollectionModes, SelectingModes, SnappingMethods, SnapToItemAligns, SpreadingModes,
 } from "../enums";
-import { Directions } from "../enums/directions";
-import { IAnimationParams, IScrollingSettings } from '../interfaces';
+import { Directions } from "../../common/enums";
+import { IAnimationParams } from '../interfaces';
 import { SpreadingMode } from "../types";
 import { Alignment, SnappingDistance, SnapToItemAlign } from "../types";
 
@@ -31,14 +30,6 @@ export const DEFAULT_LIST_SIZE = 400;
 
 export const DEFAULT_WAIT_FOR_PREPARATION = true;
 
-export const DEFAULT_SCROLLBAR_ENABLED = true;
-
-export const DEFAULT_SCROLLBAR_INTERACTIVE = true;
-
-export const DEFAULT_OVERLAPPING_SCROLLBAR = false;
-
-export const DEFAULT_SCROLL_BEHAVIOR: ScrollBehavior = 'smooth';
-
 export const NAVIGATION_BY_KEYBOARD_TIMER = 50;
 
 export const DEFAULT_SNAP_TO_ITEM = false;
@@ -55,29 +46,12 @@ export const DEFAULT_SPREADING_MODE: SpreadingMode = SpreadingModes.NORMAL;
 
 export const DEFAULT_DIVIDES = 1;
 
-export const DEFAULT_MOTION_BLUR = 0.15;
-
-export const DEFAULT_MOTION_BLUR_ENABLED = false;
-
-export const DEFAULT_MAX_MOTION_BLUR = 0.5;
-
 export const DEFAULT_ANIMATION_PARAMS: IAnimationParams = {
     scrollToItem: 150,
     snapToItem: 150,
     navigateToItem: 150,
     navigateByKeyboard: NAVIGATION_BY_KEYBOARD_TIMER,
 };
-
-export const DEFAULT_SCROLLING_SETTINGS: IScrollingSettings = {
-    frictionalForce: 0.035,
-    mass: 0.005,
-    maxDistance: 100000,
-    maxDuration: 4000,
-    speedScale: 10,
-    optimization: false,
-};
-
-export const DEFAULT_OVERSCROLL_ENABLED = true;
 
 export const DEFAULT_STICKY_ENABLED = false;
 
@@ -114,12 +88,6 @@ export const DEFAULT_COLLAPSING_MODES = CollapsingModes.NONE;
 export const DEFAULT_SELECTING_MODES = SelectingModes.NONE;
 
 export const DEFAULT_SCREEN_READER_MESSAGE = 'Showing items $1 to $2';
-
-export const DEFAULT_LANG_TEXT_DIR = TextDirections.LTR;
-
-export const DEFAULT_SCROLLBAR_THICKNESS: number = 6;
-
-export const DEFAULT_SCROLLBAR_MIN_SIZE: number = 80;
 
 // presets
 

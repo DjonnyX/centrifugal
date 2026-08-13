@@ -9,7 +9,6 @@ import {
 import { IRenderVirtualListItemConfig, IRenderVirtualListItemMeasures, IVirtualListItemConfigMap } from "../models";
 import { CMap } from '../../common/utils/cmap';
 import { bufferInterpolation } from "../utils/buffer-interpolation";
-import { ScrollDirection } from "../types";
 import { getServiceIdProp } from "./utils";
 import {
     DEFAULT_BUFFER_EXTREMUM_THRESHOLD, DEFAULT_MAX_BUFFER_SEQUENCE_LENGTH, DEFAULT_RESET_BUFFER_SIZE_TIMEOUT, END_COLLECTION_PREFIX_ID,
@@ -24,7 +23,7 @@ import { TrackBoxEvents } from "./events";
 import { Cache, CacheMapEvents, CacheMapListeners } from "./types";
 import { ItemDisplayMethods } from "./enums";
 import { Alignments } from "../enums";
-import { Id, IRect, ISize } from "../../common";
+import { Id, IRect, ISize, ScrollDirection } from "../../common";
 import { debounce, objectAsReadonly } from "../../common/utils";
 import {
     HEIGHT_PROP_NAME, TRANSFORMED_X_PROP_NAME, TRANSFORMED_Y_PROP_NAME, WIDTH_PROP_NAME, X_PROP_NAME, Y_PROP_NAME,

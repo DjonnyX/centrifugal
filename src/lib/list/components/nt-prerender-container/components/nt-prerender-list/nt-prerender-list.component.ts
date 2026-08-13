@@ -6,7 +6,7 @@ import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
 import { combineLatest, filter, Observable, Subject, Subscription, tap } from "rxjs";
 import {
     CLASS_LIST_HORIZONTAL, CLASS_LIST_VERTICAL, DEFAULT_DIRECTION, DEFAULT_DIVIDES, DEFAULT_DYNAMIC_SIZE, DEFAULT_ITEM_SIZE,
-    DEFAULT_SCROLLBAR_ENABLED, TRACK_BY_PROPERTY_NAME,
+    TRACK_BY_PROPERTY_NAME,
 } from "../../../../const";
 import { IVirtualListCollection } from "../../../../models";
 import { PrerenderCache } from "../../types/cache";
@@ -15,10 +15,11 @@ import { Component$1 } from "../../../../models/component.model";
 import { PrerenderTrackBox } from "../../core";
 import { PrerenderTrackBoxEvents } from "../../events";
 import { NtPrerenderVirtualListItemComponent } from "../nt-prerender-list-item/nt-prerender-list-item.component";
-import { Direction } from "../../../../types";
 import { ISize } from "../../../../../common";
 import { toggleClassName } from "../../../../../common/utils";
 import { PX } from "../../../../../common/const/base-prop-names";
+import { DEFAULT_SCROLLBAR_ENABLED } from "../../../../../common/const/scroller";
+import { Direction } from "../../../../types";
 
 /**
  * NtPrerenderList

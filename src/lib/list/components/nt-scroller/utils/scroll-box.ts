@@ -1,11 +1,8 @@
-import { GradientColorPositions } from "../../../../common";
-import { ScrollerDirection } from "../enums";
+import { Directions, GradientColorPositions } from "../../../../common";
 import { ICalculateScrollParams, ICalculateScrollPositionParams, ICalculateScrollMetrics } from "./interfaces";
 
 /**
  * ScrollBox
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/scroller/utils/scroll-box.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -23,7 +20,7 @@ export class ScrollBox {
         positionY,
         minSize,
     }: ICalculateScrollParams) {
-        const isVertical = direction === ScrollerDirection.VERTICAL;
+        const isVertical = direction === Directions.VERTICAL;
         let x = 0, y = 0, thumbPosition = 0, thumbSize = 0, thumbGradientPositions: GradientColorPositions = [0, 0];
         if (isVertical) {
             const { gradientPos, size, pos, } = this.getMetrics(positionY, viewportHeight, contentHeight, startOffset, endOffset, minSize);

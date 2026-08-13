@@ -1,14 +1,11 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
-import { Subject } from 'rxjs';
-import { IAnimationParams, IScrollOptions, INtScrollViewService } from './interfaces';
-import { Directions } from './enums';
-import { Direction } from './types';
+import { IAnimationParams, INtScrollViewService } from './interfaces';
 import { DEFAULT_ANIMATION_PARAMS } from './const';
-import { Id, IRect } from '../common';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
 import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-view-service';
 import { INtScroller } from '../common/interfaces/nt-scroller';
+import { Direction, Directions, IScrollOptions } from '../common';
 
 /**
  * NtScrollViewService
@@ -20,11 +17,6 @@ import { INtScroller } from '../common/interfaces/nt-scroller';
   providedIn: 'root'
 })
 export class NtScrollViewService extends NtBaseScrollViewService implements INtScrollViewService, OnDestroy {
-  private _nextComponentId: number = 0;
-
-  private _$tick = new Subject<void>();
-  readonly $tick = this._$tick.asObservable();
-
   scrollLeftOffset: number = 0;
 
   scrollRightOffset: number = 0;
@@ -32,8 +24,6 @@ export class NtScrollViewService extends NtBaseScrollViewService implements INtS
   scrollTopOffset: number = 0;
 
   scrollBottomOffset: number = 0;
-
-  isInfinity: boolean = false;
 
   isVertical: boolean = true;
 
@@ -61,11 +51,6 @@ export class NtScrollViewService extends NtBaseScrollViewService implements INtS
     this._$scrollBarSize.next(v);
   }
 
-  private _$intersectionElementBySnapToItemAlign = new BehaviorSubject<Id | null>(null);
-  readonly $intersectionElementBySnapToItemAlign = this._$intersectionElementBySnapToItemAlign.asObservable();
-
-  private _tickerId: number | null = null;
-
   constructor() {
     super();
 
@@ -88,24 +73,6 @@ export class NtScrollViewService extends NtBaseScrollViewService implements INtS
       this._parentId = parentService.id;
     }
   }
-
-  generateComponentId() {
-    return this._nextComponentId = this._nextComponentId === Number.MAX_SAFE_INTEGER
-      ? 0 : this._nextComponentId + 1;
-  }
-
-  getComponentBoundsByIntersectionPosition(positionX: number, positionY: number, maxPositionX: number | null = null, maxPositionY: number | null = null):
-    (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null {
-    return null;
-  }
-
-  setIntersectionElementBySnapToItemAlign(id: Id | null) {
-    if (this._$intersectionElementBySnapToItemAlign.getValue() !== id) {
-      this._$intersectionElementBySnapToItemAlign.next(id);
-    }
-  }
-
-  update(immediately: boolean = false) { }
 
   /**
    * Scrolls the scroll area to the first item in the collection.

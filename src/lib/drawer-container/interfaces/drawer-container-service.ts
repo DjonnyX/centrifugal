@@ -1,11 +1,11 @@
 import { Observable } from "rxjs";
-import { Id, IRect } from "../../common";
-import { Direction, IAnimationParams, IScrollOptions } from "../../scroll-view";
+import { Direction, Id, IRect, IScrollOptions } from "../../common";
+import { IAnimationParams } from "../../scroll-view";
 import { INtBaseScrollViewService } from "../../common/interfaces/nt-base-scroll-view-service";
 
 /**
  * INtDrawerContainerService
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/nt-drawer-container-service.ts
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/drawer-container/interfaces/drawer-container-service.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */

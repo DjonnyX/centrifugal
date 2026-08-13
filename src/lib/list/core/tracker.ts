@@ -1,11 +1,10 @@
 import { ComponentRef } from "@angular/core";
-import { ScrollDirection } from "../types";
 import { IRenderVirtualListCollection } from "../models/render-collection.model";
 import { NtBaseVirtualListItemComponent } from "../components/nt-list-item/base";
 import { CMap } from "../../common/utils/cmap";
 import { SERVICE_PROP_DUMMY, SERVICE_PROP_DUMMY_ENABLED } from "../const";
 import { getServiceIdProp } from "./utils";
-import { Id, ISize } from "../../common";
+import { Id, ISize, ScrollDirection } from "../../common";
 
 type TrackingPropertyId = string | number;
 

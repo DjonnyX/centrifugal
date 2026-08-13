@@ -1,7 +1,7 @@
 import { DestroyRef, inject, Injectable, OnDestroy } from '@angular/core';
 import { NgControl } from '@angular/forms';
 import { BehaviorSubject, map, skip, Subject, switchMap, takeUntil, tap, timer } from 'rxjs';
-import { Id, IRect, KeyboardKeyValue } from '../common';
+import { KeyboardKeyValue } from '../common';
 import { INtControlContainerService } from './interfaces';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
 import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-view-service';
@@ -20,8 +20,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   providedIn: 'root'
 })
 export class NtControlContainerService extends NtBaseScrollViewService implements INtBaseScrollViewService, INtControlContainerService, OnDestroy {
-  private _nextComponentId: number = 0;
-
   private _emitter: HTMLElement = window as unknown as HTMLElement;
   get emitter() {
     return this._emitter;
@@ -91,16 +89,6 @@ export class NtControlContainerService extends NtBaseScrollViewService implement
     this._id = id;
     this._parentId = parentId;
     this._emitter = emitter;
-  }
-
-  generateComponentId() {
-    return this._nextComponentId = this._nextComponentId === Number.MAX_SAFE_INTEGER
-      ? 0 : this._nextComponentId + 1;
-  }
-
-  getComponentBoundsByIntersectionPosition(positionX: number, positionY: number, maxPositionX: number | null = null, maxPositionY: number | null = null):
-    (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null {
-    return null;
   }
 
   focusEcho(element: HTMLElement, ngControl: NgControl | null, serviceId: number) {

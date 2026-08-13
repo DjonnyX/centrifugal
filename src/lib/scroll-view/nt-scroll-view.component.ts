@@ -7,29 +7,20 @@ import {
   BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, map, skip, startWith, Subject, switchMap, take, tap,
 } from 'rxjs';
 import {
-  CLASS_SCROLL_VIEW_HORIZONTAL, CLASS_SCROLL_VIEW_VERTICAL, DEFAULT_DIRECTION, MIN_PIXELS_FOR_PREVENT_SNAPPING,
-  DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLLBAR_THICKNESS, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_ENABLED,
-  DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_SETTINGS,
-  DEFAULT_MOTION_BLUR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SNAP_SCROLLTO_LEFT,
-  DEFAULT_SNAP_SCROLLTO_TOP, DEFAULT_SNAP_SCROLLTO_RIGHT, DEFAULT_SNAP_SCROLLTO_BOTTOM, CLASS_SCROLL_VIEW_BOTH, DEFAULT_SCROLLABLE,
-  DEFAULT_SCROLLER_SIZE,
+  CLASS_SCROLL_VIEW_HORIZONTAL, CLASS_SCROLL_VIEW_VERTICAL, DEFAULT_DIRECTION, MIN_PIXELS_FOR_PREVENT_SNAPPING, DEFAULT_ANIMATION_PARAMS,
+  CLASS_SCROLL_VIEW_BOTH, DEFAULT_SCROLLER_SIZE,
 } from './const';
 import {
-  IScrollEvent, IAnimationParams, IScrollingSettings, IScrollOptions, INtScrollViewService,
+  IAnimationParams, IScrollingSettings, INtScrollViewService,
 } from './interfaces';
-import {
-  Direction,
-} from './types';
-import {
-  Directions,
-} from './enums';
 import { ScrollEvent } from './utils';
 import { isDirection } from './utils/is-direction';
 import { NtScrollViewService } from './nt-scroll-view.service';
 import { objectAsReadonly } from '../common/utils/object';
 import { NtScrollerComponent } from './components/nt-scroller/nt-scroller.component';
+import { DEFAULT_LANG_TEXT_DIR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLABLE, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_SCROLLTO_BOTTOM, DEFAULT_SNAP_SCROLLTO_LEFT, DEFAULT_SNAP_SCROLLTO_RIGHT, DEFAULT_SNAP_SCROLLTO_TOP } from '../common/const/scroller';
 import {
-  ArithmeticExpression, Id, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
+  ArithmeticExpression, Direction, Directions, Id, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
   TextDirection, TextDirections,
 } from '../common';
 import {
@@ -71,12 +62,12 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
   /**
    * Fires when the list has been scrolled.
    */
-  onScroll = output<IScrollEvent>();
+  onScroll = output<IScrollViewScrollEvent>();
 
   /**
    * Fires when the list has completed scrolling.
    */
-  onScrollEnd = output<IScrollEvent>();
+  onScrollEnd = output<IScrollViewScrollEvent>();
 
   /**
    * Fires when the viewport size is changed.
@@ -666,7 +657,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
   private _$scrollTo = new Subject<IScrollOptions>();
   protected $scrollTo = this._$scrollTo.asObservable();
 
-  protected _$scroll = new Subject<IScrollEvent>();
+  protected _$scroll = new Subject<IScrollViewScrollEvent>();
   readonly $scroll = this._$scroll.asObservable();
 
   get $grabbing() { return this._service.$grabbing };

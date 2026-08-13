@@ -1,4 +1,4 @@
-import { ScrollerDirections } from "../../enums";
+import { Direction } from "../../../../types";
 
 /**
  * ICalculateScrollMetrics
@@ -7,7 +7,7 @@ import { ScrollerDirections } from "../../enums";
  * @email djonnyx@gmail.com
  */
 export interface ICalculateScrollParams {
-    direction: ScrollerDirections;
+    direction: Direction;
     viewportWidth: number;
     viewportHeight: number;
     contentWidth: number;

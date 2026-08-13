@@ -1,18 +1,19 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
-import { combineLatest, distinctUntilChanged, tap } from 'rxjs';
+import { combineLatest, distinctUntilChanged, Subject, tap } from 'rxjs';
 import { IScrollable } from '../interfaces/scrollable';
-import { TextDirection } from '../types';
+import { Id, TextDirection } from '../types';
 import { TextDirections } from '../enums';
 import { DEFAULT_CLICK_DISTANCE } from '../directives/nt-control/const';
 import { IOverscroll } from '../interfaces/overscroll';
 import { INtBaseScrollViewService } from '../interfaces/nt-base-scroll-view-service';
 import { INtScroller } from '../interfaces/nt-scroller';
+import { IRect } from '../interfaces';
 
 /**
  * NtBaseScrollViewService
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/nt-base-scroll-view.service.ts
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/services/nt-base-scroll-view.service.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
@@ -20,6 +21,8 @@ import { INtScroller } from '../interfaces/nt-scroller';
   providedIn: 'root'
 })
 export class NtBaseScrollViewService implements INtBaseScrollViewService, OnDestroy {
+  protected _nextComponentId: number = 0;
+
   protected _id: number = 0;
   get id() { return this._id; }
 
@@ -107,6 +110,14 @@ export class NtBaseScrollViewService implements INtBaseScrollViewService, OnDest
     this._$overscroll.next(v);
   }
 
+  protected _tickerId: number | null = null;
+
+  protected _$tick = new Subject<void>();
+  readonly $tick = this._$tick.asObservable();
+
+  protected _$intersectionElementBySnapToItemAlign = new BehaviorSubject<Id | null>(null);
+  readonly $intersectionElementBySnapToItemAlign = this._$intersectionElementBySnapToItemAlign.asObservable();
+
   constructor() {
     const $grabbing = this.$grabbing.pipe(
       takeUntilDestroyed(),
@@ -121,6 +132,24 @@ export class NtBaseScrollViewService implements INtBaseScrollViewService, OnDest
         this._$isGrabbing.next(grabbing && !clickPressed);
       }),
     ).subscribe();
+  }
+
+  generateComponentId() {
+    return this._nextComponentId = this._nextComponentId === Number.MAX_SAFE_INTEGER
+      ? 0 : this._nextComponentId + 1;
+  }
+
+  update(immediately: boolean = false) { }
+
+  getComponentBoundsByIntersectionPosition(positionX: number, positionY: number, maxPositionX: number | null = null, maxPositionY: number | null = null):
+    (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null {
+    return null;
+  }
+
+  setIntersectionElementBySnapToItemAlign(id: Id | null) {
+    if (this._$intersectionElementBySnapToItemAlign.getValue() !== id) {
+      this._$intersectionElementBySnapToItemAlign.next(id);
+    }
   }
 
   ngOnDestroy(): void {
