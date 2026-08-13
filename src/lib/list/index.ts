@@ -1,5 +1,5 @@
 /*
- * Public API Surface of nt-list
+ * Public API Surface of NtList
  */
 export * from './components/nt-list-item/nt-list-item.component';
 export * from './nt-list-public.service';

@@ -3,30 +3,23 @@
 @let scrollTopOffset = _precalculatedScrollTopOffset();
 @let scrollBottomOffset = _precalculatedScrollBottomOffset();
 
-<nt-scroller #scroller class="ntvsh__scroller" [classes]="classes()" [scrollable]="scrollable()" [context]="this"
-  [langTextDir]="langTextDir()" [leftOffset]="scrollLeftOffset" [rightOffset]="scrollRightOffset"
-  [topOffset]="scrollTopOffset" [bottomOffset]="scrollBottomOffset" [direction]="direction()"
-  [scrollbarThumbRenderer]="scrollbarThumbRenderer()" [scrollbarThickness]="scrollbarThickness()"
-  [scrollbarThumbParams]="scrollbarThumbParams()" [animationParams]="animationParams()"
-  [focusedElement]="focusedElement()" [loading]="loading()" [overscrollEnabled]="overscrollEnabled()"
-  [overlappingScrollbar]="overlappingScrollbar()" [scrollbarEnabled]="scrollbarEnabled()"
-  [scrollbarInteractive]="scrollbarInteractive()" [scrollbarMinSize]="scrollbarMinSize()"
-  [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()"
-  [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()" (onOverscroll)="onOverscroll.emit($event)"
-  [overscrollAreaShowAutomatically]="overscrollAreaShowAutomatically()"
-  [overscrollAreaUseOffsets]="overscrollAreaUseOffsets()"
-  [overscrollAreaLeftEnabled]="overscrollAreaLeftEnabled()"
-  [overscrollAreaTopEnabled]="overscrollAreaTopEnabled()"
-  [overscrollAreaRightEnabled]="overscrollAreaRightEnabled()"
+<nt-scroller #scroller class="ntvsh__scroller" [classes]="classes()" [context]="this" [langTextDir]="langTextDir()"
+  [leftOffset]="scrollLeftOffset" [rightOffset]="scrollRightOffset" [topOffset]="scrollTopOffset"
+  [bottomOffset]="scrollBottomOffset" [direction]="_direction()" [focusedElement]="focusedElement()"
+  [overscrollEnabled]="overscrollEnabled()" [scrollbarEnabled]="false" [scrollBehavior]="scrollBehavior()"
+  [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()"
+  [motionBlurEnabled]="motionBlurEnabled()" [overscrollAreaShowAutomatically]="overscrollAreaShowAutomatically()"
+  [overscrollAreaUseOffsets]="overscrollAreaUseOffsets()" [overscrollAreaLeftEnabled]="overscrollAreaLeftEnabled()"
+  [overscrollAreaTopEnabled]="overscrollAreaTopEnabled()" [overscrollAreaRightEnabled]="overscrollAreaRightEnabled()"
   [overscrollAreaBottomEnabled]="overscrollAreaBottomEnabled()"
-  [overscrollAreaLeftRenderer]="overscrollAreaLeftRenderer()"
-  [overscrollAreaTopRenderer]="overscrollAreaTopRenderer()"
+  [overscrollAreaLeftRenderer]="overscrollAreaLeftRenderer()" [overscrollAreaTopRenderer]="overscrollAreaTopRenderer()"
   [overscrollAreaRightRenderer]="overscrollAreaRightRenderer()"
   [overscrollAreaBottomRenderer]="overscrollAreaBottomRenderer()"
   (onLeftOverscrollAreaTrigger)="onLeftOverscrollAreaTrigger.emit($event)"
   (onTopOverscrollAreaTrigger)="onTopOverscrollAreaTrigger.emit($event)"
   (onRightOverscrollAreaTrigger)="onRightOverscrollAreaTrigger.emit($event)"
-  (onBottomOverscrollAreaTrigger)="onBottomOverscrollAreaTrigger.emit($event)">
+  (onBottomOverscrollAreaTrigger)="onBottomOverscrollAreaTrigger.emit($event)"
+  (onOverscroll)="onOverscroll.emit($event)">
   <ng-container #renderersContainer>
     <ng-content></ng-content>
   </ng-container>

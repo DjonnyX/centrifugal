@@ -1,5 +1,5 @@
 /*
- * Public API Surface of nt-scroll-view
+ * Public API Surface of NtScrollView
  */
 export * from './components/nt-overscroll-area/base/nt-base-overscroll-area.component';
 export * from './components/nt-overscroll-area/interfaces/nt-overscroll-area-public-api';

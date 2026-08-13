@@ -1,5 +1,5 @@
 /*
- * Public API Surface of list
+ * Public API Surface of NtList
  */
 export {
     NtListModule,
@@ -11,7 +11,7 @@ export type {
 } from './lib/list';
 
 /*
- * Public API Surface of scroll-view
+ * Public API Surface of NtScrollView
  */
 export {
     NtScrollerModule,
@@ -27,33 +27,44 @@ export type {
 } from './lib/scroll-view';
 
 /*
- * Public API Surface of scroll-bar
+ * Public API Surface of NtScrollBar
  */
 export {
     NtScrollBarPublicService,
 } from './lib/scroll-bar';
 
 /*
- * Public API Surface of drawer-container
+ * Public API Surface of NtDrawerContainer
  */
 export {
     NtDrawerContainerModule,
     NtDrawerContainerComponent,
 } from './lib/drawer-container';
 export type {
-    INtDrawerContainerService
+    INtDrawerContainerService,
 } from './lib/drawer-container';
 
 /*
- * Public API Surface of control-container
+ * Public API Surface of NtControlContainer
  */
 export {
     NtControlContainerModule,
     NtControlContainerComponent,
 } from './lib/control-container';
 export type {
-    INtControlContainerService
+    INtControlContainerService,
 } from './lib/control-container';
+
+/*
+ * Public API Surface of NtSheet
+ */
+export {
+    NtSheetModule,
+    NtSheetComponent,
+} from './lib/sheet';
+export type {
+    INtSheetService,
+} from './lib/sheet';
 
 /*
  * Public API Surface of common
