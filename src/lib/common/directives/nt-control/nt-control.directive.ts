@@ -5,7 +5,7 @@ import { BehaviorSubject, combineLatest, fromEvent, of, race, timer } from 'rxjs
 import { distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from '../../injection';
 import { toggleClassName, validateBoolean, validateFloat } from '../../utils';
-import { ANCHOR, DEFAULT_CLICK_DISTANCE, DEFAULT_DURATION, INPUT } from './const';
+import { ANCHOR, DEFAULT_CLICK_DISTANCE, DEFAULT_LONG_PRESS_TIMEOUT, INPUT } from './const';
 import { CLICK, FOCUS, POINTER_DOWN, POINTER_LEAVE, POINTER_MOVE, POINTER_UP } from '../../const/event-names';
 import { INtBaseControlContainerService } from '../../interfaces';
 import { GRABBING, NOT_GRABBING } from '../../const/class-names';
@@ -30,30 +30,48 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
 
     protected _controlService = inject<C>(CONTROL_CONTAINER_SERVICE);
 
-    onLongPress = output<void>();
+    /**
+     * Triggered by long press.
+     */
+    onVirtualLongPress = output<void>();
 
-    private _$duration = new BehaviorSubject<number>(DEFAULT_DURATION);
-    readonly $duration = this._$duration.asObservable();
-    get duration() { return this._$duration.getValue(); }
+    /**
+     * Fires when a click is processed.
+     */
+    onVirtualClick = output<PointerEvent | TouchEvent>();
 
-    protected _durationTransform = {
+    /**
+     * Fires when pressed.
+     */
+    onVirtualClickPress = output<PointerEvent | TouchEvent>();
+
+    /**
+     * Fires when a click is cancelled.
+     */
+    onVirtualClickCancel = output<void>();
+
+    private _$ntLongPress = new BehaviorSubject<number>(DEFAULT_LONG_PRESS_TIMEOUT);
+    readonly $ntLongPress = this._$ntLongPress.asObservable();
+
+    protected _ntLongPressTransform = {
         transform: (v: number) => {
             const valid = validateFloat(v);
             if (!valid) {
-                console.error('The "ntLongPress" parameter must be of type `number`.');
-                return DEFAULT_DURATION;
+                console.error('The "ntLongPress" parameter must be of type `number`. The default value is `1500`.');
+                this._$ntLongPress.next(DEFAULT_LONG_PRESS_TIMEOUT);
+                return DEFAULT_LONG_PRESS_TIMEOUT;
+            }
+            if (this._$ntLongPress.getValue() !== v) {
+                this._$ntLongPress.next(v);
             }
             return v;
         },
     } as any;
 
-    @Input('ntLongPress')
-    set duration(v: number) {
-        const value = this._durationTransform.transform(v);
-        if (this.duration !== v) {
-            this._$duration.next(value);
-        }
-    }
+    /**
+     * Timeout in milliseconds for long press to trigger. The default value is `1500`.
+     */
+    ntLongPress = input<number>(DEFAULT_LONG_PRESS_TIMEOUT, { ...this._ntLongPressTransform });
 
     protected _ntLongPressEnableTransform = {
         transform: (v: boolean) => {
@@ -66,6 +84,9 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
         },
     } as any;
 
+    /**
+     * Enables long-press processing. Default value is `false`.
+     */
     ntLongPressEnable = input<boolean>(false, { ...this._ntLongPressEnableTransform });
 
     protected _ntMaxClickDistanceTransform = {
@@ -79,6 +100,10 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
         },
     } as any;
 
+    /**
+     * Specifies the distance to detect scrolling; after scrolling the specified distance, press and click events stop triggering.
+     * It's important to note that this parameter is inherited from the scroller service, but if the NtControl is assigned to an element whose parent isn't a scroller, this value is applied. The default value is `40`.
+     */
     ntMaxClickDistance = input<number>(DEFAULT_CLICK_DISTANCE, { ...this._ntMaxClickDistanceTransform });
 
     protected _ntEmitNativeClickTransform = {
@@ -92,6 +117,9 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
         },
     } as any;
 
+    /**
+     * Determines whether to apply the native click event. The default value is `true`.
+     */
     ntEmitNativeClick = input<boolean>(true, { ...this._ntEmitNativeClickTransform });
 
     protected _ntFocusableTransform = {
@@ -105,6 +133,9 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
         },
     } as any;
 
+    /**
+     * Determines whether the component is focusable or not. The default value is `true`.
+     */
     ntFocusable = input<boolean>(true, { ...this._ntFocusableTransform });
 
     protected _ntAllowedAnchorDraggableTransform = {
@@ -122,12 +153,6 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
      * Determines whether anchors can be moved by dragging. Default value is `false`.
      */
     ntAllowedAnchorDraggable = input<boolean>(false, { ...this._ntAllowedAnchorDraggableTransform });
-
-    onVirtualClick = output<PointerEvent | TouchEvent>();
-
-    onVirtualClickPress = output<PointerEvent | TouchEvent>();
-
-    onVirtualClickCancel = output<void>();
 
     private _$elementTarget = new BehaviorSubject<HTMLElement | null>(null);
     protected $elementTarget = this._$elementTarget.asObservable();
@@ -252,7 +277,7 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
                 this.onVirtualClickPress.emit(e);
                 if (this.ntLongPressEnable()) {
                     this._$timerComplited.next(false);
-                    this._$timer.next(this.duration);
+                    this._$timer.next(this.ntLongPress());
                 }
                 return $pointerRelease.pipe(
                     takeUntilDestroyed(this._destroyRef),
@@ -300,7 +325,7 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
                     }
 
                     if (!!this.ntLongPressEnable() && this._$timerComplited.getValue()) {
-                        this.onLongPress.emit();
+                        this.onVirtualLongPress.emit();
                     } else {
                         this.onVirtualClick.emit(e);
                     }
