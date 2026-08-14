@@ -28,25 +28,29 @@
         &.left {
             left: 0;
             top: 0;
-            align-items: start;
+            align-items: center;
+            justify-content: start;
         }
 
         &.top {
             left: 0;
             top: 0;
             align-items: start;
+            justify-content: center;
         }
 
         &.right {
             right: 0;
             top: 0;
-            align-items: end;
+            align-items: center;
+            justify-content: end;
         }
 
         &.bottom {
             left: 0;
             bottom: 0;
             align-items: end;
+            justify-content: center;
         }
     }
 

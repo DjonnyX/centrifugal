@@ -14,5 +14,3 @@ export const DEFAULT_POSITION: SheetPosition = SheetPositions.BOTTOM;
 export const CLASS_SHEET_VERTICAL = 'vertical';
 
 export const CLASS_SHEET_HORIZONTAL = 'horizontal';
-
-export const MIN_PIXELS_FOR_PREVENT_SNAPPING = 10;

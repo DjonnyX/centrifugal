@@ -1,6 +1,6 @@
 import { Component, computed, effect, ElementRef, input, output, Signal, signal, TemplateRef, viewChild, ViewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { combineLatest, debounceTime, filter, Subject, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, filter, Subject, tap } from 'rxjs';
 import { ScrollBox } from './utils';
 import { SCROLLER_SCROLL } from '../../const';
 import { NtScrollView } from '../nt-scroll-view';
@@ -197,10 +197,10 @@ export class NtScrollerComponent extends NtScrollView {
     return this._isScrollbarUserActionY;
   }
 
-  protected _$resizeViewport = new Subject<ISize>();
+  protected _$resizeViewport = new BehaviorSubject<ISize>({ width: 0, height: 0 });
   readonly $resizeViewport = this._$resizeViewport.asObservable();
 
-  protected _$resizeContent = new Subject<ISize>();
+  protected _$resizeContent = new BehaviorSubject<ISize>({ width: 0, height: 0 });
   readonly $resizeContent = this._$resizeContent.asObservable();
 
   protected _filterId: string;

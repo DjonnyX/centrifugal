@@ -61,9 +61,11 @@ export type {
 export {
     NtSheetModule,
     NtSheetComponent,
+    SheetPositions,
 } from './lib/sheet';
 export type {
     INtSheetService,
+    SheetPosition,
 } from './lib/sheet';
 
 /*

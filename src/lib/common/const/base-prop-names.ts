@@ -6,7 +6,7 @@ export const DISPLAY_NONE = 'none';
 
 export const OPACITY_0 = '0';
 
-export const OPACITY_100 = '100';
+export const OPACITY_1 = '1';
 
 export const VISIBILITY_VISIBLE = 'visible';
 

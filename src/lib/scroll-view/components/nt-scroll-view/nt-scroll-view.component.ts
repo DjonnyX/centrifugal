@@ -1249,6 +1249,8 @@ export class NtScrollView extends NtBaseScrollView {
 
     stopAnimation(...ids: Array<number>) {
         if (!ids) {
+            this._animatorX.stop();
+            this._animatorY.stop();
             return;
         }
         for (const id of ids) {

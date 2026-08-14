@@ -4,7 +4,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-    BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, map, skip, startWith, Subject, switchMap, take, tap,
+    BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, map, skip, Subject, switchMap, take, tap, timer,
 } from 'rxjs';
 import {
     IAnimationParams, INtSheetService,
@@ -33,10 +33,10 @@ import {
     DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_SCROLLTO_BOTTOM, DEFAULT_SNAP_SCROLLTO_LEFT, DEFAULT_SNAP_SCROLLTO_RIGHT,
     DEFAULT_SNAP_SCROLLTO_TOP,
 } from '../common/const/scroller';
-import { CLASS_SHEET_HORIZONTAL, CLASS_SHEET_VERTICAL, DEFAULT_ANIMATION_PARAMS, DEFAULT_POSITION, DEFAULT_SHEET_SIZE, MIN_PIXELS_FOR_PREVENT_SNAPPING } from './const';
+import { CLASS_SHEET_HORIZONTAL, CLASS_SHEET_VERTICAL, DEFAULT_ANIMATION_PARAMS, DEFAULT_POSITION, DEFAULT_SHEET_SIZE } from './const';
 import { NtSheetService } from './nt-sheet.service';
 import { INtScrollViewService, NtScrollerComponent } from '../scroll-view';
-import { DISPLAY_BLOCK, DISPLAY_NONE, HEIGHT_PROP_NAME, PX, WIDTH_PROP_NAME } from '../common/const/base-prop-names';
+import { DISPLAY_BLOCK, DISPLAY_NONE, HEIGHT_PROP_NAME, OPACITY_0, OPACITY_1, PX, WIDTH_PROP_NAME } from '../common/const/base-prop-names';
 
 /**
  * NtSheetComponent
@@ -469,23 +469,6 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
 
     protected _direction: Signal<Direction>;
 
-    protected _loading = {
-        transform: (v: boolean) => {
-            const valid = validateBoolean(v);
-
-            if (!valid) {
-                console.error('The "loading" parameter must be of type `boolean`.');
-                return false;
-            }
-            return v;
-        },
-    } as any;
-
-    /**
-     * If `true`, the scrollBar goes into loading state. The default value is `false`.
-     */
-    loading = input<boolean>(false, { ...this._loading });
-
     protected _langTextDir = {
         transform: (v: TextDirection) => {
             const valid = validateString(v) && (v === TextDirections.LTR || v === TextDirections.RTL);
@@ -556,12 +539,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
     private _$fireUpdateNextFrame = new Subject<boolean>();
     protected readonly $fireUpdateNextFrame = this._$fireUpdateNextFrame.asObservable();
 
-    private _$preventScrollSnapping = new BehaviorSubject<boolean>(false);
-    protected readonly $preventScrollSnapping = this._$preventScrollSnapping.asObservable();
-
     protected _destroyRef = inject(DestroyRef);
-
-    private _isLoading = false;
 
     private _animationIds: Array<number> | null = null;
 
@@ -611,86 +589,220 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             return { [pos]: true };
         });
 
-        const $scrollerComponent = toObservable(this._scrollerComponent),
+        const _$created = new BehaviorSubject<boolean>(false),
+            $created = _$created.asObservable(),
+            $scrollerComponent = toObservable(this._scrollerComponent),
             $opened = this.$opened;
-        $opened.pipe(
+
+        let skipClosing = true;
+
+        const $action = new Subject<void>();
+        $action.pipe(
             takeUntilDestroyed(),
-            distinctUntilChanged(),
-            switchMap(opened => {
-                if (opened) {
-                    this._elementRef.nativeElement.style.display = DISPLAY_BLOCK;
-                }
-                return $scrollerComponent.pipe(
+            tap(() => {
+                skipClosing = true;
+            }),
+            switchMap(() => timer(10)),
+            tap(() => {
+                skipClosing = false;
+            }),
+        ).subscribe();
+
+        combineLatest([$scrollerComponent, this.$initialized]).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            filter(([scroller, init]) => !!scroller && !!init),
+            switchMap(([scroller]) => {
+                return $opened.pipe(
                     takeUntilDestroyed(this._destroyRef),
-                    debounceTime(100),
-                    filter(scroller => !!scroller),
-                    tap(scroller => {
-                        if (!!scroller) {
-                            if (opened) {
-                                const scrollHeight = this.scrollHeight;
-                                if (this.scrollTop !== scrollHeight) {
-                                    scroller.scroll({
-                                        y: this.scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: 1000, userAction: true,
-                                    });
-                                }
-                            } else {
-                                if (this.scrollTop === 0) {
-                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
-                                } else {
-                                    scroller.scroll({
-                                        y: 0, behavior: BEHAVIOR_AUTO, blending: false, duration: 1000, userAction: true, onComplete: () => {
-                                            this._elementRef.nativeElement.style.display = DISPLAY_NONE;
-                                            this._$opened.next(false);
-                                        },
-                                    });
-                                }
-                            }
+                    switchMap(opened => {
+                        if (opened) {
+                            $action.next();
+                            this._elementRef.nativeElement.style.display = DISPLAY_BLOCK;
+                            this._elementRef.nativeElement.style.opacity = OPACITY_0;
                         }
+                        return combineLatest([scroller!.$resizeViewport, scroller!.$resizeContent]).pipe(
+                            takeUntilDestroyed(this._destroyRef),
+                            filter(([v]) => v.width > 0 && v.height > 0),
+                            debounceTime(1),
+                            tap(() => {
+                                if (!!scroller) {
+                                    this.stopAnimation();
+                                    if (!!scroller && opened) {
+                                        switch (this.position()) {
+                                            case SheetPositions.LEFT: {
+                                                const scrollWidth = this.scrollWidth;
+                                                scroller.scroll({
+                                                    x: scrollWidth, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, userAction: true, fireUpdate: true,
+                                                });
+                                                break;
+                                            }
+                                            case SheetPositions.TOP: {
+                                                const scrollHeight = this.scrollHeight;
+                                                scroller.scroll({
+                                                    y: scrollHeight, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, userAction: true, fireUpdate: true,
+                                                });
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }),
+                            delay(50),
+                            tap(() => {
+                                if (!!scroller) {
+                                    if (opened) {
+                                        this._elementRef.nativeElement.style.opacity = OPACITY_1;
+                                        switch (this.position()) {
+                                            case SheetPositions.LEFT: {
+                                                const startPosition = this._precalculatedScrollLeftOffset();
+                                                this._animationIds = scroller.scroll({
+                                                    x: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
+                                                });
+                                                break;
+                                            }
+                                            case SheetPositions.TOP: {
+                                                const startPosition = this._precalculatedScrollTopOffset();
+                                                this._animationIds = scroller.scroll({
+                                                    y: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
+                                                });
+                                                break;
+                                            }
+                                            case SheetPositions.RIGHT: {
+                                                const scrollWeight = this.scrollWidth;
+                                                this._animationIds = scroller.scroll({
+                                                    x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
+                                                });
+                                                break;
+                                            }
+                                            case SheetPositions.BOTTOM:
+                                            default: {
+                                                const scrollHeight = this.scrollHeight;
+                                                this._animationIds = scroller.scroll({
+                                                    y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
+                                                });
+                                                break;
+                                            }
+                                        }
+                                    } else {
+                                        switch (this.position()) {
+                                            case SheetPositions.LEFT: {
+                                                const scrollWeight = this.scrollWidth;
+                                                if (this.scrollLeft === scrollWeight) {
+                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                } else {
+                                                    this._animationIds = scroller.scroll({
+                                                        x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
+                                                            this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                            this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                            this._$opened.next(false);
+                                                        },
+                                                    });
+                                                }
+                                                break;
+                                            }
+                                            case SheetPositions.TOP: {
+                                                const scrollHeight = this.scrollHeight;
+                                                if (this.scrollTop === scrollHeight) {
+                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                } else {
+                                                    this._animationIds = scroller.scroll({
+                                                        y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
+                                                            this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                            this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                            this._$opened.next(false);
+                                                        },
+                                                    });
+                                                }
+                                                break;
+                                            }
+                                            case SheetPositions.RIGHT: {
+                                                const endPosition = this._precalculatedScrollRightOffset();
+                                                if (this.scrollLeft === endPosition) {
+                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                } else {
+                                                    this._animationIds = scroller.scroll({
+                                                        x: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
+                                                            this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                            this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                            this._$opened.next(false);
+                                                        },
+                                                    });
+                                                }
+                                                break;
+                                            }
+                                            case SheetPositions.BOTTOM:
+                                            default: {
+                                                const endPosition = this._precalculatedScrollBottomOffset();
+                                                if (this.scrollTop === endPosition) {
+                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                } else {
+                                                    this._animationIds = scroller.scroll({
+                                                        y: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
+                                                            this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                            this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                            this._$opened.next(false);
+                                                        },
+                                                    });
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }),
+                        );
                     }),
                 );
             }),
-        ).subscribe()
+        ).subscribe();
 
         $scrollerComponent.pipe(
             takeUntilDestroyed(),
             filter(v => !!v),
             switchMap(scroller => scroller.$scroll.pipe(
                 takeUntilDestroyed(this._destroyRef),
-                debounceTime(200),
-                tap(e => {
-                    switch (this.position()) {
-                        case SheetPositions.LEFT: {
-                            if (this.opened && this.scrollLeft === this.scrollWidth) {
-                                this._$opened.next(false);
+                debounceTime(100),
+                tap(() => {
+                    if (!skipClosing) {
+                        switch (this.position()) {
+                            case SheetPositions.LEFT: {
+                                if (this.opened && this.scrollLeft === this.scrollWidth) {
+                                    this.stopAnimation();
+                                    this._$opened.next(false);
+                                }
+                                break;
                             }
-                            return;
-                        }
-                        case SheetPositions.TOP: {
-                            if (this.opened && this.scrollTop === this.scrollHeight) {
-                                this._$opened.next(false);
+                            case SheetPositions.TOP: {
+                                if (this.opened && this.scrollTop === this.scrollHeight) {
+                                    this.stopAnimation();
+                                    this._$opened.next(false);
+                                }
+                                break;
                             }
-                            return;
-                        }
-                        case SheetPositions.RIGHT: {
-                            if (this.opened && this.scrollLeft === 0) {
-                                this._$opened.next(false);
+                            case SheetPositions.RIGHT: {
+                                if (this.opened && this.scrollLeft === this._precalculatedScrollRightOffset()) {
+                                    this.stopAnimation();
+                                    this._$opened.next(false);
+                                }
+                                break;
                             }
-                            return;
-                        }
-                        case SheetPositions.BOTTOM:
-                        default: {
-                            if (this.opened && this.scrollTop === 0) {
-                                this._$opened.next(false);
+                            case SheetPositions.BOTTOM:
+                            default: {
+                                if (this.opened && this.scrollTop === this._precalculatedScrollBottomOffset()) {
+                                    this.stopAnimation();
+                                    this._$opened.next(false);
+                                }
+                                break;
                             }
-                            return;
                         }
                     }
                 }),
             )),
         ).subscribe();
-
-        const _$created = new BehaviorSubject<boolean>(false),
-            $created = _$created.asObservable();
 
         $created.pipe(
             takeUntilDestroyed(),
@@ -1044,159 +1156,16 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             }),
         ).subscribe();
 
-        const $preventScrollSnapping = this.$preventScrollSnapping;
-
-        $preventScrollSnapping.pipe(
-            takeUntilDestroyed(),
-            filter(v => !!v),
-            tap(() => {
-                this._isScrollLeft.set(false);
-                this._isScrollRight.set(false);
-            }),
-            tap(() => {
-                this._$preventScrollSnapping.next(false);
-            }),
-        ).subscribe();
-
-        const $loading = toObservable(this.loading);
-
-        $loading.pipe(
-            takeUntilDestroyed(),
-            skip(1),
-            distinctUntilChanged(),
-            tap(v => {
-                if (v) {
-                    this._isLoading = true;
-                }
-            }),
-            filter(v => !v),
-            tap(() => {
-                this._$preventScrollSnapping.next(true);
-            }),
-            debounceTime(100),
-            tap(() => {
-                this._isLoading = false;
-            }),
-        ).subscribe();
-
         $viewInit.pipe(
             takeUntilDestroyed(),
             filter(v => !!v),
             switchMap(() => {
-                return combineLatest([$scrollerComponent, $snapScrollToLeft, $snapScrollToRight, $snapScrollToTop, $snapScrollToBottom, $precalculatedScrollLeftOffset,
-                    $precalculatedScrollRightOffset, $precalculatedScrollTopOffset, $precalculatedScrollBottomOffset, $bounds, $scrollerBounds,
-                    $scrollLeftOffset, $scrollRightOffset, $scrollTopOffset, $scrollBottomOffset, $scrollSizeX, $scrollSizeY, $direction,
-                    this.$fireUpdate.pipe(
-                        takeUntilDestroyed(this._destroyRef),
-                        startWith(false),
-                    ),
-                ]).pipe(
+                return $scrollerComponent.pipe(
                     takeUntilDestroyed(this._destroyRef),
-                    tap(([
-                        scroller, snapScrollToLeft, snapScrollToRight, snapScrollToTop, snapScrollToBottom, precalculatedScrollLeftOffset, precalculatedScrollRightOffset,
-                        precalculatedScrollTopOffset, precalculatedScrollBottomOffset, bounds, scrollerBounds,
-                        scrollLeftOffset, scrollRightOffset, scrollTopOffset, scrollBottomOffset, scrollSizeX, scrollSizeY, direction,
-                    ]) => {
+                    tap(scroller => {
                         if (!!scroller) {
-                            const userAction = hasUserAction, ready = _$created.getValue();
-
                             if (!_$created.getValue()) {
                                 _$created.next(true);
-                            }
-
-                            if (ready) {
-                                const currentScrollSizeX = scroller.scrollLeft,
-                                    currentScrollSizeY = scroller.scrollTop;
-
-                                this.snappingHandler();
-
-                                const roundedMaxPositionAfterUpdateX = scroller.actualScrollWidth,
-                                    roundedMaxPositionAfterUpdateY = scroller.actualScrollHeight;
-
-                                if (!scroller.grabbing()) {
-                                    return;
-                                }
-
-                                // let toStart = false,
-                                //     toEnd = false;
-
-                                // if ((snapScrollToLeft && scroller.horizontalScrollRatio === 0 && currentScrollSizeX !== 0)) {
-                                //     this.emitScrollEvent(true, false, userAction);
-
-                                //     const params: IScrollToParams = {
-                                //         [LEFT_PROP_NAME]: 0, userAction,
-                                //         fireUpdate: true, behavior: (this.animationParams().scrollToItem > 0 && this.scrollBehavior() !== BEHAVIOR_INSTANT) ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
-                                //         blending: !!this._animationIds ? scroller.hasAnimation(...this._animationIds) : false, duration: this.animationParams().scrollToItem,
-                                //     };
-                                //     const animationIds = scroller?.scrollTo?.(params);
-                                //     if (animationIds !== null) {
-                                //         this._animationIds = animationIds;
-                                //     } else if (this._animationIds !== null) {
-                                //         scroller.stopAnimation(...this._animationIds);
-                                //     }
-                                //     toStart = true;
-                                // }
-
-                                // if ((snapScrollToTop && scroller.verticalScrollRatio === 0 && currentScrollSizeY !== 0)) {
-                                //     this.emitScrollEvent(true, false, userAction);
-
-                                //     const params: IScrollToParams = {
-                                //         [TOP_PROP_NAME]: 0, userAction,
-                                //         fireUpdate: true, behavior: (this.animationParams().scrollToItem > 0 && this.scrollBehavior() !== BEHAVIOR_INSTANT) ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
-                                //         blending: !!this._animationIds ? scroller.hasAnimation(...this._animationIds) : false, duration: this.animationParams().scrollToItem,
-                                //     };
-                                //     const animationIds = scroller?.scrollTo?.(params);
-                                //     if (animationIds !== null) {
-                                //         this._animationIds = animationIds;
-                                //     } else if (this._animationIds !== null) {
-                                //         scroller.stopAnimation(...this._animationIds);
-                                //     }
-                                //     toStart = true;
-                                // }
-
-                                // if (toStart) {
-                                //     return;
-                                // }
-
-                                // if ((snapScrollToRight && scroller.horizontalScrollRatio === 1 && currentScrollSizeX !== roundedMaxPositionAfterUpdateX)) {
-
-                                //     this.emitScrollEvent(true, false, false);
-
-                                //     const params: IScrollToParams = {
-                                //         [LEFT_PROP_NAME]: roundedMaxPositionAfterUpdateX,
-                                //         behavior: (this.animationParams().scrollToItem > 0 && this.scrollBehavior() !== BEHAVIOR_INSTANT) ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
-                                //         userAction: false, blending: !!this._animationIds ? scroller.hasAnimation(...this._animationIds) : false, duration: this.animationParams().scrollToItem,
-                                //     };
-                                //     const animationIds = scroller?.scrollTo?.(params);
-                                //     if (animationIds !== null) {
-                                //         this._animationIds = animationIds;
-                                //     } else if (this._animationIds !== null) {
-                                //         scroller.stopAnimation(...this._animationIds);
-                                //     }
-                                //     toEnd = true;
-                                // }
-
-                                // if ((snapScrollToBottom && scroller.verticalScrollRatio === 1 && currentScrollSizeY !== roundedMaxPositionAfterUpdateY)) {
-
-                                //     this.emitScrollEvent(true, false, false);
-
-                                //     const params: IScrollToParams = {
-                                //         [TOP_PROP_NAME]: roundedMaxPositionAfterUpdateY,
-                                //         behavior: (this.animationParams().scrollToItem > 0 && this.scrollBehavior() !== BEHAVIOR_INSTANT) ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
-                                //         userAction: false, blending: !!this._animationIds ? scroller.hasAnimation(...this._animationIds) : false, duration: this.animationParams().scrollToItem,
-                                //     };
-                                //     const animationIds = scroller?.scrollTo?.(params);
-                                //     if (animationIds !== null) {
-                                //         this._animationIds = animationIds;
-                                //     } else if (this._animationIds !== null) {
-                                //         scroller.stopAnimation(...this._animationIds);
-                                //     }
-                                //     toEnd = true;
-                                // }
-
-                                // if (toEnd) {
-                                //     return;
-                                // }
                             }
                         }
                     }),
@@ -1256,10 +1225,6 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                 const scrollSizeX = scroller.scrollLeft,
                     scrollSizeY = scroller.scrollTop;
 
-                if (userAction) {
-                    this._$preventScrollSnapping.next(true);
-                }
-
                 this._$scrollSizeX.next(scrollSizeX);
                 this._$scrollSizeY.next(scrollSizeY);
             }
@@ -1275,12 +1240,6 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                         const scrollerEl = this._scroller()?.nativeElement, scrollerComponent = this._scrollerComponent();
                         if (!!scrollerEl && !!scrollerComponent) {
                             this.emitScrollEvent(false, true, hasUserAction);
-                        }
-                        if (userAction) {
-                            if (this._isScrollLeft() || this._isScrollRight() || this._isScrollTop() || this._isScrollBottom()) {
-                                this._$preventScrollSnapping.next(true);
-                            }
-                            this._$preventScrollSnapping.next(true);
                         }
                     }),
                 );
@@ -1363,9 +1322,16 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
         this._$fireUpdate.next(false);
     }
 
-    private onAfterResize(update = false) {
-        this.snappingHandler();
+    private stopAnimation() {
+        const scroller = this._scrollerComponent();
+        if (!!scroller && !!this._animationIds) {
+            const animationIds = this._animationIds;
+            this._animationIds = null;
+            scroller.stopAnimation(...animationIds);
+        }
+    }
 
+    private onAfterResize(update = false) {
         if (update) {
             const scroller = this._scrollerComponent();
             if (!!scroller) {
@@ -1374,61 +1340,6 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             }
         }
     }
-
-    private snappingHandler() {
-        const scroller = this._scrollerComponent();
-        if (!!scroller) {
-            const maxScrollWidth = Math.round(scroller.scrollWidth ?? 0),
-                maxScrollHeight = Math.round(scroller.scrollHeight),
-                scrollWidth = scroller.scrollLeft ?? 0,
-                scrollHeight = scroller.scrollTop ?? 0,
-                actualScrollWidth = Math.round(scrollWidth),
-                actualScrollHeight = Math.round(scrollHeight);
-            if (!this._isLoading) {
-                const _isScrollRight = (maxScrollWidth >= (actualScrollWidth - MIN_PIXELS_FOR_PREVENT_SNAPPING)) || !scroller.scrollableX;
-                if (_isScrollRight) {
-                    this._isScrollLeft.set(false);
-                    this._isScrollRight.set(true);
-                } else {
-                    const isScrollStart = (maxScrollWidth <= MIN_PIXELS_FOR_PREVENT_SNAPPING);
-                    this._isScrollLeft.set(isScrollStart);
-                    this._isScrollRight.set(false);
-                }
-                const _isScrollBottom = (maxScrollHeight >= (actualScrollHeight - MIN_PIXELS_FOR_PREVENT_SNAPPING)) || !scroller.scrollableY;
-                if (_isScrollBottom) {
-                    this._isScrollTop.set(false);
-                    this._isScrollBottom.set(true);
-                } else {
-                    const isScrollTop = (maxScrollHeight <= MIN_PIXELS_FOR_PREVENT_SNAPPING);
-                    this._isScrollTop.set(isScrollTop);
-                    this._isScrollBottom.set(false);
-                }
-            } else {
-                const snapScrollToLeft = this.snapScrollToLeft(), snapScrollToRight = this.snapScrollToRight();
-                if (!snapScrollToLeft && snapScrollToRight) {
-                    this._isScrollLeft.set(false);
-                    this._isScrollRight.set(true);
-                } else if (snapScrollToLeft && snapScrollToRight) {
-                    this._isScrollLeft.set(true);
-                    this._isScrollRight.set(false);
-                } else {
-                    this._isScrollLeft.set(false);
-                    this._isScrollRight.set(false);
-                }
-                const snapScrollToTop = this.snapScrollToTop(), snapScrollToBottom = this.snapScrollToBottom();
-                if (!snapScrollToTop && snapScrollToBottom) {
-                    this._isScrollLeft.set(false);
-                    this._isScrollRight.set(true);
-                } else if (snapScrollToTop && snapScrollToBottom) {
-                    this._isScrollLeft.set(true);
-                    this._isScrollRight.set(false);
-                } else {
-                    this._isScrollLeft.set(false);
-                    this._isScrollRight.set(false);
-                }
-            }
-        }
-    };
 
     private emitScrollEvent(isScrollEnd: boolean = false, update: boolean = true, userAction: boolean = false) {
         const scrollerComponent = this._scrollerComponent();
