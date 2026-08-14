@@ -27,7 +27,7 @@ import {
 import { ScrollEvent } from '../common/utils/scroll-event';
 import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-control/const';
 import { NtBaseScrollComponent } from '../common/components/nt-base-scroll-component';
-import { BEHAVIOR_INSTANT } from '../common/const/behavior';
+import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from '../common/const/behavior';
 import {
     DEFAULT_LANG_TEXT_DIR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERSCROLL_ENABLED,
     DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_SCROLLTO_BOTTOM, DEFAULT_SNAP_SCROLLTO_LEFT, DEFAULT_SNAP_SCROLLTO_RIGHT,
@@ -36,6 +36,7 @@ import {
 import { CLASS_SHEET_HORIZONTAL, CLASS_SHEET_VERTICAL, DEFAULT_ANIMATION_PARAMS, DEFAULT_POSITION, DEFAULT_SHEET_SIZE, MIN_PIXELS_FOR_PREVENT_SNAPPING } from './const';
 import { NtSheetService } from './nt-sheet.service';
 import { INtScrollViewService, NtScrollerComponent } from '../scroll-view';
+import { DISPLAY_BLOCK, DISPLAY_NONE, HEIGHT_PROP_NAME, PX, WIDTH_PROP_NAME } from '../common/const/base-prop-names';
 
 /**
  * NtSheetComponent
@@ -48,7 +49,7 @@ import { INtScrollViewService, NtScrollerComponent } from '../scroll-view';
     templateUrl: './nt-sheet.component.html',
     styleUrl: './nt-sheet.component.scss',
     host: {
-        'style': 'position: relative;'
+        'style': 'position: absolute; display: none; width: 100%; height: 100%; left: 0; top: 0;'
     },
     standalone: false,
     changeDetection: ChangeDetectionStrategy.OnPush,
@@ -506,7 +507,20 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
 
     protected readonly classes = signal<{ [cName: string]: boolean }>({ prepared: true });
 
+    protected readonly overlayClasses: Signal<{ [cName: string]: boolean }>;
+
+    protected readonly overlayStyles: Signal<{ [sName: string]: string }>;
+
+    protected readonly contentClasses: Signal<{ [cName: string]: boolean }>;
+
+    protected readonly contentStyles: Signal<{ [sName: string]: string }>;
+
     protected _scrollerBounds = signal<ISize | null>(null);
+
+    private _$opened = new BehaviorSubject<boolean>(false);
+    protected $opened = this._$opened.asObservable();
+
+    get opened() { return this._$opened.getValue(); }
 
     protected _$scrollSizeX = new BehaviorSubject<number>(0);
 
@@ -566,6 +580,115 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             return position === SheetPositions.LEFT || position === SheetPositions.RIGHT ? Directions.HORIZONTAL : Directions.VERTICAL;
         });
 
+        this.overlayClasses = computed(() => {
+            const dir = this._direction();
+            return { [dir]: true };
+        });
+
+        this.overlayStyles = computed(() => {
+            const dir = this._direction(),
+                isVertical = isDirection(dir, Directions.VERTICAL),
+                bounds = this._bounds() ?? { width: 0, height: 0 };
+
+            return {
+                [WIDTH_PROP_NAME]: `${isVertical ? bounds.width : (bounds.width * 2)}${PX}`,
+                [HEIGHT_PROP_NAME]: `${isVertical ? (bounds.height * 2) : bounds.height}${PX}`,
+            };
+        });
+
+        this.contentStyles = computed(() => {
+            const dir = this._direction(),
+                isVertical = isDirection(dir, Directions.VERTICAL),
+                bounds = this._bounds() ?? { width: 0, height: 0 };
+            return {
+                [WIDTH_PROP_NAME]: `${isVertical ? bounds.width : bounds.width}${PX}`,
+                [HEIGHT_PROP_NAME]: `${isVertical ? bounds.height : bounds.height}${PX}`,
+            };
+        });
+
+        this.contentClasses = computed(() => {
+            const pos = this.position();
+            return { [pos]: true };
+        });
+
+        const $scrollerComponent = toObservable(this._scrollerComponent),
+            $opened = this.$opened;
+        $opened.pipe(
+            takeUntilDestroyed(),
+            distinctUntilChanged(),
+            switchMap(opened => {
+                if (opened) {
+                    this._elementRef.nativeElement.style.display = DISPLAY_BLOCK;
+                }
+                return $scrollerComponent.pipe(
+                    takeUntilDestroyed(this._destroyRef),
+                    debounceTime(100),
+                    filter(scroller => !!scroller),
+                    tap(scroller => {
+                        if (!!scroller) {
+                            if (opened) {
+                                const scrollHeight = this.scrollHeight;
+                                if (this.scrollTop !== scrollHeight) {
+                                    scroller.scroll({
+                                        y: this.scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: 1000, userAction: true,
+                                    });
+                                }
+                            } else {
+                                if (this.scrollTop === 0) {
+                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                } else {
+                                    scroller.scroll({
+                                        y: 0, behavior: BEHAVIOR_AUTO, blending: false, duration: 1000, userAction: true, onComplete: () => {
+                                            this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                            this._$opened.next(false);
+                                        },
+                                    });
+                                }
+                            }
+                        }
+                    }),
+                );
+            }),
+        ).subscribe()
+
+        $scrollerComponent.pipe(
+            takeUntilDestroyed(),
+            filter(v => !!v),
+            switchMap(scroller => scroller.$scroll.pipe(
+                takeUntilDestroyed(this._destroyRef),
+                debounceTime(200),
+                tap(e => {
+                    switch (this.position()) {
+                        case SheetPositions.LEFT: {
+                            if (this.opened && this.scrollLeft === this.scrollWidth) {
+                                this._$opened.next(false);
+                            }
+                            return;
+                        }
+                        case SheetPositions.TOP: {
+                            if (this.opened && this.scrollTop === this.scrollHeight) {
+                                this._$opened.next(false);
+                            }
+                            return;
+                        }
+                        case SheetPositions.RIGHT: {
+                            if (this.opened && this.scrollLeft === 0) {
+                                this._$opened.next(false);
+                            }
+                            return;
+                        }
+                        case SheetPositions.BOTTOM:
+                        default: {
+                            if (this.opened && this.scrollTop === 0) {
+                                this._$opened.next(false);
+                            }
+                            return;
+                        }
+                    }
+                }),
+            )),
+        ).subscribe();
+
         const _$created = new BehaviorSubject<boolean>(false),
             $created = _$created.asObservable();
 
@@ -577,8 +700,6 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                 this._$initialized.next(true);
             }),
         ).subscribe();
-
-        const $scrollerComponent = toObservable(this._scrollerComponent);
 
         $scrollerComponent.pipe(
             takeUntilDestroyed(),
@@ -1339,6 +1460,20 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                 this.onScroll.emit(event);
             }
         }
+    }
+
+    /**
+     * Enables the display of the sheet.
+     */
+    open() {
+        this._$opened.next(true);
+    }
+
+    /**
+     * hides the sheet.
+     */
+    close() {
+        this._$opened.next(false);
     }
 
     /**

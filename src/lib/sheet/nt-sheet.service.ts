@@ -57,6 +57,16 @@ export class NtSheetService extends NtBaseScrollViewService implements INtSheetS
 
   constructor() {
     super();
+
+    this.tick();
+  }
+
+  private tick() {
+    this._$tick.next();
+
+    this._tickerId = requestAnimationFrame(() => {
+      this.tick();
+    });
   }
 
   initialize(id: number, scrollView: INtScroller<INtBaseScrollViewService>, parentService: INtBaseScrollViewService | null) {

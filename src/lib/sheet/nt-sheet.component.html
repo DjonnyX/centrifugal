@@ -3,12 +3,13 @@
 @let scrollTopOffset = _precalculatedScrollTopOffset();
 @let scrollBottomOffset = _precalculatedScrollBottomOffset();
 
-<nt-scroller #scroller class="ntvsh__scroller" [classes]="classes()" [context]="this" [langTextDir]="langTextDir()"
-  [leftOffset]="scrollLeftOffset" [rightOffset]="scrollRightOffset" [topOffset]="scrollTopOffset"
-  [bottomOffset]="scrollBottomOffset" [direction]="_direction()" [focusedElement]="focusedElement()"
-  [overscrollEnabled]="overscrollEnabled()" [scrollbarEnabled]="false" [scrollBehavior]="scrollBehavior()"
-  [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()"
-  [motionBlurEnabled]="motionBlurEnabled()" [overscrollAreaShowAutomatically]="overscrollAreaShowAutomatically()"
+<nt-scroller #scroller class="ntvsh__scroller" [classes]="classes()" [context]="this" [scrollable]="true"
+  [langTextDir]="langTextDir()" [leftOffset]="scrollLeftOffset" [rightOffset]="scrollRightOffset"
+  [topOffset]="scrollTopOffset" [bottomOffset]="scrollBottomOffset" [direction]="_direction()"
+  [focusedElement]="focusedElement()" [overscrollEnabled]="overscrollEnabled()" [scrollbarEnabled]="false"
+  [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()"
+  [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()"
+  [overscrollAreaShowAutomatically]="overscrollAreaShowAutomatically()"
   [overscrollAreaUseOffsets]="overscrollAreaUseOffsets()" [overscrollAreaLeftEnabled]="overscrollAreaLeftEnabled()"
   [overscrollAreaTopEnabled]="overscrollAreaTopEnabled()" [overscrollAreaRightEnabled]="overscrollAreaRightEnabled()"
   [overscrollAreaBottomEnabled]="overscrollAreaBottomEnabled()"
@@ -20,7 +21,9 @@
   (onRightOverscrollAreaTrigger)="onRightOverscrollAreaTrigger.emit($event)"
   (onBottomOverscrollAreaTrigger)="onBottomOverscrollAreaTrigger.emit($event)"
   (onOverscroll)="onOverscroll.emit($event)">
-  <ng-container #renderersContainer>
-    <ng-content></ng-content>
-  </ng-container>
+  <div class="ntvsh__overlay" part="nt-sheet-overlay" [ngClass]="overlayClasses()" [ngStyle]="overlayStyles()">
+    <div class="ntvsh__content" part="nt-sheet-content" [ngClass]="contentClasses()" [ngStyle]="contentStyles()">
+      <ng-content></ng-content>
+    </div>
+  </div>
 </nt-scroller>
