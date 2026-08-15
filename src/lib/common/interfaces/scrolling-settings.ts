@@ -32,6 +32,10 @@ export interface IScrollingSettings {
      */
     speedScale?: number;
     /**
+     * Forced scroll stop factor for the snapping element. Default value is `0.01`.
+     */
+    breakpointStoppingFactor?: number;
+    /**
      * Enables scrolling performance optimization. Default value is `true`.
      */
     optimization?: boolean;

@@ -743,7 +743,7 @@ export class NtScrollView extends NtBaseScrollView {
     }
 
     protected snapWithInitialForceIfNecessary(v0: number | null = null, animated = true, force: boolean = false, fireUpdate: boolean = true) {
-        const t = this.animationParams().snapToItem * .01, s = this.getSnappedComponentSize(),
+        const t = this.animationParams().snapToItem * this.scrollingSettings().breakpointStoppingFactor!, s = this.getSnappedComponentSize(),
             va = s !== null && t !== 0 ? (s / t) : 0;
         if (va >= Math.abs(v0 ?? this.averageVelocity)) {
             return this.alignPosition(animated, force, fireUpdate);

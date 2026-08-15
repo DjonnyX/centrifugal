@@ -1690,6 +1690,7 @@ export class TrackBox<C extends NtBaseVirtualListItemComponent = any>
         }
         return null;
     }
+
     private _debouncedIsScrollStartOff = debounce(() => {
         this._isScrollStart = false;
     });

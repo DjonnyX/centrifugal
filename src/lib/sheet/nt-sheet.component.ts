@@ -7,7 +7,7 @@ import {
     BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, map, skip, Subject, switchMap, take, tap, timer,
 } from 'rxjs';
 import {
-    IAnimationParams, INtSheetService,
+    IAnimationParams, INtSheetService, INtSheetBreakpoints, ISheetPrecalculatedBreakpoints, ISheetPrecalculatedBreakpoint,
 } from './interfaces';
 import {
     Direction, SheetPosition,
@@ -17,12 +17,13 @@ import {
 } from './enums';
 import { objectAsReadonly } from '../common/utils/object';
 import {
-    ArithmeticExpression, Directions, Id, IScrollingSettings, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
-    SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
+    ArithmeticExpression, Directions, Id, IScrollingSettings, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED,
+    SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
 } from '../common';
 import { isDirection } from '../common/utils/is-direction';
 import {
-    isPercentageValue, parseArithmeticExpression, toggleClassName, validateBoolean, validateFloat, validateInt, validateObject, validateString,
+    isPercentageValue, parseArithmeticExpression, toggleClassName, validateArray, validateBoolean, validateFloat, validateInt, validateObject,
+    validateString,
 } from '../common/utils';
 import { ScrollEvent } from '../common/utils/scroll-event';
 import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-control/const';
@@ -30,13 +31,17 @@ import { NtBaseScrollComponent } from '../common/components/nt-base-scroll-compo
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from '../common/const/behavior';
 import {
     DEFAULT_LANG_TEXT_DIR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERSCROLL_ENABLED,
-    DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_SCROLLTO_BOTTOM, DEFAULT_SNAP_SCROLLTO_LEFT, DEFAULT_SNAP_SCROLLTO_RIGHT,
-    DEFAULT_SNAP_SCROLLTO_TOP,
+    DEFAULT_SCROLL_BEHAVIOR,
 } from '../common/const/scroller';
-import { CLASS_SHEET_HORIZONTAL, CLASS_SHEET_VERTICAL, DEFAULT_ANIMATION_PARAMS, DEFAULT_POSITION, DEFAULT_SHEET_SIZE } from './const';
+import {
+    CLASS_SHEET_HORIZONTAL, CLASS_SHEET_VERTICAL, DEFAULT_ANIMATION_PARAMS, DEFAULT_BREAKPOINT_TRIGGER_DISTANCE, DEFAULT_OPENING_BREAKPOINTS,
+    DEFAULT_POSITION, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SHEET_SIZE,
+} from './const';
 import { NtSheetService } from './nt-sheet.service';
-import { INtScrollViewService, NtScrollerComponent } from '../scroll-view';
+import { INtScrollViewService } from '../scroll-view';
 import { DISPLAY_BLOCK, DISPLAY_NONE, HEIGHT_PROP_NAME, OPACITY_0, OPACITY_1, PX, WIDTH_PROP_NAME } from '../common/const/base-prop-names';
+import { getBreakpointByPosition } from './utils';
+import { NtScrollerComponent } from '../list/components/nt-scroller/nt-scroller.component';
 
 /**
  * NtSheetComponent
@@ -80,28 +85,58 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
      */
     onViewportChange = output<ISize>();
 
-    /**
-     * Fires when the scroll reaches the left.
-     */
-    onScrollReachLeft = output<void>();
-
-    /**
-     * Fires when the scroll reaches the right.
-     */
-    onScrollReachRight = output<void>();
-
-    /**
-     * Fires when the scroll reaches the top.
-     */
-    onScrollReachTop = output<void>();
-
-    /**
-     * Fires when the scroll reaches the bottom.
-     */
-    onScrollReachBottom = output<void>();
-
     protected _$initialized = new BehaviorSubject<boolean>(false);
     readonly $initialized = this._$initialized.asObservable();
+
+    protected _breakpointsOptions = {
+        transform: (v: INtSheetBreakpoints) => {
+            let valid = validateArray(v);
+            if (!valid) {
+                console.error('The "breakpoints" parameter must be of type `number`.');
+                return DEFAULT_OPENING_BREAKPOINTS;
+            }
+            for (let i = 0, l = v.length; i < l; i++) {
+                const pos = v[i];
+                valid = validateObject(pos);
+                if (!valid) {
+                    console.error('The "breakpoint" parameter must be of type `ISheetBreakpoint`.');
+                    return DEFAULT_OPENING_BREAKPOINTS;
+                }
+                valid = validateString(pos.id);
+                if (!valid) {
+                    console.error('The "breakpoint.id" parameter must be of type `string`.');
+                    return DEFAULT_OPENING_BREAKPOINTS;
+                }
+                valid = validateFloat(pos.position as number) || (validateString(pos.position as string) && isPercentageValue(pos.position));
+                if (!valid) {
+                    console.error('The "breakpoint.position" parameter must be of type `number` or `ArithmeticExpression`.');
+                    return DEFAULT_OPENING_BREAKPOINTS;
+                }
+            }
+            return v;
+        },
+    } as any;
+
+    /**
+     * Opening breakpoints.
+     */
+    breakpoints = input<INtSheetBreakpoints>(DEFAULT_OPENING_BREAKPOINTS, { ...this._breakpointsOptions });
+
+    protected _breakpointTriggerDistanceOptions = {
+        transform: (v: number) => {
+            let valid = validateFloat(v) && v >= 0 && v <= 1;
+            if (!valid) {
+                console.error('The "breakpointTriggerDistance" parameter must be of type `number` with a range from 0 to 1.');
+                return DEFAULT_BREAKPOINT_TRIGGER_DISTANCE;
+            }
+            return v;
+        },
+    } as any;
+
+    /**
+     * Breakpoint trigger distance. Specified as a percentage from 0 to 1.
+     */
+    breakpointTriggerDistance = input<number>(DEFAULT_BREAKPOINT_TRIGGER_DISTANCE, { ...this._breakpointTriggerDistanceOptions });
 
     protected _clickDistance = {
         transform: (v: number) => {
@@ -120,12 +155,12 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
      */
     clickDistance = input<number>(DEFAULT_CLICK_DISTANCE, { ...this._clickDistance });
 
-    protected _scrollLeftOffsetOptions = {
+    protected _scrollStartOffsetOptions = {
         transform: (v: number) => {
             const valid = validateFloat(v, true) || isPercentageValue(v);
 
             if (!valid) {
-                console.error('The "scrollLeftOffset" parameter must be one of type `number` or `string`.');
+                console.error('The "scrollStartOffset" parameter must be one of type `number` or `string`.');
                 return 0;
             }
             return v;
@@ -133,17 +168,17 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
     } as any;
 
     /**
-     * Sets the scroll left offset value. Can be specified in absolute or percentage values.
+     * Sets the scroll start offset value. Can be specified in absolute or percentage values.
      * Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0".
      */
-    scrollLeftOffset = input<ArithmeticExpression>(0, { ...this._scrollLeftOffsetOptions });
+    scrollStartOffset = input<ArithmeticExpression>(0, { ...this._scrollStartOffsetOptions });
 
-    protected _scrollTopOffsetOptions = {
+    protected _scrollEndOffsetOptions = {
         transform: (v: number) => {
             const valid = validateFloat(v, true) || isPercentageValue(v);
 
             if (!valid) {
-                console.error('The "scrollTopOffset" parameter must be one of type `number` or `string`.');
+                console.error('The "scrollEndOffset" parameter must be one of type `number` or `string`.');
                 return 0;
             }
             return v;
@@ -151,134 +186,10 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
     } as any;
 
     /**
-     * Sets the scroll top offset value. Can be specified in absolute or percentage values.
+     * Sets the scroll end offset value. Can be specified in absolute or percentage values.
      * Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0".
      */
-    scrollTopOffset = input<ArithmeticExpression>(0, { ...this._scrollTopOffsetOptions });
-
-    protected _scrollRightOffsetOptions = {
-        transform: (v: number) => {
-            const valid = validateFloat(v, true) || isPercentageValue(v);
-
-            if (!valid) {
-                console.error('The "scrollRightOffset" parameter must be one of type `number` or `string`.');
-                return 0;
-            }
-            return v;
-        },
-    } as any;
-
-    /**
-     * Sets the scroll right offset value. Can be specified in absolute or percentage values.
-     * Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0".
-     */
-    scrollRightOffset = input<ArithmeticExpression>(0, { ...this._scrollRightOffsetOptions });
-
-    protected _scrollBottomOffsetOptions = {
-        transform: (v: number) => {
-            const valid = validateFloat(v, true) || isPercentageValue(v);
-
-            if (!valid) {
-                console.error('The "scrollBottomOffset" parameter must be one of type `number` or `string`.');
-                return 0;
-            }
-            return v;
-        },
-    } as any;
-
-    /**
-     * Sets the scroll bottom offset value. Can be specified in absolute or percentage values.
-     * Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0".
-     */
-    scrollBottomOffset = input<ArithmeticExpression>(0, { ...this._scrollBottomOffsetOptions });
-
-    protected _snapScrollToLeftOptions = {
-        transform: (v: boolean) => {
-            const valid = validateBoolean(v, true);
-
-            if (!valid) {
-                console.error('The "snapScrollToLeft" parameter must be of type `boolean`.');
-                return DEFAULT_SNAP_SCROLLTO_LEFT;
-            }
-            return v;
-        },
-    } as any;
-
-    /**
-     * Determines whether the scrollbar is snapped to the left of the scroller. The default value is "true".
-     * That is, if snapScrollToLeft and snapScrollToRight are enabled, the scroller will initially snap
-     * to the left; if you move the scrollbar right, the scroller will snap to the right.
-     * If snapScrollToLeft is disabled and snapScrollToRight is enabled, the scroller will snap to the right;
-     * If you move the scrollbar left, the scroller will snap to the left.
-     * If both snapScrollToLeft and snapScrollToRight are disabled, the scroller will never snap to the left or right.
-     */
-    snapScrollToLeft = input<boolean>(DEFAULT_SNAP_SCROLLTO_LEFT, { ...this._snapScrollToLeftOptions });
-
-    protected _snapScrollToTopOptions = {
-        transform: (v: boolean) => {
-            const valid = validateBoolean(v, true);
-
-            if (!valid) {
-                console.error('The "snapScrollToTop" parameter must be of type `boolean`.');
-                return DEFAULT_SNAP_SCROLLTO_TOP;
-            }
-            return v;
-        },
-    } as any;
-
-    /**
-     * Determines whether the scrollbar is snapped to the top of the scroller. The default value is "true".
-     * That is, if snapScrollToTop and snapScrollToBottom are enabled, the scroller will initially snap
-     * to the top; if you move the scrollbar down, the scroller will snap to the bottom.
-     * If snapScrollToTop is disabled and snapScrollToBottom is enabled, the scroller will snap to the bottom;
-     * If you move the scrollbar up, the scroller will snap to the top.
-     * If both snapScrollToTop and snapScrollToBottom are disabled, the scroller will never snap to the top or bottom.
-     */
-    snapScrollToTop = input<boolean>(DEFAULT_SNAP_SCROLLTO_TOP, { ...this._snapScrollToTopOptions });
-
-    protected _snapScrollToRightOptions = {
-        transform: (v: boolean) => {
-            const valid = validateBoolean(v, true);
-
-            if (!valid) {
-                console.error('The "snapScrollToRight" parameter must be of type `boolean`.');
-                return DEFAULT_SNAP_SCROLLTO_RIGHT;
-            }
-            return v;
-        },
-    } as any;
-
-    /**
-     * Determines whether the scrollbar is snapped to the right of the scroller. The default value is "true".
-     * That is, if snapScrollToLeft and snapScrollToRight are enabled, the scroller will initially snap
-     * to the left; if you move the scrollbar right, the scroller will snap to the right.
-     * If snapScrollToLeft is disabled and snapScrollToRight is enabled, the scroller will snap to the right;
-     * If you move the scrollbar left, the scroller will snap to the left.
-     * If both snapScrollToLeft and snapScrollToRight are disabled, the scroller will never snap to the left or right.
-     */
-    snapScrollToRight = input<boolean>(DEFAULT_SNAP_SCROLLTO_RIGHT, { ...this._snapScrollToRightOptions });
-
-    protected _snapScrollToBottomOptions = {
-        transform: (v: boolean) => {
-            const valid = validateBoolean(v, true);
-
-            if (!valid) {
-                console.error('The "snapScrollToBottom" parameter must be of type `boolean`.');
-                return DEFAULT_SNAP_SCROLLTO_BOTTOM;
-            }
-            return v;
-        },
-    } as any;
-
-    /**
-     * Determines whether the scrollbar is snapped to the bottom of the scroller. The default value is "true".
-     * That is, if snapScrollToTop and snapScrollToBottom are enabled, the scroller will initially snap
-     * to the top; if you move the scrollbar down, the scroller will snap to the bottom.
-     * If snapScrollToTop is disabled and snapScrollToBottom is enabled, the scroller will snap to the bottom;
-     * If you move the scrollbar up, the scroller will snap to the top.
-     * If both snapScrollToTop and snapScrollToBottom are disabled, the scroller will never snap to the top or bottom.
-     */
-    snapScrollToBottom = input<boolean>(DEFAULT_SNAP_SCROLLTO_BOTTOM, { ...this._snapScrollToBottomOptions });
+    scrollEndOffset = input<ArithmeticExpression>(0, { ...this._scrollEndOffsetOptions });
 
     protected _scrollBehaviorOptions = {
         transform: (v: ScrollBehavior) => {
@@ -301,7 +212,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
         transform: (v: IScrollingSettings): IScrollingSettings | null => {
             let valid = validateObject(v, true, true);
             if (valid && !!v) {
-                const { frictionalForce, mass, maxDistance, maxDuration, speedScale, optimization } = v;
+                const { frictionalForce, mass, maxDistance, maxDuration, speedScale, optimization, breakpointStoppingFactor } = v;
                 valid = validateFloat(frictionalForce, true);
                 if (!valid) {
                     console.error('The "frictionalForce" parameter must be of type `number` or `undefined`.');
@@ -327,6 +238,11 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                     console.error('The "speedScale" parameter must be of type `number` or `undefined`.');
                     return DEFAULT_SCROLLING_SETTINGS;
                 }
+                valid = validateFloat(breakpointStoppingFactor, true);
+                if (!valid) {
+                    console.error('The "breakpointStoppingFactor" parameter must be of type `number` or `undefined`.');
+                    return DEFAULT_SCROLLING_SETTINGS;
+                }
                 valid = validateBoolean(optimization, true);
                 if (!valid) {
                     console.error('The "optimization" parameter must be of type `boolean` or `undefined`.');
@@ -343,6 +259,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                 maxDistance: v.maxDistance !== undefined && v.maxDistance > 0 ? v.maxDistance : DEFAULT_SCROLLING_SETTINGS.maxDistance,
                 maxDuration: v.maxDuration !== undefined && v.maxDuration > 0 ? v.maxDuration : DEFAULT_SCROLLING_SETTINGS.maxDuration,
                 speedScale: v.speedScale !== undefined && v.speedScale > 0 ? v.speedScale : DEFAULT_SCROLLING_SETTINGS.speedScale,
+                breakpointStoppingFactor: v.breakpointStoppingFactor !== undefined && v.breakpointStoppingFactor > 0 ? v.breakpointStoppingFactor : DEFAULT_SCROLLING_SETTINGS.breakpointStoppingFactor,
                 optimization: v.optimization ?? DEFAULT_SCROLLING_SETTINGS.optimization,
             };
         },
@@ -467,9 +384,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
      */
     position = input<SheetPosition>(DEFAULT_POSITION, { ...this._positionOptions });
 
-    protected _direction: Signal<Direction>;
-
-    protected _langTextDir = {
+    protected _langTextDirOptions = {
         transform: (v: TextDirection) => {
             const valid = validateString(v) && (v === TextDirections.LTR || v === TextDirections.RTL);
             if (!valid) {
@@ -484,7 +399,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
      * A string indicating the direction of text for the locale.
      * Can be either "ltr" (left-to-right) or "rtl" (right-to-left).
      */
-    langTextDir = input<TextDirection>(DEFAULT_LANG_TEXT_DIR, { ...this._langTextDir });
+    langTextDir = input<TextDirection>(DEFAULT_LANG_TEXT_DIR, { ...this._langTextDirOptions });
 
     protected readonly focusedElement = signal<Id | null>(null);
 
@@ -500,6 +415,11 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
 
     protected _scrollerBounds = signal<ISize | null>(null);
 
+    private _$isMoving = new BehaviorSubject<boolean>(false);
+    protected $isMoving = this._$isMoving.asObservable();
+
+    get isMoving() { return this._$isMoving.getValue(); }
+
     private _$opened = new BehaviorSubject<boolean>(false);
     protected $opened = this._$opened.asObservable();
 
@@ -509,21 +429,19 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
 
     protected _$scrollSizeY = new BehaviorSubject<number>(0);
 
-    protected _isScrollLeft = signal<boolean>(true);
+    protected _precalculatedScrollStartOffset = signal<number>(0);
 
-    protected _isScrollRight = signal<boolean>(false);
+    protected _precalculatedScrollEndOffset = signal<number>(0);
 
-    protected _isScrollTop = signal<boolean>(true);
+    protected _currentBreakpointIndex = signal<number>(0);
 
-    protected _isScrollBottom = signal<boolean>(false);
+    protected _currentBreakpoint: Signal<ISheetPrecalculatedBreakpoint | null>;
 
-    protected _precalculatedScrollLeftOffset = signal<number>(0);
+    protected _precalculatedBreakpoints: Signal<ISheetPrecalculatedBreakpoints>;
 
-    protected _precalculatedScrollTopOffset = signal<number>(0);
+    protected _direction: Signal<Direction>;
 
-    protected _precalculatedScrollRightOffset = signal<number>(0);
-
-    protected _precalculatedScrollBottomOffset = signal<number>(0);
+    protected _isVertical: Signal<boolean>;
 
     private _$scrollTo = new Subject<IScrollOptions>();
     protected $scrollTo = this._$scrollTo.asObservable();
@@ -541,7 +459,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
 
     protected _destroyRef = inject(DestroyRef);
 
-    private _animationIds: Array<number> | null = null;
+    private _animationIds: Array<number> | number | null = null;
 
     private _$viewInit = new BehaviorSubject<boolean>(false);
     protected readonly $viewInit = this._$viewInit.asObservable();
@@ -558,14 +476,19 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             return position === SheetPositions.LEFT || position === SheetPositions.RIGHT ? Directions.HORIZONTAL : Directions.VERTICAL;
         });
 
+        this._isVertical = computed(() => {
+            const dir = this._direction(),
+                isVertical = isDirection(dir, Directions.VERTICAL);
+            return isVertical;
+        });
+
         this.overlayClasses = computed(() => {
             const dir = this._direction();
             return { [dir]: true };
         });
 
         this.overlayStyles = computed(() => {
-            const dir = this._direction(),
-                isVertical = isDirection(dir, Directions.VERTICAL),
+            const isVertical = this._isVertical(),
                 bounds = this._bounds() ?? { width: 0, height: 0 };
 
             return {
@@ -575,8 +498,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
         });
 
         this.contentStyles = computed(() => {
-            const dir = this._direction(),
-                isVertical = isDirection(dir, Directions.VERTICAL),
+            const isVertical = this._isVertical(),
                 bounds = this._bounds() ?? { width: 0, height: 0 };
             return {
                 [WIDTH_PROP_NAME]: `${isVertical ? bounds.width : bounds.width}${PX}`,
@@ -589,10 +511,86 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             return { [pos]: true };
         });
 
+        this._precalculatedBreakpoints = computed(() => {
+            const langTextDir = this.langTextDir(),
+                position = this.position(),
+                isStartPosition = position === SheetPositions.LEFT || position === SheetPositions.TOP,
+                isVertical = this._isVertical(),
+                bounds = this._bounds() ?? { width: 0, height: 0 }, breakpoints = this.breakpoints(),
+                viewportSize = (isVertical ? bounds.height : bounds.width),
+                result: ISheetPrecalculatedBreakpoints = [];
+            let prevPosition = 0;
+            const normalizedBreakpoints = [...breakpoints];
+            for (let l = normalizedBreakpoints.length, li = l - 1, i = isStartPosition ? 0 : li; isStartPosition ? (i < l) : (i >= 0); isStartPosition ? i++ : i--) {
+                const breakpoint = normalizedBreakpoints[i],
+                    precalculatedPosition = parseArithmeticExpression(breakpoint.position, viewportSize),
+                    size = isStartPosition && i === 0 ? viewportSize : Math.abs(precalculatedPosition - prevPosition) + (isStartPosition ? 0 : viewportSize),
+                    precalculatedBreakpoint: ISheetPrecalculatedBreakpoint = {
+                        id: breakpoint.id,
+                        position: precalculatedPosition,
+                        config: {
+                            isVertical,
+                            isFirst: i === 0,
+                            isLast: i === li,
+                            inverted: !isVertical && langTextDir === TextDirections.RTL,
+                        },
+                        measures: {
+                            x: (isVertical ? 0 : (isStartPosition ? (viewportSize - precalculatedPosition) : precalculatedPosition)),
+                            y: (isVertical ? (isStartPosition ? (viewportSize - precalculatedPosition) : precalculatedPosition) : 0),
+                            maxScrollSize: 0,
+                        },
+                        bounds: {
+                            width: isVertical ? bounds.width : size,
+                            height: isVertical ? size : bounds.height,
+                        },
+                    };
+                result.push(precalculatedBreakpoint);
+                prevPosition = precalculatedPosition;
+            }
+            return result;
+        });
+
+        this._currentBreakpoint = computed(() => {
+            const index = this._currentBreakpointIndex(), breakpoints = this._precalculatedBreakpoints();
+            return index > -1 && breakpoints.length > 0 && ((breakpoints.length - 1) > index) ? breakpoints[index] : null;
+        });
+
         const _$created = new BehaviorSubject<boolean>(false),
             $created = _$created.asObservable(),
             $scrollerComponent = toObservable(this._scrollerComponent),
+            $precalculatedBreakpoints = toObservable(this._precalculatedBreakpoints),
+            $currentBreakpoint = toObservable(this._currentBreakpoint),
+            $isVertical = toObservable(this._isVertical),
+            $grabbing = this.$grabbing,
             $opened = this.$opened;
+
+        $precalculatedBreakpoints.pipe(
+            takeUntilDestroyed(),
+            tap(v => {
+                this._service.breakpoints = v;
+            }),
+        ).subscribe();
+
+        combineLatest([$scrollerComponent, this.$initialized]).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            filter(([scroller, init]) => !!scroller && !!init),
+            switchMap(([scroller]) => {
+                return combineLatest([$grabbing, $currentBreakpoint, scroller!.$scroll, scroller!.$scrollEnd.pipe(
+                    takeUntilDestroyed(this._destroyRef),
+                    debounceTime(10),
+                ), this.$isMoving.pipe(
+                    takeUntilDestroyed(this._destroyRef),
+                    debounceTime(0),
+                )]).pipe(
+                    takeUntilDestroyed(this._destroyRef),
+                    filter(([g, b]) => !g && !!b),
+                    tap(([grabbing, breakpoint, isMoving]) => {
+                        const position = this.position(), isVertical = position === SheetPositions.TOP || position === SheetPositions.BOTTOM;
+                        // emit breakpoint position event
+                    }),
+                );
+            }),
+        ).subscribe();
 
         let skipClosing = true;
 
@@ -614,147 +612,139 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             switchMap(([scroller]) => {
                 return $opened.pipe(
                     takeUntilDestroyed(this._destroyRef),
-                    switchMap(opened => {
+                    tap(opened => {
                         if (opened) {
                             $action.next();
                             this._elementRef.nativeElement.style.display = DISPLAY_BLOCK;
                             this._elementRef.nativeElement.style.opacity = OPACITY_0;
                         }
-                        return combineLatest([scroller!.$resizeViewport, scroller!.$resizeContent]).pipe(
-                            takeUntilDestroyed(this._destroyRef),
-                            filter(([v]) => v.width > 0 && v.height > 0),
-                            debounceTime(1),
-                            tap(() => {
-                                if (!!scroller) {
-                                    this.stopAnimation();
-                                    if (!!scroller && opened) {
-                                        switch (this.position()) {
-                                            case SheetPositions.LEFT: {
-                                                const scrollWidth = this.scrollWidth;
-                                                scroller.scroll({
-                                                    x: scrollWidth, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, userAction: true, fireUpdate: true,
-                                                });
-                                                break;
-                                            }
-                                            case SheetPositions.TOP: {
-                                                const scrollHeight = this.scrollHeight;
-                                                scroller.scroll({
-                                                    y: scrollHeight, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, userAction: true, fireUpdate: true,
-                                                });
-                                                break;
-                                            }
-                                        }
+                    }),
+                    debounceTime(50),
+                    tap(opened => {
+                        if (!!scroller) {
+                            this.stopAnimation();
+                            if (!!scroller && opened) {
+                                switch (this.position()) {
+                                    case SheetPositions.LEFT: {
+                                        const scrollWidth = this.scrollWidth;
+                                        scroller.scroll({
+                                            x: scrollWidth, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, userAction: true, fireUpdate: true,
+                                        });
+                                        break;
+                                    }
+                                    case SheetPositions.TOP: {
+                                        const scrollHeight = this.scrollHeight;
+                                        scroller.scroll({
+                                            y: scrollHeight, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, userAction: true, fireUpdate: true,
+                                        });
+                                        break;
                                     }
                                 }
-                            }),
-                            delay(50),
-                            tap(() => {
-                                if (!!scroller) {
-                                    if (opened) {
-                                        this._elementRef.nativeElement.style.opacity = OPACITY_1;
-                                        switch (this.position()) {
-                                            case SheetPositions.LEFT: {
-                                                const startPosition = this._precalculatedScrollLeftOffset();
-                                                this._animationIds = scroller.scroll({
-                                                    x: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
-                                                });
-                                                break;
-                                            }
-                                            case SheetPositions.TOP: {
-                                                const startPosition = this._precalculatedScrollTopOffset();
-                                                this._animationIds = scroller.scroll({
-                                                    y: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
-                                                });
-                                                break;
-                                            }
-                                            case SheetPositions.RIGHT: {
-                                                const scrollWeight = this.scrollWidth;
-                                                this._animationIds = scroller.scroll({
-                                                    x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
-                                                });
-                                                break;
-                                            }
-                                            case SheetPositions.BOTTOM:
-                                            default: {
-                                                const scrollHeight = this.scrollHeight;
-                                                this._animationIds = scroller.scroll({
-                                                    y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
-                                                });
-                                                break;
-                                            }
-                                        }
-                                    } else {
-                                        switch (this.position()) {
-                                            case SheetPositions.LEFT: {
-                                                const scrollWeight = this.scrollWidth;
-                                                if (this.scrollLeft === scrollWeight) {
-                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
-                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
-                                                } else {
-                                                    this._animationIds = scroller.scroll({
-                                                        x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
-                                                            this._elementRef.nativeElement.style.display = DISPLAY_NONE;
-                                                            this._elementRef.nativeElement.style.opacity = OPACITY_0;
-                                                            this._$opened.next(false);
-                                                        },
-                                                    });
-                                                }
-                                                break;
-                                            }
-                                            case SheetPositions.TOP: {
-                                                const scrollHeight = this.scrollHeight;
-                                                if (this.scrollTop === scrollHeight) {
-                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
-                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
-                                                } else {
-                                                    this._animationIds = scroller.scroll({
-                                                        y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
-                                                            this._elementRef.nativeElement.style.display = DISPLAY_NONE;
-                                                            this._elementRef.nativeElement.style.opacity = OPACITY_0;
-                                                            this._$opened.next(false);
-                                                        },
-                                                    });
-                                                }
-                                                break;
-                                            }
-                                            case SheetPositions.RIGHT: {
-                                                const endPosition = this._precalculatedScrollRightOffset();
-                                                if (this.scrollLeft === endPosition) {
-                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
-                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
-                                                } else {
-                                                    this._animationIds = scroller.scroll({
-                                                        x: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
-                                                            this._elementRef.nativeElement.style.display = DISPLAY_NONE;
-                                                            this._elementRef.nativeElement.style.opacity = OPACITY_0;
-                                                            this._$opened.next(false);
-                                                        },
-                                                    });
-                                                }
-                                                break;
-                                            }
-                                            case SheetPositions.BOTTOM:
-                                            default: {
-                                                const endPosition = this._precalculatedScrollBottomOffset();
-                                                if (this.scrollTop === endPosition) {
-                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
-                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
-                                                } else {
-                                                    this._animationIds = scroller.scroll({
-                                                        y: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
-                                                            this._elementRef.nativeElement.style.display = DISPLAY_NONE;
-                                                            this._elementRef.nativeElement.style.opacity = OPACITY_0;
-                                                            this._$opened.next(false);
-                                                        },
-                                                    });
-                                                }
-                                                break;
-                                            }
-                                        }
+                            }
+                        }
+                    }),
+                    delay(50),
+                    tap(opened => {
+                        if (!!scroller) {
+                            if (opened) {
+                                this._elementRef.nativeElement.style.opacity = OPACITY_1;
+                                switch (this.position()) {
+                                    case SheetPositions.LEFT: {
+                                        const startPosition = this._precalculatedScrollStartOffset();
+                                        this._animationIds = scroller.scroll({
+                                            x: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
+                                        });
+                                        break;
+                                    }
+                                    case SheetPositions.TOP: {
+                                        const startPosition = this._precalculatedScrollStartOffset();
+                                        this._animationIds = scroller.scroll({
+                                            y: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
+                                        });
+                                        break;
+                                    }
+                                    case SheetPositions.RIGHT: {
+                                        const scrollWeight = this.scrollWidth;
+                                        this._animationIds = scroller.scroll({
+                                            x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
+                                        });
+                                        break;
+                                    }
+                                    case SheetPositions.BOTTOM:
+                                    default: {
+                                        const scrollHeight = this.scrollHeight;
+                                        this._animationIds = scroller.scroll({
+                                            y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
+                                        });
+                                        break;
                                     }
                                 }
-                            }),
-                        );
+                            } else {
+                                switch (this.position()) {
+                                    case SheetPositions.LEFT: {
+                                        const scrollWeight = this.scrollWidth;
+                                        if (this.scrollLeft === scrollWeight) {
+                                            this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                            this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                        } else {
+                                            this._animationIds = scroller.scroll({
+                                                x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
+                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                },
+                                            });
+                                        }
+                                        break;
+                                    }
+                                    case SheetPositions.TOP: {
+                                        const scrollHeight = this.scrollHeight;
+                                        if (this.scrollTop === scrollHeight) {
+                                            this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                            this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                        } else {
+                                            this._animationIds = scroller.scroll({
+                                                y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
+                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                },
+                                            });
+                                        }
+                                        break;
+                                    }
+                                    case SheetPositions.RIGHT: {
+                                        const endPosition = this._precalculatedScrollEndOffset();
+                                        if (this.scrollLeft === endPosition) {
+                                            this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                            this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                        } else {
+                                            this._animationIds = scroller.scroll({
+                                                x: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
+                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                },
+                                            });
+                                        }
+                                        break;
+                                    }
+                                    case SheetPositions.BOTTOM:
+                                    default: {
+                                        const endPosition = this._precalculatedScrollEndOffset();
+                                        if (this.scrollTop === endPosition) {
+                                            this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                            this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                        } else {
+                                            this._animationIds = scroller.scroll({
+                                                y: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
+                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                },
+                                            });
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     }),
                 );
             }),
@@ -763,7 +753,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
         $scrollerComponent.pipe(
             takeUntilDestroyed(),
             filter(v => !!v),
-            switchMap(scroller => scroller.$scroll.pipe(
+            switchMap(scroller => scroller.$scrollEnd.pipe(
                 takeUntilDestroyed(this._destroyRef),
                 debounceTime(100),
                 tap(() => {
@@ -784,7 +774,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                 break;
                             }
                             case SheetPositions.RIGHT: {
-                                if (this.opened && this.scrollLeft === this._precalculatedScrollRightOffset()) {
+                                if (this.opened && this.scrollLeft === this._precalculatedScrollEndOffset()) {
                                     this.stopAnimation();
                                     this._$opened.next(false);
                                 }
@@ -792,13 +782,52 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                             }
                             case SheetPositions.BOTTOM:
                             default: {
-                                if (this.opened && this.scrollTop === this._precalculatedScrollBottomOffset()) {
+                                if (this.opened && this.scrollTop === this._precalculatedScrollEndOffset()) {
                                     this.stopAnimation();
                                     this._$opened.next(false);
                                 }
                                 break;
                             }
                         }
+                    }
+                }),
+            )),
+        ).subscribe();
+
+        combineLatest([$scrollerComponent, $precalculatedBreakpoints]).pipe(
+            takeUntilDestroyed(),
+            filter(([v, p]) => !!v && !!p),
+            switchMap(([scroller, breakpoints]) => scroller!.$scroll.pipe(
+                takeUntilDestroyed(this._destroyRef),
+                tap(() => {
+                    const position = this.position();
+                    let actualPosition: number = 0, maxPosition = 0;
+                    switch (position) {
+                        case SheetPositions.LEFT: {
+                            maxPosition = this.scrollWidth;
+                            actualPosition = maxPosition - this.scrollLeft;
+                            break;
+                        }
+                        case SheetPositions.TOP: {
+                            maxPosition = this.scrollHeight;
+                            actualPosition = maxPosition - this.scrollTop;
+                            break;
+                        }
+                        case SheetPositions.RIGHT: {
+                            maxPosition = this.scrollWidth;
+                            actualPosition = this.scrollLeft;
+                            break;
+                        }
+                        case SheetPositions.BOTTOM:
+                        default: {
+                            maxPosition = this.scrollHeight;
+                            actualPosition = this.scrollTop;
+                            break;
+                        }
+                    }
+                    const index = getBreakpointByPosition(breakpoints, this.breakpointTriggerDistance(), actualPosition);
+                    if (index !== -1) {
+                        this._currentBreakpointIndex.set(index);
                     }
                 }),
             )),
@@ -857,40 +886,22 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
         const $bounds = toObservable(this._bounds).pipe(
             filter(b => !!b),
         ),
-            $rawScrollLeftOffset = toObservable(this.scrollLeftOffset),
-            $rawScrollRightOffset = toObservable(this.scrollRightOffset),
-            $rawScrollTopOffset = toObservable(this.scrollTopOffset),
-            $rawScrollBottomOffset = toObservable(this.scrollBottomOffset);
+            $rawScrollStartOffset = toObservable(this.scrollStartOffset),
+            $rawScrollEndOffset = toObservable(this.scrollEndOffset);
 
-        combineLatest([$bounds, $rawScrollLeftOffset]).pipe(
+        combineLatest([$bounds, $rawScrollStartOffset]).pipe(
             takeUntilDestroyed(),
             tap(([bounds, value]) => {
                 const val = parseArithmeticExpression(value, bounds.width);
-                this._precalculatedScrollLeftOffset.set(val);
+                this._precalculatedScrollStartOffset.set(val);
             }),
         ).subscribe();
 
-        combineLatest([$bounds, $rawScrollRightOffset]).pipe(
+        combineLatest([$bounds, $rawScrollEndOffset]).pipe(
             takeUntilDestroyed(),
             tap(([bounds, value]) => {
                 const val = parseArithmeticExpression(value, bounds.width);
-                this._precalculatedScrollRightOffset.set(val);
-            }),
-        ).subscribe();
-
-        combineLatest([$bounds, $rawScrollTopOffset]).pipe(
-            takeUntilDestroyed(),
-            tap(([bounds, value]) => {
-                const val = parseArithmeticExpression(value, bounds.height);
-                this._precalculatedScrollTopOffset.set(val);
-            }),
-        ).subscribe();
-
-        combineLatest([$bounds, $rawScrollBottomOffset]).pipe(
-            takeUntilDestroyed(),
-            tap(([bounds, value]) => {
-                const val = parseArithmeticExpression(value, bounds.height);
-                this._precalculatedScrollBottomOffset.set(val);
+                this._precalculatedScrollEndOffset.set(val);
             }),
         ).subscribe();
 
@@ -930,19 +941,11 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             }),
         ).subscribe();
 
-        const $scrollLeftOffset = toObservable(this._precalculatedScrollLeftOffset).pipe(
+        const $scrollStartOffset = toObservable(this._precalculatedScrollStartOffset).pipe(
             takeUntilDestroyed(),
             distinctUntilChanged(),
         ),
-            $scrollRightOffset = toObservable(this._precalculatedScrollRightOffset).pipe(
-                takeUntilDestroyed(),
-                distinctUntilChanged(),
-            ),
-            $scrollTopOffset = toObservable(this._precalculatedScrollTopOffset).pipe(
-                takeUntilDestroyed(),
-                distinctUntilChanged(),
-            ),
-            $scrollBottomOffset = toObservable(this._precalculatedScrollBottomOffset).pipe(
+            $scrollEndOffset = toObservable(this._precalculatedScrollEndOffset).pipe(
                 takeUntilDestroyed(),
                 distinctUntilChanged(),
             );
@@ -973,7 +976,9 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
         });
 
         const $viewInit = this.$viewInit,
-            $fireUpdate = this.$fireUpdate;
+            $fireUpdate = this.$fireUpdate,
+            $precalculatedScrollStartOffset = toObservable(this._precalculatedScrollStartOffset),
+            $precalculatedScrollEndOffset = toObservable(this._precalculatedScrollEndOffset);
 
         $fireUpdate.pipe(
             takeUntilDestroyed(),
@@ -987,8 +992,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             filter(v => !!v),
             switchMap(() => {
                 return combineLatest([
-                    $scrollLeftOffset, $scrollRightOffset, $scrollTopOffset, $scrollRightOffset, $bounds, $precalculatedScrollLeftOffset,
-                    $precalculatedScrollRightOffset, $precalculatedScrollTopOffset, $precalculatedScrollBottomOffset,
+                    $scrollStartOffset, $scrollEndOffset, $bounds, $precalculatedScrollStartOffset, $precalculatedScrollEndOffset,
                 ]).pipe(
                     takeUntilDestroyed(this._destroyRef),
                     tap(() => {
@@ -998,44 +1002,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             }),
         ).subscribe();
 
-        const $snapScrollToLeft = toObservable(this.snapScrollToLeft),
-            $snapScrollToRight = toObservable(this.snapScrollToRight),
-            $snapScrollToTop = toObservable(this.snapScrollToTop),
-            $snapScrollToBottom = toObservable(this.snapScrollToBottom);
-
-        const $isScrollLeft = toObservable(this._isScrollLeft),
-            $isScrollRight = toObservable(this._isScrollRight),
-            $isScrollTop = toObservable(this._isScrollTop),
-            $isScrollBottom = toObservable(this._isScrollBottom),
-            $direction = toObservable(this._direction);
-
-        $snapScrollToLeft.pipe(
-            takeUntilDestroyed(),
-            tap(v => {
-                this._service.snapScrollToLeft = v;
-            }),
-        ).subscribe();
-
-        $snapScrollToRight.pipe(
-            takeUntilDestroyed(),
-            tap(v => {
-                this._service.snapScrollToRight = v;
-            }),
-        ).subscribe();
-
-        $snapScrollToTop.pipe(
-            takeUntilDestroyed(),
-            tap(v => {
-                this._service.snapScrollToTop = v;
-            }),
-        ).subscribe();
-
-        $snapScrollToBottom.pipe(
-            takeUntilDestroyed(),
-            tap(v => {
-                this._service.snapScrollToBottom = v;
-            }),
-        ).subscribe();
+        const $direction = toObservable(this._direction);
 
         $direction.pipe(
             takeUntilDestroyed(),
@@ -1044,105 +1011,21 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             }),
         ).subscribe();
 
-        $scrollLeftOffset.pipe(
+        $scrollStartOffset.pipe(
             takeUntilDestroyed(),
             distinctUntilChanged(),
             tap(v => {
-                this._service.scrollLeftOffset = v;
+                this._service.scrollStartOffset = v;
             }),
         ).subscribe();
 
-        $scrollRightOffset.pipe(
+        $scrollEndOffset.pipe(
             takeUntilDestroyed(),
             distinctUntilChanged(),
             tap(v => {
-                this._service.scrollRightOffset = v;
+                this._service.scrollEndOffset = v;
             }),
         ).subscribe();
-
-        $scrollTopOffset.pipe(
-            takeUntilDestroyed(),
-            distinctUntilChanged(),
-            tap(v => {
-                this._service.scrollTopOffset = v;
-            }),
-        ).subscribe();
-
-        $scrollBottomOffset.pipe(
-            takeUntilDestroyed(),
-            distinctUntilChanged(),
-            tap(v => {
-                this._service.scrollBottomOffset = v;
-            }),
-        ).subscribe();
-
-        $isScrollLeft.pipe(
-            takeUntilDestroyed(),
-            skip(1),
-            distinctUntilChanged(),
-            debounceTime(0),
-            filter(v => !!v),
-            tap(() => {
-                if (this._scrollerComponent()?.scrollableX) {
-                    this.onScrollReachLeft.emit();
-                }
-            }),
-        ).subscribe();
-
-        $isScrollRight.pipe(
-            takeUntilDestroyed(),
-            skip(1),
-            distinctUntilChanged(),
-            debounceTime(0),
-            filter(v => !!v),
-            tap(v => {
-                if (this._scrollerComponent()?.scrollableX) {
-                    this.onScrollReachRight.emit();
-                }
-            }),
-        ).subscribe();
-
-        $isScrollTop.pipe(
-            takeUntilDestroyed(),
-            skip(1),
-            distinctUntilChanged(),
-            debounceTime(0),
-            filter(v => !!v),
-            tap(v => {
-                if (this._scrollerComponent()?.scrollableY) {
-                    this.onScrollReachTop.emit();
-                }
-            }),
-        ).subscribe();
-
-        $isScrollBottom.pipe(
-            takeUntilDestroyed(),
-            skip(1),
-            distinctUntilChanged(),
-            debounceTime(0),
-            filter(v => !!v),
-            tap(v => {
-                if (this._scrollerComponent()?.scrollableY) {
-                    this.onScrollReachBottom.emit();
-                }
-            }),
-        ).subscribe();
-
-        const $precalculatedScrollLeftOffset = toObservable(this._precalculatedScrollLeftOffset),
-            $precalculatedScrollRightOffset = toObservable(this._precalculatedScrollRightOffset),
-            $precalculatedScrollTopOffset = toObservable(this._precalculatedScrollTopOffset),
-            $precalculatedScrollBottomOffset = toObservable(this._precalculatedScrollBottomOffset),
-            $scrollerBounds = toObservable(this._scrollerBounds).pipe(
-                filter(b => !!b),
-            ),
-            $scrollSizeX = this._$scrollSizeX.asObservable().pipe(
-                takeUntilDestroyed(),
-                distinctUntilChanged(),
-            ),
-            $scrollSizeY = this._$scrollSizeY.asObservable().pipe(
-                takeUntilDestroyed(),
-                distinctUntilChanged(),
-            );
 
         $direction.pipe(
             takeUntilDestroyed(),
@@ -1201,12 +1084,11 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
         $scrollerComponent.pipe(
             takeUntilDestroyed(),
             filter(v => !!v),
-            switchMap(scroller => toObservable(scroller.contentBounds, { injector: this._injector }).pipe(
+            switchMap(scroller => combineLatest([toObservable(scroller.contentBounds, { injector: this._injector }), $isVertical]).pipe(
                 takeUntilDestroyed(this._destroyRef),
-                tap(({ width, height }) => {
-                    scroller.totalWidth = width;
-                    scroller.totalHeight = height;
-                })
+                tap(([{ width, height }, isVertical]) => {
+                    scroller.totalSize = isVertical ? height : width;
+                }),
             )),
         ).subscribe();
 
@@ -1327,7 +1209,10 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
         if (!!scroller && !!this._animationIds) {
             const animationIds = this._animationIds;
             this._animationIds = null;
-            scroller.stopAnimation(...animationIds);
+            const id = animationIds !== null ? typeof animationIds === 'number' ? animationIds : animationIds.length > 0 ? animationIds[0] : null : null;
+            if (id !== null) {
+                scroller.stopAnimation(id);
+            }
         }
     }
 
@@ -1351,14 +1236,14 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                 bounds = this._bounds() || { x: 0, y: 0, width: DEFAULT_SHEET_SIZE, height: DEFAULT_SHEET_SIZE };
 
             const event = new ScrollEvent({
-                directionX: scrollerComponent.scrollDirectionX,
-                directionY: scrollerComponent.scrollDirectionY,
+                directionX: scrollerComponent.scrollDirection,
+                directionY: scrollerComponent.scrollDirection,
                 bounds,
                 scrollerDirection: this._direction(),
                 scrollWidth,
                 scrollHeight,
-                isRight: !scrollerComponent.scrollableX || this._isScrollRight() || (Math.round(scrollWidth) === Math.round(maxScrollWidth)),
-                isBottom: !scrollerComponent.scrollableY || this._isScrollBottom() || (Math.round(scrollHeight) === Math.round(maxScrollHeight)),
+                isRight: !scrollerComponent.scrollable || (Math.round(scrollWidth) === Math.round(maxScrollWidth)),
+                isBottom: !scrollerComponent.scrollable || (Math.round(scrollHeight) === Math.round(maxScrollHeight)),
                 userAction,
             });
             if (update) {
@@ -1393,18 +1278,6 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
      */
     scrollTo(options: IScrollOptions) {
         this._$scrollTo.next(options);
-    }
-
-    /**
-     * Prevents the list from snapping to its start or end edge.
-     */
-    preventSnapping() {
-        const scroller = this._scrollerComponent();
-        this._isScrollLeft.set(false);
-        this._isScrollRight.set(false);
-        if (!!scroller) {
-            scroller.stopScrolling();
-        }
     }
 
     ngOnDestroy(): void {

@@ -4,6 +4,7 @@ import { IScrollOptions, TextDirection } from "../../common";
 import { INtBaseScrollViewService } from "../../common/interfaces/nt-base-scroll-view-service";
 import { INtScroller } from "../../common/interfaces/nt-scroller";
 import { Direction, SheetPosition } from "../types";
+import { ISheetPrecalculatedBreakpoints } from '../interfaces';
 
 /**
  * INtSheetService
@@ -18,23 +19,13 @@ export interface INtSheetService extends INtBaseScrollViewService {
 
     position: SheetPosition;
 
-    scrollLeftOffset: number;
+    scrollStartOffset: number;
 
-    scrollRightOffset: number;
-
-    scrollTopOffset: number;
-
-    scrollBottomOffset: number;
-
-    snapScrollToLeft: boolean;
-
-    snapScrollToRight: boolean;
-
-    snapScrollToTop: boolean;
-
-    snapScrollToBottom: boolean;
+    scrollEndOffset: number;
 
     direction: Direction;
+
+    breakpoints: ISheetPrecalculatedBreakpoints | null;
 
     get scrollBarSize(): number;
 

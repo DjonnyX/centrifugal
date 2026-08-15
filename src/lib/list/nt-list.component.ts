@@ -616,7 +616,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
     transform: (v: IScrollingSettings): IScrollingSettings | null => {
       let valid = validateObject(v, true, true);
       if (valid && !!v) {
-        const { frictionalForce, mass, maxDistance, maxDuration, speedScale, optimization } = v;
+        const { frictionalForce, mass, maxDistance, maxDuration, speedScale, breakpointStoppingFactor, optimization } = v;
         valid = validateFloat(frictionalForce, true);
         if (!valid) {
           console.error('The "frictionalForce" parameter must be of type `number` or `undefined`.');
@@ -642,6 +642,11 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
           console.error('The "speedScale" parameter must be of type `number` or `undefined`.');
           return DEFAULT_SCROLLING_SETTINGS;
         }
+        valid = validateFloat(breakpointStoppingFactor, true);
+        if (!valid) {
+          console.error('The "breakpointStoppingFactor" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
         valid = validateBoolean(optimization, true);
         if (!valid) {
           console.error('The "optimization" parameter must be of type `boolean` or `undefined`.');
@@ -658,6 +663,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
         maxDistance: v.maxDistance !== undefined && v.maxDistance > 0 ? v.maxDistance : DEFAULT_SCROLLING_SETTINGS.maxDistance,
         maxDuration: v.maxDuration !== undefined && v.maxDuration > 0 ? v.maxDuration : DEFAULT_SCROLLING_SETTINGS.maxDuration,
         speedScale: v.speedScale !== undefined && v.speedScale > 0 ? v.speedScale : DEFAULT_SCROLLING_SETTINGS.speedScale,
+        breakpointStoppingFactor: v.breakpointStoppingFactor !== undefined && v.breakpointStoppingFactor > 0 ? v.breakpointStoppingFactor : DEFAULT_SCROLLING_SETTINGS.breakpointStoppingFactor,
         optimization: v.optimization ?? DEFAULT_SCROLLING_SETTINGS.optimization,
       };
     },

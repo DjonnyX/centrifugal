@@ -7,8 +7,8 @@ import {
   BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, map, skip, startWith, Subject, switchMap, take, tap,
 } from 'rxjs';
 import {
-  CLASS_SCROLL_VIEW_HORIZONTAL, CLASS_SCROLL_VIEW_VERTICAL, DEFAULT_DIRECTION, MIN_PIXELS_FOR_PREVENT_SNAPPING, DEFAULT_ANIMATION_PARAMS,
-  CLASS_SCROLL_VIEW_BOTH, DEFAULT_SCROLLER_SIZE,
+  CLASS_SCROLL_VIEW_HORIZONTAL, CLASS_SCROLL_VIEW_VERTICAL, DEFAULT_DIRECTION, MIN_PIXELS_FOR_PREVENT_SNAPPING,
+  DEFAULT_ANIMATION_PARAMS, CLASS_SCROLL_VIEW_BOTH, DEFAULT_SCROLLER_SIZE,
 } from './const';
 import {
   IAnimationParams, IScrollingSettings, INtScrollViewService,
@@ -18,13 +18,20 @@ import { isDirection } from './utils/is-direction';
 import { NtScrollViewService } from './nt-scroll-view.service';
 import { objectAsReadonly } from '../common/utils/object';
 import { NtScrollerComponent } from './components/nt-scroller/nt-scroller.component';
-import { DEFAULT_LANG_TEXT_DIR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLABLE, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_SCROLLTO_BOTTOM, DEFAULT_SNAP_SCROLLTO_LEFT, DEFAULT_SNAP_SCROLLTO_RIGHT, DEFAULT_SNAP_SCROLLTO_TOP } from '../common/const/scroller';
 import {
-  ArithmeticExpression, Direction, Directions, Id, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
-  TextDirection, TextDirections,
+  DEFAULT_LANG_TEXT_DIR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED,
+  DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLABLE,
+  DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS,
+  DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_SCROLLTO_BOTTOM, DEFAULT_SNAP_SCROLLTO_LEFT, DEFAULT_SNAP_SCROLLTO_RIGHT,
+  DEFAULT_SNAP_SCROLLTO_TOP,
+} from '../common/const/scroller';
+import {
+  ArithmeticExpression, Direction, Directions, Id, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED,
+  SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
 } from '../common';
 import {
-  isPercentageValue, parseArithmeticExpression, toggleClassName, validateBoolean, validateFloat, validateInt, validateObject, validateString,
+  isPercentageValue, parseArithmeticExpression, toggleClassName, validateBoolean, validateFloat, validateInt, validateObject,
+  validateString,
 } from '../common/utils';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from '../common/const/base-prop-names';
 import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-control/const';

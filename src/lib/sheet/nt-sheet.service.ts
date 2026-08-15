@@ -7,7 +7,8 @@ import { DEFAULT_ANIMATION_PARAMS } from './const';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
 import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-view-service';
 import { INtScroller } from '../common/interfaces/nt-scroller';
-import { Directions, IScrollOptions } from '../common';
+import { Directions, Id, IRect, IScrollOptions } from '../common';
+import { ISheetPrecalculatedBreakpoints } from './interfaces';
 
 /**
  * NtSheetService
@@ -19,29 +20,19 @@ import { Directions, IScrollOptions } from '../common';
   providedIn: 'root'
 })
 export class NtSheetService extends NtBaseScrollViewService implements INtSheetService, OnDestroy {
-  scrollLeftOffset: number = 0;
+  scrollStartOffset: number = 0;
 
-  scrollRightOffset: number = 0;
-
-  scrollTopOffset: number = 0;
-
-  scrollBottomOffset: number = 0;
+  scrollEndOffset: number = 0;
 
   isVertical: boolean = true;
 
   direction: Direction = this.isVertical ? Directions.VERTICAL : Directions.HORIZONTAL;
 
-  snapScrollToLeft: boolean = false;
-
-  snapScrollToRight: boolean = false;
-
-  snapScrollToTop: boolean = false;
-
-  snapScrollToBottom: boolean = false;
-
   animationParams: IAnimationParams = DEFAULT_ANIMATION_PARAMS;
 
   position: SheetPosition = SheetPositions.BOTTOM;
+
+  breakpoints: ISheetPrecalculatedBreakpoints | null = null;
 
   private _$scrollBarSize = new BehaviorSubject<number>(0);
   readonly $scrollBarSize = this._$scrollBarSize.asObservable();
@@ -75,6 +66,50 @@ export class NtSheetService extends NtBaseScrollViewService implements INtSheetS
     if (!!parentService) {
       this._parent = parentService;
       this._parentId = parentService.id;
+    }
+  }
+
+  override getComponentBoundsByIntersectionPosition(position: number, maxPosition: number | null = null):
+    (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null {
+    const breakpointItems = this.breakpoints;
+    let first: (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null = null,
+      last: (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null = null;
+    if (!!breakpointItems) {
+      for (const breakpoint of breakpointItems) {
+        const id = breakpoint.id ?? null, isVertical = breakpoint.config.isVertical,
+          inverted = breakpoint.config.inverted ?? false,
+          maxScrollSize = breakpoint.measures.maxScrollSize ?? 0,
+          { width, height } = breakpoint.bounds,
+          x = breakpoint.measures.x ?? 0,
+          xx = inverted ? (maxScrollSize - x) - width : x,
+          y = breakpoint.measures?.y ?? 0,
+          isFirst = breakpoint.config.isFirst ?? false,
+          isLast = breakpoint.config.isLast ?? false,
+          pos = position;
+        if (isVertical && (pos >= y && pos < y + height)) {
+          return { id, x, y, width, height, isFirst, isLast };
+        } else if (!isVertical && (pos >= xx && pos < xx + width)) {
+          return { id, x: xx, y, width, height, isFirst, isLast };
+        }
+        if (isFirst) {
+          first = { id, x: xx, y, width, height, isFirst, isLast };
+        } else if (isLast) {
+          last = { id, x: xx, y, width, height, isFirst, isLast };
+        }
+      }
+    }
+    if (position < 0) {
+      return first;
+    }
+    if (maxPosition !== null && position > maxPosition) {
+      return last;
+    }
+    return null;
+  }
+
+  override setIntersectionElementBySnapToItemAlign(id: Id | null) {
+    if (this._$intersectionElementBySnapToItemAlign.getValue() !== id) {
+      this._$intersectionElementBySnapToItemAlign.next(id);
     }
   }
 
