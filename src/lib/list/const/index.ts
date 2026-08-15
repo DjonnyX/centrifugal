@@ -1,10 +1,10 @@
 import {
     Alignments, CollapsingModes, CollectionModes, SelectingModes, SnappingMethods, SnapToItemAligns, SpreadingModes,
 } from "../enums";
-import { Directions } from "../../common/enums";
+import { Directions, SnappingDistance, SnapToItemAlign } from "../../common";
 import { IAnimationParams } from '../interfaces';
 import { SpreadingMode } from "../types";
-import { Alignment, SnappingDistance, SnapToItemAlign } from "../types";
+import { Alignment } from "../types";
 
 export const SERVICE_PROP_DUMMY_ID = '__service-dummy-id__';
 

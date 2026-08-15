@@ -28,9 +28,7 @@ import {
   IScrollOptions, IAnimationParams, IRenderStabilizerOptions,
 } from './interfaces';
 import {
-  Alignment, FocusAlignment, ItemTransform, SnappingDistance, CollectionMode, SelectingMode, SnappingMethod, SnapToItemAlign,
-  CollapsingMode, SpreadingMode,
-  Direction,
+  Alignment, FocusAlignment, ItemTransform, CollectionMode, SelectingMode, SnappingMethod, CollapsingMode, SpreadingMode, Direction,
 } from './types';
 import { IRenderVirtualListCollection } from './models/render-collection.model';
 import {
@@ -64,7 +62,7 @@ import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interf
 import { getScrollStateVersion } from './utils/get-scroll-state-version';
 import {
   ArithmeticExpression, Directions, Id, IListScrollEvent, IOverscrollEvent, IScrollingSettings, ISize, KeyboardKeys, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
-  SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
+  SCROLL_VIEW_USER_INTERACTION_ENABLED, SnappingDistance, SnapToItemAlign, TextDirection, TextDirections,
 } from '../common';
 import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, parseArithmeticExpression, toggleClassName } from '../common/utils';
 import { INtListService } from './interfaces';

@@ -4,7 +4,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-    BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, map, Subject, switchMap, take, tap, timer,
+    BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, map, Observable, Subject, switchMap, take, tap, timer,
 } from 'rxjs';
 import {
     IAnimationParams, INtSheetService, INtSheetBreakpoints, ISheetPrecalculatedBreakpoints, ISheetPrecalculatedBreakpoint,
@@ -36,13 +36,14 @@ import {
 } from '../common/const/scroller';
 import {
     CLASS_SHEET_HORIZONTAL, CLASS_SHEET_VERTICAL, DEFAULT_ANIMATION_PARAMS, DEFAULT_BREAKPOINT_TRIGGER_DISTANCE, DEFAULT_OPENING_BREAKPOINTS,
-    DEFAULT_POSITION, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SHEET_SIZE,
+    DEFAULT_POSITION, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SHEET_SIZE, DEFAULT_SNAPPING_DISTANCE,
 } from './const';
 import { NtSheetService } from './nt-sheet.service';
 import { INtScrollViewService } from '../scroll-view';
 import { DISPLAY_BLOCK, DISPLAY_NONE, HEIGHT_PROP_NAME, OPACITY_0, OPACITY_1, PX, WIDTH_PROP_NAME } from '../common/const/base-prop-names';
 import { getBreakpointByPosition, NtSheetBreakpointEvent } from './utils';
 import { NtScrollerComponent } from '../list/components/nt-scroller/nt-scroller.component';
+import { SnappingDistance } from '../common/types/snapping-distance';
 
 /**
  * NtSheetComponent
@@ -143,6 +144,24 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
      * Breakpoint trigger distance. Specified as a percentage from 0 to 1.
      */
     breakpointTriggerDistance = input<number>(DEFAULT_BREAKPOINT_TRIGGER_DISTANCE, { ...this._breakpointTriggerDistanceOptions });
+
+    protected _snappingDistanceOptions = {
+        transform: (v: SnappingDistance | any) => {
+            const valid = validateString(v) || validateFloat(v);
+
+            if (!valid) {
+                console.error('The "snappingDistance" parameter must be of type `number` or `string`.');
+                return DEFAULT_SNAPPING_DISTANCE;
+            }
+            return v;
+        },
+    } as any;
+
+    /**
+     * Snapping activation distance. Can be specified as a percentage of the element size or in absolute values.
+     * The default value is `25%`.
+     */
+    snappingDistance = input<SnappingDistance>(DEFAULT_SNAPPING_DISTANCE, { ...this._snappingDistanceOptions });
 
     protected _clickDistance = {
         transform: (v: number) => {
@@ -442,6 +461,8 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
     protected _direction: Signal<Direction>;
 
     protected _isVertical: Signal<boolean>;
+    protected _$isVertical: Observable<boolean>;
+    get $isVertical() { return this._$isVertical; }
 
     private _$scrollTo = new Subject<IScrollOptions>();
     protected $scrollTo = this._$scrollTo.asObservable();
@@ -481,6 +502,8 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                 isVertical = isDirection(dir, Directions.VERTICAL);
             return isVertical;
         });
+
+        this._$isVertical = toObservable(this._isVertical);
 
         this.overlayClasses = computed(() => {
             const dir = this._direction();

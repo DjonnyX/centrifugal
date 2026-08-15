@@ -1,5 +1,5 @@
-import { Id, ISize } from "../../../common";
-import { Alignment, ItemTransform, SnapToItemAlign } from "../../types";
+import { Id, ISize, SnapToItemAlign } from "../../../common";
+import { Alignment, ItemTransform } from "../../types";
 import { IItem } from "./item";
 
 /**

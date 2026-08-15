@@ -8,6 +8,7 @@ export {
 } from './lib/list';
 export type {
     INtListService,
+    IVirtualListCollection,
 } from './lib/list';
 
 /*

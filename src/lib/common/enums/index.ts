@@ -4,6 +4,7 @@ import { KeyboardPositions } from './keyboard-positions';
 import { KeyboardKeys } from './keyboard-keys';
 import { KeyboardKeyStates } from './keyboard-key-states';
 import { Directions } from './directions';
+import { SnapToItemAligns } from './snap-to-item-aligns';
 
 export {
     TextDirections,
@@ -12,4 +13,5 @@ export {
     KeyboardKeys,
     KeyboardKeyStates,
     Directions,
+    SnapToItemAligns,
 };

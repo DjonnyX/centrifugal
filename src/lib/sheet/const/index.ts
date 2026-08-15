@@ -1,4 +1,5 @@
 import { IScrollingSettings } from '../../common';
+import { SnappingDistance } from '../../common/types/snapping-distance';
 import { SheetPositions } from '../enums';
 import { INtSheetBreakpoints } from '../interfaces';
 import { IAnimationParams } from '../interfaces/animation-params';
@@ -23,6 +24,8 @@ export const DEFAULT_SCROLLING_SETTINGS: IScrollingSettings = {
     breakpointStoppingFactor: 0.25,
     optimization: false,
 };
+
+export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '10%';
 
 export const DEFAULT_BREAKPOINT_TRIGGER_DISTANCE: number = 0.1;
 
