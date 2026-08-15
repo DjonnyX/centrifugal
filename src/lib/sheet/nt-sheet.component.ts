@@ -547,7 +547,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             for (let l = normalizedBreakpoints.length, li = l - 1, i = isStartPosition ? 0 : li; isStartPosition ? (i < l) : (i >= 0); isStartPosition ? i++ : i--) {
                 const breakpoint = normalizedBreakpoints[i],
                     precalculatedPosition = parseArithmeticExpression(breakpoint.position, viewportSize),
-                    size = isStartPosition && i === 0 ? viewportSize : Math.abs(precalculatedPosition - prevPosition) + (isStartPosition ? 0 : viewportSize),
+                    size = Math.abs(precalculatedPosition - prevPosition),
                     precalculatedBreakpoint: ISheetPrecalculatedBreakpoint = {
                         id: breakpoint.id,
                         position: precalculatedPosition,
@@ -675,21 +675,21 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                     case SheetPositions.LEFT: {
                                         const startPosition = this._precalculatedScrollStartOffset();
                                         this._animationIds = scroller.scroll({
-                                            x: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
+                                            x: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: true, userAction: true,
                                         });
                                         break;
                                     }
                                     case SheetPositions.TOP: {
                                         const startPosition = this._precalculatedScrollStartOffset();
                                         this._animationIds = scroller.scroll({
-                                            y: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
+                                            y: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: true, userAction: true,
                                         });
                                         break;
                                     }
                                     case SheetPositions.RIGHT: {
                                         const scrollWeight = this.scrollWidth;
                                         this._animationIds = scroller.scroll({
-                                            x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
+                                            x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: true, userAction: true,
                                         });
                                         break;
                                     }
@@ -697,7 +697,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                     default: {
                                         const scrollHeight = this.scrollHeight;
                                         this._animationIds = scroller.scroll({
-                                            y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, userAction: true,
+                                            y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: true, userAction: true,
                                         });
                                         break;
                                     }
@@ -711,7 +711,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                             this._elementRef.nativeElement.style.opacity = OPACITY_0;
                                         } else {
                                             this._animationIds = scroller.scroll({
-                                                x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
+                                                x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true, onComplete: () => {
                                                     this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                                     this._elementRef.nativeElement.style.opacity = OPACITY_0;
                                                 },
@@ -726,7 +726,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                             this._elementRef.nativeElement.style.opacity = OPACITY_0;
                                         } else {
                                             this._animationIds = scroller.scroll({
-                                                y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
+                                                y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true, onComplete: () => {
                                                     this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                                     this._elementRef.nativeElement.style.opacity = OPACITY_0;
                                                 },
@@ -741,7 +741,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                             this._elementRef.nativeElement.style.opacity = OPACITY_0;
                                         } else {
                                             this._animationIds = scroller.scroll({
-                                                x: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
+                                                x: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true, onComplete: () => {
                                                     this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                                     this._elementRef.nativeElement.style.opacity = OPACITY_0;
                                                 },
@@ -757,7 +757,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                             this._elementRef.nativeElement.style.opacity = OPACITY_0;
                                         } else {
                                             this._animationIds = scroller.scroll({
-                                                y: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, userAction: true, onComplete: () => {
+                                                y: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true, onComplete: () => {
                                                     this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                                     this._elementRef.nativeElement.style.opacity = OPACITY_0;
                                                 },

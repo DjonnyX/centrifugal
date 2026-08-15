@@ -3799,6 +3799,10 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
     }
   }
 
+  update(userAction: boolean = false) {
+    this._$fireUpdate.next(userAction);
+  }
+
   ngOnDestroy(): void {
     this.dispose();
   }

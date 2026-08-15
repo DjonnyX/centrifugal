@@ -75,8 +75,9 @@ export class NtSheetService extends NtBaseScrollViewService implements INtSheetS
     let first: (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null = null,
       last: (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null = null;
     if (!!breakpointItems) {
-      for (const breakpoint of breakpointItems) {
-        const id = breakpoint.id ?? null, isVertical = breakpoint.config.isVertical,
+      for (let i = 0, l = breakpointItems.length; i < l; i++) {
+        const breakpoint = breakpointItems[i],
+          id = breakpoint.id ?? null, isVertical = breakpoint.config.isVertical,
           inverted = breakpoint.config.inverted ?? false,
           maxScrollSize = breakpoint.measures.maxScrollSize ?? 0,
           { width, height } = breakpoint.bounds,
