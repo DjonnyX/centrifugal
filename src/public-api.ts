@@ -66,6 +66,8 @@ export {
 export type {
     INtSheetBreakpoints,
     INtSheetBreakpoint,
+    INtSheetBreakpointInfo,
+    INtSheetBreakpointEvent,
     INtSheetService,
     SheetPosition,
 } from './lib/sheet';

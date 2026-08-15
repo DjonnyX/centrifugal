@@ -4,10 +4,11 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-    BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, map, skip, Subject, switchMap, take, tap, timer,
+    BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, map, Subject, switchMap, take, tap, timer,
 } from 'rxjs';
 import {
     IAnimationParams, INtSheetService, INtSheetBreakpoints, ISheetPrecalculatedBreakpoints, ISheetPrecalculatedBreakpoint,
+    INtSheetBreakpointInfo, INtSheetBreakpointEvent,
 } from './interfaces';
 import {
     Direction, SheetPosition,
@@ -40,7 +41,7 @@ import {
 import { NtSheetService } from './nt-sheet.service';
 import { INtScrollViewService } from '../scroll-view';
 import { DISPLAY_BLOCK, DISPLAY_NONE, HEIGHT_PROP_NAME, OPACITY_0, OPACITY_1, PX, WIDTH_PROP_NAME } from '../common/const/base-prop-names';
-import { getBreakpointByPosition } from './utils';
+import { getBreakpointByPosition, NtSheetBreakpointEvent } from './utils';
 import { NtScrollerComponent } from '../list/components/nt-scroller/nt-scroller.component';
 
 /**
@@ -84,6 +85,11 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
      * Fires when the viewport size is changed.
      */
     onViewportChange = output<ISize>();
+
+    /**
+     * Fires information about the breakpoint position.
+     */
+    onBreakpoint = output<INtSheetBreakpointEvent>();
 
     protected _$initialized = new BehaviorSubject<boolean>(false);
     readonly $initialized = this._$initialized.asObservable();
@@ -415,11 +421,6 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
 
     protected _scrollerBounds = signal<ISize | null>(null);
 
-    private _$isMoving = new BehaviorSubject<boolean>(false);
-    protected $isMoving = this._$isMoving.asObservable();
-
-    get isMoving() { return this._$isMoving.getValue(); }
-
     private _$opened = new BehaviorSubject<boolean>(false);
     protected $opened = this._$opened.asObservable();
 
@@ -433,9 +434,8 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
 
     protected _precalculatedScrollEndOffset = signal<number>(0);
 
-    protected _currentBreakpointIndex = signal<number>(0);
-
-    protected _currentBreakpoint: Signal<ISheetPrecalculatedBreakpoint | null>;
+    protected _$breakpointInfo = new Subject<INtSheetBreakpointInfo>();
+    readonly $breakpointInfo = this._$breakpointInfo.asObservable();
 
     protected _precalculatedBreakpoints: Signal<ISheetPrecalculatedBreakpoints>;
 
@@ -550,16 +550,11 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             return result;
         });
 
-        this._currentBreakpoint = computed(() => {
-            const index = this._currentBreakpointIndex(), breakpoints = this._precalculatedBreakpoints();
-            return index > -1 && breakpoints.length > 0 && ((breakpoints.length - 1) > index) ? breakpoints[index] : null;
-        });
-
         const _$created = new BehaviorSubject<boolean>(false),
             $created = _$created.asObservable(),
             $scrollerComponent = toObservable(this._scrollerComponent),
             $precalculatedBreakpoints = toObservable(this._precalculatedBreakpoints),
-            $currentBreakpoint = toObservable(this._currentBreakpoint),
+            $currentBreakpointInfo = this.$breakpointInfo,
             $isVertical = toObservable(this._isVertical),
             $grabbing = this.$grabbing,
             $opened = this.$opened;
@@ -575,18 +570,23 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             takeUntilDestroyed(this._destroyRef),
             filter(([scroller, init]) => !!scroller && !!init),
             switchMap(([scroller]) => {
-                return combineLatest([$grabbing, $currentBreakpoint, scroller!.$scroll, scroller!.$scrollEnd.pipe(
+                return combineLatest([$grabbing, $currentBreakpointInfo, scroller!.$scroll, scroller!.$scrollEnd.pipe(
                     takeUntilDestroyed(this._destroyRef),
                     debounceTime(10),
-                ), this.$isMoving.pipe(
-                    takeUntilDestroyed(this._destroyRef),
-                    debounceTime(0),
                 )]).pipe(
                     takeUntilDestroyed(this._destroyRef),
                     filter(([g, b]) => !g && !!b),
-                    tap(([grabbing, breakpoint, isMoving]) => {
-                        const position = this.position(), isVertical = position === SheetPositions.TOP || position === SheetPositions.BOTTOM;
-                        // emit breakpoint position event
+                    tap(([grabbing, breakpointInfo, isMoving]) => {
+                        const position = this.position(), isVertical = position === SheetPositions.TOP || position === SheetPositions.BOTTOM,
+                            breakpointEvent = new NtSheetBreakpointEvent({
+                                id: breakpointInfo.id,
+                                index: breakpointInfo.index,
+                                breakpointRatio: breakpointInfo.breakpointRatio,
+                                ratio: breakpointInfo.ratio,
+                                position,
+                                isVertical,
+                            });
+                        this.onBreakpoint.emit(breakpointEvent);
                     }),
                 );
             }),
@@ -797,7 +797,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
         combineLatest([$scrollerComponent, $precalculatedBreakpoints]).pipe(
             takeUntilDestroyed(),
             filter(([v, p]) => !!v && !!p),
-            switchMap(([scroller, breakpoints]) => scroller!.$scroll.pipe(
+            switchMap(([scroller, breakpoints]) => combineLatest([scroller!.$scroll, scroller!.$scrollEnd]).pipe(
                 takeUntilDestroyed(this._destroyRef),
                 tap(() => {
                     const position = this.position();
@@ -825,9 +825,9 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                             break;
                         }
                     }
-                    const index = getBreakpointByPosition(breakpoints, this.breakpointTriggerDistance(), actualPosition);
-                    if (index !== -1) {
-                        this._currentBreakpointIndex.set(index);
+                    const info = getBreakpointByPosition(breakpoints, actualPosition, maxPosition);
+                    if (!!info) {
+                        this._$breakpointInfo.next(info);
                     }
                 }),
             )),
