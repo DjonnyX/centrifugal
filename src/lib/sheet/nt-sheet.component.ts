@@ -1,10 +1,11 @@
 import {
-    ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, Injector, input, OnDestroy, output, Signal,
+    ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, Injector, input, output, Signal,
     signal, ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-    BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, map, Observable, startWith, Subject, switchMap, take, tap, timer,
+    BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, map, Observable, startWith, Subject,
+    switchMap, take, tap,
 } from 'rxjs';
 import {
     IAnimationParams, INtSheetService, INtSheetBreakpoints, ISheetPrecalculatedBreakpoints, ISheetPrecalculatedBreakpoint,
@@ -68,7 +69,7 @@ import { SnappingDistance } from '../common/types/snapping-distance';
     ],
 })
 export class NtSheetComponent<S extends INtSheetService, P extends INtScrollViewService>
-    extends NtBaseScrollComponent<S, P, NtScrollerComponent> implements OnDestroy {
+    extends NtBaseScrollComponent<S, P, NtScrollerComponent> {
 
     protected _scroller: Signal<ElementRef<HTMLDivElement> | undefined>;
 
@@ -550,7 +551,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             for (let l = normalizedBreakpoints.length, li = l - 1, i = isStartPosition ? 0 : li; isStartPosition ? (i < l) : (i >= 0); isStartPosition ? i++ : i--) {
                 const breakpoint = normalizedBreakpoints[i],
                     precalculatedPosition = parseArithmeticExpression(breakpoint.position, viewportSize),
-                    size = Math.abs(precalculatedPosition - prevPosition),
+                    size = isStartPosition && i === 0 ? viewportSize : Math.abs(precalculatedPosition - prevPosition),
                     precalculatedBreakpoint: ISheetPrecalculatedBreakpoint = {
                         id: breakpoint.id,
                         position: precalculatedPosition,
@@ -1348,9 +1349,5 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
      */
     scrollTo(options: IScrollOptions) {
         this._$scrollTo.next(options);
-    }
-
-    ngOnDestroy(): void {
-
     }
 }
