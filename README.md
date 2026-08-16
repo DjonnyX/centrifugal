@@ -186,7 +186,7 @@ Inputs
 | scrollbarThumbRenderer | TemplateRef<any> \| null = null | Scrollbar customization template. |
 | scrollbarThumbParams | {[propName: string]: any;} \| null | Additional options for the scrollbar. |
 | scrollBehavior | ScrollBehavior? = 'smooth' | Defines the scrolling behavior for any element on the page. The default value is "smooth". |
-| scrollingSettings | [IScrollingSettings](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/interfaces/scrolling-settings.ts) = {frictionalForce: 0.035, mass: 0.005, maxDistance: 100000, maxDuration: 4000, speedScale: 10, breakpointStoppingFactor: 0.01, optimization: true} | Scrolling settings. |
+| scrollingSettings | [IScrollingSettings](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/interfaces/scrolling-settings.ts) = {frictionalForce: 0.035, mass: 0.005, maxDistance: 100000, maxDuration: 4000, speedScale: 10, breakpointStoppingFactor: 5, optimization: true} | Scrolling settings. |
 | scrollingOneByOne | boolean = false | Specifies whether to scroll one item at a time if true and the scrollToItem property is set. The default value is `false`. |
 | spreadingMode | [SpreadingMode](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/enums/spreading-mode.ts) ='standart' | The order of list elements. Available values ​​are `standard` and `infinity`. `normal` — list elements are ordered according to the collection sequence. `infinity` — list elements are ordered cyclically, forming an infinite list. When set to `infinity`, the `alignment` property is forced to the value `Alignments.CENTER`, the `scrollbarEnabled` property is forced to the `false`. The default value is `standard`. |
 | trackBy | string? = 'id' | The name of the property by which tracking is performed. |
@@ -292,7 +292,7 @@ Inputs
 | motionBlur | number = 0.15 | Motion blur effect. The default value is `0.15`. |
 | maxMotionBlur | number = 0.5 | Maximum motion blur effect. The default value is `0.5`. |
 | motionBlurEnabled | boolean = false | Determines whether to apply motion blur or not. The default value is `false`. |
-| animationParams | [IAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/sheet/interfaces/animation-params.ts) = { fadeIn: 500, fadeOut: 500 } | Animation parameters. The default value is "{ scrollToItem: 0 }". |
+| animationParams | [IAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/sheet/interfaces/animation-params.ts) = { fadeIn: 500, fadeOut: 500 } | Animation parameters. The default value is "{ fadeIn: 500, fadeOut: 500 }". |
 | overscrollEnabled | boolean = true | Determines whether the overscroll (re-scroll) feature will work. The default value is "true". |
 | position | [SheetPosition](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/types/sheet-position.ts) = 'bottom' | Determines the position in which elements are placed. Default value is "bottom". |
 | langTextDir | [TextDirection](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/enums/text-directions.ts) | A string indicating the direction of text for the locale. Can be either "ltr" (left-to-right) or "rtl" (right-to-left). |
@@ -313,8 +313,8 @@ Outputs
 
 | Event | Type | Description |
 |---|---|---|
-| onScroll | ([IScrollEvent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/interfaces/scroll-event.ts)) => void | Fires when the list has been scrolled. |
-| onScrollEnd | ([IScrollEvent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/interfaces/scroll-event.ts)) => void | Fires when the list has completed scrolling. |
+| onScroll | ([IScrollViewScrollEvent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/scroll-view-scroll-event.ts)) => void | Fires when the list has been scrolled. |
+| onScrollEnd | ([IScrollViewScrollEvent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/scroll-view-scroll-event.ts)) => void | Fires when the list has completed scrolling. |
 | onViewportChange | [ISize](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/size.ts) | Fires when the viewport size is changed. |
 | onBreakpoint | [INtSheetBreakpointEvent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/sheet/interfaces/nt-sheet-breakpoint-event.ts) | Fires information about the breakpoint position. |
 | onOverscroll | [IOverscrollEvent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/overscroll-event.ts) | Dispatches an overscroll event. |

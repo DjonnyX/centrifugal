@@ -690,102 +690,12 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             switchMap(([scroller]) => {
                 return $opened.pipe(
                     takeUntilDestroyed(this._destroyRef),
-                    tap(opened => {
-                        if (opened) {
-                            this._elementRef.nativeElement.style.display = DISPLAY_BLOCK;
-                            this._elementRef.nativeElement.style.opacity = OPACITY_0;
-                        }
-                    }),
-                    debounceTime(50),
-                    tap(opened => {
-                        if (!!scroller) {
-                            this.stopAnimation();
-                            if (!!scroller && opened) {
-                                switch (this.position()) {
-                                    case SheetPositions.LEFT: {
-                                        const scrollWidth = this.scrollWidth;
-                                        scroller.scroll({
-                                            x: scrollWidth, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, userAction: true, fireUpdate: true,
-                                            onComplete: data => {
-                                                this._$animationUpdate.next(data.value);
-                                            },
-                                        });
-                                        break;
-                                    }
-                                    case SheetPositions.TOP: {
-                                        const scrollHeight = this.scrollHeight;
-                                        scroller.scroll({
-                                            y: scrollHeight, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, userAction: true, fireUpdate: true,
-                                            onComplete: data => {
-                                                this._$animationUpdate.next(data.value);
-                                            },
-                                        });
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }),
-                    delay(50),
-                    tap(opened => {
-                        if (!!scroller) {
+                    switchMap(opened => of(opened).pipe(
+                        takeUntilDestroyed(this._destroyRef),
+                        tap(opened => {
                             if (opened) {
-                                this._elementRef.nativeElement.style.opacity = OPACITY_1;
-                                switch (this.position()) {
-                                    case SheetPositions.LEFT: {
-                                        const startPosition = this._precalculatedScrollStartOffset();
-                                        this._animationIds = scroller.scroll({
-                                            x: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: true, userAction: true,
-                                            onUpdate: data => {
-                                                this._$animationUpdate.next(data.value);
-                                            },
-                                            onComplete: data => {
-                                                this._$animationUpdate.next(data.value);
-                                            },
-                                        });
-                                        break;
-                                    }
-                                    case SheetPositions.TOP: {
-                                        const startPosition = this._precalculatedScrollStartOffset();
-                                        this._animationIds = scroller.scroll({
-                                            y: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: true, userAction: true,
-                                            onUpdate: data => {
-                                                this._$animationUpdate.next(data.value);
-                                            },
-                                            onComplete: data => {
-                                                this._$animationUpdate.next(data.value);
-                                            },
-                                        });
-                                        break;
-                                    }
-                                    case SheetPositions.RIGHT: {
-                                        const scrollWeight = this.scrollWidth;
-                                        this._animationIds = scroller.scroll({
-                                            x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: true, userAction: true,
-                                            onUpdate: data => {
-                                                this._$animationUpdate.next(data.value);
-                                            },
-                                            onComplete: data => {
-                                                this._$animationUpdate.next(data.value);
-                                            },
-                                        });
-                                        break;
-                                    }
-                                    case SheetPositions.BOTTOM:
-                                    default: {
-                                        const scrollHeight = this.scrollHeight;
-                                        this._animationIds = scroller.scroll({
-                                            y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: true, userAction: true,
-                                            onUpdate: data => {
-                                                this._$animationUpdate.next(data.value);
-                                            },
-                                            onComplete: data => {
-                                                this._$animationUpdate.next(data.value);
-                                            },
-                                        });
-                                        break;
-                                    }
-                                }
+                                this._elementRef.nativeElement.style.display = DISPLAY_BLOCK;
+                                this._elementRef.nativeElement.style.opacity = OPACITY_0;
                             } else {
                                 switch (this.position()) {
                                     case SheetPositions.LEFT: {
@@ -794,18 +704,6 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                             this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                             this._elementRef.nativeElement.style.opacity = OPACITY_0;
                                             this._$animationUpdate.next(scrollWeight);
-                                        } else {
-                                            this._animationIds = scroller.scroll({
-                                                x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true,
-                                                onUpdate: data => {
-                                                    this._$animationUpdate.next(data.value);
-                                                },
-                                                onComplete: data => {
-                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
-                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
-                                                    this._$animationUpdate.next(data.value);
-                                                },
-                                            });
                                         }
                                         break;
                                     }
@@ -815,18 +713,6 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                             this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                             this._elementRef.nativeElement.style.opacity = OPACITY_0;
                                             this._$animationUpdate.next(scrollHeight);
-                                        } else {
-                                            this._animationIds = scroller.scroll({
-                                                y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true,
-                                                onUpdate: data => {
-                                                    this._$animationUpdate.next(data.value);
-                                                },
-                                                onComplete: data => {
-                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
-                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
-                                                    this._$animationUpdate.next(data.value);
-                                                },
-                                            });
                                         }
                                         break;
                                     }
@@ -836,18 +722,6 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                             this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                             this._elementRef.nativeElement.style.opacity = OPACITY_0;
                                             this._$animationUpdate.next(endPosition);
-                                        } else {
-                                            this._animationIds = scroller.scroll({
-                                                x: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true,
-                                                onUpdate: data => {
-                                                    this._$animationUpdate.next(data.value);
-                                                },
-                                                onComplete: data => {
-                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
-                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
-                                                    this._$animationUpdate.next(data.value);
-                                                },
-                                            });
                                         }
                                         break;
                                     }
@@ -858,25 +732,179 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                             this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                             this._elementRef.nativeElement.style.opacity = OPACITY_0;
                                             this._$animationUpdate.next(endPosition);
-                                        } else {
+                                        }
+                                    }
+                                }
+                            }
+                        }),
+                        delay(50),
+                        tap(opened => {
+                            if (!!scroller) {
+                                this.stopAnimation();
+                                if (!!scroller && opened) {
+                                    switch (this.position()) {
+                                        case SheetPositions.LEFT: {
+                                            const scrollWidth = this.scrollWidth;
+                                            scroller.scroll({
+                                                x: scrollWidth, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, userAction: true, fireUpdate: true,
+                                                onComplete: data => {
+                                                    this._$animationUpdate.next(data.value);
+                                                },
+                                            });
+                                            break;
+                                        }
+                                        case SheetPositions.TOP: {
+                                            const scrollHeight = this.scrollHeight;
+                                            scroller.scroll({
+                                                y: scrollHeight, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, userAction: true, fireUpdate: true,
+                                                onComplete: data => {
+                                                    this._$animationUpdate.next(data.value);
+                                                },
+                                            });
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }),
+                        delay(50),
+                        tap(opened => {
+                            if (!!scroller) {
+                                if (opened) {
+                                    this.stopAnimation();
+                                    this._elementRef.nativeElement.style.opacity = OPACITY_1;
+                                    switch (this.position()) {
+                                        case SheetPositions.LEFT: {
+                                            const startPosition = this._precalculatedScrollStartOffset();
                                             this._animationIds = scroller.scroll({
-                                                y: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true,
+                                                x: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: false, userAction: false,
                                                 onUpdate: data => {
                                                     this._$animationUpdate.next(data.value);
                                                 },
                                                 onComplete: data => {
-                                                    this._elementRef.nativeElement.style.display = DISPLAY_NONE;
-                                                    this._elementRef.nativeElement.style.opacity = OPACITY_0;
                                                     this._$animationUpdate.next(data.value);
                                                 },
                                             });
+                                            break;
                                         }
-                                        break;
+                                        case SheetPositions.TOP: {
+                                            const startPosition = this._precalculatedScrollStartOffset();
+                                            this._animationIds = scroller.scroll({
+                                                y: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: false, userAction: false,
+                                                onUpdate: data => {
+                                                    this._$animationUpdate.next(data.value);
+                                                },
+                                                onComplete: data => {
+                                                    this._$animationUpdate.next(data.value);
+                                                },
+                                            });
+                                            break;
+                                        }
+                                        case SheetPositions.RIGHT: {
+                                            const scrollWeight = this.scrollWidth;
+                                            this._animationIds = scroller.scroll({
+                                                x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: false, userAction: false,
+                                                onUpdate: data => {
+                                                    this._$animationUpdate.next(data.value);
+                                                },
+                                                onComplete: data => {
+                                                    this._$animationUpdate.next(data.value);
+                                                },
+                                            });
+                                            break;
+                                        }
+                                        case SheetPositions.BOTTOM:
+                                        default: {
+                                            const scrollHeight = this.scrollHeight;
+                                            this._animationIds = scroller.scroll({
+                                                y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: false, userAction: false,
+                                                onUpdate: data => {
+                                                    this._$animationUpdate.next(data.value);
+                                                },
+                                                onComplete: data => {
+                                                    this._$animationUpdate.next(data.value);
+                                                },
+                                            });
+                                            break;
+                                        }
+                                    }
+                                } else {
+                                    this.stopAnimation();
+                                    switch (this.position()) {
+                                        case SheetPositions.LEFT: {
+                                            const scrollWeight = this.scrollWidth;
+                                            if (this.scrollLeft !== scrollWeight) {
+                                                this._animationIds = scroller.scroll({
+                                                    x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: false, userAction: false,
+                                                    onUpdate: data => {
+                                                        this._$animationUpdate.next(data.value);
+                                                    },
+                                                    onComplete: data => {
+                                                        this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                        this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                        this._$animationUpdate.next(data.value);
+                                                    },
+                                                });
+                                            }
+                                            break;
+                                        }
+                                        case SheetPositions.TOP: {
+                                            const scrollHeight = this.scrollHeight;
+                                            if (this.scrollTop !== scrollHeight) {
+                                                this._animationIds = scroller.scroll({
+                                                    y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: false, userAction: false,
+                                                    onUpdate: data => {
+                                                        this._$animationUpdate.next(data.value);
+                                                    },
+                                                    onComplete: data => {
+                                                        this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                        this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                        this._$animationUpdate.next(data.value);
+                                                    },
+                                                });
+                                            }
+                                            break;
+                                        }
+                                        case SheetPositions.RIGHT: {
+                                            const endPosition = this._precalculatedScrollEndOffset();
+                                            if (this.scrollLeft !== endPosition) {
+                                                this._animationIds = scroller.scroll({
+                                                    x: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: false, userAction: false,
+                                                    onUpdate: data => {
+                                                        this._$animationUpdate.next(data.value);
+                                                    },
+                                                    onComplete: data => {
+                                                        this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                        this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                        this._$animationUpdate.next(data.value);
+                                                    },
+                                                });
+                                            }
+                                            break;
+                                        }
+                                        case SheetPositions.BOTTOM:
+                                        default: {
+                                            const endPosition = this._precalculatedScrollEndOffset();
+                                            if (this.scrollTop !== endPosition) {
+                                                this._animationIds = scroller.scroll({
+                                                    y: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: false, userAction: false,
+                                                    onUpdate: data => {
+                                                        this._$animationUpdate.next(data.value);
+                                                    },
+                                                    onComplete: data => {
+                                                        this._elementRef.nativeElement.style.display = DISPLAY_NONE;
+                                                        this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                        this._$animationUpdate.next(data.value);
+                                                    },
+                                                });
+                                            }
+                                            break;
+                                        }
                                     }
                                 }
                             }
-                        }
-                    }),
+                        }),
+                    )),
                 );
             }),
         ).subscribe();
@@ -884,27 +912,27 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
         $scrollerComponent.pipe(
             takeUntilDestroyed(),
             filter(v => !!v),
-            switchMap(scroller => scroller.$scrollEnd.pipe(
+            switchMap(scroller => combineLatest([scroller.$scroll, scroller.$scrollEnd]).pipe(
                 takeUntilDestroyed(this._destroyRef),
-                debounceTime(100),
+                debounceTime(150),
                 tap(() => {
                     switch (this.position()) {
                         case SheetPositions.LEFT: {
-                            if (this.scrollLeft === this.scrollWidth) {
+                            if (this.opened && this.scrollLeft === this.scrollWidth) {
                                 this.stopAnimation();
                                 this._$opened.next(false);
                             }
                             break;
                         }
                         case SheetPositions.TOP: {
-                            if (this.scrollTop === this.scrollHeight) {
+                            if (this.opened && this.scrollTop === this.scrollHeight) {
                                 this.stopAnimation();
                                 this._$opened.next(false);
                             }
                             break;
                         }
                         case SheetPositions.RIGHT: {
-                            if (this.scrollLeft === this._precalculatedScrollEndOffset()) {
+                            if (this.opened && this.scrollLeft === this._precalculatedScrollEndOffset()) {
                                 this.stopAnimation();
                                 this._$opened.next(false);
                             }
@@ -912,7 +940,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                         }
                         case SheetPositions.BOTTOM:
                         default: {
-                            if (this.scrollTop === this._precalculatedScrollEndOffset()) {
+                            if (this.opened && this.scrollTop === this._precalculatedScrollEndOffset()) {
                                 this.stopAnimation();
                                 this._$opened.next(false);
                             }
@@ -926,7 +954,10 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
         combineLatest([$scrollerComponent, $precalculatedBreakpoints]).pipe(
             takeUntilDestroyed(),
             filter(([s, p]) => !!s && !!p),
-            switchMap(([scroller, breakpoints]) => combineLatest([this.$animationUpdate, scroller!.$scroll.pipe(
+            switchMap(([scroller, breakpoints]) => combineLatest([this.$animationUpdate.pipe(
+                takeUntilDestroyed(this._destroyRef),
+                startWith(null),
+            ), scroller!.$scroll.pipe(
                 takeUntilDestroyed(this._destroyRef),
                 startWith(false),
             ), scroller!.$scrollEnd.pipe(
@@ -1405,6 +1436,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
      * Hides the sheet.
      */
     close() {
+        console.log('close')
         this._$opened.next(false);
     }
 
