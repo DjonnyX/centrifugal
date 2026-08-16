@@ -1118,6 +1118,23 @@ export class NtScrollView extends NtBaseScrollView {
 
     protected onAnimationComplete(position: number) { }
 
+    protected dropVelocity() {
+        const time = Date.now(),
+            positionX = this._x,
+            positionY = this._y;
+        let reseted = false;
+        this._velocitiesX = [0];
+        this._$averageVelocityX.next(0);
+        this._measureVelocityLastPositionX = positionX;
+        this._measureVelocityTimestampX = time;
+        reseted = true;
+        this._velocitiesY = [0];
+        this._$averageVelocityY.next(0);
+        this._measureVelocityLastPositionY = positionY;
+        this._measureVelocityTimestampY = time;
+        reseted = true;
+    }
+
     fireScroll(userAction: boolean = false) {
         this._$updateScrollBarHorizontal.next();
         this._$updateScrollBarVertical.next();

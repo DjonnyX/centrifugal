@@ -198,7 +198,20 @@ export class NtScrollerComponent extends NtScrollView {
       $motionBlurEnabled = toObservable(this.motionBlurEnabled),
       $isVertical = toObservable(this.isVertical),
       $scrollContent = toObservable(this.scrollContent),
-      $overscrollEffectEvent = this.$overscrollEffectEvent;
+      $overscrollEffectEvent = this.$overscrollEffectEvent,
+      $resizeViewport = this.$resizeViewport;
+
+    $resizeViewport.pipe(
+      takeUntilDestroyed(),
+      tap(() => {
+        this._disableAlignment = true;
+      }),
+      debounceTime(0),
+      tap(() => {
+        this._disableAlignment = false;
+        this.snapIfNeed(false, true);
+      }),
+    ).subscribe();
 
     combineLatest([$overscrollEffectEvent, this.$resizeViewport]).pipe(
       takeUntilDestroyed(),
@@ -328,8 +341,9 @@ export class NtScrollerComponent extends NtScrollView {
       }
       this.viewportBounds.set(bounds);
       this.updateScrollBar();
-      this._$resizeViewport.next(bounds);
       this.recalculatePerspective();
+      this.dropVelocity();
+      this._$resizeViewport.next(bounds);
     }
   }
 
@@ -345,8 +359,8 @@ export class NtScrollerComponent extends NtScrollView {
       }
       this.contentBounds.set(bounds);
       this.updateScrollBar();
-      this._$resizeContent.next(bounds);
       this.recalculatePerspective();
+      this._$resizeContent.next(bounds);
     }
   }
 
@@ -478,7 +492,8 @@ export class NtScrollerComponent extends NtScrollView {
     }
   }
 
-  private dropVelocity() {
+  protected override dropVelocity() {
+    super.dropVelocity();
     this._velocities = [0];
     this._$velocity.next(0);
     this._$averageVelocity.next(0);

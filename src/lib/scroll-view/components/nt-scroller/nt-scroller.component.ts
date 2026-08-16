@@ -377,6 +377,7 @@ export class NtScrollerComponent extends NtScrollView {
       this.viewportBounds.set(bounds);
       this.updateScrollBar(false);
       this.updateScrollBar(true);
+      this.dropVelocity();
       this._$resizeViewport.next(bounds);
     }
   }
@@ -563,7 +564,8 @@ export class NtScrollerComponent extends NtScrollView {
     }
   }
 
-  private dropVelocity() {
+  protected override dropVelocity() {
+    super.dropVelocity();
     this._velocitiesX = [0];
     this._$velocityX.next(0);
     this._$averageVelocityX.next(0);

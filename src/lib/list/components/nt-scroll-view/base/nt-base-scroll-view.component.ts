@@ -249,6 +249,8 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     protected _isCoordinatesOverrided: boolean = false;
 
+    protected _disableAlignment: boolean = false;
+
     constructor() {
         this.isVertical = computed(() => {
             return this.direction() === Directions.VERTICAL;

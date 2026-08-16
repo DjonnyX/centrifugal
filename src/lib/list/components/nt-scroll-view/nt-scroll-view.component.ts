@@ -1118,7 +1118,7 @@ export class NtScrollView extends NtBaseScrollView {
     }
 
     protected alignPosition(animated: boolean = true, force: boolean = false, fireUpdate: boolean = false) {
-        if (!this.snapToItem() || (this._isAlignmentAnimation && !force)) {
+        if (this._disableAlignment || !this.snapToItem() || (this._isAlignmentAnimation && !force)) {
             return false;
         }
         const scrollDirection = this._scrollDirection.get() || (force ? 1 : 0);
@@ -1258,6 +1258,16 @@ export class NtScrollView extends NtBaseScrollView {
     }
 
     protected onAnimationComplete(position: number) { }
+
+    protected dropVelocity() {
+        const position = Math.abs(this.isVertical() ? this._y : this._x);
+        if (!this.isInfinity()) {
+            this._velocities = [0];
+            this._$averageVelocity.next(0);
+            this._measureVelocityLastPosition = position;
+            this._measureVelocityTimestamp = Date.now();
+        }
+    }
 
     fireScroll(userAction: boolean = false) {
         this._$updateScrollBar.next();
