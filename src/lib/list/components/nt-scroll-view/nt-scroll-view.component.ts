@@ -1319,6 +1319,7 @@ export class NtScrollView extends NtBaseScrollView {
             y = this.normalizeValue(posY),
             prevX = this._x,
             prevY = this._y;
+
         if (behavior === BEHAVIOR_AUTO || behavior === BEHAVIOR_SMOOTH) {
             if (isVertical) {
                 if (prevY !== y) {
@@ -1359,6 +1360,17 @@ export class NtScrollView extends NtBaseScrollView {
                     }
                 }
             }
+        }
+        const delta = isVertical ? (y - prevY) : (x - prevX), value = isVertical ? y : x;
+        if (onComplete !== null) {
+            onComplete({
+                id: -1,
+                timestamp: 0,
+                elapsed: 0,
+                delta,
+                value,
+                complete: () => { },
+            });
         }
         this.emitOverscrollEvent(this.grabbing(), false);
         return -1;

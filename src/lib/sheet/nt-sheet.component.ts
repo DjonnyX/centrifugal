@@ -4,7 +4,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-    BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, map, Observable, Subject, switchMap, take, tap, timer,
+    BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, map, Observable, startWith, Subject, switchMap, take, tap, timer,
 } from 'rxjs';
 import {
     IAnimationParams, INtSheetService, INtSheetBreakpoints, ISheetPrecalculatedBreakpoints, ISheetPrecalculatedBreakpoint,
@@ -470,6 +470,9 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
     protected _$scroll = new Subject<IScrollViewScrollEvent>();
     readonly $scroll = this._$scroll.asObservable();
 
+    protected _$animationUpdate = new BehaviorSubject<number>(0);
+    readonly $animationUpdate = this._$animationUpdate.asObservable();
+
     get $grabbing() { return this._service.$grabbing };
 
     private _$fireUpdate = new Subject<boolean>();
@@ -615,20 +618,6 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
             }),
         ).subscribe();
 
-        let skipClosing = true;
-
-        const $action = new Subject<void>();
-        $action.pipe(
-            takeUntilDestroyed(),
-            tap(() => {
-                skipClosing = true;
-            }),
-            switchMap(() => timer(10)),
-            tap(() => {
-                skipClosing = false;
-            }),
-        ).subscribe();
-
         combineLatest([$scrollerComponent, this.$initialized]).pipe(
             takeUntilDestroyed(this._destroyRef),
             filter(([scroller, init]) => !!scroller && !!init),
@@ -637,7 +626,6 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                     takeUntilDestroyed(this._destroyRef),
                     tap(opened => {
                         if (opened) {
-                            $action.next();
                             this._elementRef.nativeElement.style.display = DISPLAY_BLOCK;
                             this._elementRef.nativeElement.style.opacity = OPACITY_0;
                         }
@@ -652,6 +640,9 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                         const scrollWidth = this.scrollWidth;
                                         scroller.scroll({
                                             x: scrollWidth, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, userAction: true, fireUpdate: true,
+                                            onComplete: data => {
+                                                this._$animationUpdate.next(data.value);
+                                            },
                                         });
                                         break;
                                     }
@@ -659,6 +650,9 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                         const scrollHeight = this.scrollHeight;
                                         scroller.scroll({
                                             y: scrollHeight, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, userAction: true, fireUpdate: true,
+                                            onComplete: data => {
+                                                this._$animationUpdate.next(data.value);
+                                            },
                                         });
                                         break;
                                     }
@@ -676,6 +670,12 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                         const startPosition = this._precalculatedScrollStartOffset();
                                         this._animationIds = scroller.scroll({
                                             x: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: true, userAction: true,
+                                            onUpdate: data => {
+                                                this._$animationUpdate.next(data.value);
+                                            },
+                                            onComplete: data => {
+                                                this._$animationUpdate.next(data.value);
+                                            },
                                         });
                                         break;
                                     }
@@ -683,6 +683,12 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                         const startPosition = this._precalculatedScrollStartOffset();
                                         this._animationIds = scroller.scroll({
                                             y: startPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: true, userAction: true,
+                                            onUpdate: data => {
+                                                this._$animationUpdate.next(data.value);
+                                            },
+                                            onComplete: data => {
+                                                this._$animationUpdate.next(data.value);
+                                            },
                                         });
                                         break;
                                     }
@@ -690,6 +696,12 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                         const scrollWeight = this.scrollWidth;
                                         this._animationIds = scroller.scroll({
                                             x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: true, userAction: true,
+                                            onUpdate: data => {
+                                                this._$animationUpdate.next(data.value);
+                                            },
+                                            onComplete: data => {
+                                                this._$animationUpdate.next(data.value);
+                                            },
                                         });
                                         break;
                                     }
@@ -698,6 +710,12 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                         const scrollHeight = this.scrollHeight;
                                         this._animationIds = scroller.scroll({
                                             y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeIn, fireUpdate: true, userAction: true,
+                                            onUpdate: data => {
+                                                this._$animationUpdate.next(data.value);
+                                            },
+                                            onComplete: data => {
+                                                this._$animationUpdate.next(data.value);
+                                            },
                                         });
                                         break;
                                     }
@@ -709,11 +727,17 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                         if (this.scrollLeft === scrollWeight) {
                                             this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                             this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                            this._$animationUpdate.next(scrollWeight);
                                         } else {
                                             this._animationIds = scroller.scroll({
-                                                x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true, onComplete: () => {
+                                                x: scrollWeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true,
+                                                onUpdate: data => {
+                                                    this._$animationUpdate.next(data.value);
+                                                },
+                                                onComplete: data => {
                                                     this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                                     this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                    this._$animationUpdate.next(data.value);
                                                 },
                                             });
                                         }
@@ -724,11 +748,17 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                         if (this.scrollTop === scrollHeight) {
                                             this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                             this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                            this._$animationUpdate.next(scrollHeight);
                                         } else {
                                             this._animationIds = scroller.scroll({
-                                                y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true, onComplete: () => {
+                                                y: scrollHeight, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true,
+                                                onUpdate: data => {
+                                                    this._$animationUpdate.next(data.value);
+                                                },
+                                                onComplete: data => {
                                                     this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                                     this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                    this._$animationUpdate.next(data.value);
                                                 },
                                             });
                                         }
@@ -739,11 +769,17 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                         if (this.scrollLeft === endPosition) {
                                             this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                             this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                            this._$animationUpdate.next(endPosition);
                                         } else {
                                             this._animationIds = scroller.scroll({
-                                                x: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true, onComplete: () => {
+                                                x: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true,
+                                                onUpdate: data => {
+                                                    this._$animationUpdate.next(data.value);
+                                                },
+                                                onComplete: data => {
                                                     this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                                     this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                    this._$animationUpdate.next(data.value);
                                                 },
                                             });
                                         }
@@ -755,11 +791,17 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                         if (this.scrollTop === endPosition) {
                                             this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                             this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                            this._$animationUpdate.next(endPosition);
                                         } else {
                                             this._animationIds = scroller.scroll({
-                                                y: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true, onComplete: () => {
+                                                y: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: true, userAction: true,
+                                                onUpdate: data => {
+                                                    this._$animationUpdate.next(data.value);
+                                                },
+                                                onComplete: data => {
                                                     this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                                     this._elementRef.nativeElement.style.opacity = OPACITY_0;
+                                                    this._$animationUpdate.next(data.value);
                                                 },
                                             });
                                         }
@@ -780,37 +822,35 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                 takeUntilDestroyed(this._destroyRef),
                 debounceTime(100),
                 tap(() => {
-                    if (!skipClosing) {
-                        switch (this.position()) {
-                            case SheetPositions.LEFT: {
-                                if (this.opened && this.scrollLeft === this.scrollWidth) {
-                                    this.stopAnimation();
-                                    this._$opened.next(false);
-                                }
-                                break;
+                    switch (this.position()) {
+                        case SheetPositions.LEFT: {
+                            if (this.scrollLeft === this.scrollWidth) {
+                                this.stopAnimation();
+                                this._$opened.next(false);
                             }
-                            case SheetPositions.TOP: {
-                                if (this.opened && this.scrollTop === this.scrollHeight) {
-                                    this.stopAnimation();
-                                    this._$opened.next(false);
-                                }
-                                break;
+                            break;
+                        }
+                        case SheetPositions.TOP: {
+                            if (this.scrollTop === this.scrollHeight) {
+                                this.stopAnimation();
+                                this._$opened.next(false);
                             }
-                            case SheetPositions.RIGHT: {
-                                if (this.opened && this.scrollLeft === this._precalculatedScrollEndOffset()) {
-                                    this.stopAnimation();
-                                    this._$opened.next(false);
-                                }
-                                break;
+                            break;
+                        }
+                        case SheetPositions.RIGHT: {
+                            if (this.scrollLeft === this._precalculatedScrollEndOffset()) {
+                                this.stopAnimation();
+                                this._$opened.next(false);
                             }
-                            case SheetPositions.BOTTOM:
-                            default: {
-                                if (this.opened && this.scrollTop === this._precalculatedScrollEndOffset()) {
-                                    this.stopAnimation();
-                                    this._$opened.next(false);
-                                }
-                                break;
+                            break;
+                        }
+                        case SheetPositions.BOTTOM:
+                        default: {
+                            if (this.scrollTop === this._precalculatedScrollEndOffset()) {
+                                this.stopAnimation();
+                                this._$opened.next(false);
                             }
+                            break;
                         }
                     }
                 }),
@@ -819,9 +859,16 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
 
         combineLatest([$scrollerComponent, $precalculatedBreakpoints]).pipe(
             takeUntilDestroyed(),
-            filter(([v, p]) => !!v && !!p),
-            switchMap(([scroller, breakpoints]) => combineLatest([scroller!.$scroll, scroller!.$scrollEnd]).pipe(
+            filter(([s, p]) => !!s && !!p),
+            switchMap(([scroller, breakpoints]) => combineLatest([this.$animationUpdate, scroller!.$scroll.pipe(
                 takeUntilDestroyed(this._destroyRef),
+                startWith(false),
+            ), scroller!.$scrollEnd.pipe(
+                takeUntilDestroyed(this._destroyRef),
+                startWith(false),
+            )]).pipe(
+                takeUntilDestroyed(this._destroyRef),
+                debounceTime(0),
                 tap(() => {
                     const position = this.position();
                     let actualPosition: number = 0, maxPosition = 0;

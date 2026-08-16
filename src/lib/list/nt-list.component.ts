@@ -1672,15 +1672,9 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
 
     let hasUserAction = false;
 
-    const $itemSize = toObservable(this.itemSize).pipe(
-      map(v => typeof v === 'number' && v <= 0 ? DEFAULT_ITEM_SIZE : v),
-    ),
-      $minItemSize = toObservable(this.minItemSize).pipe(
-        map(v => typeof v === 'number' && v <= 0 ? DEFAULT_MIN_ITEM_SIZE : v),
-      ),
-      $maxItemSize = toObservable(this.maxItemSize).pipe(
-        map(v => typeof v === 'number' && v <= 0 ? DEFAULT_MAX_ITEM_SIZE : v),
-      ),
+    const $itemSize = toObservable(this.itemSize),
+      $minItemSize = toObservable(this.minItemSize),
+      $maxItemSize = toObservable(this.maxItemSize),
       $scrollStartOffset = toObservable(this._actualScrollStartOffset).pipe(
         takeUntilDestroyed(),
         distinctUntilChanged(),
@@ -3797,10 +3791,6 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
     if (!!scroller) {
       scroller.stopScrolling();
     }
-  }
-
-  update(userAction: boolean = false) {
-    this._$fireUpdate.next(userAction);
   }
 
   ngOnDestroy(): void {
