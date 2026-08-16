@@ -4,7 +4,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-    BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, map, Observable, startWith, Subject,
+    BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, map, Observable, of, startWith, Subject,
     switchMap, take, tap,
 } from 'rxjs';
 import {
@@ -19,7 +19,7 @@ import {
 } from './enums';
 import { objectAsReadonly } from '../common/utils/object';
 import {
-    ArithmeticExpression, Directions, Id, IScrollingSettings, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED,
+    ArithmeticExpression, CONTROL_CONTAINER_SERVICE, Directions, Id, IScrollingSettings, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED,
     SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
 } from '../common';
 import { isDirection } from '../common/utils/is-direction';
@@ -454,8 +454,9 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
 
     protected _precalculatedScrollEndOffset = signal<number>(0);
 
-    protected _$breakpointInfo = new Subject<INtSheetBreakpointInfo>();
+    protected _$breakpointInfo = new BehaviorSubject<INtSheetBreakpointInfo | null>(null);
     readonly $breakpointInfo = this._$breakpointInfo.asObservable();
+    get breakpointInfo() { return this._$breakpointInfo.getValue(); }
 
     protected _precalculatedBreakpoints: Signal<ISheetPrecalculatedBreakpoints>;
 
@@ -488,6 +489,8 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
 
     private _$viewInit = new BehaviorSubject<boolean>(false);
     protected readonly $viewInit = this._$viewInit.asObservable();
+
+    protected _controlContainerService = inject(CONTROL_CONTAINER_SERVICE);
 
     protected _injector = inject(Injector);
 
@@ -606,14 +609,76 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                     tap(([grabbing, breakpointInfo, isMoving]) => {
                         const position = this.position(), isVertical = position === SheetPositions.TOP || position === SheetPositions.BOTTOM,
                             breakpointEvent = new NtSheetBreakpointEvent({
-                                id: breakpointInfo.id,
-                                index: breakpointInfo.index,
-                                breakpointRatio: breakpointInfo.breakpointRatio,
-                                ratio: breakpointInfo.ratio,
+                                id: breakpointInfo!.id,
+                                index: breakpointInfo!.index,
+                                breakpointRatio: breakpointInfo!.breakpointRatio,
+                                ratio: breakpointInfo!.ratio,
                                 position,
                                 isVertical,
                             });
                         this.onBreakpoint.emit(breakpointEvent);
+                    }),
+                );
+            }),
+        ).subscribe();
+
+        combineLatest([$scrollerComponent, this.$initialized]).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            filter(([scroller, init]) => !!scroller && !!init),
+            switchMap(([scroller]) => {
+                if (!this._controlContainerService?.scrollView) {
+                    return of(null);
+                }
+                return this._controlContainerService.scrollView.$resizeViewport.pipe(
+                    takeUntilDestroyed(this._destroyRef),
+                    debounceTime(100),
+                    tap(() => {
+                        const opened = this.opened,
+                            breakpointInfo = this.breakpointInfo,
+                            breakpoint = !!breakpointInfo ? this._precalculatedBreakpoints().find(({ id }) => id === breakpointInfo.id) : null;
+                        if (!!scroller && !!breakpoint) {
+                            if (opened) {
+                                switch (this.position()) {
+                                    case SheetPositions.LEFT: {
+                                        this._animationIds = scroller.scroll({
+                                            x: breakpoint.measures.x, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, fireUpdate: false, userAction: false, snap: false,
+                                            onComplete: data => {
+                                                this._$animationUpdate.next(data.value);
+                                            },
+                                        });
+                                        break;
+                                    }
+                                    case SheetPositions.TOP: {
+                                        this._animationIds = scroller.scroll({
+                                            y: breakpoint.measures.y, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, fireUpdate: false, userAction: false, snap: false,
+                                            onComplete: data => {
+                                                this._$animationUpdate.next(data.value);
+                                            },
+                                        });
+                                        break;
+                                    }
+                                    case SheetPositions.RIGHT: {
+                                        this._animationIds = scroller.scroll({
+                                            x: breakpoint.measures.x, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, fireUpdate: false, userAction: false, snap: false,
+                                            onComplete: data => {
+                                                this._$animationUpdate.next(data.value);
+                                            },
+                                        });
+                                        break;
+                                    }
+                                    case SheetPositions.BOTTOM:
+                                    default: {
+                                        this._animationIds = scroller.scroll({
+                                            y: breakpoint.position, behavior: BEHAVIOR_INSTANT, blending: false, duration: 0, fireUpdate: false, userAction: false, snap: false,
+                                            onComplete: data => {
+                                                this._$animationUpdate.next(data.value);
+                                            },
+                                        });
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     }),
                 );
             }),

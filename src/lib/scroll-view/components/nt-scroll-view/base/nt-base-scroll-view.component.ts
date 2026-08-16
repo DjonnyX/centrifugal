@@ -113,6 +113,12 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     protected _overscrollEnabled = inject(SCROLL_VIEW_OVERSCROLL_ENABLED);
 
+    protected _$resizeViewport = new Subject<ISize>();
+    readonly $resizeViewport = this._$resizeViewport.asObservable();
+
+    protected _$resizeContent = new Subject<ISize>();
+    readonly $resizeContent = this._$resizeContent.asObservable();
+
     protected _$overscroll = new Subject<IOverscrollEvent>();
     $overscroll = this._$overscroll.asObservable();
 

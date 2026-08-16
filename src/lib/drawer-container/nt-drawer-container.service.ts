@@ -6,6 +6,7 @@ import { IAnimationParams } from '../scroll-view';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
 import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-view-service';
 import { Direction, Directions, IScrollOptions } from '../common';
+import { INtScroller } from '../common/interfaces/nt-scroller';
 
 /**
  * NtDrawerContainerService
@@ -83,8 +84,9 @@ export class NtDrawerContainerService extends NtBaseScrollViewService implements
     });
   }
 
-  initialize(id: number, parentId: number, emitter: HTMLElement) {
+  initialize(id: number, scrollView: INtScroller<INtBaseScrollViewService>, parentId: number, emitter: HTMLElement) {
     this._id = id;
+    this._scrollView = scrollView;
     this._parentId = parentId;
     this._emitter = emitter;
   }

@@ -1,6 +1,6 @@
 import { Component, computed, effect, ElementRef, input, output, Signal, signal, TemplateRef, viewChild, ViewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, combineLatest, debounceTime, filter, Subject, tap } from 'rxjs';
+import { combineLatest, debounceTime, filter, Subject, tap } from 'rxjs';
 import { ScrollBox } from './utils';
 import { SCROLLER_SCROLL } from '../../const';
 import { NtScrollView } from '../nt-scroll-view';
@@ -14,7 +14,10 @@ import { IScrollBarDragEvent } from '../../../scroll-bar/components/nt-base-scro
 import { IScrollToParams } from '../../../common/interfaces/scroll-to-params';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { BEHAVIOR_INSTANT } from '../../../common/const/behavior';
-import { DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS } from '../../../common/const/scroller';
+import {
+  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
+  DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS,
+} from '../../../common/const/scroller';
 
 const TOP = 'top',
   LEFT = 'left',
@@ -196,12 +199,6 @@ export class NtScrollerComponent extends NtScrollView {
   get isScrollbarUserActionY() {
     return this._isScrollbarUserActionY;
   }
-
-  protected _$resizeViewport = new BehaviorSubject<ISize>({ width: 0, height: 0 });
-  readonly $resizeViewport = this._$resizeViewport.asObservable();
-
-  protected _$resizeContent = new BehaviorSubject<ISize>({ width: 0, height: 0 });
-  readonly $resizeContent = this._$resizeContent.asObservable();
 
   protected _filterId: string;
 

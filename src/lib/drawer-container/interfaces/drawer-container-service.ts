@@ -2,6 +2,7 @@ import { Observable } from "rxjs";
 import { Direction, Id, IRect, IScrollOptions } from "../../common";
 import { IAnimationParams } from "../../scroll-view";
 import { INtBaseScrollViewService } from "../../common/interfaces/nt-base-scroll-view-service";
+import { INtScroller } from "../../common/interfaces/nt-scroller";
 
 /**
  * INtDrawerContainerService
@@ -10,7 +11,7 @@ import { INtBaseScrollViewService } from "../../common/interfaces/nt-base-scroll
  * @email djonnyx@gmail.com
  */
 export interface INtDrawerContainerService extends INtBaseScrollViewService {
-    initialize: (id: number, parentId: number, emitter: HTMLElement) => void;
+    initialize: (id: number, scrollView: INtScroller<INtBaseScrollViewService>, parentId: number, emitter: HTMLElement) => void;
 
     animationParams: IAnimationParams;
 

@@ -13,7 +13,10 @@ import { IScrollBarDragEvent } from '../../../scroll-bar/components/nt-base-scro
 import { IListScrollToParams } from '../../../common/interfaces/list-scroll-to-params';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { BEHAVIOR_INSTANT } from '../../../common/const/behavior';
-import { DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS } from '../../../common/const/scroller';
+import {
+  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
+  DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS,
+} from '../../../common/const/scroller';
 
 const TOP = 'top',
   LEFT = 'left',
@@ -176,12 +179,6 @@ export class NtScrollerComponent extends NtScrollView {
     return this._isScrollbarUserAction;
   }
 
-  protected _$resizeViewport = new Subject<ISize>();
-  readonly $resizeViewport = this._$resizeViewport.asObservable();
-
-  protected _$resizeContent = new Subject<ISize>();
-  readonly $resizeContent = this._$resizeContent.asObservable();
-
   protected _filterId: string;
 
   protected _filter: string;
@@ -206,7 +203,7 @@ export class NtScrollerComponent extends NtScrollView {
       tap(() => {
         this._disableAlignment = true;
       }),
-      debounceTime(0),
+      debounceTime(1),
       tap(() => {
         this._disableAlignment = false;
         this.snapIfNeed(false, true);
