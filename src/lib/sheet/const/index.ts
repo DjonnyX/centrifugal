@@ -21,7 +21,7 @@ export const DEFAULT_SCROLLING_SETTINGS: IScrollingSettings = {
     maxDistance: 100000,
     maxDuration: 4000,
     speedScale: 10,
-    breakpointStoppingFactor: 0.01,
+    breakpointStoppingFactor: 5,
     optimization: false,
 };
 
