@@ -2,14 +2,11 @@ import { Component, computed, effect, ElementRef, input, output, Signal, signal,
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, debounceTime, filter, Subject, tap } from 'rxjs';
 import { ScrollBox } from './utils';
-import {
-  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
-  DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, SCROLLER_SCROLL,
-} from '../../const';
+import { SCROLLER_SCROLL } from '../../const';
 import { NtScrollView } from '../nt-scroll-view';
-import { ScrollerDirection } from '../nt-scroll-view/enums';
 import {
   GradientColorPositions, Id, ISize, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_INVERSION, SCROLL_VIEW_TYPE,
+  Directions,
 } from '../../../common';
 import { NtBaseScrollBarComponent } from '../../../scroll-bar/components/nt-base-scroll-bar/nt-base-scroll-bar.component';
 import { LEFT_PROP_NAME, PX, TOP_PROP_NAME } from '../../../common/const/base-prop-names';
@@ -17,6 +14,10 @@ import { IScrollBarDragEvent } from '../../../scroll-bar/components/nt-base-scro
 import { IScrollToParams } from '../../../common/interfaces/scroll-to-params';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { BEHAVIOR_INSTANT } from '../../../common/const/behavior';
+import {
+  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
+  DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS,
+} from '../../../common/const/scroller';
 
 const TOP = 'top',
   LEFT = 'left',
@@ -199,12 +200,6 @@ export class NtScrollerComponent extends NtScrollView {
     return this._isScrollbarUserActionY;
   }
 
-  protected _$resizeViewport = new Subject<ISize>();
-  readonly $resizeViewport = this._$resizeViewport.asObservable();
-
-  protected _$resizeContent = new Subject<ISize>();
-  readonly $resizeContent = this._$resizeContent.asObservable();
-
   protected _filterId: string;
 
   protected _filter: string;
@@ -261,6 +256,7 @@ export class NtScrollerComponent extends NtScrollView {
     combineLatest([$averageVelocityX, $averageVelocityY, $filter, $motionBlurEnabled, $motionBlur, $maxMotionBlur]).pipe(
       takeUntilDestroyed(),
       filter(([, , , f, e, mb]) => !!f && (!!e && mb !== 0)),
+      debounceTime(0),
       tap(([x, y, filter, , mb, mbMax]) => {
         const _x = x * (mb as number), valueX = _x > mbMax ? mbMax : _x,
           _y = y * (mb as number), valueY = _y > mbMax ? mbMax : _y;
@@ -379,6 +375,7 @@ export class NtScrollerComponent extends NtScrollView {
       this.viewportBounds.set(bounds);
       this.updateScrollBar(false);
       this.updateScrollBar(true);
+      this.dropVelocity();
       this._$resizeViewport.next(bounds);
     }
   }
@@ -403,8 +400,8 @@ export class NtScrollerComponent extends NtScrollView {
   private updateScrollBarHandler(isVertical: boolean, update: boolean = false, blending: boolean = true, fireUpdate: boolean = false) {
     const viewportBounds = this.viewportBounds(),
       direction = this.direction(),
-      horizontalEnabled = direction === ScrollerDirection.BOTH || direction === ScrollerDirection.HORIZONTAL,
-      verticalEnabled = direction === ScrollerDirection.BOTH || direction === ScrollerDirection.VERTICAL;
+      horizontalEnabled = direction === Directions.BOTH || direction === Directions.HORIZONTAL,
+      verticalEnabled = direction === Directions.BOTH || direction === Directions.VERTICAL;
     if ((isVertical && verticalEnabled) || (!isVertical && horizontalEnabled)) {
       const contentBounds = this.contentBounds(),
         startOffset = isVertical ? this.topOffset() : this.leftOffset(),
@@ -414,7 +411,7 @@ export class NtScrollerComponent extends NtScrollView {
           thumbPosition,
           thumbGradientPositions,
         } = this._scrollBox.calculateScroll({
-          direction: isVertical ? ScrollerDirection.VERTICAL : ScrollerDirection.HORIZONTAL,
+          direction: isVertical ? Directions.VERTICAL : Directions.HORIZONTAL,
           viewportWidth: viewportBounds.width,
           viewportHeight: viewportBounds.height,
           contentWidth: contentBounds.width,
@@ -565,7 +562,8 @@ export class NtScrollerComponent extends NtScrollView {
     }
   }
 
-  private dropVelocity() {
+  protected override dropVelocity() {
+    super.dropVelocity();
     this._velocitiesX = [0];
     this._$velocityX.next(0);
     this._$averageVelocityX.next(0);

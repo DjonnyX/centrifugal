@@ -1,6 +1,5 @@
 import {
   ChangeDetectionStrategy, Component, ComponentRef, computed, createNgModule, DestroyRef, effect, ElementRef, inject, Injector, input,
-  NgModuleRef,
   OnDestroy, output, Signal, signal, TemplateRef, ViewChild, viewChild, ViewContainerRef, ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -14,36 +13,32 @@ import {
   DEFAULT_ITEM_SIZE, DEFAULT_BUFFER_SIZE, DEFAULT_LIST_SIZE, DEFAULT_STICKY_ENABLED, DEFAULT_SNAPPING_METHOD, MAX_SCROLL_TO_ITERATIONS,
   TRACK_BY_PROPERTY_NAME, DEFAULT_MAX_BUFFER_SIZE, DEFAULT_SELECTING_MODES, DEFAULT_SELECT_BY_CLICK, DEFAULT_COLLAPSE_BY_CLICK,
   DEFAULT_COLLECTION_MODE, DEFAULT_SCREEN_READER_MESSAGE, DEFAULT_SNAP_TO_END_TRANSITION_INSTANT_OFFSET, DEFAULT_SNAP_SCROLLTO_END,
-  MIN_PIXELS_FOR_PREVENT_SNAPPING, DEFAULT_LANG_TEXT_DIR, DEFAULT_WAIT_FOR_PREPARATION, DEFAULT_SCROLLBAR_THICKNESS,
-  DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_OVERSCROLL_ENABLED,
-  DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SNAP_SCROLLTO_START, EMPTY_SCROLL_STATE_VERSION, MAX_REGULAR_SNAPED_COMPONENTS,
-  PREPARE_ITERATIONS, PREPARATION_REUPDATE_LENGTH, ROLE_LIST_BOX, ROLE_LIST, MAX_VELOCITY_FOR_SCROLL_QUALITY_OPTIMIZATION_LVL1,
-  PREPARE_ITERATIONS_FOR_UPDATE_ITEMS, PREPARATION_REUPDATE_LENGTH_FOR_UPDATE_ITEMS, PREPARE_ITERATIONS_FOR_COLLAPSE_ITEMS,
-  PREPARATION_REUPDATE_LENGTH_FOR_COLLAPSE_ITEMS, MAX_NUMBERS_OF_SKIPS_FOR_QUALITY_OPTIMIZATION_LVL1, DEFAULT_SCROLLING_SETTINGS,
-  DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, VIEWPORT, DEFAULT_MOTION_BLUR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_SCROLLING_ONE_BY_ONE,
-  DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_DIVIDES, DEFAULT_SNAPPING_DISTANCE, DEFAULT_MAX_ITEM_SIZE, DEFAULT_MIN_ITEM_SIZE,
-  DEFAULT_ALIGNMENT, DEFAULT_COLLAPSING_MODES, DEFAULT_SPREADING_MODE, DEFAULT_ZINDEX_WHEN_SELECTING, DEFAULT_OVERLAPPING_SCROLLBAR,
+  MIN_PIXELS_FOR_PREVENT_SNAPPING, DEFAULT_WAIT_FOR_PREPARATION, DEFAULT_ANIMATION_PARAMS, DEFAULT_SNAP_SCROLLTO_START,
+  EMPTY_SCROLL_STATE_VERSION, MAX_REGULAR_SNAPED_COMPONENTS, PREPARE_ITERATIONS, PREPARATION_REUPDATE_LENGTH, ROLE_LIST_BOX, ROLE_LIST,
+  MAX_VELOCITY_FOR_SCROLL_QUALITY_OPTIMIZATION_LVL1, PREPARE_ITERATIONS_FOR_UPDATE_ITEMS, PREPARATION_REUPDATE_LENGTH_FOR_UPDATE_ITEMS,
+  PREPARE_ITERATIONS_FOR_COLLAPSE_ITEMS, PREPARATION_REUPDATE_LENGTH_FOR_COLLAPSE_ITEMS, MAX_NUMBERS_OF_SKIPS_FOR_QUALITY_OPTIMIZATION_LVL1,
+  DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, VIEWPORT, DEFAULT_SCROLLING_ONE_BY_ONE, DEFAULT_DIVIDES, DEFAULT_SNAPPING_DISTANCE,
+  DEFAULT_MAX_ITEM_SIZE, DEFAULT_MIN_ITEM_SIZE, DEFAULT_ALIGNMENT, DEFAULT_COLLAPSING_MODES, DEFAULT_SPREADING_MODE,
+  DEFAULT_ZINDEX_WHEN_SELECTING,
 } from './const';
 import {
   IRenderVirtualListItem, IVirtualListCollection, IVirtualListItem, IVirtualListItemConfigMap,
 } from './models';
 import {
-  IScrollEvent, IScrollOptions, IAnimationParams, IRenderStabilizerOptions, IScrollingSettings,
+  IScrollOptions, IAnimationParams, IRenderStabilizerOptions,
 } from './interfaces';
 import {
-  Alignment, FocusAlignment, ItemTransform, SnappingDistance, CollectionMode, Direction, SelectingMode, SnappingMethod, SnapToItemAlign,
-  CollapsingMode, SpreadingMode,
+  Alignment, FocusAlignment, ItemTransform, CollectionMode, SelectingMode, SnappingMethod, CollapsingMode, SpreadingMode, Direction,
 } from './types';
 import { IRenderVirtualListCollection } from './models/render-collection.model';
 import {
-  Alignments, CollectionModes, Directions, FocusAlignments, SelectingModes, SnappingMethods, SnapToItemAligns, SpreadingModes,
+  Alignments, CollectionModes, FocusAlignments, SelectingModes, SnappingMethods, SnapToItemAligns, SpreadingModes,
 } from './enums';
 import { ScrollEvent } from './utils';
 import { TrackBox } from './core/track-box';
 import { isSnappingMethodAdvenced } from './utils/snapping-method';
 import { NtBaseVirtualListItemComponent } from './components/nt-list-item/base';
 import { Component$1 } from './models/component.model';
-import { isDirection } from './utils/is-direction';
 import { NtListService } from './nt-list.service';
 import { isSelectMode } from './utils/is-select-mode';
 import { isCollapseMode } from './utils/is-collapse-mode';
@@ -66,8 +61,8 @@ import { isSpreadingMode } from './utils/is-spreading-mode';
 import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interfaces';
 import { getScrollStateVersion } from './utils/get-scroll-state-version';
 import {
-  ArithmeticExpression, Id, IOverscrollEvent, ISize, KeyboardKeys, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
-  SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
+  ArithmeticExpression, Directions, Id, IListScrollEvent, IOverscrollEvent, IScrollingSettings, ISize, KeyboardKeys, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
+  SCROLL_VIEW_USER_INTERACTION_ENABLED, SnappingDistance, SnapToItemAlign, TextDirection, TextDirections,
 } from '../common';
 import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, parseArithmeticExpression, toggleClassName } from '../common/utils';
 import { INtListService } from './interfaces';
@@ -80,6 +75,8 @@ import { INtScrollViewService } from '../scroll-view';
 import { IListScrollToParams } from '../common/interfaces/list-scroll-to-params';
 import { NtListItemModule } from './components/nt-list-item/nt-list-item.module';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from '../common/const/behavior';
+import { DEFAULT_LANG_TEXT_DIR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, DEFAULT_SCROLLING_SETTINGS } from '../common/const/scroller';
+import { isDirection } from '../scroll-view/utils/is-direction';
 
 /**
  * Virtual list component.
@@ -121,12 +118,12 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
   /**
    * Fires when the list has been scrolled.
    */
-  onScroll = output<IScrollEvent>();
+  onScroll = output<IListScrollEvent>();
 
   /**
    * Fires when the list has completed scrolling.
    */
-  onScrollEnd = output<IScrollEvent>();
+  onScrollEnd = output<IListScrollEvent>();
 
   /**
    * Fires when the viewport size is changed.
@@ -617,7 +614,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
     transform: (v: IScrollingSettings): IScrollingSettings | null => {
       let valid = validateObject(v, true, true);
       if (valid && !!v) {
-        const { frictionalForce, mass, maxDistance, maxDuration, speedScale, optimization } = v;
+        const { frictionalForce, mass, maxDistance, maxDuration, speedScale, breakpointStoppingFactor, optimization } = v;
         valid = validateFloat(frictionalForce, true);
         if (!valid) {
           console.error('The "frictionalForce" parameter must be of type `number` or `undefined`.');
@@ -643,6 +640,11 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
           console.error('The "speedScale" parameter must be of type `number` or `undefined`.');
           return DEFAULT_SCROLLING_SETTINGS;
         }
+        valid = validateFloat(breakpointStoppingFactor, true);
+        if (!valid) {
+          console.error('The "breakpointStoppingFactor" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
         valid = validateBoolean(optimization, true);
         if (!valid) {
           console.error('The "optimization" parameter must be of type `boolean` or `undefined`.');
@@ -659,6 +661,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
         maxDistance: v.maxDistance !== undefined && v.maxDistance > 0 ? v.maxDistance : DEFAULT_SCROLLING_SETTINGS.maxDistance,
         maxDuration: v.maxDuration !== undefined && v.maxDuration > 0 ? v.maxDuration : DEFAULT_SCROLLING_SETTINGS.maxDuration,
         speedScale: v.speedScale !== undefined && v.speedScale > 0 ? v.speedScale : DEFAULT_SCROLLING_SETTINGS.speedScale,
+        breakpointStoppingFactor: v.breakpointStoppingFactor !== undefined && v.breakpointStoppingFactor > 0 ? v.breakpointStoppingFactor : DEFAULT_SCROLLING_SETTINGS.breakpointStoppingFactor,
         optimization: v.optimization ?? DEFAULT_SCROLLING_SETTINGS.optimization,
       };
     },
@@ -1457,7 +1460,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
 
   private _$scrollingTo = new BehaviorSubject<boolean>(false);
 
-  private _$scroll = new Subject<IScrollEvent>();
+  private _$scroll = new Subject<IListScrollEvent>();
   readonly $scroll = this._$scroll.asObservable();
 
   private _$tick = new Subject<void>();
@@ -1669,15 +1672,9 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
 
     let hasUserAction = false;
 
-    const $itemSize = toObservable(this.itemSize).pipe(
-      map(v => typeof v === 'number' && v <= 0 ? DEFAULT_ITEM_SIZE : v),
-    ),
-      $minItemSize = toObservable(this.minItemSize).pipe(
-        map(v => typeof v === 'number' && v <= 0 ? DEFAULT_MIN_ITEM_SIZE : v),
-      ),
-      $maxItemSize = toObservable(this.maxItemSize).pipe(
-        map(v => typeof v === 'number' && v <= 0 ? DEFAULT_MAX_ITEM_SIZE : v),
-      ),
+    const $itemSize = toObservable(this.itemSize),
+      $minItemSize = toObservable(this.minItemSize),
+      $maxItemSize = toObservable(this.maxItemSize),
       $scrollStartOffset = toObservable(this._actualScrollStartOffset).pipe(
         takeUntilDestroyed(),
         distinctUntilChanged(),

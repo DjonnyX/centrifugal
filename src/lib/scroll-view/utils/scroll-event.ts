@@ -16,7 +16,7 @@ interface IScrollEventParams {
 }
 
 /**
- * Scroll event.
+ * ScrollEvent
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/utils/scroll-event.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com

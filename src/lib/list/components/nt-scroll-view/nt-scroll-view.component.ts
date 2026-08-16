@@ -5,8 +5,7 @@ import { CdkScrollable } from '@angular/cdk/scrolling';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, combineLatest, debounceTime, delay, filter, fromEvent, map, of, race, startWith, Subject, switchMap, takeUntil, tap } from 'rxjs';
 import {
-    DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_ONE_BY_ONE,
-    DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, DEFAULT_SNAPPING_DISTANCE,
+    DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLLING_ONE_BY_ONE, DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, DEFAULT_SNAPPING_DISTANCE,
 } from '../../const';
 import {
     ACCELERATION_SCALE, ANIMATION_DURATION, DURATION, FRICTION_FORCE, MASS, MAX_DIST, MAX_DURATION, MAX_ITERATIONS_FOR_AVERAGE_CALCULATIONS,
@@ -15,13 +14,13 @@ import {
 } from './const';
 import { calculateDirection, matrix3d } from './utils';
 import { NtBaseScrollView } from './base';
-import { IAnimationParams, IScrollingSettings } from '../../interfaces';
+import { IAnimationParams } from '../../interfaces';
 import { SnapToItemAligns } from '../../enums';
-import { SnappingDistance, SnapToItemAlign } from '../../types';
 import { ScrollingDirection } from '../../utils/scrolling-direction';
 import { calculateVelocity } from './utils/calculate-velocity';
 import {
-    CONTROL_CONTAINER_SERVICE, Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirections,
+    CONTROL_CONTAINER_SERVICE, Id, IScrollingSettings, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirections,
+    SnappingDistance, SnapToItemAlign,
 } from '../../../common';
 import { Animator, ANIMATOR_MIN_TIMESTAMP, easeOutQuad, Easing, isPercentageValue, parseFloatOrPersentageValue } from '../../../common/utils';
 import { INtControlContainerService } from '../../../control-container/interfaces';
@@ -37,6 +36,7 @@ import { OverscrollEvent } from '../../../common/events/overscroll-event';
 import { transitionExponent } from '../../../common/utils/transitions';
 import { DEFAULT_TRANSITION_EXPONENT } from '../../../common/const/transitions';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT, BEHAVIOR_SMOOTH } from '../../../common/const/behavior';
+import { DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLING_SETTINGS } from '../../../common/const/scroller';
 
 /**
  * NtScrollView
@@ -743,7 +743,7 @@ export class NtScrollView extends NtBaseScrollView {
     }
 
     protected snapWithInitialForceIfNecessary(v0: number | null = null, animated = true, force: boolean = false, fireUpdate: boolean = true) {
-        const t = this.animationParams().snapToItem * .01, s = this.getSnappedComponentSize(),
+        const t = this.animationParams().snapToItem * this.scrollingSettings().breakpointStoppingFactor!, s = this.getSnappedComponentSize(),
             va = s !== null && t !== 0 ? (s / t) : 0;
         if (va >= Math.abs(v0 ?? this.averageVelocity)) {
             return this.alignPosition(animated, force, fireUpdate);
@@ -1118,7 +1118,7 @@ export class NtScrollView extends NtBaseScrollView {
     }
 
     protected alignPosition(animated: boolean = true, force: boolean = false, fireUpdate: boolean = false) {
-        if (!this.snapToItem() || (this._isAlignmentAnimation && !force)) {
+        if (this._disableAlignment || !this.snapToItem() || (this._isAlignmentAnimation && !force)) {
             return false;
         }
         const scrollDirection = this._scrollDirection.get() || (force ? 1 : 0);
@@ -1259,6 +1259,16 @@ export class NtScrollView extends NtBaseScrollView {
 
     protected onAnimationComplete(position: number) { }
 
+    protected dropVelocity() {
+        const position = Math.abs(this.isVertical() ? this._y : this._x);
+        if (!this.isInfinity()) {
+            this._velocities = [0];
+            this._$averageVelocity.next(0);
+            this._measureVelocityLastPosition = position;
+            this._measureVelocityTimestamp = Date.now();
+        }
+    }
+
     fireScroll(userAction: boolean = false) {
         this._$updateScrollBar.next();
         this.emitScrollableEvent();
@@ -1319,6 +1329,7 @@ export class NtScrollView extends NtBaseScrollView {
             y = this.normalizeValue(posY),
             prevX = this._x,
             prevY = this._y;
+
         if (behavior === BEHAVIOR_AUTO || behavior === BEHAVIOR_SMOOTH) {
             if (isVertical) {
                 if (prevY !== y) {
@@ -1359,6 +1370,17 @@ export class NtScrollView extends NtBaseScrollView {
                     }
                 }
             }
+        }
+        const delta = isVertical ? (y - prevY) : (x - prevX), value = isVertical ? y : x;
+        if (onComplete !== null) {
+            onComplete({
+                id: -1,
+                timestamp: 0,
+                elapsed: 0,
+                delta,
+                value,
+                complete: () => { },
+            });
         }
         this.emitOverscrollEvent(this.grabbing(), false);
         return -1;

@@ -3,8 +3,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, debounceTime, filter, Subject, tap } from 'rxjs';
 import { ScrollBox } from './utils';
 import {
-  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR,
-  DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, SCROLLER_SCROLL,
+  SCROLLER_SCROLL,
 } from '../../const';
 import { NtScrollView } from '../nt-scroll-view';
 import { GradientColorPositions, Id, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_TYPE } from '../../../common';
@@ -14,6 +13,10 @@ import { IScrollBarDragEvent } from '../../../scroll-bar/components/nt-base-scro
 import { IListScrollToParams } from '../../../common/interfaces/list-scroll-to-params';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { BEHAVIOR_INSTANT } from '../../../common/const/behavior';
+import {
+  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
+  DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS,
+} from '../../../common/const/scroller';
 
 const TOP = 'top',
   LEFT = 'left',
@@ -176,12 +179,6 @@ export class NtScrollerComponent extends NtScrollView {
     return this._isScrollbarUserAction;
   }
 
-  protected _$resizeViewport = new Subject<ISize>();
-  readonly $resizeViewport = this._$resizeViewport.asObservable();
-
-  protected _$resizeContent = new Subject<ISize>();
-  readonly $resizeContent = this._$resizeContent.asObservable();
-
   protected _filterId: string;
 
   protected _filter: string;
@@ -198,7 +195,20 @@ export class NtScrollerComponent extends NtScrollView {
       $motionBlurEnabled = toObservable(this.motionBlurEnabled),
       $isVertical = toObservable(this.isVertical),
       $scrollContent = toObservable(this.scrollContent),
-      $overscrollEffectEvent = this.$overscrollEffectEvent;
+      $overscrollEffectEvent = this.$overscrollEffectEvent,
+      $resizeViewport = this.$resizeViewport;
+
+    $resizeViewport.pipe(
+      takeUntilDestroyed(),
+      tap(() => {
+        this._disableAlignment = true;
+      }),
+      debounceTime(1),
+      tap(() => {
+        this._disableAlignment = false;
+        this.snapIfNeed(false, true);
+      }),
+    ).subscribe();
 
     combineLatest([$overscrollEffectEvent, this.$resizeViewport]).pipe(
       takeUntilDestroyed(),
@@ -235,10 +245,14 @@ export class NtScrollerComponent extends NtScrollView {
     ).subscribe();
 
     const $averageVelocity = this.$averageVelocity;
-    combineLatest([$isVertical, $averageVelocity, $filter, $motionBlurEnabled, $motionBlur, $maxMotionBlur]).pipe(
+    combineLatest([$isVertical, $averageVelocity, $filter, $motionBlurEnabled, $motionBlur, $maxMotionBlur, $resizeViewport]).pipe(
       takeUntilDestroyed(),
       filter(([, , f, e, mb]) => !!f && (!!e && mb !== 0)),
+      debounceTime(0),
       tap(([isVertical, v, filter, , mb, mbMax]) => {
+        if (this._disableAlignment) {
+          this.dropVelocity();
+        }
         const _v = v * (mb as number), value = _v > mbMax ? mbMax : _v;
         filter!.nativeElement.setStdDeviation(isVertical ? 0 : v * value, isVertical ? v * value : 0);
       }),
@@ -328,8 +342,9 @@ export class NtScrollerComponent extends NtScrollView {
       }
       this.viewportBounds.set(bounds);
       this.updateScrollBar();
-      this._$resizeViewport.next(bounds);
       this.recalculatePerspective();
+      this.dropVelocity();
+      this._$resizeViewport.next(bounds);
     }
   }
 
@@ -345,8 +360,8 @@ export class NtScrollerComponent extends NtScrollView {
       }
       this.contentBounds.set(bounds);
       this.updateScrollBar();
-      this._$resizeContent.next(bounds);
       this.recalculatePerspective();
+      this._$resizeContent.next(bounds);
     }
   }
 
@@ -478,7 +493,8 @@ export class NtScrollerComponent extends NtScrollView {
     }
   }
 
-  private dropVelocity() {
+  protected override dropVelocity() {
+    super.dropVelocity();
     this._velocities = [0];
     this._$velocity.next(0);
     this._$averageVelocity.next(0);

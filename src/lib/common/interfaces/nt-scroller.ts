@@ -43,6 +43,8 @@ export interface INtScroller<S extends INtBaseScrollViewService> {
 
     readonly contentBounds: Signal<ISize>;
 
+    readonly $resizeViewport: Observable<ISize>;
+
     readonly $overscroll: Observable<IOverscrollEvent>;
 
     readonly $overscrollEffectEvent: Observable<IOverscrollEvent>;

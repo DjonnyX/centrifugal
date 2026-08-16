@@ -9,14 +9,15 @@ import { NtBaseScrollBarService } from './nt-base-scroll-bar.service';
 import { NtScrollBarPublicService } from './nt-base-scroll-bar-public.service';
 import { ScrollbarStates } from './enums';
 import {
-  GradientColorPositions, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_TYPE, TextDirections,
+  Directions, GradientColorPositions, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED,
+  SCROLL_VIEW_TYPE, TextDirections,
 } from '../../../common';
-import { NtScrollView, ScrollerDirection } from '../../../scroll-view';
-import { DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE } from '../../../scroll-view/const';
+import { NtScrollView } from '../../../scroll-view';
 import {
   LEFT, POSITION, POSITION_ABSOLUTE, POSITION_RELATIVE, RIGHT, TOP, BOTTOM, ZERO_PX, UNSET, SIZE_AUTO, SIZE_100_PERSENT,
 } from '../../../common/const/base-prop-names';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
+import { DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE } from '../../../common/const/scroller';
 
 /**
  * NtBaseScrollBarComponent
@@ -95,7 +96,7 @@ export class NtBaseScrollBarComponent extends NtScrollView {
 
     this.isVertical = computed(() => {
       const dir = this.direction();
-      return dir === ScrollerDirection.VERTICAL || dir === ScrollerDirection.BOTH;
+      return dir === Directions.VERTICAL || dir === Directions.BOTH;
     });
 
     this.templateContext = computed(() => {

@@ -1,5 +1,5 @@
 /*
- * Public API Surface of nt-drawer-container
+ * Public API Surface of NtDrawerContainer
  */
 export * from './nt-drawer-container.component';
 export * from './nt-drawer-container.module';

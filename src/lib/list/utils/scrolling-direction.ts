@@ -1,5 +1,5 @@
 import { BehaviorSubject } from "rxjs";
-import { ScrollDirection } from "../types";
+import { ScrollDirection } from "../../common";
 
 /**
  * ScrollingDirection

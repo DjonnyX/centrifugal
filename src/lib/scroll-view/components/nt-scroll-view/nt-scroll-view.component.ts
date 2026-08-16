@@ -8,7 +8,7 @@ import {
 } from 'rxjs';
 import { ANIMATOR_MIN_TIMESTAMP, Animator, Easing, easeOutQuad } from '../../../common/utils/animator';
 import {
-    DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLABLE, DEFAULT_SCROLLING_SETTINGS,
+    DEFAULT_ANIMATION_PARAMS,
 } from '../../const';
 import {
     ACCELERATION_SCALE, ANIMATION_DURATION, DURATION, FRICTION_FORCE, MASS, MAX_DIST, MAX_DURATION, MAX_ITERATIONS_FOR_AVERAGE_CALCULATIONS,
@@ -18,10 +18,8 @@ import {
 import { calculateDirection, matrix3d } from './utils';
 import { NtBaseScrollView } from './base';
 import { IAnimationParams, IScrollingSettings } from '../../interfaces';
-import { ScrollDirection } from '../../types';
 import { calculateVelocity } from './utils/calculate-velocity';
-import { ScrollerDirection } from './enums';
-import { Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirections } from '../../../common';
+import { Directions, Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_USER_INTERACTION_ENABLED, ScrollDirection, TextDirections } from '../../../common';
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL, } from '../../../common/const/event-names';
 import { INTERACTIVE } from '../../../common/const/class-names';
 import { IScrollToParams } from '../../../common/interfaces/scroll-to-params';
@@ -35,6 +33,7 @@ import { OverscrollEvent } from '../../../common/events/overscroll-event';
 import { transitionExponent } from '../../../common/utils/transitions';
 import { DEFAULT_TRANSITION_EXPONENT } from '../../../common/const/transitions';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT, BEHAVIOR_SMOOTH } from '../../../common/const/behavior';
+import { DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLABLE, DEFAULT_SCROLLING_SETTINGS } from '../../../common/const/scroller';
 
 /**
  * NtScrollView
@@ -261,7 +260,7 @@ export class NtScrollView extends NtBaseScrollView {
 
         this._horizontalAxisEnabled = computed(() => {
             const direction = this.direction();
-            return direction === ScrollerDirection.BOTH || direction === ScrollerDirection.HORIZONTAL;
+            return direction === Directions.BOTH || direction === Directions.HORIZONTAL;
         });
 
         this._horizontalAxisInvertion = computed(() => {
@@ -271,7 +270,7 @@ export class NtScrollView extends NtBaseScrollView {
 
         this._verticalAxisEnabled = computed(() => {
             const direction = this.direction();
-            return direction === ScrollerDirection.BOTH || direction === ScrollerDirection.VERTICAL;
+            return direction === Directions.BOTH || direction === Directions.VERTICAL;
         });
 
         const $direction = toObservable(this.direction),
@@ -289,8 +288,8 @@ export class NtScrollView extends NtBaseScrollView {
         combineLatest([$direction, $viewportBounds, $contentBounds]).pipe(
             takeUntilDestroyed(),
             tap(([direction]) => {
-                const isHorizontal = direction === ScrollerDirection.BOTH || direction === ScrollerDirection.HORIZONTAL,
-                    isVertical = direction === ScrollerDirection.BOTH || direction === ScrollerDirection.VERTICAL;
+                const isHorizontal = direction === Directions.BOTH || direction === Directions.HORIZONTAL,
+                    isVertical = direction === Directions.BOTH || direction === Directions.VERTICAL;
                 this._service.scrollable = { x: isHorizontal && this.scrollableX, y: isVertical && this.scrollableY };
             }),
         ).subscribe();
@@ -1119,6 +1118,23 @@ export class NtScrollView extends NtBaseScrollView {
 
     protected onAnimationComplete(position: number) { }
 
+    protected dropVelocity() {
+        const time = Date.now(),
+            positionX = this._x,
+            positionY = this._y;
+        let reseted = false;
+        this._velocitiesX = [0];
+        this._$averageVelocityX.next(0);
+        this._measureVelocityLastPositionX = positionX;
+        this._measureVelocityTimestampX = time;
+        reseted = true;
+        this._velocitiesY = [0];
+        this._$averageVelocityY.next(0);
+        this._measureVelocityLastPositionY = positionY;
+        this._measureVelocityTimestampY = time;
+        reseted = true;
+    }
+
     fireScroll(userAction: boolean = false) {
         this._$updateScrollBarHorizontal.next();
         this._$updateScrollBarVertical.next();
@@ -1250,6 +1266,8 @@ export class NtScrollView extends NtBaseScrollView {
 
     stopAnimation(...ids: Array<number>) {
         if (!ids) {
+            this._animatorX.stop();
+            this._animatorY.stop();
             return;
         }
         for (const id of ids) {

@@ -1,5 +1,4 @@
-import { IScrollEvent } from "../interfaces";
-import { ScrollDirection } from '../types';
+import { IListScrollEvent, ScrollDirection } from "../../common";
 
 interface IScrollEventParams {
     direction: ScrollDirection;
@@ -15,12 +14,12 @@ interface IScrollEventParams {
 }
 
 /**
- * Scroll event.
+ * ScrollEvent
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/utils/scroll-event.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export class ScrollEvent implements IScrollEvent {
+export class ScrollEvent implements IListScrollEvent {
     private _direction: ScrollDirection = 1;
     get direction() { return this._direction; }
 

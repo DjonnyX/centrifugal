@@ -35,8 +35,6 @@ import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from '../common/const/behavior';
   providedIn: 'root'
 })
 export class NtListService extends NtBaseScrollViewService implements INtBaseScrollViewService, OnDestroy {
-  private _nextComponentId: number = 0;
-
   private _$virtualClick = new Subject<IRenderVirtualListItem<any> | null>();
   $virtualClick = this._$virtualClick.asObservable();
 
@@ -73,9 +71,6 @@ export class NtListService extends NtBaseScrollViewService implements INtBaseScr
 
   private _$scrollToEnd = new Subject<IScrollOptions | undefined>();
   readonly $scrollToEnd = this._$scrollToEnd.asObservable();
-
-  private _$tick = new Subject<void>();
-  readonly $tick = this._$tick.asObservable();
 
   private _$cacheVersion = new BehaviorSubject<number>(-1);
   readonly $cacheVersion = this._$cacheVersion.asObservable();
@@ -157,9 +152,6 @@ export class NtListService extends NtBaseScrollViewService implements INtBaseScr
   private _$scrollBarSize = new BehaviorSubject<number>(this._scrollBarSize);
   readonly $scrollBarSize = this._$scrollBarSize.asObservable();
 
-  private _$intersectionElementBySnapToItemAlign = new BehaviorSubject<Id | null>(null);
-  readonly $intersectionElementBySnapToItemAlign = this._$intersectionElementBySnapToItemAlign.asObservable();
-
   private _onTickHandler = () => {
     this._$tick.next();
   };
@@ -226,7 +218,7 @@ export class NtListService extends NtBaseScrollViewService implements INtBaseScr
     }
   }
 
-  update(immediately: boolean = false) {
+  override update(immediately: boolean = false) {
     this._trackBox?.changes(immediately, false);
   }
 
@@ -441,16 +433,11 @@ export class NtListService extends NtBaseScrollViewService implements INtBaseScr
     this._trackBox.addEventListener(TrackBoxEvents.CHANGE, this._onTrackBoxChangeHandler);
   }
 
-  generateComponentId() {
-    return this._nextComponentId = this._nextComponentId === Number.MAX_SAFE_INTEGER
-      ? 0 : this._nextComponentId + 1;
-  }
-
-  getComponentBoundsByIntersectionPosition(position: number, maxPosition: number | null = null): (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null {
+  override getComponentBoundsByIntersectionPosition(position: number, maxPosition: number | null = null): (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null {
     return this._trackBox?.getComponentBoundsByIntersectionPosition(position, maxPosition) ?? null;
   }
 
-  setIntersectionElementBySnapToItemAlign(id: Id | null) {
+  override setIntersectionElementBySnapToItemAlign(id: Id | null) {
     if (this._$intersectionElementBySnapToItemAlign.getValue() !== id) {
       this._$intersectionElementBySnapToItemAlign.next(id);
     }

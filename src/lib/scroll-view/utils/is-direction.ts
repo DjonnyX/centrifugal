@@ -1,12 +1,11 @@
-import { Directions } from "../enums";
-import { Direction } from "../types";
+import { Direction, Directions } from "../../common";
 
 const HORIZONTAL_ALIASES = [Directions.HORIZONTAL, 'horizontal'],
     VERTICAL_ALIASES = [Directions.VERTICAL, 'vertical'],
     BOTH_ALIASES = [Directions.BOTH, 'both'];
 
 /**
- * Determines the axis membership of a virtual list
+ * Determines the axis membership of a scroll view
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/utils/is-direction.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com

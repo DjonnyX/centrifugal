@@ -1,0 +1,27 @@
+@let scrollStartOffset = _precalculatedScrollStartOffset();
+@let scrollEndOffset = _precalculatedScrollEndOffset();
+
+<nt-scroller #scroller class="ntvsh__scroller" [classes]="classes()" [context]="this" [scrollable]="true"
+  [prepared]="true" [langTextDir]="langTextDir()" [direction]="_direction()" [focusedElement]="focusedElement()"
+  [overscrollEnabled]="overscrollEnabled()" [scrollbarEnabled]="false" [scrollBehavior]="scrollBehavior()"
+  [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()"
+  [motionBlurEnabled]="motionBlurEnabled()" [snappingDistance]="snappingDistance()" [snapToItem]="true"
+  snapToItemAlign="start" [startOffset]="scrollStartOffset" [endOffset]="scrollEndOffset"
+  [overscrollAreaShowAutomatically]="overscrollAreaShowAutomatically()"
+  [overscrollAreaUseOffsets]="overscrollAreaUseOffsets()" [overscrollAreaLeftEnabled]="overscrollAreaLeftEnabled()"
+  [overscrollAreaTopEnabled]="overscrollAreaTopEnabled()" [overscrollAreaRightEnabled]="overscrollAreaRightEnabled()"
+  [overscrollAreaBottomEnabled]="overscrollAreaBottomEnabled()"
+  [overscrollAreaLeftRenderer]="overscrollAreaLeftRenderer()" [overscrollAreaTopRenderer]="overscrollAreaTopRenderer()"
+  [overscrollAreaRightRenderer]="overscrollAreaRightRenderer()"
+  [overscrollAreaBottomRenderer]="overscrollAreaBottomRenderer()"
+  (onLeftOverscrollAreaTrigger)="onLeftOverscrollAreaTrigger.emit($event)"
+  (onTopOverscrollAreaTrigger)="onTopOverscrollAreaTrigger.emit($event)"
+  (onRightOverscrollAreaTrigger)="onRightOverscrollAreaTrigger.emit($event)"
+  (onBottomOverscrollAreaTrigger)="onBottomOverscrollAreaTrigger.emit($event)"
+  (onOverscroll)="onOverscroll.emit($event)">
+  <div class="ntvsh__overlay" part="nt-sheet-overlay" [ngClass]="overlayClasses()" [ngStyle]="overlayStyles()">
+    <div class="ntvsh__content" part="nt-sheet-content" [ngClass]="contentClasses()" [ngStyle]="contentStyles()">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</nt-scroller>

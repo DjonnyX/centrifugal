@@ -10,6 +10,10 @@ import { ElementName } from './element-name';
 import { KeyboardPosition } from './keyboard-position';
 import { KeyboardKey } from './keyboard-key';
 import { KeyboardKeyValue } from './keyboard-key-value';
+import { Direction } from './direction';
+import { ScrollDirection } from './scroll-direction';
+import { SnapToItemAlign } from './snap-to-item-align';
+import { SnappingDistance } from './snapping-distance';
 
 export type {
     ArithmeticExpression,
@@ -24,4 +28,8 @@ export type {
     KeyboardPosition,
     KeyboardKey,
     KeyboardKeyValue,
+    Direction,
+    ScrollDirection,
+    SnapToItemAlign,
+    SnappingDistance,
 }

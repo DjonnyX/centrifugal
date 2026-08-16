@@ -1,4 +1,4 @@
-import { ScrollEvent } from "./scroll-event";
+import { ScrollEvent } from "../../common/utils/scroll-event";
 
 export {
     ScrollEvent,

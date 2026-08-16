@@ -1,5 +1,4 @@
-import { Color } from "../../common";
-import { SnapToItemAlign } from "../types";
+import { Color, SnapToItemAlign } from "../../common";
 
 /**
  * Object with configuration parameters for IRenderVirtualListItem

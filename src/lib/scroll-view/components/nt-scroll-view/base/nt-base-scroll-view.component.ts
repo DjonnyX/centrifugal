@@ -3,9 +3,8 @@ import {
 } from '@angular/core';
 import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { ScrollerDirection, ScrollerDirections } from '../enums';
 import {
-    CONTROL_CONTAINER_SERVICE, IOverscrollEvent, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
+    CONTROL_CONTAINER_SERVICE, Direction, Directions, IOverscrollEvent, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
     SCROLL_VIEW_TYPE, TextDirection, TextDirections,
 } from '../../../../common';
 import { INtScroller } from '../../../../common/interfaces/nt-scroller';
@@ -17,7 +16,7 @@ import { INtBaseScrollView } from '../../../../common/interfaces/nt-base-scroll-
 
 /**
  * NtBaseScrollView
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/nt-scroll-view/base/base-scroll-view.component.ts
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/nt-scroll-view/base/nt-base-scroll-view.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
@@ -60,7 +59,7 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     readonly overscrollAreaBottomRenderer = input<TemplateRef<any> | null>(null);
 
-    readonly direction = input<ScrollerDirections>(ScrollerDirection.BOTH);
+    readonly direction = input<Direction>(Directions.BOTH);
 
     readonly langTextDir = input<TextDirection>(TextDirections.LTR);
 
@@ -113,6 +112,12 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
     protected _inversion = inject(SCROLL_VIEW_INVERSION);
 
     protected _overscrollEnabled = inject(SCROLL_VIEW_OVERSCROLL_ENABLED);
+
+    protected _$resizeViewport = new Subject<ISize>();
+    readonly $resizeViewport = this._$resizeViewport.asObservable();
+
+    protected _$resizeContent = new Subject<ISize>();
+    readonly $resizeContent = this._$resizeContent.asObservable();
 
     protected _$overscroll = new Subject<IOverscrollEvent>();
     $overscroll = this._$overscroll.asObservable();

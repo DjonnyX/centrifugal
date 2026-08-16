@@ -2,8 +2,8 @@ import {
     Component, computed, DestroyRef, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild,
 } from '@angular/core';
 import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
-import { ScrollerDirection, ScrollerDirections } from '../enums';
 import {
+    Directions,
     IOverscrollEvent, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
     TextDirection, TextDirections,
 } from '../../../../common';
@@ -13,6 +13,7 @@ import { IScrollToParams } from '../../../../common/interfaces/scroll-to-params'
 import { INtBaseScrollViewService } from '../../../../common/interfaces/nt-base-scroll-view-service';
 import { INtBaseScrollView } from '../../../../common/interfaces/nt-base-scroll-view';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { Direction } from '../../../types';
 
 /**
  * NtBaseScrollView
@@ -55,7 +56,7 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     readonly overscrollAreaEndRenderer = input<TemplateRef<any> | null>(null);
 
-    readonly direction = input<ScrollerDirections>(ScrollerDirection.VERTICAL);
+    readonly direction = input<Direction>(Directions.VERTICAL);
 
     readonly startOffset = input<number>(0);
 
@@ -112,6 +113,12 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
     protected _overscrollEnabled = inject(SCROLL_VIEW_OVERSCROLL_ENABLED);
 
     protected _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+
+    protected _$resizeViewport = new Subject<ISize>();
+    readonly $resizeViewport = this._$resizeViewport.asObservable();
+  
+    protected _$resizeContent = new Subject<ISize>();
+    readonly $resizeContent = this._$resizeContent.asObservable();
 
     protected _$overscroll = new Subject<IOverscrollEvent>();
     readonly $overscroll = this._$overscroll.asObservable();
@@ -248,9 +255,11 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     protected _isCoordinatesOverrided: boolean = false;
 
+    protected _disableAlignment: boolean = false;
+
     constructor() {
         this.isVertical = computed(() => {
-            return this.direction() === ScrollerDirection.VERTICAL;
+            return this.direction() === Directions.VERTICAL;
         });
 
         const $viewportBounds = toObservable(this.viewportBounds),

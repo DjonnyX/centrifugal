@@ -127,4 +127,16 @@
             opacity: 1;
         }
     }
+
+    &.vertical {
+        .ntvl__list {
+            height: auto;
+        }
+    }
+
+    &.horizontal {
+        .ntvl__list {
+            width: auto;
+        }
+    }
 }

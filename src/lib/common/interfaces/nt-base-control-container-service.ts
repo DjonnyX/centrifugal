@@ -3,6 +3,7 @@ import { Observable } from "rxjs";
 import { INtBaseScrollViewService } from "./nt-base-scroll-view-service";
 import { IFocusedObject } from "./focused-object";
 import { KeyboardKeyValue } from "../types";
+import { INtScroller } from "./nt-scroller";
 
 /**
  * INtBaseControlContainerService
@@ -27,7 +28,7 @@ export interface INtBaseControlContainerService extends INtBaseScrollViewService
 
     readonly $focusEcho: Observable<{ element: HTMLElement, ngControl: NgControl | null, serviceId: number }>;
 
-    initialize: (id: number, parentId: number, emitter: HTMLElement) => void;
+    initialize: (id: number, scrollView: INtScroller<INtBaseScrollViewService>, parentId: number, emitter: HTMLElement) => void;
 
     focusEcho: (element: HTMLElement, ngControl: NgControl | null, serviceId: number) => void;
 

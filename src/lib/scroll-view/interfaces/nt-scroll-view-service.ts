@@ -1,8 +1,6 @@
 import { Observable } from "rxjs";
 import { IAnimationParams } from "./animation-params";
-import { Direction } from "../types";
-import { IScrollOptions } from "./scroll-options";
-import { Id, IRect, TextDirection } from "../../common";
+import { Direction, IScrollOptions, TextDirection } from "../../common";
 import { INtBaseScrollViewService } from "../../common/interfaces/nt-base-scroll-view-service";
 import { INtScroller } from "../../common/interfaces/nt-scroller";
 
@@ -54,11 +52,6 @@ export interface INtScrollViewService extends INtBaseScrollViewService {
     set grabbing(v: boolean);
 
     readonly $tick: Observable<void>;
-
-    getComponentBoundsByIntersectionPosition: (positionX: number, positionY: number, maxPositionX?: number | null, maxPositionY?: number | null) =>
-        (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null;
-
-    setIntersectionElementBySnapToItemAlign: (id: Id | null) => void;
 
     update: (immediately?: boolean) => void;
 

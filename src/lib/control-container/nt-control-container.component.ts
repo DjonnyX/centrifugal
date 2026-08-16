@@ -772,7 +772,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
   }
 
   ngOnInit() {
-    this._controlService.initialize(this._id, this._parentService?.id ?? -1, this.keyboardEnabled() ? this.host : window as any);
+    this._controlService.initialize(this._id, this._scrollerComponent()!, this._parentService?.id ?? -1, window as any);
   }
 
   private updateKeyboardPosition(e: IFocusedObject | null, keyboardEnabled: boolean, keyboardSettings: IKeyboardSettings, animated: boolean = true) {
