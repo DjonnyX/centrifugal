@@ -248,10 +248,14 @@ export class NtScrollerComponent extends NtScrollView {
     ).subscribe();
 
     const $averageVelocity = this.$averageVelocity;
-    combineLatest([$isVertical, $averageVelocity, $filter, $motionBlurEnabled, $motionBlur, $maxMotionBlur]).pipe(
+    combineLatest([$isVertical, $averageVelocity, $filter, $motionBlurEnabled, $motionBlur, $maxMotionBlur, $resizeViewport]).pipe(
       takeUntilDestroyed(),
       filter(([, , f, e, mb]) => !!f && (!!e && mb !== 0)),
+      debounceTime(0),
       tap(([isVertical, v, filter, , mb, mbMax]) => {
+        if (this._disableAlignment) {
+          this.dropVelocity();
+        }
         const _v = v * (mb as number), value = _v > mbMax ? mbMax : _v;
         filter!.nativeElement.setStdDeviation(isVertical ? 0 : v * value, isVertical ? v * value : 0);
       }),

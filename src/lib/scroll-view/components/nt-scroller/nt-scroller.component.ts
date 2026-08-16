@@ -259,6 +259,7 @@ export class NtScrollerComponent extends NtScrollView {
     combineLatest([$averageVelocityX, $averageVelocityY, $filter, $motionBlurEnabled, $motionBlur, $maxMotionBlur]).pipe(
       takeUntilDestroyed(),
       filter(([, , , f, e, mb]) => !!f && (!!e && mb !== 0)),
+      debounceTime(0),
       tap(([x, y, filter, , mb, mbMax]) => {
         const _x = x * (mb as number), valueX = _x > mbMax ? mbMax : _x,
           _y = y * (mb as number), valueY = _y > mbMax ? mbMax : _y;
