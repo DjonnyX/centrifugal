@@ -373,7 +373,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
     } as any;
 
     /**
-     * Animation parameters. The default value is "{ scrollToItem: 0 }".
+     * Animation parameters. The default value is "{ fadeIn: 500, fadeOut: 500 }".
      */
     animationParams = input<IAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
 
@@ -1402,7 +1402,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
     }
 
     /**
-     * hides the sheet.
+     * Hides the sheet.
      */
     close() {
         this._$opened.next(false);
