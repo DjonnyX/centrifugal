@@ -8,6 +8,8 @@ export const OPACITY_0 = '0';
 
 export const OPACITY_1 = '1';
 
+export const SCALE = 'scale';
+
 export const VISIBILITY_VISIBLE = 'visible';
 
 export const VISIBILITY_HIDDEN = 'hidden';
