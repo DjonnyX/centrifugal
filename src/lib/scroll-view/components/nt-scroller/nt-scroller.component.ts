@@ -9,15 +9,16 @@ import {
   Directions,
 } from '../../../common';
 import { NtBaseScrollBarComponent } from '../../../scroll-bar/components/nt-base-scroll-bar/nt-base-scroll-bar.component';
-import { LEFT_PROP_NAME, PX, TOP_PROP_NAME } from '../../../common/const/base-prop-names';
+import { BOTTOM, LEFT_PROP_NAME, PX, RIGHT, SCALE, TOP_PROP_NAME } from '../../../common/const/base-prop-names';
 import { IScrollBarDragEvent } from '../../../scroll-bar/components/nt-base-scroll-bar/interfaces';
 import { IScrollToParams } from '../../../common/interfaces/scroll-to-params';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { BEHAVIOR_INSTANT } from '../../../common/const/behavior';
 import {
-  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
+  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
   DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS,
 } from '../../../common/const/scroller';
+import { ANIMATED } from '../../../common/const/class-names';
 
 const TOP = 'top',
   LEFT = 'left',
@@ -215,17 +216,26 @@ export class NtScrollerComponent extends NtScrollView {
       $maxMotionBlur = toObservable(this.maxMotionBlur),
       $motionBlurEnabled = toObservable(this.motionBlurEnabled),
       $scrollContent = toObservable(this.scrollContent),
-      $overscrollEffectEvent = this.$overscrollEffectEvent;
+      $overscrollEffectEvent = this.$overscrollEffectEvent,
+      $resizeViewport = this.$resizeViewport;
+
+    $resizeViewport.pipe(
+      takeUntilDestroyed(),
+      tap(() => {
+        this.resetDrag();
+        this.emitOverscrollEffectEvent(false);
+      }),
+    ).subscribe();
 
     combineLatest([$overscrollEffectEvent, this.$resizeViewport]).pipe(
       takeUntilDestroyed(),
       tap(([e, viewportBounds]) => {
         const dx = e.dragX, dy = e.dragY, sx = viewportBounds.width !== 1 ? (dx !== 0 ? Math.pow((dx + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,
           sy = viewportBounds.height !== 0 ? (dy !== 0 ? Math.pow((dy + viewportBounds.height) / viewportBounds.height, 0.1) : 1) : 1;
-        this.wrapperClass.set({ 'animated': !e.grabbing });
+        this.wrapperClass.set({ [ANIMATED]: !e.grabbing });
         this.wrapperStyles.set({
-          transform: `scale(${sx}, ${sy})`,
-          transformOrigin: `${e.positionX === 1 ? 'right' : 'left'} ${e.positionY === 1 ? 'bottom' : 'top'}`,
+          transform: `${SCALE}(${sx > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sx}, ${sy > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sy})`,
+          transformOrigin: `${e.positionX === 1 ? RIGHT : LEFT} ${e.positionY === 1 ? BOTTOM : TOP}`,
         });
       }),
     ).subscribe();
