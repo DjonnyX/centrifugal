@@ -2,8 +2,8 @@ import { Component, ViewEncapsulation } from "@angular/core";
 import { SCROLL_VIEW_TYPE } from "../common";
 
 /**
- * NtScrollBarComponent
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-bar/nt-scroll-bar.component.ts
+ * NtSliderComponent
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/slider/nt-slider.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
@@ -20,6 +20,6 @@ import { SCROLL_VIEW_TYPE } from "../common";
     { provide: SCROLL_VIEW_TYPE, useValue: 'scrollbar' },
   ],
 })
-export class NtScrollBarComponent {
+export class NtSliderComponent {
 
 }

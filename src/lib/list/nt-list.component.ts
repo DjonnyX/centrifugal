@@ -61,8 +61,9 @@ import { isSpreadingMode } from './utils/is-spreading-mode';
 import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interfaces';
 import { getScrollStateVersion } from './utils/get-scroll-state-version';
 import {
-  ArithmeticExpression, Directions, Id, IListScrollEvent, IOverscrollEvent, IScrollingSettings, ISize, KeyboardKeys, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
-  SCROLL_VIEW_USER_INTERACTION_ENABLED, SnappingDistance, SnapToItemAlign, TextDirection, TextDirections,
+  ArithmeticExpression, Directions, Id, IListScrollEvent, IOverscrollEvent, IScrollingSettings, ISize, KeyboardKeys,
+  SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, SnappingDistance, SnapToItemAlign,
+  TextDirection, TextDirections,
 } from '../common';
 import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, parseArithmeticExpression, toggleClassName } from '../common/utils';
 import { INtListService } from './interfaces';
@@ -75,7 +76,11 @@ import { INtScrollViewService } from '../scroll-view';
 import { IListScrollToParams } from '../common/interfaces/list-scroll-to-params';
 import { NtListItemModule } from './components/nt-list-item/nt-list-item.module';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from '../common/const/behavior';
-import { DEFAULT_LANG_TEXT_DIR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, DEFAULT_SCROLLING_SETTINGS } from '../common/const/scroller';
+import {
+  DEFAULT_LANG_TEXT_DIR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED,
+  DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLBAR_ENABLED,
+  DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, DEFAULT_SCROLLING_SETTINGS,
+} from '../common/const/scroller';
 import { isDirection } from '../scroll-view/utils/is-direction';
 
 /**

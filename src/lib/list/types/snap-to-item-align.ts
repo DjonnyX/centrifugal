@@ -2,7 +2,7 @@ import { SnapToItemAligns } from "../enums/snap-to-item-aligns";
 
 /**
  * SnapToItemAlign.
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/enums/snap-to-item-align.ts
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/types/snap-to-item-align.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */

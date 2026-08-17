@@ -1,13 +1,13 @@
-import { Component, computed, effect, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild } from '@angular/core';
+import { Component, computed, effect, inject, input, output, Signal, signal, TemplateRef, viewChild } from '@angular/core';
 import { combineLatest, debounceTime, filter, fromEvent, of, startWith, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { IScrollBarDragEvent, IScrollBarTemplateContext } from './interfaces';
+import { ISliderDragEvent, ISliderTemplateContext } from './interfaces';
 import {
   DEFAULT_SIZE, DEFAULT_THICKNESS, HEIGHT, NONE, OPACITY, OPACITY_0, OPACITY_1, PX, TRANSITION, TRANSITION_FADE_IN, WIDTH,
 } from './const';
-import { NtBaseScrollBarService } from './nt-base-scroll-bar.service';
-import { NtScrollBarPublicService } from './nt-base-scroll-bar-public.service';
-import { ScrollbarStates } from './enums';
+import { NtBaseSliderService } from './nt-base-slider.service';
+import { NtBaseSliderPublicService } from './nt-base-slider-public.service';
+import { SliderStates } from './enums';
 import {
   Directions, GradientColorPositions, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED,
   SCROLL_VIEW_TYPE, TextDirections,
@@ -20,37 +20,37 @@ import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE } from '../../../common/const/scroller';
 
 /**
- * NtBaseScrollBarComponent
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/nt-scroll-bar/nt-scroll-bar.component.ts
+ * NtBaseSliderComponent
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/slider/components/nt-base-slider/nt-base-slider.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
 @Component({
-  selector: 'nt-scroll-bar',
+  selector: 'nt-base-slider',
   providers: [
     { provide: SCROLL_VIEW_TYPE, useValue: ScrollerTypes.SCROLL_BAR_SCROLLER },
     { provide: SCROLL_VIEW_INVERSION, useValue: true },
     { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: false },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: false },
-    NtBaseScrollBarService,
-    NtScrollBarPublicService,
+    NtBaseSliderService,
+    NtBaseSliderPublicService,
   ],
   standalone: false,
-  templateUrl: './nt-base-scroll-bar.component.html',
-  styleUrl: './nt-base-scroll-bar.component.scss'
+  templateUrl: './nt-base-slider.component.html',
+  styleUrl: './nt-base-slider.component.scss'
 })
-export class NtBaseScrollBarComponent extends NtScrollView {
+export class NtBaseSliderComponent extends NtScrollView {
   protected _defaultRenderer = viewChild<TemplateRef<any>>('defaultRenderer');
 
-  protected _scrollBarService = inject(NtBaseScrollBarService);
+  protected _scrollBarService = inject(NtBaseSliderService);
 
-  private _apiService = inject(NtScrollBarPublicService);
+  private _apiService = inject(NtBaseSliderPublicService);
 
   readonly loading = input<boolean>(false);
 
-  readonly onDrag = output<IScrollBarDragEvent>();
+  readonly onDrag = output<ISliderDragEvent>();
 
-  readonly onDragEnd = output<IScrollBarDragEvent>();
+  readonly onDragEnd = output<ISliderDragEvent>();
 
   readonly thumbGradientPositions = input<GradientColorPositions>([0, 0]);
 
@@ -78,7 +78,7 @@ export class NtBaseScrollBarComponent extends NtScrollView {
 
   protected readonly pressedState = signal<boolean>(false);
 
-  protected readonly templateContext!: Signal<IScrollBarTemplateContext>;
+  protected readonly templateContext!: Signal<ISliderTemplateContext>;
 
   protected readonly styles: Signal<{ [sName: string]: any }>;
 
@@ -100,7 +100,7 @@ export class NtBaseScrollBarComponent extends NtScrollView {
     });
 
     this.templateContext = computed(() => {
-      const context: IScrollBarTemplateContext = {
+      const context: ISliderTemplateContext = {
         api: this._apiService,
         width: this.thumbWidth(),
         height: this.thumbHeight(),
@@ -199,13 +199,13 @@ export class NtBaseScrollBarComponent extends NtScrollView {
     effect(() => {
       const pressed = this.pressedState(), hover = this.hoverState();
       if (pressed) {
-        this._scrollBarService.state = ScrollbarStates.PRESSED;
+        this._scrollBarService.state = SliderStates.PRESSED;
         return;
       } else if (hover) {
-        this._scrollBarService.state = ScrollbarStates.HOVER;
+        this._scrollBarService.state = SliderStates.HOVER;
         return;
       }
-      this._scrollBarService.state = ScrollbarStates.NORMAL;
+      this._scrollBarService.state = SliderStates.NORMAL;
       return;
     });
 
@@ -282,7 +282,7 @@ export class NtBaseScrollBarComponent extends NtScrollView {
         positionSize = (scrollSize !== 0 ? (scrollPosition / scrollSize) : 0),
         maxSize = 1 - offsetSize,
         pos = (positionSize - offsetSize);
-      const event: IScrollBarDragEvent = {
+      const event: ISliderDragEvent = {
         position: pos / maxSize,
         min: scrollSize !== 0 ? (startOffset / scrollSize) : 0,
         max: scrollSize !== 0 ? ((viewportSize - endOffset - contentSize) / scrollSize) : 0,

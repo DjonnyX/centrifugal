@@ -19,13 +19,13 @@ import {
 } from './enums';
 import { objectAsReadonly } from '../common/utils/object';
 import {
-    ArithmeticExpression, CONTROL_CONTAINER_SERVICE, Directions, Id, IScrollingSettings, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED,
-    SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
+    ArithmeticExpression, CONTROL_CONTAINER_SERVICE, Directions, Id, IScrollingSettings, IScrollOptions, IScrollViewScrollEvent,
+    ISize, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
 } from '../common';
 import { isDirection } from '../common/utils/is-direction';
 import {
-    isPercentageValue, parseArithmeticExpression, toggleClassName, validateArray, validateBoolean, validateFloat, validateInt, validateObject,
-    validateString,
+    isPercentageValue, parseArithmeticExpression, toggleClassName, validateArray, validateBoolean, validateFloat, validateInt,
+    validateObject, validateString,
 } from '../common/utils';
 import { ScrollEvent } from '../common/utils/scroll-event';
 import { DEFAULT_CLICK_DISTANCE } from '../common/directives/nt-control/const';
@@ -36,8 +36,8 @@ import {
     DEFAULT_SCROLL_BEHAVIOR,
 } from '../common/const/scroller';
 import {
-    CLASS_SHEET_HORIZONTAL, CLASS_SHEET_VERTICAL, DEFAULT_ANIMATION_PARAMS, DEFAULT_BREAKPOINT_TRIGGER_DISTANCE, DEFAULT_OPENING_BREAKPOINTS,
-    DEFAULT_POSITION, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SHEET_SIZE, DEFAULT_SNAPPING_DISTANCE,
+    CLASS_SHEET_HORIZONTAL, CLASS_SHEET_VERTICAL, DEFAULT_ANIMATION_PARAMS, DEFAULT_BREAKPOINT_TRIGGER_DISTANCE,
+    DEFAULT_OPENING_BREAKPOINTS, DEFAULT_POSITION, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SHEET_SIZE, DEFAULT_SNAPPING_DISTANCE,
 } from './const';
 import { NtSheetService } from './nt-sheet.service';
 import { INtScrollViewService } from '../scroll-view';

@@ -5,7 +5,7 @@ import { NtBaseScrollView } from '../../../nt-scroll-view/base';
 import { ScrollBox } from '../../../nt-scroller/utils';
 import { SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED } from '../../../../../common';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from '../../../../../common/const/base-prop-names';
-import { NtBaseScrollBarComponent } from '../../../../../scroll-bar/components/nt-base-scroll-bar/nt-base-scroll-bar.component';
+import { NtBaseSliderComponent } from '../../../../../slider/components/nt-base-slider/nt-base-slider.component';
 import { IScrollToParams } from '../../../../../common/interfaces/scroll-to-params';
 import { BEHAVIOR_INSTANT } from '../../../../../common/const/behavior';
 import { DEFAULT_SCROLLBAR_ENABLED } from '../../../../../common/const/scroller';
@@ -29,8 +29,8 @@ import { DEFAULT_SCROLLBAR_ENABLED } from '../../../../../common/const/scroller'
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class NtPrerenderScrollerComponent extends NtBaseScrollView {
-    @ViewChild('scrollBar', { read: NtBaseScrollBarComponent })
-    scrollBar: NtBaseScrollBarComponent | undefined;
+    @ViewChild('scrollBar', { read: NtBaseSliderComponent })
+    scrollBar: NtBaseSliderComponent | undefined;
 
     scrollbarEnabled = input<boolean>(DEFAULT_SCROLLBAR_ENABLED);
 

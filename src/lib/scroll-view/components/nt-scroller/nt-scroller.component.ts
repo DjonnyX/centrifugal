@@ -8,9 +8,9 @@ import {
   GradientColorPositions, Id, ISize, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_INVERSION, SCROLL_VIEW_TYPE,
   Directions,
 } from '../../../common';
-import { NtBaseScrollBarComponent } from '../../../scroll-bar/components/nt-base-scroll-bar/nt-base-scroll-bar.component';
+import { NtBaseSliderComponent } from '../../../slider/components/nt-base-slider/nt-base-slider.component';
 import { BOTTOM, LEFT_PROP_NAME, PX, RIGHT, SCALE, TOP_PROP_NAME } from '../../../common/const/base-prop-names';
-import { IScrollBarDragEvent } from '../../../scroll-bar/components/nt-base-scroll-bar/interfaces';
+import { ISliderDragEvent } from '../../../slider/components/nt-base-slider/interfaces';
 import { IScrollToParams } from '../../../common/interfaces/scroll-to-params';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { BEHAVIOR_INSTANT } from '../../../common/const/behavior';
@@ -46,11 +46,11 @@ export const SCROLL_EVENT = new Event(SCROLLER_SCROLL);
   styleUrl: './nt-scroller.component.scss'
 })
 export class NtScrollerComponent extends NtScrollView {
-  @ViewChild('scrollBarHorizontal', { read: NtBaseScrollBarComponent })
-  readonly scrollBarHorizontal: NtBaseScrollBarComponent | undefined;
+  @ViewChild('scrollBarHorizontal', { read: NtBaseSliderComponent })
+  readonly scrollBarHorizontal: NtBaseSliderComponent | undefined;
 
-  @ViewChild('scrollBarVertical', { read: NtBaseScrollBarComponent })
-  readonly scrollBarVertical: NtBaseScrollBarComponent | undefined;
+  @ViewChild('scrollBarVertical', { read: NtBaseSliderComponent })
+  readonly scrollBarVertical: NtBaseSliderComponent | undefined;
 
   readonly filter = viewChild<ElementRef<SVGFEGaussianBlurElement>>('filter');
 
@@ -593,7 +593,7 @@ export class NtScrollerComponent extends NtScrollView {
     this._$scrollEnd.next(false);
   }
 
-  onScrollBarDragHandler(event: IScrollBarDragEvent) {
+  onScrollBarDragHandler(event: ISliderDragEvent) {
     const { position, isVertical, min, max, userAction } = event;
     if (isVertical) {
       this._isScrollbarUserActionY = userAction;
@@ -620,7 +620,7 @@ export class NtScrollerComponent extends NtScrollView {
     this._service.update(false);
   }
 
-  protected onScrollBarDragEndHandler(event: IScrollBarDragEvent) {
+  protected onScrollBarDragEndHandler(event: ISliderDragEvent) {
     const { position, min, max, isVertical, userAction } = event;
     if (isVertical) {
       this._isScrollbarUserActionY = userAction;

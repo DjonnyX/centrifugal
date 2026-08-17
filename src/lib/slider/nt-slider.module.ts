@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { NtScrollerModule } from '../scroll-view';
 import { NtLocaleSensitiveModule } from '../common';
 import { NtDrawerContainerModule } from '../drawer-container';
-import { NtScrollBarComponent } from './nt-scroll-bar.component';
+import { NtSliderComponent } from './nt-slider.component';
 
 @NgModule({
-  declarations: [NtScrollBarComponent],
-  exports: [NtScrollBarComponent],
+  declarations: [NtSliderComponent],
+  exports: [NtSliderComponent],
   imports: [CommonModule, NtDrawerContainerModule, NtScrollerModule, NtLocaleSensitiveModule],
   providers: [],
   schemas: [NO_ERRORS_SCHEMA],

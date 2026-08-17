@@ -1,6 +1,6 @@
 /**
  * Snapping method.
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/enums/snapping-method.ts
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/types/snapping-method.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
