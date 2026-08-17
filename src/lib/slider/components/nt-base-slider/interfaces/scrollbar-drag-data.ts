@@ -1,10 +1,10 @@
 /**
- * IScrollBarDragEvent
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/components/ng-scroll-bar/interfaces/scrollbar-drag-data.ts
+ * ISliderDragEvent
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/slider/components/ng-base-slider/interfaces/slider-drag-data.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface IScrollBarDragEvent {
+export interface ISliderDragEvent {
     position: number;
     min: number;
     max: number;

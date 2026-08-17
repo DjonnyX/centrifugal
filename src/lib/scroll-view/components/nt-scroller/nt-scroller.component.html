@@ -32,7 +32,7 @@
     @if (scrollbarEnabled()) {
         @let parent = context();
         @if (scrollbarVerticalEnabled()) {
-            <nt-scroll-bar #scrollBarVertical direction="vertical" [size]="thumbSizeVertical()" [context]="parent"
+            <nt-base-slider #scrollBarVertical direction="vertical" [size]="thumbSizeVertical()" [context]="parent"
                 [renderer]="scrollbarThumbRenderer()" [thickness]="scrollbarThickness()" [params]="scrollbarThumbParams()"
                 [loading]="loading()" [overlapping]="overlappingScrollbar()"
                 [thumbGradientPositions]="thumbGradientPositionsVertical()" [prepared]="prepared"
@@ -40,10 +40,10 @@
                 [topOffset]="topOffset()" [langTextDir]="textDir" [bottomOffset]="bottomOffset()"
                 [overscrollEnabled]="overscrollEnabled()" [scrollBehavior]="scrollBehavior()"
                 [scrollbarMinSize]="scrollbarMinSize()" (onDrag)="onScrollBarDragHandler($event)"
-                (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-scroll-bar>
+                (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-base-slider>
         }
         @if (scrollbarHorizontalEnabled()) {
-            <nt-scroll-bar #scrollBarHorizontal direction="horizontal" [size]="thumbSizeHorizontal()" [context]="parent"
+            <nt-base-slider #scrollBarHorizontal direction="horizontal" [size]="thumbSizeHorizontal()" [context]="parent"
                 [renderer]="scrollbarThumbRenderer()" [thickness]="scrollbarThickness()" [params]="scrollbarThumbParams()"
                 [loading]="loading()" [overlapping]="overlappingScrollbar()"
                 [thumbGradientPositions]="thumbGradientPositionsHorizontal()" [prepared]="prepared"
@@ -51,7 +51,7 @@
                 [leftOffset]="leftOffset()" [langTextDir]="textDir" [rightOffset]="rightOffset()"
                 [overscrollEnabled]="overscrollEnabled()" [scrollBehavior]="scrollBehavior()"
                 [scrollbarMinSize]="scrollbarMinSize()" (onDrag)="onScrollBarDragHandler($event)"
-                (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-scroll-bar>
+                (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-base-slider>
         }
     }
 </div>

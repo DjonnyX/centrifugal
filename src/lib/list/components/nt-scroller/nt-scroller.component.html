@@ -29,13 +29,13 @@
     </svg>
     @if (scrollbarEnabled()) {
         @let prepared = preparedSignal();
-        <nt-scroll-bar #scrollBar [context]="context()" [direction]="direction()" [langTextDir]="langTextDir()"
+        <nt-base-slider #scrollBar [context]="context()" [direction]="direction()" [langTextDir]="langTextDir()"
             [size]="thumbSize()" [renderer]="scrollbarThumbRenderer()" [thickness]="scrollbarThickness()"
             [params]="scrollbarThumbParams()" [loading]="loading()" [overlapping]="overlappingScrollbar()"
             [thumbGradientPositions]="thumbGradientPositions()" [prepared]="prepared" [interactive]="scrollbarInteractive()"
             [show]="scrollbarShow() && scrollbarEnabled() && prepared" [startOffset]="startOffset()"
             [langTextDir]="langTextDir()" [endOffset]="endOffset()" [overscrollEnabled]="overscrollEnabled()"
             [scrollBehavior]="scrollBehavior()" [scrollbarMinSize]="scrollbarMinSize()"
-            (onDrag)="onScrollBarDragHandler($event)" (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-scroll-bar>
+            (onDrag)="onScrollBarDragHandler($event)" (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-base-slider>
     }
 </div>

@@ -31,8 +31,8 @@ export type {
  * Public API Surface of NtScrollBar
  */
 export {
-    NtScrollBarPublicService,
-} from './lib/scroll-bar';
+    NtBaseSliderPublicService,
+} from './lib/slider';
 
 /*
  * Public API Surface of NtDrawerContainer

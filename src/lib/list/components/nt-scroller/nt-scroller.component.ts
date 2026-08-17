@@ -8,14 +8,15 @@ import {
 import { NtScrollView } from '../nt-scroll-view';
 import { GradientColorPositions, Id, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_TYPE } from '../../../common';
 import { TOP_PROP_NAME, LEFT_PROP_NAME, PX, RIGHT, BOTTOM, SCALE } from '../../../common/const/base-prop-names';
-import { NtBaseScrollBarComponent } from '../../../scroll-bar/components/nt-base-scroll-bar/nt-base-scroll-bar.component';
-import { IScrollBarDragEvent } from '../../../scroll-bar/components/nt-base-scroll-bar/interfaces';
+import { NtBaseSliderComponent } from '../../../slider/components/nt-base-slider/nt-base-slider.component';
+import { ISliderDragEvent } from '../../../slider/components/nt-base-slider/interfaces';
 import { IListScrollToParams } from '../../../common/interfaces/list-scroll-to-params';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { BEHAVIOR_INSTANT } from '../../../common/const/behavior';
 import {
-  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
-  DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS,
+  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED,
+  DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE,
+  DEFAULT_SCROLLBAR_THICKNESS,
 } from '../../../common/const/scroller';
 import { ANIMATED } from '../../../common/const/class-names';
 
@@ -44,8 +45,8 @@ export const SCROLL_EVENT = new Event(SCROLLER_SCROLL);
   styleUrl: './nt-scroller.component.scss'
 })
 export class NtScrollerComponent extends NtScrollView {
-  @ViewChild('scrollBar', { read: NtBaseScrollBarComponent })
-  readonly scrollBar: NtBaseScrollBarComponent | undefined;
+  @ViewChild('scrollBar', { read: NtBaseSliderComponent })
+  readonly scrollBar: NtBaseSliderComponent | undefined;
 
   readonly filter = viewChild<ElementRef<SVGFEGaussianBlurElement>>('filter');
 
@@ -513,7 +514,7 @@ export class NtScrollerComponent extends NtScrollView {
     this._$scrollEnd.next(false);
   }
 
-  onScrollBarDragHandler(event: IScrollBarDragEvent) {
+  onScrollBarDragHandler(event: ISliderDragEvent) {
     const { position, min, max, userAction } = event;
     this._isScrollbarUserAction = userAction;
     if (!userAction) {
@@ -537,7 +538,7 @@ export class NtScrollerComponent extends NtScrollView {
     this._service.update(false);
   }
 
-  onScrollBarDragEndHandler(event: IScrollBarDragEvent) {
+  onScrollBarDragEndHandler(event: ISliderDragEvent) {
     const { position, min, max, userAction } = event;
     this._isScrollbarUserAction = userAction;
     if (!userAction) {
