@@ -39,7 +39,7 @@
                 [interactive]="scrollbarInteractive()" [show]="scrollbarVerticalEnabled() && scrollbarEnabled() && prepared"
                 [topOffset]="topOffset()" [langTextDir]="textDir" [bottomOffset]="bottomOffset()"
                 [overscrollEnabled]="overscrollEnabled()" [scrollBehavior]="scrollBehavior()"
-                [scrollbarMinSize]="scrollbarMinSize()" (onDrag)="onScrollBarDragHandler($event)"
+                [sliderMinSize]="scrollbarMinSize()" (onDrag)="onScrollBarDragHandler($event)"
                 (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-base-slider>
         }
         @if (scrollbarHorizontalEnabled()) {
@@ -50,7 +50,7 @@
                 [interactive]="scrollbarInteractive()" [show]="scrollbarHorizontalEnabled() && scrollbarEnabled() && prepared"
                 [leftOffset]="leftOffset()" [langTextDir]="textDir" [rightOffset]="rightOffset()"
                 [overscrollEnabled]="overscrollEnabled()" [scrollBehavior]="scrollBehavior()"
-                [scrollbarMinSize]="scrollbarMinSize()" (onDrag)="onScrollBarDragHandler($event)"
+                [sliderMinSize]="scrollbarMinSize()" (onDrag)="onScrollBarDragHandler($event)"
                 (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-base-slider>
         }
     }

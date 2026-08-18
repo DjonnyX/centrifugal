@@ -18,6 +18,7 @@ import {
 } from '../../../common/const/base-prop-names';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE } from '../../../common/const/scroller';
+import { POINTER_DOWN, POINTER_ENTER, POINTER_LEAVE, POINTER_UP } from '../../../common/const/event-names';
 
 /**
  * NtBaseSliderComponent
@@ -42,7 +43,7 @@ import { DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE } from '..
 export class NtBaseSliderComponent extends NtScrollView {
   protected _defaultRenderer = viewChild<TemplateRef<any>>('defaultRenderer');
 
-  protected _scrollBarService = inject(NtBaseSliderService);
+  protected _sliderService = inject(NtBaseSliderService);
 
   private _apiService = inject(NtBaseSliderPublicService);
 
@@ -58,7 +59,7 @@ export class NtBaseSliderComponent extends NtScrollView {
 
   readonly thickness = input<number>(DEFAULT_THICKNESS);
 
-  readonly scrollbarMinSize = input<number>(0);
+  readonly sliderMinSize = input<number>(0);
 
   readonly prepared = input<boolean>(false);
 
@@ -156,15 +157,15 @@ export class NtBaseSliderComponent extends NtScrollView {
       }),
     ).subscribe();
 
-    const $pointerDown = fromEvent<PointerEvent>(this._elementRef.nativeElement, 'pointerdown').pipe(
+    const $pointerDown = fromEvent<PointerEvent>(this._elementRef.nativeElement, POINTER_DOWN).pipe(
       takeUntilDestroyed(),
-    ), $pointerUp = fromEvent<PointerEvent>(this._elementRef.nativeElement, 'pointerup').pipe(
+    ), $pointerUp = fromEvent<PointerEvent>(this._elementRef.nativeElement, POINTER_UP).pipe(
       takeUntilDestroyed(),
-    ), $docPointerUp = fromEvent<PointerEvent>(document, 'pointerup').pipe(
+    ), $docPointerUp = fromEvent<PointerEvent>(document, POINTER_UP).pipe(
       takeUntilDestroyed()
-    ), $pointerEnter = fromEvent<PointerEvent>(this._elementRef.nativeElement, 'pointerenter').pipe(
+    ), $pointerEnter = fromEvent<PointerEvent>(this._elementRef.nativeElement, POINTER_ENTER).pipe(
       takeUntilDestroyed(),
-    ), $pointerLeave = fromEvent<PointerEvent>(this._elementRef.nativeElement, 'pointerleave').pipe(
+    ), $pointerLeave = fromEvent<PointerEvent>(this._elementRef.nativeElement, POINTER_LEAVE).pipe(
       takeUntilDestroyed(),
     );
 
@@ -199,20 +200,14 @@ export class NtBaseSliderComponent extends NtScrollView {
     effect(() => {
       const pressed = this.pressedState(), hover = this.hoverState();
       if (pressed) {
-        this._scrollBarService.state = SliderStates.PRESSED;
+        this._sliderService.state = SliderStates.PRESSED;
         return;
       } else if (hover) {
-        this._scrollBarService.state = SliderStates.HOVER;
+        this._sliderService.state = SliderStates.HOVER;
         return;
       }
-      this._scrollBarService.state = SliderStates.NORMAL;
+      this._sliderService.state = SliderStates.NORMAL;
       return;
-    });
-
-    effect(() => {
-      const isVertical = this.isVertical(), size = this.size();
-      this.totalWidth = !isVertical ? size : 0;
-      this.totalHeight = isVertical ? size : 0;
     });
 
     effect(() => {
@@ -242,6 +237,16 @@ export class NtBaseSliderComponent extends NtScrollView {
           el.style[TOP] = UNSET;
           el.style[BOTTOM] = ZERO_PX;
           el.style[HEIGHT] = overlapping ? SIZE_AUTO : SIZE_100_PERSENT;
+        }
+      }
+    });
+
+    effect(() => {
+      const el = this.scrollContent()?.nativeElement;
+      if (!!el) {
+        const langTextDir = this.langTextDir(), isVertical = this.isVertical();
+        if (!isVertical) {
+          el.style[RIGHT] = langTextDir === TextDirections.RTL ? ZERO_PX : UNSET;
         }
       }
     });
@@ -307,6 +312,6 @@ export class NtBaseSliderComponent extends NtScrollView {
   }
 
   click(event: PointerEvent | MouseEvent) {
-    this._scrollBarService.click(event);
+    this._sliderService.click(event);
   }
 }

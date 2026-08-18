@@ -1,0 +1,23 @@
+&:host {
+    display: block;
+
+    .nt-slider {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+    }
+}
+
+:host(.horizontal) {
+    /* default */
+    width: 100%;
+    height: 20px;
+}
+
+:host(.vertical) {
+    /* default */
+    width: 20px;
+    height: 100%;
+}

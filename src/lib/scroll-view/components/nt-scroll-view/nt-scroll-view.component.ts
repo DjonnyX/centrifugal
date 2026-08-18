@@ -515,6 +515,7 @@ export class NtScrollView extends NtBaseScrollView {
                                                     positionY, v0Y, a0Y, timestampY,
                                                 );
                                             } else {
+                                                this.move(positionX, positionY, false, true, true);
                                                 this._$scrollEnd.next(true);
                                             }
                                         }),
@@ -686,6 +687,7 @@ export class NtScrollView extends NtBaseScrollView {
                                                     positionY, v0Y, a0Y, timestampY,
                                                 );
                                             } else {
+                                                this.move(positionX, positionY, false, true, true);
                                                 this._$scrollEnd.next(true);
                                             }
                                         }),
@@ -793,10 +795,11 @@ export class NtScrollView extends NtBaseScrollView {
         const coord = (isVertical ? !!e.targetTouches ? Array.from((e as TouchEvent).targetTouches)?.find(({ identifier }) => identifier === touchId)?.clientY : e.clientY :
             !!e.targetTouches ? Array.from((e as TouchEvent).targetTouches)?.find(({ identifier }) => identifier === touchId)?.clientX : e.clientX),
             currentPos = coord * (axisInversion ? -1 : 1),
-            scrollSize = isVertical ? this.scrollHeight : this.scrollWidth, delta = (inversion ? -1 : 1) * (startClientPos - currentPos),
+            scrollSize = isVertical ? (this.scrollHeight) : this.scrollWidth, delta = (inversion ? -1 : 1) * (startClientPos - currentPos),
             dp = (isVertical ? this._startPositionY : this._startPositionX) + delta, position = dp < 0 ? 0 : dp > scrollSize ? scrollSize : dp,
             endTime = Date.now(), timestamp = endTime - startTime, scrollDelta = (prevClientPosition === 0 || prevClientPosition === null) ? 0 : prevClientPosition - currentPos,
             { v0 } = this.calculateVelocity(true, offsets, scrollDelta, timestamp);
+
         this.calculateAcceleration(true, velocities, v0, timestamp);
 
         return { position, currentPos, endTime, scrollDelta };

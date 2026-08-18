@@ -1,4 +1,5 @@
-import { Directions, GradientColorPositions } from "../../../../common";
+import { Directions } from "../../enums";
+import { GradientColorPositions } from "../../types";
 import { ICalculateScrollParams, ICalculateScrollPositionParams, ICalculateScrollMetrics } from "./interfaces";
 
 /**

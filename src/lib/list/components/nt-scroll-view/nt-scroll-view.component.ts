@@ -477,7 +477,9 @@ export class NtScrollView extends NtBaseScrollView {
                                             if (!this.snapIfNecessary(v0, false) && this.scrollBehavior() !== BEHAVIOR_INSTANT) {
                                                 this.moveWithAcceleration(isVertical, position, 0, v0, a0, timestamp);
                                             } else {
-                                                this.snapIfNecessary(v0);
+                                                if (!this.snapIfNecessary(v0)) {
+                                                    this.move(isVertical, position, false, true, true);
+                                                }
                                                 this._$scrollEnd.next(true);
                                             }
                                         }),
@@ -660,7 +662,9 @@ export class NtScrollView extends NtBaseScrollView {
                                             if (!this.snapIfNecessary(v0, false) && this.scrollBehavior() !== BEHAVIOR_INSTANT) {
                                                 this.moveWithAcceleration(isVertical, position, 0, v0, a0, timestamp);
                                             } else {
-                                                this.snapIfNecessary(v0);
+                                                if (!this.snapIfNecessary(v0)) {
+                                                    this.move(isVertical, position, false, true, true);
+                                                }
                                                 this._$scrollEnd.next(true);
                                             }
                                         }),

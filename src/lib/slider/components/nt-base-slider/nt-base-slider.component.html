@@ -1,6 +1,6 @@
 @let grab = grabbing();
-<div #scrollViewport class="track" part="nt-scrollbar-track" [ngStyle]="styles()" [ngClass]="{grabbing: grab}">
-    <div #scrollContent class="thumb" part="nt-scrollbar-thumb" [class.horizontal]="!isVertical()"
+<div #scrollViewport class="track" part="nt-slider-track" [ngStyle]="styles()" [ngClass]="{grabbing: grab}">
+    <div #scrollContent class="thumb" part="nt-slider-thumb" [class.horizontal]="!isVertical()"
         (pointerdown)="click($event)">
         <ng-container [ngTemplateOutlet]="thumbRenderer()" [ngTemplateOutletContext]="templateContext()" />
     </div>
@@ -8,5 +8,5 @@
 
 <ng-template #defaultRenderer let-api="api" let-width="width" let-height="height" let-fillPositions="fillPositions"
     let-params="params">
-    <div class="shape" part="nt-scrollbar-thumb__shape" [style.width.px]="width" [style.height.px]="height"></div>
+    <div class="shape" part="nt-slider-thumb__shape" [style.width.px]="width" [style.height.px]="height"></div>
 </ng-template>

@@ -1436,7 +1436,6 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
      * Hides the sheet.
      */
     close() {
-        console.log('close')
         this._$opened.next(false);
     }
 

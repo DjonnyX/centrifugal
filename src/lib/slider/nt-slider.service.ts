@@ -19,6 +19,16 @@ export class NtSliderService extends NtBaseScrollViewService implements INtBaseS
 
   constructor() {
     super();
+
+    this.tick();
+  }
+
+  private tick() {
+    this._$tick.next();
+
+    this._tickerId = requestAnimationFrame(() => {
+      this.tick();
+    });
   }
 
   initialize(id: number, emitter: HTMLElement) {

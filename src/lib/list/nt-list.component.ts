@@ -603,7 +603,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
       const valid = validateString(v, true, true);
 
       if (!valid) {
-        console.error('The "scrollBehavior" parameter must be of type `boolean`.');
+        console.error('The "scrollBehavior" parameter must be of type `ScrollBehavior`.');
         return DEFAULT_SCROLL_BEHAVIOR;
       }
       return v;
