@@ -12,13 +12,13 @@ export const DEFAULT_ANIMATION_PARAMS: IAnimationParams = {
 };
 
 export const DEFAULT_SCROLLING_SETTINGS: IScrollingSettings = {
-    frictionalForce: 0.035,
+    frictionalForce: 0.015,
     mass: 0.005,
     maxDistance: 100000,
     maxDuration: 4000,
     speedScale: 10,
-    breakpointStoppingFactor: 5,
-    optimization: false,
+    breakpointStoppingFactor: 10,
+    optimization: true,
 };
 
-export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '20%';
+export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '25%';

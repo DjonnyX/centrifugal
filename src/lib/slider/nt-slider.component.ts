@@ -535,38 +535,48 @@ export class NtSliderComponent {
 
     combineLatest([$baseSlider, $step, $min, $max, $bounds, $isVertical]).pipe(
       takeUntilDestroyed(),
-      filter(([baseSlider]) => !!baseSlider),
       debounceTime(0),
-      tap(([baseSlider, step, min, max, bounds, isVertical]) => {
-        const steps: ISliderSteps = [],
-          size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
-          dist = max - min,
-          ns = step > max ? max : step < 0 ? 0 : step,
-          stepPX = ns > 0 ? ((size * ns) / dist) : 0,
-          stepLength = stepPX > 0 ? (size / stepPX) : 0;
-        for (let i = 0, li = stepLength - 1; i < stepLength + 1; i++) {
-          const s: ISliderStep = {
-            id: `${i}`,
-            measures: {
-              x: isVertical ? 0 : (i * stepPX),
-              y: isVertical ? (i * stepPX) : 0,
-              maxScrollSize: 0,
-            },
-            config: {
-              isFirst: i === 0,
-              isLast: i === li - 1,
-              inverted: false,
-              isVertical,
-            },
-            bounds: {
-              width: isVertical ? bounds.width : stepPX,
-              height: isVertical ? stepPX : bounds.height,
-            },
-          };
-          steps.push(s);
-        }
-        this._service.steps = steps;
-      }),
+      filter(([baseSlider]) => !!baseSlider),
+      switchMap(([baseSlider, step, min, max, bounds, isVertical]) => combineLatest([baseSlider!.$resizeViewport.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(null),
+      ), baseSlider!.$resizeContent.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(null),
+      )]).pipe(
+        takeUntilDestroyed(this._destroyRef),
+        debounceTime(0),
+        tap(() => {
+          const steps: ISliderSteps = [],
+            size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
+            dist = max - min,
+            ns = step > max ? max : step < 0 ? 0 : step,
+            stepPX = ns > 0 ? ((size * ns) / dist) : 0,
+            stepLength = stepPX > 0 ? (size / stepPX) : 0;
+          for (let i = 0, li = stepLength - 1; i < stepLength + 1; i++) {
+            const s: ISliderStep = {
+              id: `${i}`,
+              measures: {
+                x: isVertical ? 0 : (i * stepPX),
+                y: isVertical ? (i * stepPX) : 0,
+                maxScrollSize: 0,
+              },
+              config: {
+                isFirst: i === 0,
+                isLast: i === li - 1,
+                inverted: false,
+                isVertical,
+              },
+              bounds: {
+                width: isVertical ? bounds.width : stepPX,
+                height: isVertical ? stepPX : bounds.height,
+              },
+            };
+            steps.push(s);
+          }
+          this._service.steps = steps;
+        }),
+      )),
     ).subscribe();
 
     combineLatest([$bounds, $isVertical, $rawScrollStartOffset]).pipe(
@@ -676,9 +686,8 @@ export class NtSliderComponent {
       [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: actualThumbPosition,
       fireUpdate: true,
       behavior: animated ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
-      userAction: true,
+      userAction,
       blending: false,
-      snap: false,
       duration: animated ? this.animationParams().scroll : 0,
     });
   }
