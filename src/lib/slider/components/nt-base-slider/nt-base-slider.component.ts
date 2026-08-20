@@ -9,10 +9,10 @@ import { NtBaseSliderService } from './nt-base-slider.service';
 import { NtBaseSliderPublicService } from './nt-base-slider-public.service';
 import { SliderStates } from './enums';
 import {
-  Directions, GradientColorPositions, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED,
+  GradientColorPositions, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED,
   SCROLL_VIEW_TYPE, TextDirections,
 } from '../../../common';
-import { NtScrollView } from '../../../scroll-view';
+import { NtScrollView } from '../../../list';
 import {
   LEFT, POSITION, POSITION_ABSOLUTE, POSITION_RELATIVE, RIGHT, TOP, BOTTOM, ZERO_PX, UNSET, SIZE_AUTO, SIZE_100_PERSENT,
 } from '../../../common/const/base-prop-names';
@@ -87,18 +87,11 @@ export class NtBaseSliderComponent extends NtScrollView {
 
   protected readonly thumbHeight: Signal<number>;
 
-  protected readonly isVertical: Signal<boolean>;
-
   private _$scrollingCancel = new Subject<void>();
   protected readonly $scrollingCancel = this._$scrollingCancel.asObservable();
 
   constructor() {
     super();
-
-    this.isVertical = computed(() => {
-      const dir = this.direction();
-      return dir === Directions.VERTICAL || dir === Directions.BOTH;
-    });
 
     this.templateContext = computed(() => {
       const context: ISliderTemplateContext = {
@@ -276,8 +269,8 @@ export class NtBaseSliderComponent extends NtScrollView {
   private createDragEvent(userAction: boolean) {
     const isVertical = this.isVertical(), scrollSize = isVertical ? this.scrollHeight : this.scrollWidth,
       scrollPosition = isVertical ? this.scrollTop : this.scrollLeft,
-      startOffset = isVertical ? this.topOffset() : this.leftOffset(),
-      endOffset = isVertical ? this.bottomOffset() : this.rightOffset(),
+      startOffset = this.startOffset(),
+      endOffset = this.endOffset(),
       scrollContent = this.scrollContent()?.nativeElement as HTMLElement,
       scrollViewport = this.scrollViewport()?.nativeElement as HTMLDivElement;
     if (!!scrollViewport && !!scrollContent) {

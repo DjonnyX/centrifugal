@@ -3,7 +3,7 @@ import {
 } from "@angular/core";
 import {
   ArithmeticExpression, GradientColorPositions, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO,
-  SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_TYPE,
+  SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
   TextDirection,
   TextDirections,
 } from "../common";
@@ -14,14 +14,14 @@ import {
   isPercentageValue, parseArithmeticExpression, toggleClassName, validateArray, validateBoolean, validateFloat, validateObject, validateString,
 } from "../common/utils";
 import { DEFAULT_ANIMATION_PARAMS, DEFAULT_SLIDER_DIRECTION, DEFAULT_THUMB_GRADIENT_POSITIONS } from './const';
-import { IAnimationParams, IScrollOptions } from './interfaces';
+import { IAnimationParams, INtSliderService, IScrollOptions, ISliderStep, ISliderSteps } from './interfaces';
 import { BEHAVIOR_AUTO } from "../common/const/behavior";
 import { IScrollToParams } from "../common/interfaces/scroll-to-params";
 import { Direction } from './types';
 import { Directions } from './enums';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from "../common/const/base-prop-names";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { combineLatest, filter, tap } from "rxjs";
+import { combineLatest, debounceTime, filter, tap } from "rxjs";
 import { NtBaseSliderService } from "./components/nt-base-slider/nt-base-slider.service";
 import { NtSliderService } from './nt-slider.service';
 import { ScrollBox } from '../common/utils/scroll-box';
@@ -47,9 +47,9 @@ import { ScrollerTypes } from "../common/enums/scroller-types";
     { provide: SCROLL_VIEW_INVERSION, useValue: true },
     { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: false },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
+    { provide: SCROLL_VIEW_SERVICE, useClass: NtSliderService },
     NtBaseSliderService,
     NtBaseSliderPublicService,
-    NtSliderService,
   ],
 })
 export class NtSliderComponent {
@@ -161,6 +161,22 @@ export class NtSliderComponent {
    * Slider thickness. Default value is `6`.
    */
   minSize = input<number>(0, { ...this._minSizeOptions });
+
+  protected _stepOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v);
+      if (!valid) {
+        console.error('The "step" parameter must be of type `number`.');
+        return 0;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Step. Default value is `0`.
+   */
+  step = input<number>(0, { ...this._stepOptions });
 
   protected _interactiveOptions = {
     transform: (v: boolean) => {
@@ -286,6 +302,8 @@ export class NtSliderComponent {
 
   protected _precalculatedScrollEndOffset = signal<number>(0);
 
+  protected _snapToItem: Signal<boolean>;
+
   protected _actualValue: Signal<number>;
 
   protected _bounds = signal<ISize>({
@@ -299,9 +317,9 @@ export class NtSliderComponent {
 
   private _scrollBox = new ScrollBox();
 
-  private _service = inject(NtSliderService);
+  private _service = inject<INtSliderService>(SCROLL_VIEW_SERVICE);
 
-  private _animationIds: Array<number> | null = null;
+  private _animationIds: Array<number> | number | null = null;
 
   constructor() {
     this._isVertical = computed(() => {
@@ -320,6 +338,11 @@ export class NtSliderComponent {
     this._actualValue = computed(() => {
       const v = this.value(), min = this.min(), max = this.max();
       return v < min ? min : v > max ? max : v;
+    });
+
+    this._snapToItem = computed(() => {
+      const step = this.step();
+      return step > 0;
     });
 
     this._service.$tick.pipe(
@@ -347,7 +370,44 @@ export class NtSliderComponent {
       $rawScrollEndOffset = toObservable(this.scrollEndOffset),
       $value = toObservable(this._actualValue),
       $max = toObservable(this.max),
-      $min = toObservable(this.min);
+      $min = toObservable(this.min),
+      $step = toObservable(this.step);
+
+    combineLatest([$baseSlider, $step, $min, $max, $bounds, $isVertical]).pipe(
+      takeUntilDestroyed(),
+      filter(([baseSlider]) => !!baseSlider),
+      debounceTime(0),
+      tap(([baseSlider, step, min, max, bounds, isVertical]) => {
+        const steps: ISliderSteps = [],
+          size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
+          dist = max - min,
+          ns = step > max ? max : step < 0 ? 0 : step,
+          stepPX = ns > 0 ? ((size * ns) / dist) : 0,
+          stepLength = stepPX > 0 ? (size / stepPX) : 0;
+        for (let i = 0, li = stepLength - 1; i < stepLength + 1; i++) {
+          const s: ISliderStep = {
+            id: `${i}`,
+            measures: {
+              x: isVertical ? 0 : (i * stepPX),
+              y: isVertical ? (i * stepPX) : 0,
+              maxScrollSize: 0,
+            },
+            config: {
+              isFirst: i === 0,
+              isLast: i === li - 1,
+              inverted: false,
+              isVertical,
+            },
+            bounds: {
+              width: isVertical ? bounds.width : stepPX,
+              height: isVertical ? stepPX : bounds.height,
+            },
+          };
+          steps.push(s);
+        }
+        this._service.steps = steps;
+      }),
+    ).subscribe();
 
     combineLatest([$bounds, $isVertical, $rawScrollStartOffset]).pipe(
       takeUntilDestroyed(),
@@ -452,7 +512,7 @@ export class NtSliderComponent {
    * The method scrolls the slider and returns the animation ids if the behavior is set to smooth or null 
    * if the behavior is set to auto, instant, or not set.
    */
-  scrollTo(options?: IScrollOptions): Array<number> | null {
+  scrollTo(options?: IScrollOptions): Array<number> | number | null {
     const value = options?.value ?? 0,
       behavior = options?.behavior ?? this.behavior(),
       duration = options?.duration ?? this.animationParams().scroll,

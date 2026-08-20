@@ -37,7 +37,7 @@
                 [loading]="loading()" [overlapping]="overlappingScrollbar()"
                 [thumbGradientPositions]="thumbGradientPositionsVertical()" [prepared]="prepared"
                 [interactive]="scrollbarInteractive()" [show]="scrollbarVerticalEnabled() && scrollbarEnabled() && prepared"
-                [topOffset]="topOffset()" [langTextDir]="textDir" [bottomOffset]="bottomOffset()"
+                [startOffset]="topOffset()" [endOffset]="bottomOffset()" [langTextDir]="textDir"
                 [overscrollEnabled]="overscrollEnabled()" [scrollBehavior]="scrollBehavior()"
                 [sliderMinSize]="scrollbarMinSize()" (onDrag)="onScrollBarDragHandler($event)"
                 (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-base-slider>
@@ -48,7 +48,7 @@
                 [loading]="loading()" [overlapping]="overlappingScrollbar()"
                 [thumbGradientPositions]="thumbGradientPositionsHorizontal()" [prepared]="prepared"
                 [interactive]="scrollbarInteractive()" [show]="scrollbarHorizontalEnabled() && scrollbarEnabled() && prepared"
-                [leftOffset]="leftOffset()" [langTextDir]="textDir" [rightOffset]="rightOffset()"
+                [startOffset]="leftOffset()" [endOffset]="rightOffset()" [langTextDir]="textDir"
                 [overscrollEnabled]="overscrollEnabled()" [scrollBehavior]="scrollBehavior()"
                 [sliderMinSize]="scrollbarMinSize()" (onDrag)="onScrollBarDragHandler($event)"
                 (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-base-slider>

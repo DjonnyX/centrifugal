@@ -466,14 +466,14 @@ export class NtScrollerComponent extends NtScrollView {
   startScrollTo() {
     this.stopScrollbar();
     this.stopScrolling(true);
-    this._scrollDirection.clear();
+    this.scrollDirection = 0;
     this.dropVelocity();
     this._isScrollsTo = true;
   }
 
   finishedScrollTo() {
     this._isScrollsTo = false;
-    this._scrollDirection.clear();
+    this.scrollDirection = 0;
     this.dropVelocity();
     this.checkIntersectionComponent();
     this.fireScrollEvent(true);
@@ -551,7 +551,7 @@ export class NtScrollerComponent extends NtScrollView {
     if (!isEdge) {
       this.alignPosition();
     }
-    this._scrollDirection.clear();
+    this.scrollDirection = 0;
     this._$scrollbarScroll.next(true);
     this.fireScrollEvent(true);
   }

@@ -472,7 +472,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
     protected _$scroll = new Subject<IScrollViewScrollEvent>();
     readonly $scroll = this._$scroll.asObservable();
 
-    protected _$animationUpdate = new BehaviorSubject<number>(0);
+    protected _$animationUpdate = new BehaviorSubject<number | null>(0);
     readonly $animationUpdate = this._$animationUpdate.asObservable();
 
     get $grabbing() { return this._service.$grabbing };
@@ -889,12 +889,16 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                                 this._animationIds = scroller.scroll({
                                                     y: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: false, userAction: false,
                                                     onUpdate: data => {
-                                                        this._$animationUpdate.next(data.value);
+                                                        if (data.value !== null) {
+                                                            this._$animationUpdate.next(data.value);
+                                                        }
                                                     },
                                                     onComplete: data => {
                                                         this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                                         this._elementRef.nativeElement.style.opacity = OPACITY_0;
-                                                        this._$animationUpdate.next(data.value);
+                                                        if (data.value !== null) {
+                                                            this._$animationUpdate.next(data.value);
+                                                        }
                                                     },
                                                 });
                                             }
