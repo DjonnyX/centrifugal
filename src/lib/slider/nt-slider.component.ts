@@ -12,7 +12,7 @@ import {
   isPercentageValue, parseArithmeticExpression, toggleClassName, validateArray, validateBoolean, validateFloat, validateObject, validateString,
 } from "../common/utils";
 import {
-  DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SLIDER_DIRECTION, DEFAULT_SNAPPING_DISTANCE, DEFAULT_THUMB_GRADIENT_POSITIONS,
+  DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SLIDER_DIRECTION, DEFAULT_SNAPPING_DISTANCE, DEFAULT_THUMB_GRADIENT_POSITIONS,
 } from './const';
 import { IAnimationParams, INtSliderService, ISliderStep, ISliderSteps } from './interfaces';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
@@ -90,6 +90,23 @@ export class NtSliderComponent {
    */
   direction = input<Direction>(DEFAULT_SLIDER_DIRECTION, { ...this._directionOptions });
 
+  protected _overscrollEnabledOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v, true);
+
+      if (!valid) {
+        console.error('The "overscrollEnabled" parameter must be of type `boolean`.');
+        return DEFAULT_OVERSCROLL_ENABLED;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether the overscroll (re-scroll) feature will work. The default value is "true".
+   */
+  overscrollEnabled = input<boolean>(DEFAULT_OVERSCROLL_ENABLED, { ...this._overscrollEnabledOptions });
+
   protected _thumbGradientPositionsOptions = {
     transform: (v: GradientColorPositions) => {
       const valid = validateArray(v) && (validateFloat(v?.[0] as number) || validateString(v?.[0] as string)) &&
@@ -153,23 +170,7 @@ export class NtSliderComponent {
   /**
    * Slider max value. Default max value is `0`.
    */
-  max = input<number>(0, { ...this._maxOptions });
-
-  protected _minSizeOptions = {
-    transform: (v: number) => {
-      const valid = validateFloat(v);
-      if (!valid) {
-        console.error('The "minSize" parameter must be of type `number`.');
-        return 0;
-      }
-      return v;
-    },
-  } as any;
-
-  /**
-   * Slider thickness. Default value is `6`.
-   */
-  minSize = input<number>(0, { ...this._minSizeOptions });
+  max = input.required<number>({ ...this._maxOptions });
 
   protected _stepOptions = {
     transform: (v: number) => {
@@ -367,6 +368,43 @@ export class NtSliderComponent {
    */
   langTextDir = input<TextDirection>(DEFAULT_LANG_TEXT_DIR, { ...this._langTextDirOptions });
 
+  protected _thumbSizeOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v);
+      if (!valid) {
+        console.error('The "thumbSize" parameter must be of type `number`.');
+        return 0;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Thumb slider size.
+   * If autoThumbSize is false, the thumbSize property determines the size of the slider.
+   * If autoThumbSize is true, the thumbSize property determines the minimum size of the thumb.
+   * Default value is `6`.
+   */
+  thumbSize = input<number>(0, { ...this._thumbSizeOptions });
+
+  protected _autoThumbSizeOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+      if (!valid) {
+        console.error('The "autoThumbSize" parameter must be of type `boolean`.');
+        return true;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether the length of the slider will be calculated automatically.
+   * If autoThumbSize is true, the thumbSize property determines the minimum size of the thumb.
+   * Default value is `true`.
+   */
+  autoThumbSize = input<boolean>(true, { ...this._autoThumbSizeOptions });
+
   /**
    * Animation parameters. The default value is "{ scroll: 150 }".
    */
@@ -458,6 +496,8 @@ export class NtSliderComponent {
         if (viewportWidth !== width || viewportHeight !== height) {
           this._bounds.set({ width, height });
         }
+        const isVertical = this._isVertical();
+        this._thickness.set(isVertical ? viewportWidth : viewportHeight);
       }),
     ).subscribe();
 
@@ -643,6 +683,7 @@ export class NtSliderComponent {
       stepPX = size / dist;
 
     const v = (value - min) * stepPX,
+      minSize = this.thumbSize(),
       {
         thumbSize,
         thumbGradientPositions,
@@ -656,11 +697,11 @@ export class NtSliderComponent {
         endOffset,
         positionX: isVertical ? baseSlider.scrollLeft : v,
         positionY: isVertical ? v : baseSlider.scrollTop,
-        minSize: this.minSize(),
+        minSize,
       });
 
     return {
-      size: thumbSize,
+      size: this.autoThumbSize() ? thumbSize : minSize,
       position: v,
       gradientPositions: thumbGradientPositions,
     };
