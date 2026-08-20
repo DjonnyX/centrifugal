@@ -21,4 +21,4 @@ export const DEFAULT_SCROLLING_SETTINGS: IScrollingSettings = {
     optimization: false,
 };
 
-export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '10%';
+export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '20%';

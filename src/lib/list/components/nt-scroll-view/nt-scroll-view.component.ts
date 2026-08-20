@@ -989,7 +989,7 @@ export class NtScrollView extends NtBaseScrollView {
 
     protected animate(startValue: number, endValue: number, duration = ANIMATION_DURATION, easingFunction: Easing = easeOutQuad, blending: boolean = false,
         userAction: boolean = false, alignmentAtComplete: boolean = true, skipOverridedCoordinates: boolean = false, fireUpdate: boolean = true,
-        onUpdate: ((data: IAnimatorUpdateData) => void) | null = null, onComplete: ((data: IAnimatorUpdateData) => void) | null = null): number {
+        snap = true, onUpdate: ((data: IAnimatorUpdateData) => void) | null = null, onComplete: ((data: IAnimatorUpdateData) => void) | null = null): number {
         const isVertical = this.isVertical();
         let position = startValue;
         this._isAlignmentAnimation = !alignmentAtComplete;
@@ -1035,15 +1035,15 @@ export class NtScrollView extends NtBaseScrollView {
                     complete();
                 }
 
-                if (this._isCoordinatesOverrided && !skipOverridedCoordinates) {
+                if (!snap && this._isCoordinatesOverrided && !skipOverridedCoordinates) {
                     this._isCoordinatesOverrided = false;
                     const currentCoordinate = isVertical ? this._y : this._x, delta = endValue - value;
-                    this.animate(currentCoordinate, currentCoordinate + delta, duration - elapsed, easingFunction, blending, userAction, alignmentAtComplete, false, true, onUpdate, onComplete);
+                    this.animate(currentCoordinate, currentCoordinate + delta, duration - elapsed, easingFunction, blending, userAction, alignmentAtComplete, false, true, snap, onUpdate, onComplete);
                     return;
                 }
                 const v0 = calculateVelocity(position, value - this._delta, timestamp) ?? this.averageVelocity;
                 position = value;
-                if (alignmentAtComplete && !this._isAlignmentAnimation && !skipOverridedCoordinates) {
+                if (snap && alignmentAtComplete && !this._isAlignmentAnimation && !skipOverridedCoordinates) {
                     if (!this.snapIfNecessary(v0)) {
                         this.move(isVertical, value, false, userAction, fireUpdate);
                     }
@@ -1061,7 +1061,7 @@ export class NtScrollView extends NtBaseScrollView {
                 this._dragX = this._dragY = 0;
                 this.emitOverscrollEffectEvent(false);
                 const v0 = calculateVelocity(position, value, timestamp);
-                if (alignmentAtComplete && !this._isAlignmentAnimation && !skipOverridedCoordinates) {
+                if (snap && alignmentAtComplete && !this._isAlignmentAnimation && !skipOverridedCoordinates) {
                     this.snapIfNecessary(v0);
                 } else {
                     this.move(isVertical, value, false, userAction, fireUpdate);
@@ -1344,11 +1344,11 @@ export class NtScrollView extends NtBaseScrollView {
         if (behavior === BEHAVIOR_AUTO || behavior === BEHAVIOR_SMOOTH) {
             if (isVertical) {
                 if (y !== null && prevY !== y) {
-                    return this.animate(prevY, y, duration, ease, blending, userAction, true, false, true, onUpdate, onComplete);
+                    return this.animate(prevY, y, duration, ease, blending, userAction, true, false, true, snap, onUpdate, onComplete);
                 }
             } else {
                 if (x !== null && prevX !== x) {
-                    return this.animate(prevX, x, duration, ease, blending, userAction, true, false, true, onUpdate, onComplete);
+                    return this.animate(prevX, x, duration, ease, blending, userAction, true, false, true, snap, onUpdate, onComplete);
                 }
             }
         } else {

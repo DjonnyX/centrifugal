@@ -3,10 +3,7 @@ import {
 } from "@angular/core";
 import {
   ArithmeticExpression, GradientColorPositions, Id, IScrollingSettings, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO,
-  SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
-  SnappingDistance,
-  TextDirection,
-  TextDirections,
+  SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SnappingDistance, TextDirection, TextDirections,
 } from "../common";
 import { ISliderDragEvent, NtBaseSliderComponent, NtBaseSliderPublicService } from "../../public-api";
 import { DEFAULT_SIZE } from "./components/nt-base-slider/const";
@@ -14,15 +11,16 @@ import { DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLBAR_INTER
 import {
   isPercentageValue, parseArithmeticExpression, toggleClassName, validateArray, validateBoolean, validateFloat, validateObject, validateString,
 } from "../common/utils";
-import { DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SLIDER_DIRECTION, DEFAULT_SNAPPING_DISTANCE, DEFAULT_THUMB_GRADIENT_POSITIONS } from './const';
-import { IAnimationParams, INtSliderService, IScrollOptions, ISliderStep, ISliderSteps } from './interfaces';
-import { BEHAVIOR_AUTO } from "../common/const/behavior";
-import { IScrollToParams } from "../common/interfaces/scroll-to-params";
+import {
+  DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SLIDER_DIRECTION, DEFAULT_SNAPPING_DISTANCE, DEFAULT_THUMB_GRADIENT_POSITIONS,
+} from './const';
+import { IAnimationParams, INtSliderService, ISliderStep, ISliderSteps } from './interfaces';
+import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
 import { Direction } from './types';
 import { Directions } from './enums';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from "../common/const/base-prop-names";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { BehaviorSubject, combineLatest, debounceTime, filter, startWith, switchMap, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, debounceTime, filter, skip, startWith, switchMap, tap } from "rxjs";
 import { NtBaseSliderService } from "./components/nt-base-slider/nt-base-slider.service";
 import { NtSliderService } from './nt-slider.service';
 import { ScrollBox } from '../common/utils/scroll-box';
@@ -405,7 +403,7 @@ export class NtSliderComponent {
 
   protected _snapToItem: Signal<boolean>;
 
-  protected _actualValue: Signal<number>;
+  protected _actualValue = signal<number>(0);
 
   protected _bounds = signal<ISize>({
     width: this._elementRef.nativeElement.offsetWidth,
@@ -438,9 +436,8 @@ export class NtSliderComponent {
       );
     });
 
-    this._actualValue = computed(() => {
-      const v = this.value(), min = this.min(), max = this.max();
-      return v < min ? min : v > max ? max : v;
+    effect(() => {
+      this._actualValue.set(this.formatActualValue());
     });
 
     this._snapToItem = computed(() => {
@@ -509,6 +506,7 @@ export class NtSliderComponent {
         startWith(null),
       )]).pipe(
         takeUntilDestroyed(this._destroyRef),
+        debounceTime(0),
         tap(([isVertical, bounds, step, min, max, , , , , i]) => {
           const size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
             scrollSize = Math.round(isVertical ? baseSlider!.scrollTop : baseSlider!.scrollLeft),
@@ -587,13 +585,15 @@ export class NtSliderComponent {
       }),
     ).subscribe();
 
+    let isInit = false;
     combineLatest([$min, $max, $value, $bounds, $baseSlider, $isVertical]).pipe(
       takeUntilDestroyed(),
       filter(([, , , b, s]) => !!b && !!s),
-      tap(([, , v, , baseSlider,]) => {
-        if (!!baseSlider) {
-          this.update(v, false);
-        }
+      skip(1),
+      debounceTime(0),
+      tap(([, , v, , ,]) => {
+        this.update(v, isInit, false);
+        isInit = true;
       }),
     ).subscribe();
   }
@@ -624,9 +624,17 @@ export class NtSliderComponent {
       },
       startOffset = this._precalculatedScrollStartOffset(),
       endOffset = this._precalculatedScrollEndOffset(),
+      min = this.min(),
+      max = this.max(),
+      size = isVertical ?
+        (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) :
+        (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
+      dist = (max - min),
+      stepPX = size / dist;
+
+    const v = (value - min) * stepPX,
       {
         thumbSize,
-        thumbPosition,
         thumbGradientPositions,
       } = this._scrollBox.calculateScroll({
         direction,
@@ -636,19 +644,19 @@ export class NtSliderComponent {
         contentHeight: contentBounds.height,
         startOffset,
         endOffset,
-        positionX: isVertical ? baseSlider.scrollLeft : value,
-        positionY: isVertical ? value : baseSlider.scrollTop,
+        positionX: isVertical ? baseSlider.scrollLeft : v,
+        positionY: isVertical ? v : baseSlider.scrollTop,
         minSize: this.minSize(),
       });
 
     return {
       size: thumbSize,
-      position: thumbPosition,
+      position: v,
       gradientPositions: thumbGradientPositions,
     };
   }
 
-  protected update(value: number, userAction: boolean = true) {
+  protected update(value: number, animated: boolean = true, userAction: boolean = true) {
     const baseSlider = this._baseSlider();
     if (!baseSlider || this._animationIds !== null) {
       return;
@@ -665,47 +673,20 @@ export class NtSliderComponent {
     this._size.set(size);
     const actualThumbPosition = position < startOffset ? startOffset : position;
     baseSlider.scroll({
-      [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: actualThumbPosition, fireUpdate: true, behavior: BEHAVIOR_AUTO,
-      userAction, blending: false,
+      [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: actualThumbPosition,
+      fireUpdate: true,
+      behavior: animated ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
+      userAction: true,
+      blending: false,
+      snap: false,
+      duration: animated ? this.animationParams().scroll : 0,
     });
   }
 
-  /**
-   * The method scrolls the slider and returns the animation ids if the behavior is set to smooth or null 
-   * if the behavior is set to auto, instant, or not set.
-   */
-  scrollTo(options?: IScrollOptions): Array<number> | number | null {
-    const value = options?.value ?? 0,
-      behavior = options?.behavior ?? this.behavior(),
-      duration = options?.duration ?? this.animationParams().scroll,
-      onUpdate = options?.onUpdate ?? null,
-      onComplete = options?.onComplete ?? null;
-
-    const slider = this._baseSlider();
-    if (!!slider) {
-      const isVertical = this._isVertical(),
-        position = this.calculateSliderParams(value),
-        params: IScrollToParams = {
-          [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: position,
-          behavior,
-          duration,
-          userAction: true,
-          fireUpdate: true,
-          blending: false,
-          onUpdate,
-          onComplete: data => {
-            this._animationIds = null;
-            if (onComplete !== null) {
-              onComplete(data);
-            }
-          },
-        };
-
-      this._animationIds = slider.scroll(params);
-      return this._animationIds;
-    }
-
-    return null;
+  private formatActualValue(value: number | null = null) {
+    const v = value ?? this.value(),
+      step = this.step();
+    return step > 0 ? (Math.round(v / step) * step) : v;
   }
 
   protected onDragHandler(e: ISliderDragEvent) {
@@ -714,5 +695,9 @@ export class NtSliderComponent {
 
   protected onDragEndHandler(e: ISliderDragEvent) {
     this.onDragEnd.emit(e);
+  }
+
+  setValue(v: number) {
+    this._actualValue.set(this.formatActualValue(Number(v)));
   }
 }
