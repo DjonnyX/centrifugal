@@ -298,6 +298,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
      * - maxDistance - Maximum scrolling distance. Default value is 100000.
      * - maxDuration - Maximum animation duration. Default value is 4000.
      * - speedScale - Speed scale. Default value is 10.
+     * - breakpointStoppingFactor - Default value is 5.
      * - optimization - Enables scrolling performance optimization. Default value is `true`.
      */
     scrollingSettings = input<IScrollingSettings>(DEFAULT_SCROLLING_SETTINGS, { ...this._scrollingSettingsOptions });

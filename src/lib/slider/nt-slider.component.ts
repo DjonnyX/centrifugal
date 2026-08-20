@@ -1,9 +1,10 @@
 import {
-  Component, computed, effect, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild, ViewEncapsulation,
+  Component, computed, DestroyRef, effect, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild, ViewEncapsulation,
 } from "@angular/core";
 import {
-  ArithmeticExpression, GradientColorPositions, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO,
+  ArithmeticExpression, GradientColorPositions, Id, IScrollingSettings, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO,
   SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
+  SnappingDistance,
   TextDirection,
   TextDirections,
 } from "../common";
@@ -13,7 +14,7 @@ import { DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLBAR_INTER
 import {
   isPercentageValue, parseArithmeticExpression, toggleClassName, validateArray, validateBoolean, validateFloat, validateObject, validateString,
 } from "../common/utils";
-import { DEFAULT_ANIMATION_PARAMS, DEFAULT_SLIDER_DIRECTION, DEFAULT_THUMB_GRADIENT_POSITIONS } from './const';
+import { DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SLIDER_DIRECTION, DEFAULT_SNAPPING_DISTANCE, DEFAULT_THUMB_GRADIENT_POSITIONS } from './const';
 import { IAnimationParams, INtSliderService, IScrollOptions, ISliderStep, ISliderSteps } from './interfaces';
 import { BEHAVIOR_AUTO } from "../common/const/behavior";
 import { IScrollToParams } from "../common/interfaces/scroll-to-params";
@@ -21,7 +22,7 @@ import { Direction } from './types';
 import { Directions } from './enums';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from "../common/const/base-prop-names";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { combineLatest, debounceTime, filter, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, debounceTime, filter, startWith, switchMap, tap } from "rxjs";
 import { NtBaseSliderService } from "./components/nt-base-slider/nt-base-slider.service";
 import { NtSliderService } from './nt-slider.service';
 import { ScrollBox } from '../common/utils/scroll-box';
@@ -64,6 +65,16 @@ export class NtSliderComponent {
    * Fires a drag end event.
    */
   readonly onDragEnd = output<ISliderDragEvent>();
+
+  /**
+   * Triggers an event with a step ID when the step moves the specified distance.
+   */
+  onSnap = output<Id>();
+
+  /**
+   * Triggers an event when the value changes.
+   */
+  onChange = output<number>();
 
   protected _directionOptions = {
     transform: (v: Direction) => {
@@ -239,6 +250,75 @@ export class NtSliderComponent {
    */
   behavior = input<ScrollBehavior>(DEFAULT_SCROLL_BEHAVIOR, { ...this._behaviorOptions });
 
+  protected _scrollingSettingsOptions = {
+    transform: (v: IScrollingSettings): IScrollingSettings | null => {
+      let valid = validateObject(v, true, true);
+      if (valid && !!v) {
+        const { frictionalForce, mass, maxDistance, maxDuration, speedScale, optimization, breakpointStoppingFactor } = v;
+        valid = validateFloat(frictionalForce, true);
+        if (!valid) {
+          console.error('The "frictionalForce" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateFloat(mass, true);
+        if (!valid) {
+          console.error('The "mass" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateFloat(maxDistance, true);
+        if (!valid) {
+          console.error('The "maxDistance" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateFloat(maxDuration, true);
+        if (!valid) {
+          console.error('The "maxDuration" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateFloat(speedScale, true);
+        if (!valid) {
+          console.error('The "speedScale" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateFloat(breakpointStoppingFactor, true);
+        if (!valid) {
+          console.error('The "breakpointStoppingFactor" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateBoolean(optimization, true);
+        if (!valid) {
+          console.error('The "optimization" parameter must be of type `boolean` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+      }
+      if (!valid) {
+        console.error('The "scrollingSettings" parameter must be of type `object` or null.');
+        return DEFAULT_SCROLLING_SETTINGS;
+      }
+      return {
+        frictionalForce: v.frictionalForce !== undefined && v.frictionalForce > 0 ? v.frictionalForce : DEFAULT_SCROLLING_SETTINGS.frictionalForce,
+        mass: v.mass !== undefined && v.mass > 0 ? v.mass : DEFAULT_SCROLLING_SETTINGS.mass,
+        maxDistance: v.maxDistance !== undefined && v.maxDistance > 0 ? v.maxDistance : DEFAULT_SCROLLING_SETTINGS.maxDistance,
+        maxDuration: v.maxDuration !== undefined && v.maxDuration > 0 ? v.maxDuration : DEFAULT_SCROLLING_SETTINGS.maxDuration,
+        speedScale: v.speedScale !== undefined && v.speedScale > 0 ? v.speedScale : DEFAULT_SCROLLING_SETTINGS.speedScale,
+        breakpointStoppingFactor: v.breakpointStoppingFactor !== undefined && v.breakpointStoppingFactor > 0 ? v.breakpointStoppingFactor : DEFAULT_SCROLLING_SETTINGS.breakpointStoppingFactor,
+        optimization: v.optimization ?? DEFAULT_SCROLLING_SETTINGS.optimization,
+      };
+    },
+  } as any;
+
+  /**
+   * Scrolling settings.
+   * - frictionalForce - Frictional force. Default value is 0.035.
+   * - mass - Mass. Default value is 0.005.
+   * - maxDistance - Maximum scrolling distance. Default value is 100000.
+   * - maxDuration - Maximum animation duration. Default value is 4000.
+   * - speedScale - Speed scale. Default value is 10.
+   * - breakpointStoppingFactor - Default value is 5.
+   * - optimization - Enables scrolling performance optimization. Default value is `true`.
+   */
+  scrollingSettings = input<IScrollingSettings>(DEFAULT_SCROLLING_SETTINGS, { ...this._scrollingSettingsOptions });
+
   protected _animationParamsOptions = {
     transform: (v: IAnimationParams) => {
       const valid = validateObject(v, true, true);
@@ -253,6 +333,24 @@ export class NtSliderComponent {
       return v;
     },
   } as any;
+
+  protected _snappingDistanceOptions = {
+    transform: (v: SnappingDistance | any) => {
+      const valid = validateString(v) || validateFloat(v);
+
+      if (!valid) {
+        console.error('The "snappingDistance" parameter must be of type `number` or `string`.');
+        return DEFAULT_SNAPPING_DISTANCE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Snapping activation distance. Can be specified as a percentage of the element size or in absolute values.
+   * The default value is `25%`.
+   */
+  snappingDistance = input<SnappingDistance>(DEFAULT_SNAPPING_DISTANCE, { ...this._snappingDistanceOptions });
 
   protected _langTextDirOptions = {
     transform: (v: TextDirection) => {
@@ -302,6 +400,9 @@ export class NtSliderComponent {
 
   protected _precalculatedScrollEndOffset = signal<number>(0);
 
+  protected _$valueChanges = new BehaviorSubject<number>(0);
+  readonly $valueChanges = this._$valueChanges.asObservable();
+
   protected _snapToItem: Signal<boolean>;
 
   protected _actualValue: Signal<number>;
@@ -320,6 +421,8 @@ export class NtSliderComponent {
   private _service = inject<INtSliderService>(SCROLL_VIEW_SERVICE);
 
   private _animationIds: Array<number> | number | null = null;
+
+  protected _destroyRef = inject(DestroyRef);
 
   constructor() {
     this._isVertical = computed(() => {
@@ -361,6 +464,14 @@ export class NtSliderComponent {
       }),
     ).subscribe();
 
+    this._service?.$intersectionElementBySnapToItemAlign?.pipe(
+      takeUntilDestroyed(),
+      filter(v => v !== null),
+      tap(id => {
+        this.onSnap.emit(id);
+      }),
+    ).subscribe();
+
     const $bounds = toObservable(this._bounds).pipe(
       filter(b => !!b),
     ),
@@ -372,6 +483,59 @@ export class NtSliderComponent {
       $max = toObservable(this.max),
       $min = toObservable(this.min),
       $step = toObservable(this.step);
+
+    $value.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._$valueChanges.next(v);
+        this.onChange.emit(v);
+      }),
+    ).subscribe();
+
+    $baseSlider.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      switchMap(baseSlider => combineLatest([$isVertical, $bounds, $step, $min, $max, $value, baseSlider.$scroll.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(true),
+      ), baseSlider.$wheel.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(true),
+      ), baseSlider.$scrollEnd.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(true),
+      ), this._service?.$intersectionElementBySnapToItemAlign.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(null),
+      )]).pipe(
+        takeUntilDestroyed(this._destroyRef),
+        tap(([isVertical, bounds, step, min, max, , , , , i]) => {
+          const size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
+            scrollSize = isVertical ? baseSlider!.scrollTop : baseSlider!.scrollLeft,
+            dist = max - min,
+            ns = step > max ? max : step < 0 ? 0 : step,
+            stepPX = ns > 0 ? ((size * ns) / dist) : 0;
+          let value: number;
+          if (stepPX > 0) {
+            const v = (scrollSize / stepPX);
+            value = min + v;
+            if (v == i) {
+              if (!Number.isNaN(value)) {
+                this._$valueChanges.next(value);
+                this.onChange.emit(value);
+              }
+            }
+          } else {
+            value = min + (scrollSize * dist / size);
+            if (!Number.isNaN(value)) {
+              this._$valueChanges.next(value);
+              this.onChange.emit(value);
+            }
+          }
+        }),
+      ),
+      ),
+    ).subscribe();
 
     combineLatest([$baseSlider, $step, $min, $max, $bounds, $isVertical]).pipe(
       takeUntilDestroyed(),

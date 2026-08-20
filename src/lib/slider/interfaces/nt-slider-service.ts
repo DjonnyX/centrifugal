@@ -1,5 +1,5 @@
 import { Observable } from "rxjs";
-import { TextDirection } from "../../common";
+import { Id, TextDirection } from "../../common";
 import { INtBaseScrollViewService } from "../../common/interfaces/nt-base-scroll-view-service";
 import { INtScroller } from "../../common/interfaces/nt-scroller";
 import { ISliderSteps } from "./slider-steps";
@@ -28,6 +28,8 @@ export interface INtSliderService extends INtBaseScrollViewService {
     set grabbing(v: boolean);
 
     readonly $tick: Observable<void>;
+
+    readonly $intersectionElementBySnapToItemAlign: Observable<Id | null>;
 
     update: (immediately?: boolean) => void;
 }
