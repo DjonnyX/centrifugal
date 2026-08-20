@@ -6,7 +6,7 @@ import {
   SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SnappingDistance, TextDirection, TextDirections,
 } from "../common";
 import { ISliderDragEvent, NtBaseSliderComponent, NtBaseSliderPublicService } from "../../public-api";
-import { DEFAULT_SIZE } from "./components/nt-base-slider/const";
+import { DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_SIZE } from "./components/nt-base-slider/const";
 import { DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLBAR_INTERACTIVE } from "../common/const/scroller";
 import {
   isPercentageValue, parseArithmeticExpression, toggleClassName, validateArray, validateBoolean, validateFloat, validateObject, validateString,
@@ -248,6 +248,57 @@ export class NtSliderComponent {
    * Defines the scrolling behavior for any element on the page. The default value is "smooth".
    */
   behavior = input<ScrollBehavior>(DEFAULT_SCROLL_BEHAVIOR, { ...this._behaviorOptions });
+
+  protected _motionBlurOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v);
+
+      if (!valid) {
+        console.error('The "motionBlur" parameter must be of type `number`.');
+        return DEFAULT_MOTION_BLUR;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Motion blur effect. The default value is `5`.
+   */
+  motionBlur = input<number>(DEFAULT_MOTION_BLUR, { ...this._motionBlurOptions });
+
+  protected _maxMotionBlurOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v);
+
+      if (!valid) {
+        console.error('The "maxMotionBlur" parameter must be of type `number`.');
+        return DEFAULT_MAX_MOTION_BLUR;
+      }
+      return v <= 0 ? DEFAULT_MAX_MOTION_BLUR : v;
+    },
+  } as any;
+
+  /**
+   * Maximum motion blur effect. The default value is `10`.
+   */
+  maxMotionBlur = input<number>(DEFAULT_MAX_MOTION_BLUR, { ...this._maxMotionBlurOptions });
+
+  protected _motionBlurEnabledOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "motionBlurEnabled" parameter must be of type `boolean`.');
+        return DEFAULT_MOTION_BLUR_ENABLED;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether to apply motion blur or not. The default value is `false`.
+   */
+  motionBlurEnabled = input<boolean>(DEFAULT_MOTION_BLUR_ENABLED, { ...this._motionBlurEnabledOptions });
 
   protected _scrollingSettingsOptions = {
     transform: (v: IScrollingSettings): IScrollingSettings | null => {

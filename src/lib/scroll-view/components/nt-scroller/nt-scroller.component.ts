@@ -8,7 +8,7 @@ import {
   Directions,
 } from '../../../common';
 import { NtBaseSliderComponent } from '../../../slider/components/nt-base-slider/nt-base-slider.component';
-import { BOTTOM, LEFT_PROP_NAME, PX, RIGHT, SCALE, TOP_PROP_NAME } from '../../../common/const/base-prop-names';
+import { BOTTOM, LEFT_PROP_NAME, PX, RIGHT, TOP_PROP_NAME } from '../../../common/const/base-prop-names';
 import { ISliderDragEvent } from '../../../slider/components/nt-base-slider/interfaces';
 import { IScrollToParams } from '../../../common/interfaces/scroll-to-params';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
@@ -17,13 +17,14 @@ import { ScrollBox } from '../../../common/utils/scroll-box';
 import {
   DEFAULT_MAX_MOTION_BLUR, DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
   DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS,
+  MOTION_BLUR,
 } from '../../../common/const/scroller';
 import { ANIMATED } from '../../../common/const/class-names';
+import { matrix3d } from '../../../common/utils/matrix-3d';
 
 const TOP = 'top',
   LEFT = 'left',
   INSTANT = 'instant',
-  MOTION_BLUR = 'motion-blur',
   FULL_SIZE = 'full-size';
 
 export const SCROLL_EVENT = new Event(SCROLLER_SCROLL);
@@ -234,7 +235,7 @@ export class NtScrollerComponent extends NtScrollView {
           sy = viewportBounds.height !== 0 ? (dy !== 0 ? Math.pow((dy + viewportBounds.height) / viewportBounds.height, 0.1) : 1) : 1;
         this.wrapperClass.set({ [ANIMATED]: !e.grabbing });
         this.wrapperStyles.set({
-          transform: `${SCALE}(${sx > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sx}, ${sy > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sy})`,
+          transform: matrix3d(0, 0, 0, sx > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sx, sy > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sy, 1, 0, 0, 0),
           transformOrigin: `${e.positionX === 1 ? RIGHT : LEFT} ${e.positionY === 1 ? BOTTOM : TOP}`,
         });
       }),

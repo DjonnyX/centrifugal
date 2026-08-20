@@ -1,9 +1,10 @@
-import { Component, computed, effect, inject, input, output, Signal, signal, TemplateRef, viewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild } from '@angular/core';
 import { combineLatest, debounceTime, filter, fromEvent, of, startWith, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ISliderDragEvent, ISliderTemplateContext } from './interfaces';
 import {
-  DEFAULT_SIZE, DEFAULT_THICKNESS, HEIGHT, NONE, OPACITY, OPACITY_0, OPACITY_1, PX, TRANSITION, TRANSITION_FADE_IN, WIDTH,
+  DEFAULT_MOTION_BLUR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_SIZE, DEFAULT_THICKNESS, HEIGHT, NONE, OPACITY, OPACITY_0, OPACITY_1, PX,
+  TRANSITION, TRANSITION_FADE_IN, WIDTH, DEFAULT_MOTION_BLUR_ENABLED,
 } from './const';
 import { NtBaseSliderService } from './nt-base-slider.service';
 import { NtBaseSliderPublicService } from './nt-base-slider-public.service';
@@ -17,7 +18,7 @@ import {
   LEFT, POSITION, POSITION_ABSOLUTE, POSITION_RELATIVE, RIGHT, TOP, BOTTOM, ZERO_PX, UNSET, SIZE_AUTO, SIZE_100_PERSENT,
 } from '../../../common/const/base-prop-names';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
-import { DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE } from '../../../common/const/scroller';
+import { DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE, MOTION_BLUR } from '../../../common/const/scroller';
 import { POINTER_DOWN, POINTER_ENTER, POINTER_LEAVE, POINTER_UP } from '../../../common/const/event-names';
 
 /**
@@ -43,6 +44,8 @@ import { POINTER_DOWN, POINTER_ENTER, POINTER_LEAVE, POINTER_UP } from '../../..
 export class NtBaseSliderComponent extends NtScrollView {
   protected _defaultRenderer = viewChild<TemplateRef<any>>('defaultRenderer');
 
+  readonly filter = viewChild<ElementRef<SVGFEGaussianBlurElement>>('filter');
+
   protected _sliderService = inject(NtBaseSliderService);
 
   private _apiService = inject(NtBaseSliderPublicService);
@@ -67,6 +70,12 @@ export class NtBaseSliderComponent extends NtScrollView {
 
   readonly overlapping = input<boolean>(DEFAULT_OVERLAPPING_SCROLLBAR);
 
+  readonly motionBlur = input<number | 'disabled'>(DEFAULT_MOTION_BLUR);
+
+  readonly maxMotionBlur = input<number>(DEFAULT_MAX_MOTION_BLUR);
+
+  readonly motionBlurEnabled = input<boolean>(DEFAULT_MOTION_BLUR_ENABLED);
+
   readonly show = input<boolean>(false);
 
   readonly params = input<{ [propName: string]: any } | null>({});
@@ -87,11 +96,50 @@ export class NtBaseSliderComponent extends NtScrollView {
 
   protected readonly thumbHeight: Signal<number>;
 
+  public readonly wrapperStyles = signal<{ [styleName: string]: string; }>({});
+
+  public readonly wrapperClass = signal<{ [className: string]: boolean; }>({});
+
   private _$scrollingCancel = new Subject<void>();
   protected readonly $scrollingCancel = this._$scrollingCancel.asObservable();
 
+  protected _filterId: string;
+
+  protected _filter: string;
+
   constructor() {
     super();
+
+    this._filterId = `${this._service.id}-${MOTION_BLUR}`;
+    this._filter = `url(#${this._filterId})`;
+
+    const $filter = toObservable(this.filter),
+      $motionBlur = toObservable(this.motionBlur),
+      $maxMotionBlur = toObservable(this.maxMotionBlur),
+      $motionBlurEnabled = toObservable(this.motionBlurEnabled),
+      $isVertical = toObservable(this.isVertical),
+      $resizeViewport = this.$resizeViewport;
+
+    const $averageVelocity = this.$averageVelocity;
+    combineLatest([$isVertical, $averageVelocity, $filter, $motionBlurEnabled, $motionBlur, $maxMotionBlur, $resizeViewport.pipe(
+      takeUntilDestroyed(this._destroyRef),
+      startWith(null),
+    )]).pipe(
+      takeUntilDestroyed(),
+      filter(([, , f, e, mb]) => !!f && (!!e && mb !== 0)),
+      debounceTime(0),
+      tap(([isVertical, v, filter, , mb, mbMax]) => {
+        if (this._disableAlignment) {
+          this.dropVelocity();
+        }
+        const _v = v * (mb as number), value = _v > mbMax ? mbMax : _v;
+        filter!.nativeElement.setStdDeviation(isVertical ? 0 : v * value, isVertical ? v * value : 0);
+      }),
+      debounceTime(50),
+      tap(([, , filter, ,]) => {
+        filter!.nativeElement.setStdDeviation(0, 0);
+      }),
+    ).subscribe();
 
     this.templateContext = computed(() => {
       const context: ISliderTemplateContext = {

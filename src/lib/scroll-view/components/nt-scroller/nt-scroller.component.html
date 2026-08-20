@@ -19,14 +19,20 @@
                     </div>
                 </div>
             </div>
-            <nt-overscroll-container class="ntoa" dir="ltr" [bounds]="viewportBounds()" [leftOffset]="_leftOffset()" [topOffset]="_topOffset()"
-                [rightOffset]="_rightOffset()" [bottomOffset]="_bottomOffset()" [overscrollEvent]="$overscroll | async"
-                [leftIndicatorEnabled]="_actualOverscrollAreaLeftEnabled()" [topIndicatorEnabled]="_actualOverscrollAreaTopEnabled()"
-                [rightIndicatorEnabled]="_actualOverscrollAreaRightEnabled()" [bottomIndicatorEnabled]="_actualOverscrollAreaBottomEnabled()"
-                [leftIndicatorRenderer]="overscrollAreaLeftRenderer()" [topIndicatorRenderer]="overscrollAreaTopRenderer()"
-                [rightIndicatorRenderer]="overscrollAreaRightRenderer()" [bottomIndicatorRenderer]="overscrollAreaBottomRenderer()"
-                (onLeftAreaTrigger)="onLeftOverscrollAreaTrigger.emit($event)" (onTopAreaTrigger)="onTopOverscrollAreaTrigger.emit($event)" 
-                (onRightAreaTrigger)="onRightOverscrollAreaTrigger.emit($event)" (onBottomAreaTrigger)="onBottomOverscrollAreaTrigger.emit($event)"/>
+            <nt-overscroll-container class="ntoa" dir="ltr" [bounds]="viewportBounds()" [leftOffset]="_leftOffset()"
+                [topOffset]="_topOffset()" [rightOffset]="_rightOffset()" [bottomOffset]="_bottomOffset()"
+                [overscrollEvent]="$overscroll | async" [leftIndicatorEnabled]="_actualOverscrollAreaLeftEnabled()"
+                [topIndicatorEnabled]="_actualOverscrollAreaTopEnabled()"
+                [rightIndicatorEnabled]="_actualOverscrollAreaRightEnabled()"
+                [bottomIndicatorEnabled]="_actualOverscrollAreaBottomEnabled()"
+                [leftIndicatorRenderer]="overscrollAreaLeftRenderer()"
+                [topIndicatorRenderer]="overscrollAreaTopRenderer()"
+                [rightIndicatorRenderer]="overscrollAreaRightRenderer()"
+                [bottomIndicatorRenderer]="overscrollAreaBottomRenderer()"
+                (onLeftAreaTrigger)="onLeftOverscrollAreaTrigger.emit($event)"
+                (onTopAreaTrigger)="onTopOverscrollAreaTrigger.emit($event)"
+                (onRightAreaTrigger)="onRightOverscrollAreaTrigger.emit($event)"
+                (onBottomAreaTrigger)="onBottomOverscrollAreaTrigger.emit($event)" />
         </foreignObject>
     </svg>
     @if (scrollbarEnabled()) {
@@ -39,7 +45,8 @@
                 [interactive]="scrollbarInteractive()" [show]="scrollbarVerticalEnabled() && scrollbarEnabled() && prepared"
                 [startOffset]="topOffset()" [endOffset]="bottomOffset()" [langTextDir]="textDir"
                 [overscrollEnabled]="overscrollEnabled()" [scrollBehavior]="scrollBehavior()"
-                [sliderMinSize]="scrollbarMinSize()" (onDrag)="onScrollBarDragHandler($event)"
+                [sliderMinSize]="scrollbarMinSize()" [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()"
+                [motionBlurEnabled]="filtered" (onDrag)="onScrollBarDragHandler($event)"
                 (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-base-slider>
         }
         @if (scrollbarHorizontalEnabled()) {
@@ -50,7 +57,8 @@
                 [interactive]="scrollbarInteractive()" [show]="scrollbarHorizontalEnabled() && scrollbarEnabled() && prepared"
                 [startOffset]="leftOffset()" [endOffset]="rightOffset()" [langTextDir]="textDir"
                 [overscrollEnabled]="overscrollEnabled()" [scrollBehavior]="scrollBehavior()"
-                [sliderMinSize]="scrollbarMinSize()" (onDrag)="onScrollBarDragHandler($event)"
+                [sliderMinSize]="scrollbarMinSize()" [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()"
+                [motionBlurEnabled]="filtered" (onDrag)="onScrollBarDragHandler($event)"
                 (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-base-slider>
         }
     }

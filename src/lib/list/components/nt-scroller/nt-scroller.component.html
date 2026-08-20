@@ -17,14 +17,20 @@
                     </div>
                 </div>
             </div>
-            <nt-overscroll-container class="ntoa" dir="ltr" [bounds]="viewportBounds()" [leftOffset]="_leftOffset()" [topOffset]="_topOffset()"
-                [rightOffset]="_rightOffset()" [bottomOffset]="_bottomOffset()" [overscrollEvent]="$overscroll | async"
-                [leftIndicatorEnabled]="_actualOverscrollAreaLeftEnabled()" [topIndicatorEnabled]="_actualOverscrollAreaTopEnabled()"
-                [rightIndicatorEnabled]="_actualOverscrollAreaRightEnabled()" [bottomIndicatorEnabled]="_actualOverscrollAreaBottomEnabled()"
-                [leftIndicatorRenderer]="overscrollAreaStartRenderer()" [topIndicatorRenderer]="overscrollAreaStartRenderer()"
-                [rightIndicatorRenderer]="overscrollAreaEndRenderer()" [bottomIndicatorRenderer]="overscrollAreaEndRenderer()"
-                (onLeftAreaTrigger)="onLeftOverscrollAreaTrigger.emit($event)" (onTopAreaTrigger)="onTopOverscrollAreaTrigger.emit($event)" 
-                (onRightAreaTrigger)="onRightOverscrollAreaTrigger.emit($event)" (onBottomAreaTrigger)="onBottomOverscrollAreaTrigger.emit($event)"/>
+            <nt-overscroll-container class="ntoa" dir="ltr" [bounds]="viewportBounds()" [leftOffset]="_leftOffset()"
+                [topOffset]="_topOffset()" [rightOffset]="_rightOffset()" [bottomOffset]="_bottomOffset()"
+                [overscrollEvent]="$overscroll | async" [leftIndicatorEnabled]="_actualOverscrollAreaLeftEnabled()"
+                [topIndicatorEnabled]="_actualOverscrollAreaTopEnabled()"
+                [rightIndicatorEnabled]="_actualOverscrollAreaRightEnabled()"
+                [bottomIndicatorEnabled]="_actualOverscrollAreaBottomEnabled()"
+                [leftIndicatorRenderer]="overscrollAreaStartRenderer()"
+                [topIndicatorRenderer]="overscrollAreaStartRenderer()"
+                [rightIndicatorRenderer]="overscrollAreaEndRenderer()"
+                [bottomIndicatorRenderer]="overscrollAreaEndRenderer()"
+                (onLeftAreaTrigger)="onLeftOverscrollAreaTrigger.emit($event)"
+                (onTopAreaTrigger)="onTopOverscrollAreaTrigger.emit($event)"
+                (onRightAreaTrigger)="onRightOverscrollAreaTrigger.emit($event)"
+                (onBottomAreaTrigger)="onBottomOverscrollAreaTrigger.emit($event)" />
         </foreignObject>
     </svg>
     @if (scrollbarEnabled()) {
@@ -35,7 +41,8 @@
             [thumbGradientPositions]="thumbGradientPositions()" [prepared]="prepared" [interactive]="scrollbarInteractive()"
             [show]="scrollbarShow() && scrollbarEnabled() && prepared" [startOffset]="startOffset()"
             [endOffset]="endOffset()" [langTextDir]="langTextDir()" [overscrollEnabled]="overscrollEnabled()"
-            [scrollBehavior]="scrollBehavior()" [sliderMinSize]="scrollbarMinSize()"
+            [scrollBehavior]="scrollBehavior()" [sliderMinSize]="scrollbarMinSize()" [motionBlur]="motionBlur()"
+            [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="filtered"
             (onDrag)="onScrollBarDragHandler($event)" (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-base-slider>
     }
 </div>

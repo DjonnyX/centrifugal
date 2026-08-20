@@ -1,6 +1,8 @@
 <nt-base-reseted-slider #baseSlider class="nt-slider" part="nt-slider" [params]="params()" [show]="true"
     [direction]="direction()" [prepared]="true" [overlapping]="false" [interactive]="interactive()"
+    [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()"
     [scrollingSettings]="scrollingSettings()" [snappingDistance]="snappingDistance()" [snapToItem]="_snapToItem()"
-    snapToItemAlign="start" [sliderMinSize]="thumbSize()" [thickness]="_thickness()" [size]="_size()" [overscrollEnabled]="overscrollEnabled()"
-    [langTextDir]="langTextDir()" [thumbGradientPositions]="_thumbGradientPositions()" [renderer]="renderer()"
-    (onDrag)="onDragHandler($event)" (onDragEnd)="onDragEndHandler($event)"></nt-base-reseted-slider>
+    snapToItemAlign="start" [sliderMinSize]="thumbSize()" [thickness]="_thickness()" [size]="_size()"
+    [overscrollEnabled]="overscrollEnabled()" [langTextDir]="langTextDir()"
+    [thumbGradientPositions]="_thumbGradientPositions()" [renderer]="renderer()" (onDrag)="onDragHandler($event)"
+    (onDragEnd)="onDragEndHandler($event)"></nt-base-reseted-slider>

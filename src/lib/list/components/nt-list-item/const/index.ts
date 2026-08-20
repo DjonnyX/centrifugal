@@ -1,4 +1,4 @@
-import { matrix3d } from "../utils";
+import { matrix3d } from "../../../../common/utils/matrix-3d";
 
 export const ID = 'id',
     NTVL_VISIBILITY = 'ntvl-visibility',
