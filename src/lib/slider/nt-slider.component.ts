@@ -511,19 +511,17 @@ export class NtSliderComponent {
         takeUntilDestroyed(this._destroyRef),
         tap(([isVertical, bounds, step, min, max, , , , , i]) => {
           const size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
-            scrollSize = isVertical ? baseSlider!.scrollTop : baseSlider!.scrollLeft,
+            scrollSize = Math.round(isVertical ? baseSlider!.scrollTop : baseSlider!.scrollLeft),
             dist = max - min,
             ns = step > max ? max : step < 0 ? 0 : step,
             stepPX = ns > 0 ? ((size * ns) / dist) : 0;
           let value: number;
           if (stepPX > 0) {
-            const v = (scrollSize / stepPX);
-            value = min + v;
-            if (v == i) {
-              if (!Number.isNaN(value)) {
-                this._$valueChanges.next(value);
-                this.onChange.emit(value);
-              }
+            const v = (scrollSize / stepPX) * step;
+            value = Math.round((min + v) / step) * step;
+            if (!Number.isNaN(value)) {
+              this._$valueChanges.next(value);
+              this.onChange.emit(value);
             }
           } else {
             value = min + (scrollSize * dist / size);
