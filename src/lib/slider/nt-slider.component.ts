@@ -509,7 +509,7 @@ export class NtSliderComponent {
         debounceTime(0),
         tap(([isVertical, bounds, step, min, max, , , , , i]) => {
           const size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
-            scrollSize = Math.round(isVertical ? baseSlider!.scrollTop : baseSlider!.scrollLeft),
+            scrollSize = isVertical ? baseSlider!.scrollTop : baseSlider!.scrollLeft,
             dist = max - min,
             ns = step > max ? max : step < 0 ? 0 : step,
             stepPX = ns > 0 ? ((size * ns) / dist) : 0;
