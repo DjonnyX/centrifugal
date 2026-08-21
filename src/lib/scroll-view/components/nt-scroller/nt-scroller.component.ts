@@ -586,6 +586,8 @@ export class NtScrollerComponent extends NtScrollView {
 
   protected override stopMoving() {
     super.stopMoving();
+    this.stopScrollbar(false);
+    this.stopScrollbar(true);
     this.dropVelocity();
   }
 

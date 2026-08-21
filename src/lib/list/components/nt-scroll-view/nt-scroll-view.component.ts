@@ -3,7 +3,10 @@ import {
 } from '@angular/core';
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, combineLatest, debounceTime, delay, filter, fromEvent, map, of, race, startWith, Subject, switchMap, takeUntil, tap } from 'rxjs';
+import {
+    BehaviorSubject, combineLatest, debounceTime, delay, filter, fromEvent, map, of, race, startWith, Subject, switchMap,
+    takeUntil, tap,
+} from 'rxjs';
 import {
     DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLLING_ONE_BY_ONE, DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, DEFAULT_SNAPPING_DISTANCE,
 } from '../../const';
@@ -18,8 +21,8 @@ import { IAnimationParams } from '../../interfaces';
 import { SnapToItemAligns } from '../../enums';
 import { calculateVelocity } from './utils/calculate-velocity';
 import {
-    CONTROL_CONTAINER_SERVICE, Id, IScrollingSettings, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirections,
-    SnappingDistance, SnapToItemAlign, ScrollDirection,
+    CONTROL_CONTAINER_SERVICE, Id, IScrollingSettings, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_USER_INTERACTION_ENABLED,
+    TextDirections, SnappingDistance, SnapToItemAlign, ScrollDirection,
 } from '../../../common';
 import { Animator, ANIMATOR_MIN_TIMESTAMP, easeOutQuad, Easing, isPercentageValue, parseFloatOrPersentageValue } from '../../../common/utils';
 import { INtControlContainerService } from '../../../control-container/interfaces';
@@ -325,7 +328,7 @@ export class NtScrollView extends NtBaseScrollView {
                                 dragY = isVertical ? delta : 0;
                             this._dragX += !isVertical && this.scrollable && (this._x <= 0 || this._x >= this.scrollWidth) ? Math.abs(dragX) : 0;
                             this._dragY += isVertical && this.scrollable && (this._y <= 0 || this._y >= this.scrollHeight) ? Math.abs(dragY) : 0;
-                            this._scrollRatioWhenGrabbing = Math.sign(-dragX) < 0 ? 1 : 0;
+                            this._scrollRatioWhenGrabbing = Math.sign(-(isVertical ? dragY : dragX)) < 0 ? 1 : 0;
                             this.checkOverscroll(e, true);
                             const position = this.isInfinity() ? dp : (dp < 0 ? 0 : dp > scrollSize ? scrollSize : dp);
                             this.scroll({ [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: position, behavior: BEHAVIOR_INSTANT, userAction: true, blending: false, fireUpdate: true });
