@@ -9,10 +9,11 @@ import { ISliderDragEvent, NtBaseSliderComponent, NtBaseSliderPublicService } fr
 import { DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_SIZE } from "./components/nt-base-slider/const";
 import { DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLBAR_INTERACTIVE } from "../common/const/scroller";
 import {
-  isPercentageValue, parseArithmeticExpression, toggleClassName, validateArray, validateBoolean, validateFloat, validateObject, validateString,
+  isPercentageValue, parseArithmeticExpression, toggleClassName, validateBoolean, validateFloat, validateObject, validateString,
 } from "../common/utils";
 import {
-  DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SLIDER_DIRECTION, DEFAULT_SNAPPING_DISTANCE, DEFAULT_THUMB_GRADIENT_POSITIONS,
+  DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SLIDER_DIRECTION, DEFAULT_SNAPPING_DISTANCE,
+  DEFAULT_THUMB_GRADIENT_POSITIONS,
 } from './const';
 import { IAnimationParams, INtSliderService, ISliderStep, ISliderSteps } from './interfaces';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
@@ -67,12 +68,12 @@ export class NtSliderComponent {
   /**
    * Triggers an event with a step ID when the step moves the specified distance.
    */
-  onSnap = output<Id>();
+  readonly onSnap = output<Id>();
 
   /**
    * Triggers an event when the value changes.
    */
-  onChange = output<number>();
+  readonly onChange = output<number>();
 
   protected _directionOptions = {
     transform: (v: Direction) => {
@@ -103,26 +104,9 @@ export class NtSliderComponent {
   } as any;
 
   /**
-   * Determines whether the overscroll (re-scroll) feature will work. The default value is "true".
+   * Determines whether the overscroll (re-scroll) feature will work. The default value is "false".
    */
   overscrollEnabled = input<boolean>(DEFAULT_OVERSCROLL_ENABLED, { ...this._overscrollEnabledOptions });
-
-  protected _thumbGradientPositionsOptions = {
-    transform: (v: GradientColorPositions) => {
-      const valid = validateArray(v) && (validateFloat(v?.[0] as number) || validateString(v?.[0] as string)) &&
-        (validateFloat(v?.[1] as number) || validateString(v?.[1] as string));
-      if (!valid) {
-        console.error('The "thumbGradientPositions" parameter must be of type `GradientColorPositions` with a range from 0 to 1.');
-        return DEFAULT_THUMB_GRADIENT_POSITIONS;
-      }
-      return v;
-    },
-  } as any;
-
-  /**
-   * Gradient fill offset boundaries. Can be specified in the range from 0 to 1 or from "0%" to "100%".
-   */
-  thumbGradientPositions = input<GradientColorPositions>(DEFAULT_THUMB_GRADIENT_POSITIONS, { ...this._thumbGradientPositionsOptions });
 
   protected _valueOptions = {
     transform: (v: number) => {
@@ -168,7 +152,7 @@ export class NtSliderComponent {
   } as any;
 
   /**
-   * Slider max value. Default max value is `0`.
+   * Slider max value. Required.
    */
   max = input.required<number>({ ...this._maxOptions });
 
@@ -200,7 +184,7 @@ export class NtSliderComponent {
   } as any;
 
   /**
-   * Determines whether the slider will respond to user interaction or not. The default value is true.
+   * Determines whether the slider will respond to user interaction or not. The default value is `true`.
    */
   interactive = input<boolean>(DEFAULT_SCROLLBAR_INTERACTIVE, { ...this._interactiveOptions });
 
@@ -231,6 +215,12 @@ export class NtSliderComponent {
       return v;
     },
   } as any;
+
+  /**
+   * Sets the scroll end offset value. Can be specified in absolute or percentage values.
+   * Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0".
+   */
+  scrollEndOffset = input<ArithmeticExpression>(0, { ...this._scrollEndOffsetOptions });
 
   protected _behaviorOptions = {
     transform: (v: ScrollBehavior) => {
@@ -364,7 +354,7 @@ export class NtSliderComponent {
    * - maxDistance - Maximum scrolling distance. Default value is 100000.
    * - maxDuration - Maximum animation duration. Default value is 4000.
    * - speedScale - Speed scale. Default value is 10.
-   * - breakpointStoppingFactor - Default value is 5.
+   * - breakpointStoppingFactor - Default value is 10.
    * - optimization - Enables scrolling performance optimization. Default value is `true`.
    */
   scrollingSettings = input<IScrollingSettings>(DEFAULT_SCROLLING_SETTINGS, { ...this._scrollingSettingsOptions });
@@ -383,6 +373,11 @@ export class NtSliderComponent {
       return v;
     },
   } as any;
+
+  /**
+   * Animation parameters. The default value is "{ scroll: 500 }".
+   */
+  animationParams = input<IAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
 
   protected _snappingDistanceOptions = {
     transform: (v: SnappingDistance | any) => {
@@ -455,17 +450,6 @@ export class NtSliderComponent {
    * Default value is `true`.
    */
   autoThumbSize = input<boolean>(true, { ...this._autoThumbSizeOptions });
-
-  /**
-   * Animation parameters. The default value is "{ scroll: 150 }".
-   */
-  animationParams = input<IAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
-
-  /**
-   * Sets the scroll end offset value. Can be specified in absolute or percentage values.
-   * Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0".
-   */
-  scrollEndOffset = input<ArithmeticExpression>(0, { ...this._scrollEndOffsetOptions });
 
   /**
    * Extra parameters that will be passed to the custom thumb renderer.
