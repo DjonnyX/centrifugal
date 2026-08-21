@@ -318,6 +318,11 @@ export class NtScrollView extends NtBaseScrollView {
                         filter(() => this._interactive),
                         takeUntilDestroyed(this._destroyRef),
                         tap(e => {
+                            if (!this.scrollable) {
+                                return;
+                            }
+                            this._isMoving = true;
+                            this._grabbing.set(true);
                             const isVertical = this.isVertical();
                             this.emitScrollableEvent();
                             this.stopScrolling(true);
