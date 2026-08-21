@@ -603,7 +603,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
       const valid = validateString(v, true, true);
 
       if (!valid) {
-        console.error('The "scrollBehavior" parameter must be of type `boolean`.');
+        console.error('The "scrollBehavior" parameter must be of type `ScrollBehavior`.');
         return DEFAULT_SCROLL_BEHAVIOR;
       }
       return v;
@@ -679,6 +679,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
    * - maxDistance - Maximum scrolling distance. Default value is 100000.
    * - maxDuration - Maximum animation duration. Default value is 4000.
    * - speedScale - Speed scale. Default value is 10.
+   * - breakpointStoppingFactor - Default value is 0.01.
    * - optimization - Enables scrolling performance optimization. Default value is `true`.
    */
   scrollingSettings = input<IScrollingSettings>(DEFAULT_SCROLLING_SETTINGS, { ...this._scrollingSettingsOptions });

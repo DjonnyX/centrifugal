@@ -1,24 +1,25 @@
 import { Component, computed, effect, ElementRef, input, output, Signal, signal, TemplateRef, viewChild, ViewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, debounceTime, filter, Subject, tap } from 'rxjs';
-import { ScrollBox } from './utils';
 import {
   SCROLLER_SCROLL,
 } from '../../const';
 import { NtScrollView } from '../nt-scroll-view';
 import { GradientColorPositions, Id, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_TYPE } from '../../../common';
-import { TOP_PROP_NAME, LEFT_PROP_NAME, PX, RIGHT, BOTTOM, SCALE } from '../../../common/const/base-prop-names';
+import { TOP_PROP_NAME, LEFT_PROP_NAME, PX, RIGHT, BOTTOM } from '../../../common/const/base-prop-names';
 import { NtBaseSliderComponent } from '../../../slider/components/nt-base-slider/nt-base-slider.component';
 import { ISliderDragEvent } from '../../../slider/components/nt-base-slider/interfaces';
 import { IListScrollToParams } from '../../../common/interfaces/list-scroll-to-params';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
 import { BEHAVIOR_INSTANT } from '../../../common/const/behavior';
+import { ScrollBox } from '../../../common/utils/scroll-box';
 import {
   DEFAULT_MAX_MOTION_BLUR, DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED,
   DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE,
   DEFAULT_SCROLLBAR_THICKNESS,
 } from '../../../common/const/scroller';
 import { ANIMATED } from '../../../common/const/class-names';
+import { matrix3d } from '../../../common/utils/matrix-3d';
 
 const TOP = 'top',
   LEFT = 'left',
@@ -221,7 +222,7 @@ export class NtScrollerComponent extends NtScrollView {
           sy = viewportBounds.height !== 0 ? (dy !== 0 ? Math.pow((dy + viewportBounds.height) / viewportBounds.height, 0.1) : 1) : 1;
         this.wrapperClass.set({ [ANIMATED]: !e.grabbing });
         this.wrapperStyles.set({
-          transform: `${SCALE}(${sx > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sx}, ${sy > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sy})`,
+          transform: matrix3d(0, 0, 0, sx > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sx, sy > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sy, 1, 0, 0, 0),
           transformOrigin: `${e.positionX === 1 ? RIGHT : LEFT} ${e.positionY === 1 ? BOTTOM : TOP}`,
         });
       }),
@@ -466,14 +467,14 @@ export class NtScrollerComponent extends NtScrollView {
   startScrollTo() {
     this.stopScrollbar();
     this.stopScrolling(true);
-    this._scrollDirection.clear();
+    this.scrollDirection = 0;
     this.dropVelocity();
     this._isScrollsTo = true;
   }
 
   finishedScrollTo() {
     this._isScrollsTo = false;
-    this._scrollDirection.clear();
+    this.scrollDirection = 0;
     this.dropVelocity();
     this.checkIntersectionComponent();
     this.fireScrollEvent(true);
@@ -551,7 +552,7 @@ export class NtScrollerComponent extends NtScrollView {
     if (!isEdge) {
       this.alignPosition();
     }
-    this._scrollDirection.clear();
+    this.scrollDirection = 0;
     this._$scrollbarScroll.next(true);
     this.fireScrollEvent(true);
   }

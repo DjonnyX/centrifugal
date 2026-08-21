@@ -2,13 +2,13 @@ import { ChangeDetectionStrategy, Component, computed, input, Signal, signal, Vi
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, from, tap } from 'rxjs';
 import { NtBaseScrollView } from '../../../nt-scroll-view/base';
-import { ScrollBox } from '../../../nt-scroller/utils';
 import { SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED } from '../../../../../common';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from '../../../../../common/const/base-prop-names';
 import { NtBaseSliderComponent } from '../../../../../slider/components/nt-base-slider/nt-base-slider.component';
 import { IScrollToParams } from '../../../../../common/interfaces/scroll-to-params';
 import { BEHAVIOR_INSTANT } from '../../../../../common/const/behavior';
 import { DEFAULT_SCROLLBAR_ENABLED } from '../../../../../common/const/scroller';
+import { ScrollBox } from '../../../../../common/utils/scroll-box';
 
 /**
  * NtPrerenderScrollerComponent

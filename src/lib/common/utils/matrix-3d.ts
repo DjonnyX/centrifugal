@@ -1,6 +1,6 @@
 /**
  * matrix3d
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/components/ng-list-item/utils/matrix-3d.ts
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/utils/matrix-3d.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */

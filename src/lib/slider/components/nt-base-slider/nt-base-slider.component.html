@@ -1,12 +1,28 @@
 @let grab = grabbing();
-<div #scrollViewport class="track" part="nt-scrollbar-track" [ngStyle]="styles()" [ngClass]="{grabbing: grab}">
-    <div #scrollContent class="thumb" part="nt-scrollbar-thumb" [class.horizontal]="!isVertical()"
-        (pointerdown)="click($event)">
-        <ng-container [ngTemplateOutlet]="thumbRenderer()" [ngTemplateOutletContext]="templateContext()" />
-    </div>
+@let filtered = motionBlurEnabled();
+<div class="ntbs__container" [ngStyle]="styles()">
+    <svg part="nt-slider-viewport" class="ntbs__viewport" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink">
+        <filter [id]="_filterId">
+            <feGaussianBlur #filter></feGaussianBlur>
+        </filter>
+        <foreignObject xmlns="http://www.w3.org/1999/xhtml" width="100%" height="100%" class="ntbs__viewport">
+            <div class="ntbs__slider-wrapper" [class.filtered]="filtered"
+                [style.filter]="filtered ? _filter : 'unset'" [ngStyle]="wrapperStyles()" [ngClass]="wrapperClass()">
+                <div #scrollViewport class="track" part="nt-slider-track" [ngStyle]="styles()"
+                    [ngClass]="{grabbing: grab}">
+                    <div #scrollContent class="thumb" part="nt-slider-thumb" [class.horizontal]="!isVertical()"
+                        (pointerdown)="click($event)">
+                        <ng-container [ngTemplateOutlet]="thumbRenderer()"
+                            [ngTemplateOutletContext]="templateContext()" />
+                    </div>
+                </div>
+            </div>
+        </foreignObject>
+    </svg>
 </div>
 
 <ng-template #defaultRenderer let-api="api" let-width="width" let-height="height" let-fillPositions="fillPositions"
     let-params="params">
-    <div class="shape" part="nt-scrollbar-thumb__shape" [style.width.px]="width" [style.height.px]="height"></div>
+    <div class="shape" part="nt-slider-thumb__shape" [style.width.px]="width" [style.height.px]="height"></div>
 </ng-template>

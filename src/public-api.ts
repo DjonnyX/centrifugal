@@ -6,6 +6,7 @@ export {
     NtListComponent,
     NtListPublicService,
 } from './lib/list';
+
 export type {
     INtListService,
     IVirtualListCollection,
@@ -22,16 +23,25 @@ export {
     NtScrollViewService,
     NtBaseOverscrollAreaComponent,
 } from './lib/scroll-view';
+
 export type {
     INtScrollViewService,
     INtOverscrollAreaPublicApi,
 } from './lib/scroll-view';
 
 /*
- * Public API Surface of NtScrollBar
+ * Public API Surface of NtSlider
  */
 export {
+    NtSliderComponent,
+    NtSliderModule,
+    NtBaseSliderComponent,
     NtBaseSliderPublicService,
+} from './lib/slider';
+
+export type {
+    ISliderDragEvent,
+    ISliderTemplateContext,
 } from './lib/slider';
 
 /*
@@ -41,6 +51,7 @@ export {
     NtDrawerContainerModule,
     NtDrawerContainerComponent,
 } from './lib/drawer-container';
+
 export type {
     INtDrawerContainerService,
 } from './lib/drawer-container';
@@ -52,6 +63,7 @@ export {
     NtControlContainerModule,
     NtControlContainerComponent,
 } from './lib/control-container';
+
 export type {
     INtControlContainerService,
 } from './lib/control-container';
@@ -64,6 +76,7 @@ export {
     NtSheetComponent,
     SheetPositions,
 } from './lib/sheet';
+
 export type {
     INtSheetBreakpoints,
     INtSheetBreakpoint,

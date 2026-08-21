@@ -116,7 +116,7 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     protected _$resizeViewport = new Subject<ISize>();
     readonly $resizeViewport = this._$resizeViewport.asObservable();
-  
+
     protected _$resizeContent = new Subject<ISize>();
     readonly $resizeContent = this._$resizeContent.asObservable();
 
@@ -232,9 +232,9 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
             startOffset = this.startOffset(),
             endOffset = this.endOffset();
         if (this._inversion) {
-            return contentWidth > viewportWidth ? isVertical ? 0 : endOffset : (viewportWidth - (contentWidth + this.alignmentEndOffset()));
+            return contentWidth > viewportWidth ? (isVertical ? 0 : endOffset) : (viewportWidth - (contentWidth + this.alignmentEndOffset()));
         }
-        return contentWidth < viewportWidth ? isVertical ? 0 : startOffset : ((contentWidth + this.alignmentEndOffset()) - viewportWidth);
+        return contentWidth < viewportWidth ? (isVertical ? 0 : startOffset) : ((contentWidth + this.alignmentEndOffset()) - viewportWidth);
     }
 
     get scrollHeight() {
@@ -244,9 +244,9 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
             startOffset = this.startOffset(),
             endOffset = this.endOffset();
         if (this._inversion) {
-            return contentHeight > viewportHeight ? isVertical ? endOffset : 0 : (viewportHeight - (contentHeight + this.alignmentEndOffset()));
+            return contentHeight > viewportHeight ? (isVertical ? endOffset : 0) : (viewportHeight - (contentHeight + this.alignmentEndOffset()));
         }
-        return contentHeight < viewportHeight ? isVertical ? startOffset : 0 : ((contentHeight + this.alignmentEndOffset()) - viewportHeight);
+        return contentHeight < viewportHeight ? (isVertical ? startOffset : 0) : ((contentHeight + this.alignmentEndOffset()) - viewportHeight);
     }
 
     readonly viewportBounds = signal<ISize>({ width: 0, height: 0 });

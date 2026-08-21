@@ -16,11 +16,10 @@ import { calculateDirection, matrix3d } from './utils';
 import { NtBaseScrollView } from './base';
 import { IAnimationParams } from '../../interfaces';
 import { SnapToItemAligns } from '../../enums';
-import { ScrollingDirection } from '../../utils/scrolling-direction';
 import { calculateVelocity } from './utils/calculate-velocity';
 import {
     CONTROL_CONTAINER_SERVICE, Id, IScrollingSettings, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirections,
-    SnappingDistance, SnapToItemAlign,
+    SnappingDistance, SnapToItemAlign, ScrollDirection,
 } from '../../../common';
 import { Animator, ANIMATOR_MIN_TIMESTAMP, easeOutQuad, Easing, isPercentageValue, parseFloatOrPersentageValue } from '../../../common/utils';
 import { INtControlContainerService } from '../../../control-container/interfaces';
@@ -76,12 +75,14 @@ export class NtScrollView extends NtBaseScrollView {
 
     protected _isScrollsTo: boolean = false;
 
-    protected _scrollDirection = new ScrollingDirection();
-    get scrollDirection() {
-        return this._scrollDirection.get();
+    protected _$scrollDirection = new BehaviorSubject<ScrollDirection>(0);
+    readonly $scrollDirection = this._$scrollDirection.asObservable();
+    set scrollDirection(v: ScrollDirection) {
+        this._$scrollDirection.next(v);
     }
-
-    get $scrollDirection() { return this._scrollDirection.$direction; }
+    get scrollDirection() {
+        return this._$scrollDirection.getValue();
+    }
 
     protected _$wheel = new Subject<number>();
     readonly $wheel = this._$wheel.asObservable();
@@ -156,13 +157,13 @@ export class NtScrollView extends NtBaseScrollView {
 
     protected setX(x: number, snap: boolean = true, normalize: boolean = true) {
         if (x !== undefined && !Number.isNaN(x)) {
-            this.updateDirection(x, this._y);
-
             this._x = this._actualY = x;
 
             if (normalize) {
                 this.normalizeScrollSize();
             }
+
+            this.updateDirection(x, this._y);
 
             this.refreshCoordinate(this._x, this._y);
 
@@ -181,13 +182,13 @@ export class NtScrollView extends NtBaseScrollView {
 
     protected setY(y: number, snap: boolean = true, normalize: boolean = true) {
         if (y !== undefined && !Number.isNaN(y)) {
-            this.updateDirection(y, this._y);
-
             this._y = this._actualY = y;
 
             if (normalize) {
                 this.normalizeScrollSize();
             }
+
+            this.updateDirection(y, this._y);
 
             this.refreshCoordinate(this._x, this._y);
 
@@ -279,7 +280,7 @@ export class NtScrollView extends NtBaseScrollView {
                     if (!!this._service) {
                         this._service.overscroll = { x: false, y: false };
                     }
-                    this._scrollDirection.clear();
+                    this.scrollDirection = 0;
                     this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
                     this.emitOverscrollEvent(false);
                 }),
@@ -402,7 +403,7 @@ export class NtScrollView extends NtBaseScrollView {
                             mouseCanceled = false;
                             this._overscrollStartIteration = 0;
                             this._service.overscroll = { x: false, y: false };
-                            this._scrollDirection.clear();
+                            this.scrollDirection = 0;
                             this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
                             this.cancelOverscroll();
                             this.onDragStart();
@@ -477,7 +478,9 @@ export class NtScrollView extends NtBaseScrollView {
                                             if (!this.snapIfNecessary(v0, false) && this.scrollBehavior() !== BEHAVIOR_INSTANT) {
                                                 this.moveWithAcceleration(isVertical, position, 0, v0, a0, timestamp);
                                             } else {
-                                                this.snapIfNecessary(v0);
+                                                if (!this.snapIfNecessary(v0)) {
+                                                    this.move(isVertical, position, false, true, true);
+                                                }
                                                 this._$scrollEnd.next(true);
                                             }
                                         }),
@@ -571,7 +574,7 @@ export class NtScrollView extends NtBaseScrollView {
                             touchCanceled = false;
                             this._overscrollStartIteration = 0;
                             this._service.overscroll = { x: false, y: false };
-                            this._scrollDirection.clear();
+                            this.scrollDirection = 0;
                             this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
                             this.cancelOverscroll();
                             this.onDragStart();
@@ -660,7 +663,9 @@ export class NtScrollView extends NtBaseScrollView {
                                             if (!this.snapIfNecessary(v0, false) && this.scrollBehavior() !== BEHAVIOR_INSTANT) {
                                                 this.moveWithAcceleration(isVertical, position, 0, v0, a0, timestamp);
                                             } else {
-                                                this.snapIfNecessary(v0);
+                                                if (!this.snapIfNecessary(v0)) {
+                                                    this.move(isVertical, position, false, true, true);
+                                                }
                                                 this._$scrollEnd.next(true);
                                             }
                                         }),
@@ -678,7 +683,7 @@ export class NtScrollView extends NtBaseScrollView {
 
     protected updateDirection(position: number, prePosition: number) {
         const delta = (position - this._delta) - prePosition;
-        this._scrollDirection.add(delta > 0 ? 1 : delta < 0 ? -1 : 0);
+        this.scrollDirection = Math.sign(delta) as ScrollDirection;
     }
 
     protected override overrideCoordinates(x: number, y: number) {
@@ -725,7 +730,7 @@ export class NtScrollView extends NtBaseScrollView {
     protected stopMoving() { }
 
     private snapIfNecessary(v0: number, withInitialForce: boolean = true, animated: boolean = true, force: boolean = false) {
-        const scrollDirection = this._scrollDirection.get() || (force ? 1 : 0);
+        const scrollDirection = this.scrollDirection || (force ? 1 : 0);
         if (scrollDirection === 0) {
             return false;
         }
@@ -906,7 +911,7 @@ export class NtScrollView extends NtBaseScrollView {
             vSum += Math.sign(v0) * Math.pow(v0, 4) * .003;
         }
 
-        const l = Math.min(offsets.length, indexOffset), v0 = l > 0 ? (vSum / l) : 0;
+        const l = Math.min(offsets.length, indexOffset), v0 = Math.abs(l > 0 ? (vSum / l) : 0) * Math.sign(vSum);
         return { v0 };
     }
 
@@ -950,7 +955,7 @@ export class NtScrollView extends NtBaseScrollView {
 
     protected moveWithAcceleration(isVertical: boolean, position: number, v0: number, v: number, a0: number, timestamp: number) {
         if (a0 !== 0 && timestamp < MAX_VELOCITY_TIMESTAMP) {
-            const dvSign = Math.sign(v),
+            const dvSign = Math.sign(v) || 1,
                 mass = this.scrollingSettings()?.mass ?? MASS,
                 duration = DURATION, maxDuration = this.scrollingSettings()?.maxDuration ?? MAX_DURATION,
                 maxDist = this.scrollingSettings()?.maxDistance ?? MAX_DIST,
@@ -973,6 +978,12 @@ export class NtScrollView extends NtBaseScrollView {
             startOffset = this._normalizeValueFromZero ? 0 : this.startOffset(),
             scrollSize = this.scrollable ? ((isVertical ? this.scrollHeight : this.scrollWidth) - this.alignmentEndOffset()) : 0,
             result = this.scrollable ? (value <= startOffset ? startOffset : value > scrollSize ? scrollSize : value) : startOffset;
+        return result;
+    }
+
+    protected override normalizeScrollSize() {
+        const result = super.normalizeScrollSize();
+        this.scrollLimits();
         return result;
     }
 
@@ -1070,7 +1081,7 @@ export class NtScrollView extends NtBaseScrollView {
             snappingDistance = parseFloatOrPersentageValue(sd),
             isPersentageSnappingDistance = isPercentageValue(sd);
         let size: number | null = null;
-        const scrollDirection = this._scrollDirection.get(),
+        const scrollDirection = this.scrollDirection,
             currentPosition = (isVertical ? this.scrollTop : this.scrollLeft) - this._startLayoutOffset,
             currentComponentBounds = this._service.getComponentBoundsByIntersectionPosition(currentPosition),
             currentComponentSize = isVertical ? currentComponentBounds?.height ?? 0 : currentComponentBounds?.width ?? 0;
@@ -1121,7 +1132,7 @@ export class NtScrollView extends NtBaseScrollView {
         if (this._disableAlignment || !this.snapToItem() || (this._isAlignmentAnimation && !force)) {
             return false;
         }
-        const scrollDirection = this._scrollDirection.get() || (force ? 1 : 0);
+        const scrollDirection = this.scrollDirection || (force ? 1 : 0);
         if (scrollDirection === 0) {
             return false;
         }
@@ -1310,8 +1321,8 @@ export class NtScrollView extends NtBaseScrollView {
     }
 
     override scroll(params: IListScrollToParams) {
-        const posX = params.x || params.left || 0,
-            posY = params.y || params.top || 0,
+        const posX = params.x ?? params.left ?? null,
+            posY = params.y ?? params.top ?? null,
             userAction = params.userAction ?? false,
             snap = params.snap ?? true,
             normalize = params.normalize ?? true,
@@ -1325,24 +1336,24 @@ export class NtScrollView extends NtBaseScrollView {
             duration = params.duration ?? ANIMATION_DURATION,
             isVertical = this.isVertical();
 
-        const x = this.normalizeValue(posX),
-            y = this.normalizeValue(posY),
+        const x = posX === null ? null : this.normalizeValue(posX),
+            y = posY == null ? null : this.normalizeValue(posY),
             prevX = this._x,
             prevY = this._y;
 
         if (behavior === BEHAVIOR_AUTO || behavior === BEHAVIOR_SMOOTH) {
             if (isVertical) {
-                if (prevY !== y) {
+                if (y !== null && prevY !== y) {
                     return this.animate(prevY, y, duration, ease, blending, userAction, true, false, true, onUpdate, onComplete);
                 }
             } else {
-                if (prevX !== x) {
+                if (x !== null && prevX !== x) {
                     return this.animate(prevX, x, duration, ease, blending, userAction, true, false, true, onUpdate, onComplete);
                 }
             }
         } else {
             if (isVertical) {
-                if (this._y !== y || force) {
+                if (y !== null && (this._y !== y || force)) {
                     this.setY(y, snap, normalize);
                     if (userAction) {
                         const scrollHeight = Math.abs(this.scrollHeight),
@@ -1356,7 +1367,7 @@ export class NtScrollView extends NtBaseScrollView {
                     }
                 }
             } else {
-                if (this._x !== x || force) {
+                if (x !== null && (this._x !== x || force)) {
                     this.setX(x, snap, normalize);
                     if (userAction) {
                         const scrollWidth = Math.abs(this.scrollWidth),
@@ -1371,16 +1382,19 @@ export class NtScrollView extends NtBaseScrollView {
                 }
             }
         }
-        const delta = isVertical ? (y - prevY) : (x - prevX), value = isVertical ? y : x;
-        if (onComplete !== null) {
-            onComplete({
-                id: -1,
-                timestamp: 0,
-                elapsed: 0,
-                delta,
-                value,
-                complete: () => { },
-            });
+        const value = isVertical ? y : x;
+        if (value !== null) {
+            const delta = isVertical ? (y! - prevY) : (x! - prevX);
+            if (onComplete !== null) {
+                onComplete({
+                    id: -1,
+                    timestamp: 0,
+                    elapsed: 0,
+                    delta,
+                    value,
+                    complete: () => { },
+                });
+            }
         }
         this.emitOverscrollEvent(this.grabbing(), false);
         return -1;

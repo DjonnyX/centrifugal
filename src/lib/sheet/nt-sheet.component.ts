@@ -298,6 +298,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
      * - maxDistance - Maximum scrolling distance. Default value is 100000.
      * - maxDuration - Maximum animation duration. Default value is 4000.
      * - speedScale - Speed scale. Default value is 10.
+     * - breakpointStoppingFactor - Default value is 5.
      * - optimization - Enables scrolling performance optimization. Default value is `true`.
      */
     scrollingSettings = input<IScrollingSettings>(DEFAULT_SCROLLING_SETTINGS, { ...this._scrollingSettingsOptions });
@@ -472,7 +473,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
     protected _$scroll = new Subject<IScrollViewScrollEvent>();
     readonly $scroll = this._$scroll.asObservable();
 
-    protected _$animationUpdate = new BehaviorSubject<number>(0);
+    protected _$animationUpdate = new BehaviorSubject<number | null>(0);
     readonly $animationUpdate = this._$animationUpdate.asObservable();
 
     get $grabbing() { return this._service.$grabbing };
@@ -889,12 +890,16 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
                                                 this._animationIds = scroller.scroll({
                                                     y: endPosition, behavior: BEHAVIOR_AUTO, blending: false, duration: this.animationParams().fadeOut, fireUpdate: false, userAction: false,
                                                     onUpdate: data => {
-                                                        this._$animationUpdate.next(data.value);
+                                                        if (data.value !== null) {
+                                                            this._$animationUpdate.next(data.value);
+                                                        }
                                                     },
                                                     onComplete: data => {
                                                         this._elementRef.nativeElement.style.display = DISPLAY_NONE;
                                                         this._elementRef.nativeElement.style.opacity = OPACITY_0;
-                                                        this._$animationUpdate.next(data.value);
+                                                        if (data.value !== null) {
+                                                            this._$animationUpdate.next(data.value);
+                                                        }
                                                     },
                                                 });
                                             }
@@ -1436,7 +1441,6 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
      * Hides the sheet.
      */
     close() {
-        console.log('close')
         this._$opened.next(false);
     }
 

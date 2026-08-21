@@ -1,5 +1,31 @@
-import { Component, ViewEncapsulation } from "@angular/core";
-import { SCROLL_VIEW_TYPE } from "../common";
+import {
+  Component, computed, DestroyRef, effect, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild, ViewEncapsulation,
+} from "@angular/core";
+import {
+  ArithmeticExpression, GradientColorPositions, Id, IScrollingSettings, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO,
+  SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SnappingDistance, TextDirection, TextDirections,
+} from "../common";
+import { ISliderDragEvent, NtBaseSliderComponent, NtBaseSliderPublicService } from "../../public-api";
+import { DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_SIZE } from "./components/nt-base-slider/const";
+import { DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLBAR_INTERACTIVE } from "../common/const/scroller";
+import {
+  isPercentageValue, parseArithmeticExpression, toggleClassName, validateBoolean, validateFloat, validateObject, validateString,
+} from "../common/utils";
+import {
+  DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SLIDER_DIRECTION, DEFAULT_SNAPPING_DISTANCE,
+  DEFAULT_THUMB_GRADIENT_POSITIONS,
+} from './const';
+import { IAnimationParams, INtSliderService, ISliderStep, ISliderSteps } from './interfaces';
+import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
+import { Direction } from './types';
+import { Directions } from './enums';
+import { LEFT_PROP_NAME, TOP_PROP_NAME } from "../common/const/base-prop-names";
+import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
+import { BehaviorSubject, combineLatest, debounceTime, filter, skip, startWith, switchMap, tap } from "rxjs";
+import { NtBaseSliderService } from "./components/nt-base-slider/nt-base-slider.service";
+import { NtSliderService } from './nt-slider.service';
+import { ScrollBox } from '../common/utils/scroll-box';
+import { ScrollerTypes } from "../common/enums/scroller-types";
 
 /**
  * NtSliderComponent
@@ -8,18 +34,755 @@ import { SCROLL_VIEW_TYPE } from "../common";
  * @email djonnyx@gmail.com
  */
 @Component({
-  selector: 'nt-scroll-bar',
-  templateUrl: './nt-scroll-bar.component.html',
-  styleUrl: './nt-scroll-bar.component.scss',
+  selector: 'nt-slider',
+  templateUrl: './nt-slider.component.html',
+  styleUrl: './nt-slider.component.scss',
   host: {
-    'style': 'position: relative;'
+    'style': 'position: relative; display: block;'
   },
   standalone: false,
   encapsulation: ViewEncapsulation.ShadowDom,
   providers: [
-    { provide: SCROLL_VIEW_TYPE, useValue: 'scrollbar' },
+    { provide: SCROLL_VIEW_TYPE, useValue: ScrollerTypes.SLIDER_SCROLLER },
+    { provide: SCROLL_VIEW_INVERSION, useValue: true },
+    { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: false },
+    { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
+    { provide: SCROLL_VIEW_SERVICE, useClass: NtSliderService },
+    NtBaseSliderService,
+    NtBaseSliderPublicService,
   ],
 })
 export class NtSliderComponent {
+  protected _baseSlider = viewChild<NtBaseSliderComponent>('baseSlider');
 
+  /**
+   * Fires a drag event.
+   */
+  readonly onDrag = output<ISliderDragEvent>();
+
+  /**
+   * Fires a drag end event.
+   */
+  readonly onDragEnd = output<ISliderDragEvent>();
+
+  /**
+   * Triggers an event with a step ID when the step moves the specified distance.
+   */
+  readonly onSnap = output<Id>();
+
+  /**
+   * Triggers an event when the value changes.
+   */
+  readonly onChange = output<number>();
+
+  protected _directionOptions = {
+    transform: (v: Direction) => {
+      const valid = validateString(v) && (v === Directions.HORIZONTAL || v === Directions.VERTICAL);
+      if (!valid) {
+        console.error(`The "direction" parameter must be one of type \`${Directions.HORIZONTAL}\` or \`${Directions.VERTICAL}\`.`);
+        return DEFAULT_SLIDER_DIRECTION;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines the slider direction. Default value is "vertical".
+   */
+  direction = input<Direction>(DEFAULT_SLIDER_DIRECTION, { ...this._directionOptions });
+
+  protected _overscrollEnabledOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v, true);
+
+      if (!valid) {
+        console.error('The "overscrollEnabled" parameter must be of type `boolean`.');
+        return DEFAULT_OVERSCROLL_ENABLED;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether the overscroll (re-scroll) feature will work. The default value is "false".
+   */
+  overscrollEnabled = input<boolean>(DEFAULT_OVERSCROLL_ENABLED, { ...this._overscrollEnabledOptions });
+
+  protected _valueOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v);
+      if (!valid) {
+        console.error('The "value" parameter must be of type `number`.');
+        return 0;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Slider value. Default value is `0`.
+   */
+  value = input<number>(0, { ...this._valueOptions });
+
+  protected _minOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v);
+      if (!valid) {
+        console.error('The "min" parameter must be of type `number`.');
+        return 0;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Slider min value. Default min value is `0`.
+   */
+  min = input<number>(0, { ...this._minOptions });
+
+  protected _maxOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v);
+      if (!valid) {
+        console.error('The "max" parameter must be of type `number`.');
+        return 0;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Slider max value. Required.
+   */
+  max = input.required<number>({ ...this._maxOptions });
+
+  protected _stepOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v);
+      if (!valid) {
+        console.error('The "step" parameter must be of type `number`.');
+        return 0;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Step. Default value is `0`.
+   */
+  step = input<number>(0, { ...this._stepOptions });
+
+  protected _interactiveOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+      if (!valid) {
+        console.error('The "interactive" parameter must be of type `boolean`.');
+        return DEFAULT_SCROLLBAR_INTERACTIVE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether the slider will respond to user interaction or not. The default value is `true`.
+   */
+  interactive = input<boolean>(DEFAULT_SCROLLBAR_INTERACTIVE, { ...this._interactiveOptions });
+
+  protected _scrollStartOffsetOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v, true) || isPercentageValue(v);
+      if (!valid) {
+        console.error('The "scrollStartOffset" parameter must be one of type `number` or `string`.');
+        return 0;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Sets the scroll start offset value. Can be specified in absolute or percentage values.
+   * Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0".
+   */
+  scrollStartOffset = input<ArithmeticExpression>(0, { ...this._scrollStartOffsetOptions });
+
+  protected _scrollEndOffsetOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v, true) || isPercentageValue(v);
+      if (!valid) {
+        console.error('The "scrollEndOffset" parameter must be one of type `number` or `string`.');
+        return 0;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Sets the scroll end offset value. Can be specified in absolute or percentage values.
+   * Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0".
+   */
+  scrollEndOffset = input<ArithmeticExpression>(0, { ...this._scrollEndOffsetOptions });
+
+  protected _behaviorOptions = {
+    transform: (v: ScrollBehavior) => {
+      const valid = validateString(v, true, true);
+
+      if (!valid) {
+        console.error('The "behavior" parameter must be of type `ScrollBehavior`.');
+        return DEFAULT_SCROLL_BEHAVIOR;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Defines the scrolling behavior for any element on the page. The default value is "smooth".
+   */
+  behavior = input<ScrollBehavior>(DEFAULT_SCROLL_BEHAVIOR, { ...this._behaviorOptions });
+
+  protected _motionBlurOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v);
+
+      if (!valid) {
+        console.error('The "motionBlur" parameter must be of type `number`.');
+        return DEFAULT_MOTION_BLUR;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Motion blur effect. The default value is `5`.
+   */
+  motionBlur = input<number>(DEFAULT_MOTION_BLUR, { ...this._motionBlurOptions });
+
+  protected _maxMotionBlurOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v);
+
+      if (!valid) {
+        console.error('The "maxMotionBlur" parameter must be of type `number`.');
+        return DEFAULT_MAX_MOTION_BLUR;
+      }
+      return v <= 0 ? DEFAULT_MAX_MOTION_BLUR : v;
+    },
+  } as any;
+
+  /**
+   * Maximum motion blur effect. The default value is `10`.
+   */
+  maxMotionBlur = input<number>(DEFAULT_MAX_MOTION_BLUR, { ...this._maxMotionBlurOptions });
+
+  protected _motionBlurEnabledOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "motionBlurEnabled" parameter must be of type `boolean`.');
+        return DEFAULT_MOTION_BLUR_ENABLED;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether to apply motion blur or not. The default value is `false`.
+   */
+  motionBlurEnabled = input<boolean>(DEFAULT_MOTION_BLUR_ENABLED, { ...this._motionBlurEnabledOptions });
+
+  protected _scrollingSettingsOptions = {
+    transform: (v: IScrollingSettings): IScrollingSettings | null => {
+      let valid = validateObject(v, true, true);
+      if (valid && !!v) {
+        const { frictionalForce, mass, maxDistance, maxDuration, speedScale, optimization, breakpointStoppingFactor } = v;
+        valid = validateFloat(frictionalForce, true);
+        if (!valid) {
+          console.error('The "frictionalForce" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateFloat(mass, true);
+        if (!valid) {
+          console.error('The "mass" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateFloat(maxDistance, true);
+        if (!valid) {
+          console.error('The "maxDistance" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateFloat(maxDuration, true);
+        if (!valid) {
+          console.error('The "maxDuration" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateFloat(speedScale, true);
+        if (!valid) {
+          console.error('The "speedScale" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateFloat(breakpointStoppingFactor, true);
+        if (!valid) {
+          console.error('The "breakpointStoppingFactor" parameter must be of type `number` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+        valid = validateBoolean(optimization, true);
+        if (!valid) {
+          console.error('The "optimization" parameter must be of type `boolean` or `undefined`.');
+          return DEFAULT_SCROLLING_SETTINGS;
+        }
+      }
+      if (!valid) {
+        console.error('The "scrollingSettings" parameter must be of type `object` or null.');
+        return DEFAULT_SCROLLING_SETTINGS;
+      }
+      return {
+        frictionalForce: v.frictionalForce !== undefined && v.frictionalForce > 0 ? v.frictionalForce : DEFAULT_SCROLLING_SETTINGS.frictionalForce,
+        mass: v.mass !== undefined && v.mass > 0 ? v.mass : DEFAULT_SCROLLING_SETTINGS.mass,
+        maxDistance: v.maxDistance !== undefined && v.maxDistance > 0 ? v.maxDistance : DEFAULT_SCROLLING_SETTINGS.maxDistance,
+        maxDuration: v.maxDuration !== undefined && v.maxDuration > 0 ? v.maxDuration : DEFAULT_SCROLLING_SETTINGS.maxDuration,
+        speedScale: v.speedScale !== undefined && v.speedScale > 0 ? v.speedScale : DEFAULT_SCROLLING_SETTINGS.speedScale,
+        breakpointStoppingFactor: v.breakpointStoppingFactor !== undefined && v.breakpointStoppingFactor > 0 ? v.breakpointStoppingFactor : DEFAULT_SCROLLING_SETTINGS.breakpointStoppingFactor,
+        optimization: v.optimization ?? DEFAULT_SCROLLING_SETTINGS.optimization,
+      };
+    },
+  } as any;
+
+  /**
+   * Scrolling settings.
+   * - frictionalForce - Frictional force. Default value is 0.035.
+   * - mass - Mass. Default value is 0.005.
+   * - maxDistance - Maximum scrolling distance. Default value is 100000.
+   * - maxDuration - Maximum animation duration. Default value is 4000.
+   * - speedScale - Speed scale. Default value is 10.
+   * - breakpointStoppingFactor - Default value is 10.
+   * - optimization - Enables scrolling performance optimization. Default value is `true`.
+   */
+  scrollingSettings = input<IScrollingSettings>(DEFAULT_SCROLLING_SETTINGS, { ...this._scrollingSettingsOptions });
+
+  protected _animationParamsOptions = {
+    transform: (v: IAnimationParams) => {
+      const valid = validateObject(v, true, true);
+      if (!validateFloat(v.scroll)) {
+        console.error('The "scroll" parameter must be of type `number`.');
+        return DEFAULT_ANIMATION_PARAMS;
+      }
+      if (!valid) {
+        console.error('The "animationParams" parameter must be of type `object`.');
+        return DEFAULT_ANIMATION_PARAMS;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Animation parameters. The default value is "{ scroll: 500 }".
+   */
+  animationParams = input<IAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
+
+  protected _snappingDistanceOptions = {
+    transform: (v: SnappingDistance | any) => {
+      const valid = validateString(v) || validateFloat(v);
+
+      if (!valid) {
+        console.error('The "snappingDistance" parameter must be of type `number` or `string`.');
+        return DEFAULT_SNAPPING_DISTANCE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Snapping activation distance. Can be specified as a percentage of the element size or in absolute values.
+   * The default value is `25%`.
+   */
+  snappingDistance = input<SnappingDistance>(DEFAULT_SNAPPING_DISTANCE, { ...this._snappingDistanceOptions });
+
+  protected _langTextDirOptions = {
+    transform: (v: TextDirection) => {
+      const valid = validateString(v) && (v === TextDirections.LTR || v === TextDirections.RTL);
+      if (!valid) {
+        console.error('The "langTextDir" parameter must be of type `string`.');
+        return DEFAULT_LANG_TEXT_DIR;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * A string indicating the direction of text for the locale.
+   * Can be either "ltr" (left-to-right) or "rtl" (right-to-left).
+   */
+  langTextDir = input<TextDirection>(DEFAULT_LANG_TEXT_DIR, { ...this._langTextDirOptions });
+
+  protected _thumbSizeOptions = {
+    transform: (v: number) => {
+      const valid = validateFloat(v);
+      if (!valid) {
+        console.error('The "thumbSize" parameter must be of type `number`.');
+        return 0;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Thumb slider size.
+   * If autoThumbSize is false, the thumbSize property determines the size of the slider.
+   * If autoThumbSize is true, the thumbSize property determines the minimum size of the thumb.
+   * Default value is `6`.
+   */
+  thumbSize = input<number>(0, { ...this._thumbSizeOptions });
+
+  protected _autoThumbSizeOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+      if (!valid) {
+        console.error('The "autoThumbSize" parameter must be of type `boolean`.');
+        return true;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether the length of the slider will be calculated automatically.
+   * If autoThumbSize is true, the thumbSize property determines the minimum size of the thumb.
+   * Default value is `true`.
+   */
+  autoThumbSize = input<boolean>(true, { ...this._autoThumbSizeOptions });
+
+  /**
+   * Extra parameters that will be passed to the custom thumb renderer.
+   */
+  readonly params = input<{ [propName: string]: any } | null>({});
+
+  /**
+   * Custom thumb renderer.
+   */
+  readonly renderer = input<TemplateRef<any> | null>(null);
+
+  private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  protected _thumbGradientPositions = signal<GradientColorPositions>([0, 0]);
+
+  protected _thickness = signal<number>(20);
+
+  protected _precalculatedScrollStartOffset = signal<number>(0);
+
+  protected _precalculatedScrollEndOffset = signal<number>(0);
+
+  protected _$valueChanges = new BehaviorSubject<number>(0);
+  readonly $valueChanges = this._$valueChanges.asObservable();
+
+  protected _snapToItem: Signal<boolean>;
+
+  protected _actualValue = signal<number>(0);
+
+  protected _bounds = signal<ISize>({
+    width: this._elementRef.nativeElement.offsetWidth,
+    height: this._elementRef.nativeElement.offsetHeight,
+  });
+
+  protected _size = signal<number>(DEFAULT_SIZE);
+
+  protected _isVertical: Signal<boolean>;
+
+  private _scrollBox = new ScrollBox();
+
+  private _service = inject<INtSliderService>(SCROLL_VIEW_SERVICE);
+
+  private _animationIds: Array<number> | number | null = null;
+
+  protected _destroyRef = inject(DestroyRef);
+
+  constructor() {
+    this._isVertical = computed(() => {
+      const direction = this.direction();
+      return direction === Directions.VERTICAL;
+    });
+
+    effect(() => {
+      const isVertical = this._isVertical();
+      toggleClassName(this._elementRef.nativeElement,
+        isVertical ? Directions.VERTICAL : Directions.HORIZONTAL,
+        [isVertical ? Directions.HORIZONTAL : Directions.VERTICAL]
+      );
+    });
+
+    effect(() => {
+      this._actualValue.set(this.formatActualValue());
+    });
+
+    this._snapToItem = computed(() => {
+      const step = this.step();
+      return step > 0;
+    });
+
+    this._service.$tick.pipe(
+      takeUntilDestroyed(),
+      tap(() => {
+        this._baseSlider()?.tick();
+        const {
+          width: viewportWidth,
+          height: viewportHeight,
+        } = this._bounds(),
+          width = this._elementRef.nativeElement.offsetWidth,
+          height = this._elementRef.nativeElement.offsetHeight;
+        if (viewportWidth !== width || viewportHeight !== height) {
+          this._bounds.set({ width, height });
+        }
+        const isVertical = this._isVertical();
+        this._thickness.set(isVertical ? viewportWidth : viewportHeight);
+      }),
+    ).subscribe();
+
+    this._service?.$intersectionElementBySnapToItemAlign?.pipe(
+      takeUntilDestroyed(),
+      filter(v => v !== null),
+      tap(id => {
+        this.onSnap.emit(id);
+      }),
+    ).subscribe();
+
+    const $bounds = toObservable(this._bounds).pipe(
+      filter(b => !!b),
+    ),
+      $baseSlider = toObservable(this._baseSlider),
+      $isVertical = toObservable(this._isVertical),
+      $rawScrollStartOffset = toObservable(this.scrollStartOffset),
+      $rawScrollEndOffset = toObservable(this.scrollEndOffset),
+      $value = toObservable(this._actualValue),
+      $max = toObservable(this.max),
+      $min = toObservable(this.min),
+      $step = toObservable(this.step);
+
+    $value.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._$valueChanges.next(v);
+        this.onChange.emit(v);
+      }),
+    ).subscribe();
+
+    $baseSlider.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      switchMap(baseSlider => combineLatest([$isVertical, $bounds, $step, $min, $max, $value, baseSlider.$scroll.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(true),
+      ), baseSlider.$wheel.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(true),
+      ), baseSlider.$scrollEnd.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(true),
+      ), this._service?.$intersectionElementBySnapToItemAlign.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(null),
+      )]).pipe(
+        takeUntilDestroyed(this._destroyRef),
+        debounceTime(0),
+        tap(([isVertical, bounds, step, min, max, , , , , i]) => {
+          const size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
+            scrollSize = isVertical ? baseSlider!.scrollTop : baseSlider!.scrollLeft,
+            dist = max - min,
+            ns = step > max ? max : step < 0 ? 0 : step,
+            stepPX = ns > 0 ? ((size * ns) / dist) : 0;
+          let value: number;
+          if (stepPX > 0) {
+            const v = (scrollSize / stepPX) * step;
+            value = Math.round((min + v) / step) * step;
+            if (!Number.isNaN(value)) {
+              this._$valueChanges.next(value);
+              this.onChange.emit(value);
+            }
+          } else {
+            value = min + (scrollSize * dist / size);
+            if (!Number.isNaN(value)) {
+              this._$valueChanges.next(value);
+              this.onChange.emit(value);
+            }
+          }
+        }),
+      ),
+      ),
+    ).subscribe();
+
+    combineLatest([$baseSlider, $step, $min, $max, $bounds, $isVertical]).pipe(
+      takeUntilDestroyed(),
+      debounceTime(0),
+      filter(([baseSlider]) => !!baseSlider),
+      switchMap(([baseSlider, step, min, max, bounds, isVertical]) => combineLatest([baseSlider!.$resizeViewport.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(null),
+      ), baseSlider!.$resizeContent.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(null),
+      )]).pipe(
+        takeUntilDestroyed(this._destroyRef),
+        debounceTime(0),
+        tap(() => {
+          const steps: ISliderSteps = [],
+            size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
+            dist = max - min,
+            ns = step > max ? max : step < 0 ? 0 : step,
+            stepPX = ns > 0 ? ((size * ns) / dist) : 0,
+            stepLength = stepPX > 0 ? (size / stepPX) : 0;
+          for (let i = 0, li = stepLength - 1; i < stepLength + 1; i++) {
+            const s: ISliderStep = {
+              id: `${i}`,
+              measures: {
+                x: isVertical ? 0 : (i * stepPX),
+                y: isVertical ? (i * stepPX) : 0,
+                maxScrollSize: 0,
+              },
+              config: {
+                isFirst: i === 0,
+                isLast: i === li - 1,
+                inverted: false,
+                isVertical,
+              },
+              bounds: {
+                width: isVertical ? bounds.width : stepPX,
+                height: isVertical ? stepPX : bounds.height,
+              },
+            };
+            steps.push(s);
+          }
+          this._service.steps = steps;
+        }),
+      )),
+    ).subscribe();
+
+    combineLatest([$bounds, $isVertical, $rawScrollStartOffset]).pipe(
+      takeUntilDestroyed(),
+      tap(([bounds, isVertical, value]) => {
+        const val = parseArithmeticExpression(value, isVertical ? bounds.height : bounds.width);
+        this._precalculatedScrollStartOffset.set(val);
+      }),
+    ).subscribe();
+
+    combineLatest([$bounds, $isVertical, $rawScrollEndOffset]).pipe(
+      takeUntilDestroyed(),
+      tap(([bounds, isVertical, value]) => {
+        const val = parseArithmeticExpression(value, isVertical ? bounds.height : bounds.width);
+        this._precalculatedScrollEndOffset.set(val);
+      }),
+    ).subscribe();
+
+    let isInit = false;
+    combineLatest([$min, $max, $value, $bounds, $baseSlider, $isVertical]).pipe(
+      takeUntilDestroyed(),
+      filter(([, , , b, s]) => !!b && !!s),
+      skip(1),
+      debounceTime(0),
+      tap(([, , v, , ,]) => {
+        this.update(v, isInit, false);
+        isInit = true;
+      }),
+    ).subscribe();
+  }
+
+  private calculateContentRatio() {
+    const min = this.min(), max = this.max(), k = min === 0 ? 0 : max / min, ak = k < 2 ? 2 : k;
+    return ak;
+  }
+
+  protected calculateSliderParams(value: number) {
+    const baseSlider = this._baseSlider();
+    if (!baseSlider) {
+      return {
+        size: 0,
+        position: 0,
+        gradientPositions: DEFAULT_THUMB_GRADIENT_POSITIONS,
+      };
+    }
+
+    const bounds = this._bounds(),
+      k = this.calculateContentRatio(),
+      direction = this.direction(),
+      isVertical = this._isVertical(),
+      viewportBounds = this._bounds(),
+      contentBounds = {
+        width: isVertical ? bounds.width : bounds.width * k,
+        height: isVertical ? (bounds.height * k) : bounds.height,
+      },
+      startOffset = this._precalculatedScrollStartOffset(),
+      endOffset = this._precalculatedScrollEndOffset(),
+      min = this.min(),
+      max = this.max(),
+      size = isVertical ?
+        (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) :
+        (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
+      dist = (max - min),
+      stepPX = size / dist;
+
+    const v = (value - min) * stepPX,
+      minSize = this.thumbSize(),
+      {
+        thumbSize,
+        thumbGradientPositions,
+      } = this._scrollBox.calculateScroll({
+        direction,
+        viewportWidth: viewportBounds.width,
+        viewportHeight: viewportBounds.height,
+        contentWidth: contentBounds.width,
+        contentHeight: contentBounds.height,
+        startOffset,
+        endOffset,
+        positionX: isVertical ? baseSlider.scrollLeft : v,
+        positionY: isVertical ? v : baseSlider.scrollTop,
+        minSize,
+      });
+
+    return {
+      size: this.autoThumbSize() ? thumbSize : minSize,
+      position: v,
+      gradientPositions: thumbGradientPositions,
+    };
+  }
+
+  protected update(value: number, animated: boolean = true, userAction: boolean = true) {
+    const baseSlider = this._baseSlider();
+    if (!baseSlider || this._animationIds !== null) {
+      return;
+    }
+    const isVertical = this._isVertical(),
+      startOffset = this._precalculatedScrollStartOffset(),
+      {
+        size,
+        position,
+        gradientPositions,
+      } = this.calculateSliderParams(value);
+
+    this._thumbGradientPositions.set(gradientPositions);
+    this._size.set(size);
+    const actualThumbPosition = position < startOffset ? startOffset : position;
+    baseSlider.scroll({
+      [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: actualThumbPosition,
+      fireUpdate: true,
+      behavior: animated ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
+      userAction,
+      blending: false,
+      duration: animated ? this.animationParams().scroll : 0,
+    });
+  }
+
+  private formatActualValue(value: number | null = null) {
+    const v = value ?? this.value(),
+      step = this.step();
+    return step > 0 ? (Math.round(v / step) * step) : v;
+  }
+
+  protected onDragHandler(e: ISliderDragEvent) {
+    this.onDrag.emit(e);
+  }
+
+  protected onDragEndHandler(e: ISliderDragEvent) {
+    this.onDragEnd.emit(e);
+  }
+
+  setValue(v: number) {
+    this._actualValue.set(this.formatActualValue(Number(v)));
+  }
 }

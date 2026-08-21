@@ -21,6 +21,8 @@ export const DEFAULT_MAX_MOTION_BLUR = 0.5;
 
 export const DEFAULT_SCROLL_BEHAVIOR: ScrollBehavior = 'smooth';
 
+export const MOTION_BLUR = 'motion-blur';
+
 export const DEFAULT_SCROLLABLE = true;
 
 export const DEFAULT_SCROLLBAR_ENABLED = true;
