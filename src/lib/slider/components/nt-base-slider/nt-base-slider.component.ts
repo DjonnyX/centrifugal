@@ -18,8 +18,10 @@ import {
   LEFT, POSITION, POSITION_ABSOLUTE, POSITION_RELATIVE, RIGHT, TOP, BOTTOM, ZERO_PX, UNSET, SIZE_AUTO, SIZE_100_PERSENT,
 } from '../../../common/const/base-prop-names';
 import { ScrollerTypes } from '../../../common/enums/scroller-types';
-import { DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE, MOTION_BLUR } from '../../../common/const/scroller';
+import { DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MIN_OVERSCROLL_EFFECT, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE, MOTION_BLUR } from '../../../common/const/scroller';
 import { POINTER_DOWN, POINTER_ENTER, POINTER_LEAVE, POINTER_UP } from '../../../common/const/event-names';
+import { matrix3d } from '../../../common/utils/matrix-3d';
+import { ANIMATED } from '../../../common/const/class-names';
 
 /**
  * NtBaseSliderComponent
@@ -96,9 +98,9 @@ export class NtBaseSliderComponent extends NtScrollView {
 
   protected readonly thumbHeight: Signal<number>;
 
-  public readonly wrapperStyles = signal<{ [styleName: string]: string; }>({});
+  public readonly thumbStyles = signal<{ [styleName: string]: string; }>({});
 
-  public readonly wrapperClass = signal<{ [className: string]: boolean; }>({});
+  public readonly thumbClass = signal<{ [className: string]: boolean; }>({});
 
   private _$scrollingCancel = new Subject<void>();
   protected readonly $scrollingCancel = this._$scrollingCancel.asObservable();
@@ -118,6 +120,7 @@ export class NtBaseSliderComponent extends NtScrollView {
       $maxMotionBlur = toObservable(this.maxMotionBlur),
       $motionBlurEnabled = toObservable(this.motionBlurEnabled),
       $isVertical = toObservable(this.isVertical),
+      $overscrollEffectEvent = this.$overscrollEffectEvent,
       $resizeViewport = this.$resizeViewport;
 
     const $averageVelocity = this.$averageVelocity;
@@ -138,6 +141,27 @@ export class NtBaseSliderComponent extends NtScrollView {
       debounceTime(50),
       tap(([, , filter, ,]) => {
         filter!.nativeElement.setStdDeviation(0, 0);
+      }),
+    ).subscribe();
+
+    $overscrollEffectEvent.pipe(
+      takeUntilDestroyed(),
+      tap(e => {
+        const langTextDir = this.langTextDir(), isRTL = langTextDir === TextDirections.RTL, tds = isRTL ? -1 : 1,
+          dirX = (e.positionX === 0 ? 1 : -1), dirY = (e.positionY === 0 ? 1 : -1),
+          viewportBounds = this.viewportBounds(), dx = e.dragX, dy = e.dragY,
+          offsetX = dx * dirX, offsetY = dy * dirY,
+          sx = viewportBounds.width !== 1 ? (dx !== 0 ? Math.pow((offsetX + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,
+          sy = viewportBounds.height !== 0 ? (dy !== 0 ? Math.pow((offsetY + viewportBounds.height) / viewportBounds.height, 0.1) : 1) : 1,
+          asx = sx > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sx < DEFAULT_MIN_OVERSCROLL_EFFECT ? DEFAULT_MIN_OVERSCROLL_EFFECT : sx,
+          asy = sy > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sy < DEFAULT_MIN_OVERSCROLL_EFFECT ? DEFAULT_MIN_OVERSCROLL_EFFECT : sy,
+          nasx = dirX === -1 ? asx : (2 - asx),
+          nasy = dirY === -1 ? asy : (2 - asy);
+        this.thumbClass.set({ [ANIMATED]: !e.grabbing && !this.context()?.component?.userActionDuringAnimation && !this.context()?.component?.grabbing });
+        this.thumbStyles.set({
+          transform: matrix3d(this.scrollLeft * tds, this.scrollTop, 0, nasx, nasy, 1, 0, 0, 0),
+          transformOrigin: `${dirX === 1 ? RIGHT : LEFT} ${dirY === 1 ? BOTTOM : TOP}`,
+        });
       }),
     ).subscribe();
 
