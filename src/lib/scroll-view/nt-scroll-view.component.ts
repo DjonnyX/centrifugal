@@ -1131,7 +1131,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
                 const roundedMaxPositionAfterUpdateX = scroller.actualScrollWidth,
                   roundedMaxPositionAfterUpdateY = scroller.actualScrollHeight;
 
-                if (!scroller.grabbing()) {
+                if (!scroller.grabbing) {
                   return;
                 }
 

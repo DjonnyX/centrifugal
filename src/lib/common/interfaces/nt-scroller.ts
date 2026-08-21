@@ -15,6 +15,10 @@ import { IOverscrollEvent } from "./overscroll-event";
 export interface INtScroller<S extends INtBaseScrollViewService> {
     get service(): S;
 
+    get grabbing(): boolean;
+
+    get userActionDuringAnimation(): boolean;
+
     get type(): string | null;
 
     get parent(): INtBaseScrollView<S, S> | null;

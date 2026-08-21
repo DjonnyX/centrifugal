@@ -11,6 +11,8 @@ export const DEFAULT_SCROLLING_SETTINGS: IScrollingSettings = {
     optimization: false,
 };
 
+export const DEFAULT_MIN_OVERSCROLL_EFFECT = 0.925;
+
 export const DEFAULT_MAX_OVERSCROLL_EFFECT = 1.075;
 
 export const DEFAULT_MOTION_BLUR = 0.15;

@@ -300,13 +300,13 @@ export class NtScrollerComponent extends NtScrollView {
     ).subscribe();
 
     effect(() => {
-      const grabbing = this.grabbing();
+      const grabbing = this._grabbing();
       this._service.grabbing = grabbing;
     });
 
     this.actualClasses = computed(() => {
       const classes = this.classes(), direction = this.direction(), filtered = this.motionBlurEnabled();
-      return { ...classes, [direction]: true, grabbing: this.grabbing(), filtered };
+      return { ...classes, [direction]: true, grabbing: this._grabbing(), filtered };
     });
 
     this.containerClasses = computed(() => {
@@ -316,7 +316,7 @@ export class NtScrollerComponent extends NtScrollView {
         isVertical = this.isVertical(),
         viewportSize = isVertical ? height : width,
         contentSize = isVertical ? contentHeight : contentWidth;
-      return { [this.direction()]: true, grabbing: this.grabbing(), enabled: this.scrollbarEnabled(), scrollable: contentSize > viewportSize, overlapping: overlappingScrollbar };
+      return { [this.direction()]: true, grabbing: this._grabbing(), enabled: this.scrollbarEnabled(), scrollable: contentSize > viewportSize, overlapping: overlappingScrollbar };
     });
 
     effect(() => {
@@ -507,6 +507,7 @@ export class NtScrollerComponent extends NtScrollView {
 
   protected override stopMoving() {
     super.stopMoving();
+    this.stopScrollbar();
     this.dropVelocity();
   }
 

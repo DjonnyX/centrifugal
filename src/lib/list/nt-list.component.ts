@@ -2741,7 +2741,7 @@ export class NtListComponent<S extends INtListService, P extends INtScrollViewSe
 
           prevScrollable = scroller.scrollable;
 
-          if (!scroller.grabbing()) {
+          if (!scroller.grabbing) {
             if ((snapScrollToStart && this._trackBox.isSnappedToStart && scroller.scrollable) ||
               (snapScrollToStart && currentScrollSize <= MIN_PIXELS_FOR_PREVENT_SNAPPING)) {
               if (currentScrollSize !== roundedScrollPositionAfterUpdate) {

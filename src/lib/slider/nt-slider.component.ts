@@ -21,7 +21,7 @@ import { Direction } from './types';
 import { Directions } from './enums';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from "../common/const/base-prop-names";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { BehaviorSubject, combineLatest, debounceTime, filter, skip, startWith, switchMap, tap } from "rxjs";
+import { combineLatest, debounceTime, filter, startWith, switchMap, tap } from "rxjs";
 import { NtBaseSliderService } from "./components/nt-base-slider/nt-base-slider.service";
 import { NtSliderService } from './nt-slider.service';
 import { ScrollBox } from '../common/utils/scroll-box';
@@ -110,12 +110,12 @@ export class NtSliderComponent {
 
   protected _valueOptions = {
     transform: (v: number) => {
-      const valid = validateFloat(v);
+      const val = Number(v), valid = validateFloat(val);
       if (!valid) {
         console.error('The "value" parameter must be of type `number`.');
         return 0;
       }
-      return v;
+      return val;
     },
   } as any;
 
@@ -252,7 +252,7 @@ export class NtSliderComponent {
   } as any;
 
   /**
-   * Motion blur effect. The default value is `5`.
+   * Motion blur effect. The default value is `2`.
    */
   motionBlur = input<number>(DEFAULT_MOTION_BLUR, { ...this._motionBlurOptions });
 
@@ -269,7 +269,7 @@ export class NtSliderComponent {
   } as any;
 
   /**
-   * Maximum motion blur effect. The default value is `10`.
+   * Maximum motion blur effect. The default value is `5`.
    */
   maxMotionBlur = input<number>(DEFAULT_MAX_MOTION_BLUR, { ...this._maxMotionBlurOptions });
 
@@ -471,10 +471,9 @@ export class NtSliderComponent {
 
   protected _precalculatedScrollEndOffset = signal<number>(0);
 
-  protected _$valueChanges = new BehaviorSubject<number>(0);
-  readonly $valueChanges = this._$valueChanges.asObservable();
-
   protected _snapToItem: Signal<boolean>;
+
+  protected _inputValue = signal<number>(0);
 
   protected _actualValue = signal<number>(0);
 
@@ -496,6 +495,8 @@ export class NtSliderComponent {
   protected _destroyRef = inject(DestroyRef);
 
   constructor() {
+    let isInit = false;
+
     this._isVertical = computed(() => {
       const direction = this.direction();
       return direction === Directions.VERTICAL;
@@ -510,8 +511,17 @@ export class NtSliderComponent {
     });
 
     effect(() => {
-      this._actualValue.set(this.formatActualValue());
+      this._inputValue.set(this.value());
     });
+
+    const $val = toObservable(this._inputValue);
+    $val.pipe(
+      takeUntilDestroyed(),
+      debounceTime(500),
+      tap(() => {
+        this._actualValue.set(this.formatActualValue());
+      }),
+    ).subscribe();
 
     this._snapToItem = computed(() => {
       const step = this.step();
@@ -559,7 +569,6 @@ export class NtSliderComponent {
     $value.pipe(
       takeUntilDestroyed(),
       tap(v => {
-        this._$valueChanges.next(v);
         this.onChange.emit(v);
       }),
     ).subscribe();
@@ -572,17 +581,20 @@ export class NtSliderComponent {
         startWith(true),
       ), baseSlider.$wheel.pipe(
         takeUntilDestroyed(this._destroyRef),
-        startWith(true),
+        startWith(false),
       ), baseSlider.$scrollEnd.pipe(
         takeUntilDestroyed(this._destroyRef),
-        startWith(true),
+        startWith(false),
       ), this._service?.$intersectionElementBySnapToItemAlign.pipe(
         takeUntilDestroyed(this._destroyRef),
         startWith(null),
       )]).pipe(
         takeUntilDestroyed(this._destroyRef),
         debounceTime(0),
-        tap(([isVertical, bounds, step, min, max, , , , , i]) => {
+        tap(([isVertical, bounds, step, min, max, , userAction, , , i]) => {
+          if (isInit && !userAction) {
+            return;
+          }
           const size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
             scrollSize = isVertical ? baseSlider!.scrollTop : baseSlider!.scrollLeft,
             dist = max - min,
@@ -593,13 +605,11 @@ export class NtSliderComponent {
             const v = (scrollSize / stepPX) * step;
             value = Math.round((min + v) / step) * step;
             if (!Number.isNaN(value)) {
-              this._$valueChanges.next(value);
               this.onChange.emit(value);
             }
           } else {
             value = min + (scrollSize * dist / size);
             if (!Number.isNaN(value)) {
-              this._$valueChanges.next(value);
               this.onChange.emit(value);
             }
           }
@@ -608,50 +618,49 @@ export class NtSliderComponent {
       ),
     ).subscribe();
 
-    combineLatest([$baseSlider, $step, $min, $max, $bounds, $isVertical]).pipe(
+    $baseSlider.pipe(
       takeUntilDestroyed(),
-      debounceTime(0),
-      filter(([baseSlider]) => !!baseSlider),
-      switchMap(([baseSlider, step, min, max, bounds, isVertical]) => combineLatest([baseSlider!.$resizeViewport.pipe(
-        takeUntilDestroyed(this._destroyRef),
-        startWith(null),
-      ), baseSlider!.$resizeContent.pipe(
-        takeUntilDestroyed(this._destroyRef),
-        startWith(null),
-      )]).pipe(
-        takeUntilDestroyed(this._destroyRef),
-        debounceTime(0),
-        tap(() => {
-          const steps: ISliderSteps = [],
-            size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
-            dist = max - min,
-            ns = step > max ? max : step < 0 ? 0 : step,
-            stepPX = ns > 0 ? ((size * ns) / dist) : 0,
-            stepLength = stepPX > 0 ? (size / stepPX) : 0;
-          for (let i = 0, li = stepLength - 1; i < stepLength + 1; i++) {
-            const s: ISliderStep = {
-              id: `${i}`,
-              measures: {
-                x: isVertical ? 0 : (i * stepPX),
-                y: isVertical ? (i * stepPX) : 0,
-                maxScrollSize: 0,
-              },
-              config: {
-                isFirst: i === 0,
-                isLast: i === li - 1,
-                inverted: false,
-                isVertical,
-              },
-              bounds: {
-                width: isVertical ? bounds.width : stepPX,
-                height: isVertical ? stepPX : bounds.height,
-              },
-            };
-            steps.push(s);
-          }
-          this._service.steps = steps;
-        }),
-      )),
+      filter(v => !!v),
+      switchMap(baseSlider => combineLatest([$step, $min, $max, $bounds, $isVertical,
+        baseSlider!.$resizeViewport.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          startWith(null),
+        ), baseSlider!.$resizeContent.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          startWith(null),
+        )]).pipe(
+          takeUntilDestroyed(this._destroyRef),
+          tap(([step, min, max, bounds, isVertical]) => {
+            const steps: ISliderSteps = [],
+              size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
+              dist = max - min,
+              ns = step > max ? max : step < 0 ? 0 : step,
+              stepPX = ns > 0 ? ((size * ns) / dist) : 0,
+              stepLength = stepPX > 0 ? (size / stepPX) : 0;
+            for (let i = 0, li = stepLength - 1; i < stepLength + 1; i++) {
+              const s: ISliderStep = {
+                id: `${i}`,
+                measures: {
+                  x: isVertical ? 0 : (i * stepPX),
+                  y: isVertical ? (i * stepPX) : 0,
+                  maxScrollSize: 0,
+                },
+                config: {
+                  isFirst: i === 0,
+                  isLast: i === li - 1,
+                  inverted: false,
+                  isVertical,
+                },
+                bounds: {
+                  width: isVertical ? bounds.width : stepPX,
+                  height: isVertical ? stepPX : bounds.height,
+                },
+              };
+              steps.push(s);
+            }
+            this._service.steps = steps;
+          }),
+        )),
     ).subscribe();
 
     combineLatest([$bounds, $isVertical, $rawScrollStartOffset]).pipe(
@@ -670,12 +679,10 @@ export class NtSliderComponent {
       }),
     ).subscribe();
 
-    let isInit = false;
     combineLatest([$min, $max, $value, $bounds, $baseSlider, $isVertical]).pipe(
       takeUntilDestroyed(),
       filter(([, , , b, s]) => !!b && !!s),
-      skip(1),
-      debounceTime(0),
+      debounceTime(50),
       tap(([, , v, , ,]) => {
         this.update(v, isInit, false);
         isInit = true;
@@ -769,7 +776,7 @@ export class NtSliderComponent {
   }
 
   private formatActualValue(value: number | null = null) {
-    const v = value ?? this.value(),
+    const v = value ?? this._inputValue(),
       step = this.step();
     return step > 0 ? (Math.round(v / step) * step) : v;
   }
@@ -783,6 +790,6 @@ export class NtSliderComponent {
   }
 
   setValue(v: number) {
-    this._actualValue.set(this.formatActualValue(Number(v)));
+    this._inputValue.set(this.formatActualValue(Number(v)));
   }
 }

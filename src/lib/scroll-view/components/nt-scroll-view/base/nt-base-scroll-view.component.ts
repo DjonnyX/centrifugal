@@ -95,7 +95,13 @@ export abstract class NtBaseScrollView implements INtScroller<INtBaseScrollViewS
 
     protected _actualOverscrollAreaBottomEnabled = signal<boolean>(false);
 
-    readonly grabbing = signal<boolean>(false);
+    protected _userActionDuringAnimation = signal<boolean>(false);
+
+    get userActionDuringAnimation() { return this._userActionDuringAnimation(); }
+
+    protected _grabbing = signal<boolean>(false);
+
+    get grabbing() { return this._grabbing(); }
 
     readonly context = input<INtBaseScrollView<INtBaseScrollViewService, INtBaseScrollViewService> | null>(null);
     get parent() { return this.context(); }
