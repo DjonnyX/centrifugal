@@ -479,11 +479,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                 } else if (keyValue.indexOf(KEY_SYS) === -1) {
                   switch (keyValue) {
                     case KeyboardKeys.BACK_SPACE: {
-                      const charCode = value.length > 0 ? (value.codePointAt(value.length - 2) ?? value.codePointAt(value.length - 1) ?? null) : null,
-                        char = charCode !== null ? String.fromCodePoint(charCode) : null;
-                      if (char !== null) {
-                        value = value.length > 0 ? value.slice(0, value.length - char.length) : '';
-                      }
+                      value = this.deleteLastChar(value);
                       break;
                     }
                     case KeyboardKeys.SPACE: {
@@ -572,11 +568,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
             }
             switch (keyValue) {
               case KeyboardKeys.BACK_SPACE: {
-                const charCode = value.length > 0 ? (value.codePointAt(value.length - 2) ?? value.codePointAt(value.length - 1) ?? null) : null,
-                  char = charCode !== null ? String.fromCodePoint(charCode) : null;
-                if (char !== null) {
-                  value = value.length > 0 ? value.slice(0, value.length - char.length) : '';
-                }
+                value = this.deleteLastChar(value);
                 break;
               }
               case KeyboardKeys.SPACE: {
@@ -801,6 +793,18 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
 
   ngOnInit() {
     this._controlService.initialize(this._id, this._scrollerComponent()!, this._parentService?.id ?? -1, window as any);
+  }
+
+  private deleteLastChar(value: string) {
+    const arr: Array<string> = [];
+    for (const char of value) {
+      const c = char.codePointAt(0) ?? null;
+      if (c !== null) {
+        arr.push(String.fromCodePoint(c));
+      }
+    }
+    arr.pop();
+    return arr.join('');
   }
 
   private updateKeyboardPosition(e: IFocusedObject | null, keyboardEnabled: boolean, keyboardSettings: IKeyboardSettings, animated: boolean = true) {
