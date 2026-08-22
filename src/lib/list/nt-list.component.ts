@@ -106,7 +106,7 @@ import { isDirection } from '../scroll-view/utils/is-direction';
     NtListPublicService,
   ],
 })
-export class NtListComponent<S extends INtListService, P extends INtScrollViewService>
+export class NtListComponent<S extends INtListService = any, P extends INtScrollViewService = any>
   extends NtBaseScrollComponent<S, P, NtScrollerComponent> implements OnDestroy {
   protected _prerender = viewChild<NtPrerenderContainer>('prerender');
 

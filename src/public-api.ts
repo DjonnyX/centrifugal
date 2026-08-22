@@ -12,6 +12,17 @@ export type {
     IVirtualListCollection,
 } from './lib/list';
 
+export {
+    FocusAlignments,
+} from './lib/list/enums';
+
+export type {
+    IAnimationParams as INtListAnimationParams,
+    IScrollEvent,
+} from './lib/list/interfaces';
+
+export * from './lib/list/models';
+
 /*
  * Public API Surface of NtScrollView
  */
@@ -37,6 +48,7 @@ export {
     NtSliderModule,
     NtBaseSliderComponent,
     NtBaseSliderPublicService,
+    SliderStates,
 } from './lib/slider';
 
 export type {
@@ -90,3 +102,10 @@ export type {
  * Public API Surface of common
  */
 export * from './lib/common';
+export * from './lib/common/utils/debounce';
+export {
+    ScrollEvent,
+} from './lib/common/utils/scroll-event';
+export type {
+    IScrollViewScrollEvent
+} from './lib/common/interfaces/scroll-view-scroll-event';
