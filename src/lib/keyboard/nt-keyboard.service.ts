@@ -1,5 +1,5 @@
 import { DestroyRef, inject, Injectable } from "@angular/core";
-import { BehaviorSubject, debounceTime, delay, distinctUntilChanged, filter, Subject, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, Subject, tap } from "rxjs";
 import { DEFAULT_KEYBOARD_LANG_DIR, DEFAULT_KEYBOARD_LOCALE, DEFAULT_KEYBOARD_POSITION, KEY_LAYOUT, KEY_SYS } from "../common/const/keyboard";
 import { IKeyboardSettings, KeyboardKey, KeyboardKeys, KeyboardKeyStates, KeyboardPosition, TextDirection, TextDirections } from "../common";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
@@ -85,7 +85,7 @@ export class NtKeyboardService {
 
     constructor() {
         let prevCaps = this.caps;
-        const $settings = this.$settings
+        const $settings = this.$settings;
         $settings.pipe(
             takeUntilDestroyed(),
             distinctUntilChanged(),
@@ -96,9 +96,7 @@ export class NtKeyboardService {
                 if (prevCaps !== this.caps) {
                     const currentPresetIndex = this.presetIndex, presetLength = settings?.preset?.length ?? 0,
                         actualPresetIndex = currentPresetIndex > -1 && presetLength > 0 && presetLength - 1 >= currentPresetIndex ? currentPresetIndex : presetLength > 0 ? 0 : -1;
-                    if (currentPresetIndex !== actualPresetIndex) {
-                        this._$presetIndex.next(actualPresetIndex);
-                    }
+                    this._$presetIndex.next(actualPresetIndex);
                 } else {
                     this._$presetIndex.next(0);
                 }
@@ -202,7 +200,7 @@ export class NtKeyboardService {
 
     setCaps(v: boolean) {
         if (this.caps !== v) {
-            this._$capsOnce.next(true);
+            this._$capsOnce.next(false);
             this._$caps.next(v);
         }
     }
