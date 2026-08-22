@@ -29,13 +29,15 @@ import { NormalizedKeyboardKey } from "./types";
 export class NtKeyboardComponent {
     private _service = inject(NtKeyboardService);
 
-    get $caps() { return this._service.$caps; }
-
     settings = input<IKeyboardSettings>(DEFAULT_KEYBOARD_SETTINGS);
 
     keyRenderer = input<TemplateRef<any> | null>(null);
 
+    get $caps() { return this._service.$caps; }
+
     get $layout() { return this._service.$layout };
+
+    get $pressedKey() { return this._service.$pressedKey; }
 
     get $isVertical() { return this._service.$isVertical; }
 
@@ -87,13 +89,17 @@ export class NtKeyboardComponent {
             takeUntilDestroyed(),
             switchMap(e => {
                 const isCaps = e.getModifierState(KeyboardKeys.CAPS_LOCK);
-                this._service.setCaps(e.shiftKey || isCaps);
+                if (e.key === KeyboardKeys.CAPS_LOCK) {
+                    this._service.setCaps(e.shiftKey || isCaps);
+                }
                 this._service.fireKeyEvent({ value: e.key, name: e.key }, KeyboardKeyStates.PRESS, e);
                 return $keyUp.pipe(
                     takeUntilDestroyed(this._destroyRef),
                     tap(e => {
                         const isCaps = e.getModifierState(KeyboardKeys.CAPS_LOCK);
-                        this._service.setCaps(e.shiftKey || isCaps);
+                        if (e.key === KeyboardKeys.CAPS_LOCK) {
+                            this._service.setCaps(e.shiftKey || isCaps);
+                        }
                         this._service.fireKeyEvent({ value: e.key, name: e.key }, KeyboardKeyStates.CLICK, e);
                     }),
                 );

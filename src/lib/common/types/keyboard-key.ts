@@ -6,4 +6,11 @@ import { KeyboardKeyValue } from "./keyboard-key-value";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export type KeyboardKey = KeyboardKeyValue | { class?: string; style?: string; name?: string | null; icon?: string | null; value: KeyboardKeyValue; }
+export type KeyboardKey = KeyboardKeyValue | {
+    class?: string;
+    style?: string;
+    name?: string | null;
+    icon?: string | null;
+    iconPressed?: string | null;
+    value: KeyboardKeyValue;
+}

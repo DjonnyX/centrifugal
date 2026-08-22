@@ -11,7 +11,7 @@ import { SERVICE_KEYS } from "../const";
  * @email djonnyx@gmail.com
  */
 export const normalizeSettings = (settings: IKeyboardSettings, caps: boolean, sanitizer?: DomSanitizer): IKeyboardSettings<NormalizedKeyboardKey> => {
-    const result: IKeyboardSettings<NormalizedKeyboardKey> = JSON.parse(JSON.stringify(settings)), allKeys: Array<string> = [];
+    const result: IKeyboardSettings<NormalizedKeyboardKey> = JSON.parse(JSON.stringify(settings));
     for (let i = 0, l = result.preset.length; i < l; i++) {
         const preset = result.preset[i];
         for (let j = 0, l1 = preset.layout.length; j < l1; j++) {
@@ -21,8 +21,6 @@ export const normalizeSettings = (settings: IKeyboardSettings, caps: boolean, sa
                 for (let m = 0, l3 = keyRow.length; m < l3; m++) {
                     const key = keyRow[m];
                     keyRow[m] = normalizeKey(key as KeyboardKey, caps, sanitizer);
-                    const value = keyRow[m].value as string;
-                    allKeys.push(value);
                 }
             }
         }
@@ -37,7 +35,7 @@ export const normalizeSettings = (settings: IKeyboardSettings, caps: boolean, sa
  * @email djonnyx@gmail.com
  */
 const normalizeKey = (key: KeyboardKey, caps: boolean, sanitizer?: DomSanitizer): NormalizedKeyboardKey => {
-    let classes: string | null | undefined, style: string | null | undefined, name: string | null, icon: SafeHtml | null,
+    let classes: string | null | undefined, style: string | null | undefined, name: string | null, icon: SafeHtml | null, iconPressed: SafeHtml | null,
         value: KeyboardKeyValue = null;
     if (typeof key === 'object') {
         classes = key?.class ?? '';
@@ -45,12 +43,14 @@ const normalizeKey = (key: KeyboardKey, caps: boolean, sanitizer?: DomSanitizer)
         value = transform(key?.value ?? null, caps);
         name = key?.name ?? value ?? null;
         icon = !!key?.icon && !!sanitizer ? sanitizer.bypassSecurityTrustHtml(key.icon) : null;
+        iconPressed = !!key?.iconPressed && !!sanitizer ? sanitizer.bypassSecurityTrustHtml(key.iconPressed) : null;
     } else {
         value = transform(key ?? '', caps);
         classes = '';
         style = '';
         name = value;
         icon = null;
+        iconPressed = null;
     }
     return {
         class: classes,
@@ -58,6 +58,7 @@ const normalizeKey = (key: KeyboardKey, caps: boolean, sanitizer?: DomSanitizer)
         value,
         name,
         icon,
+        iconPressed,
     };
 }
 

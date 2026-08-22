@@ -1,5 +1,5 @@
 import { DestroyRef, inject, Injectable } from "@angular/core";
-import { BehaviorSubject, debounceTime, delay, distinctUntilChanged, filter, Subject, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, debounceTime, delay, distinctUntilChanged, filter, Subject, tap } from "rxjs";
 import { DEFAULT_KEYBOARD_LANG_DIR, DEFAULT_KEYBOARD_LOCALE, DEFAULT_KEYBOARD_POSITION, KEY_LAYOUT, KEY_SYS } from "../common/const/keyboard";
 import { IKeyboardSettings, KeyboardKey, KeyboardKeys, KeyboardKeyStates, KeyboardPosition, TextDirection, TextDirections } from "../common";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
@@ -81,11 +81,14 @@ export class NtKeyboardService {
     private _$keyRelease = new Subject<KeyboardKey>();
     readonly $keyRelease = this._$keyRelease.asObservable();
 
+    private _$pressedKey = new BehaviorSubject<string | null>(null);
+    readonly $pressedKey = this._$pressedKey.asObservable();
+
     private _destroyRef = inject(DestroyRef);
 
     constructor() {
         let prevCaps = this.caps;
-        const $settings = this.$settings
+        const $settings = this.$settings;
         $settings.pipe(
             takeUntilDestroyed(),
             distinctUntilChanged(),
@@ -96,9 +99,7 @@ export class NtKeyboardService {
                 if (prevCaps !== this.caps) {
                     const currentPresetIndex = this.presetIndex, presetLength = settings?.preset?.length ?? 0,
                         actualPresetIndex = currentPresetIndex > -1 && presetLength > 0 && presetLength - 1 >= currentPresetIndex ? currentPresetIndex : presetLength > 0 ? 0 : -1;
-                    if (currentPresetIndex !== actualPresetIndex) {
-                        this._$presetIndex.next(actualPresetIndex);
-                    }
+                    this._$presetIndex.next(actualPresetIndex);
                 } else {
                     this._$presetIndex.next(0);
                 }
@@ -202,7 +203,7 @@ export class NtKeyboardService {
 
     setCaps(v: boolean) {
         if (this.caps !== v) {
-            this._$capsOnce.next(true);
+            this._$capsOnce.next(false);
             this._$caps.next(v);
         }
     }
@@ -236,14 +237,17 @@ export class NtKeyboardService {
             key.value?.toUpperCase() ?? null : key.value ?? null;
         switch (state) {
             case KeyboardKeyStates.PRESS: {
+                this._$pressedKey.next(key?.name ?? null);
                 this._$keyPress.next(value);
                 break;
             }
             case KeyboardKeyStates.CLICK: {
+                this._$pressedKey.next(null);
                 this._$keyClick.next(value);
                 break;
             }
             case KeyboardKeyStates.CLICK_CANCEL: {
+                this._$pressedKey.next(null);
                 this._$keyRelease.next(value);
                 break;
             }

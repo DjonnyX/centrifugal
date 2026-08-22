@@ -7,4 +7,12 @@ import { KeyboardKeyValue } from "../../common";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export type NormalizedKeyboardKey = { class?: string; style?: string; name?: string | null; switch?: boolean; icon?: SafeHtml | null; value: KeyboardKeyValue; }
+export type NormalizedKeyboardKey = {
+    class?: string;
+    style?: string;
+    name?: string | null;
+    switch?: boolean;
+    icon?: SafeHtml | null;
+    iconPressed?: SafeHtml | null;
+    value: KeyboardKeyValue;
+}
