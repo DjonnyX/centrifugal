@@ -479,11 +479,10 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                 } else if (keyValue.indexOf(KEY_SYS) === -1) {
                   switch (keyValue) {
                     case KeyboardKeys.BACK_SPACE: {
-                      const info = this.deleteLastSymbol(value);
-                      if (info.deleted) {
-                        value = info.value;
-                      } else {
-                        value = value.length > 0 ? value.slice(0, value.length - 1) : '';
+                      const charCode = value.length > 0 ? (value.codePointAt(value.length - 2) ?? value.codePointAt(value.length - 1) ?? null) : null,
+                        char = charCode !== null ? String.fromCodePoint(charCode) : null;
+                      if (char !== null) {
+                        value = value.length > 0 ? value.slice(0, value.length - char.length) : '';
                       }
                       break;
                     }
@@ -573,11 +572,10 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
             }
             switch (keyValue) {
               case KeyboardKeys.BACK_SPACE: {
-                const info = this.deleteLastSymbol(value);
-                if (info.deleted) {
-                  value = info.value;
-                } else {
-                  value = value.length > 0 ? value.slice(0, value.length - 1) : '';
+                const charCode = value.length > 0 ? (value.codePointAt(value.length - 2) ?? value.codePointAt(value.length - 1) ?? null) : null,
+                  char = charCode !== null ? String.fromCodePoint(charCode) : null;
+                if (char !== null) {
+                  value = value.length > 0 ? value.slice(0, value.length - char.length) : '';
                 }
                 break;
               }
@@ -905,27 +903,6 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
         this._scrollerComponent()?.refresh(true);
       }
     }
-  }
-
-  private deleteLastSymbol(value: string) {
-    let result = value;
-    for (const k of this._keyboardService.keys) {
-      if (k === null) {
-        continue;
-      }
-      const keyIndex = result.lastIndexOf(k);
-      if ((keyIndex + k.length) === result.length) {
-        result = result.substring(0, keyIndex);
-        return {
-          value: result,
-          deleted: true,
-        };
-      }
-    }
-    return {
-      value: result,
-      deleted: false,
-    };
   }
 
   private hostScrollTo(e: IFocusedObject | null, blending: boolean = false, animated: boolean = true) {

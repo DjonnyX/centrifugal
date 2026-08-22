@@ -102,7 +102,7 @@ export const DEFAULT_KEYBOARD_HORIZONTAL_PRESET: Array<IKeyboardPreset> = copyVa
                 name: 'text',
                 type: ['text', 'password'],
                 keys: [
-                    [{ class: 'empty', style: 'flex: 0.5', value: null }, 'Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P', { class: 'empty', style: 'flex: 0.5', value: null }],
+                    [{ class: 'empty', style: 'flex: 0.5', value: null }, '📄', 'Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P', { class: 'empty', style: 'flex: 0.5', value: null }],
                     [{ class: 'empty', value: null }, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', { class: 'empty', value: null }],
                     [{ style: 'flex: 2;', class: 'secondary', value: KeyboardKeys.SHIFT, name: 'Shift' }, 'Y', 'X', 'C', 'V', 'B', 'N', 'M', { style: 'flex: 2;', class: 'secondary', value: KeyboardKeys.BACK_SPACE, name: 'Backspace', icon: KeyboardIcons.BACKSPACE }],
                     [{ class: 'secondary', value: 'layout::numeric', name: '123' }, { class: 'secondary', value: '/' }, { name: 'HE', value: KeyboardKeys.SYS_NEXT_LOCALE }, { style: 'flex: 6', value: KeyboardKeys.SPACE, name: 'Space' }, { class: 'secondary', value: '.' }, { class: 'secondary', value: KeyboardKeys.ENTER, name: 'Enter' }],

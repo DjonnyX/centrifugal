@@ -10,10 +10,7 @@ import { SERVICE_KEYS } from "../const";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export const normalizeSettings = (settings: IKeyboardSettings, caps: boolean, sanitizer?: DomSanitizer): {
-    settings: IKeyboardSettings<NormalizedKeyboardKey>,
-    keys: Array<string>,
-} => {
+export const normalizeSettings = (settings: IKeyboardSettings, caps: boolean, sanitizer?: DomSanitizer): IKeyboardSettings<NormalizedKeyboardKey> => {
     const result: IKeyboardSettings<NormalizedKeyboardKey> = JSON.parse(JSON.stringify(settings)), allKeys: Array<string> = [];
     for (let i = 0, l = result.preset.length; i < l; i++) {
         const preset = result.preset[i];
@@ -30,10 +27,7 @@ export const normalizeSettings = (settings: IKeyboardSettings, caps: boolean, sa
             }
         }
     }
-    return {
-        settings: copyValueAsReadonly(result),
-        keys: allKeys,
-    };
+    return copyValueAsReadonly(result);
 }
 
 /**
