@@ -61,8 +61,7 @@ export class NtKeyboardComponent {
             takeUntilDestroyed(),
             tap(([settings, caps]) => {
                 const normalizedSettings = normalizeSettings(settings, caps, this._sanitizer);
-                this._service.settings = normalizedSettings.settings;
-                this._service.keys = normalizedSettings.keys;
+                this._service.settings = normalizedSettings;
             }),
         ).subscribe();
 
