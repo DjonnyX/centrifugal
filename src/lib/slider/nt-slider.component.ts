@@ -634,35 +634,8 @@ export class NtSliderComponent {
           startWith(null),
         )]).pipe(
           takeUntilDestroyed(this._destroyRef),
-          tap(([step, min, max, bounds, isVertical]) => {
-            const steps: ISliderSteps = [],
-              size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
-              dist = max - min,
-              ns = step > max ? max : step < 0 ? 0 : step,
-              stepPX = ns > 0 ? ((size * ns) / dist) : 0,
-              stepLength = stepPX > 0 ? (size / stepPX) : 0;
-            for (let i = 0, li = stepLength - 1; i < stepLength + 1; i++) {
-              const s: ISliderStep = {
-                id: `${i}`,
-                measures: {
-                  x: isVertical ? 0 : (i * stepPX),
-                  y: isVertical ? (i * stepPX) : 0,
-                  maxScrollSize: 0,
-                },
-                config: {
-                  isFirst: i === 0,
-                  isLast: i === li - 1,
-                  inverted: false,
-                  isVertical,
-                },
-                bounds: {
-                  width: isVertical ? bounds.width : stepPX,
-                  height: isVertical ? stepPX : bounds.height,
-                },
-              };
-              steps.push(s);
-            }
-            this._service.steps = steps;
+          tap(() => {
+            this.updateBreakpoints();
           }),
         )),
     ).subscribe();
@@ -693,9 +666,42 @@ export class NtSliderComponent {
   }
 
   ngAfterViewInit() {
+    this.updateBreakpoints();
     this.update(this.value(), false, false);
     this._inputValue.set(this.value());
     this._$init.next(true);
+  }
+
+  private updateBreakpoints() {
+    const baseSlider = this._baseSlider(), isVertical = this._isVertical(), bounds = this._bounds(), step = this.step(), min = this.min(), max = this.max();
+    const steps: ISliderSteps = [],
+      size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
+      dist = max - min,
+      ns = step > max ? max : step < 0 ? 0 : step,
+      stepPX = ns > 0 ? ((size * ns) / dist) : 0,
+      stepLength = stepPX > 0 ? (size / stepPX) : 0;
+    for (let i = 0, li = stepLength - 1; i < stepLength + 1; i++) {
+      const s: ISliderStep = {
+        id: `${i}`,
+        measures: {
+          x: isVertical ? 0 : (i * stepPX),
+          y: isVertical ? (i * stepPX) : 0,
+          maxScrollSize: 0,
+        },
+        config: {
+          isFirst: i === 0,
+          isLast: i === li - 1,
+          inverted: false,
+          isVertical,
+        },
+        bounds: {
+          width: isVertical ? bounds.width : stepPX,
+          height: isVertical ? stepPX : bounds.height,
+        },
+      };
+      steps.push(s);
+    }
+    this._service.steps = steps;
   }
 
   private setupValue() {

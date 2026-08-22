@@ -48,16 +48,6 @@ export class NtSheetService extends NtBaseScrollViewService implements INtSheetS
 
   constructor() {
     super();
-
-    this.tick();
-  }
-
-  private tick() {
-    this._$tick.next();
-
-    this._tickerId = requestAnimationFrame(() => {
-      this.tick();
-    });
   }
 
   initialize(id: number, scrollView: INtScroller<INtBaseScrollViewService>, parentService: INtBaseScrollViewService | null) {
@@ -133,13 +123,4 @@ export class NtSheetService extends NtBaseScrollViewService implements INtSheetS
    * Scrolls the list to the end of the content size.
    */
   scrollToBottom(options?: IScrollOptions) { }
-
-  override ngOnDestroy() {
-    super.ngOnDestroy();
-
-    if (this._tickerId !== null) {
-      cancelAnimationFrame(this._tickerId);
-      this._tickerId = null;
-    }
-  }
 }

@@ -1,7 +1,7 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
-import { Subject, tap } from 'rxjs';
+import { Observable, Subject, tap } from 'rxjs';
 import { TrackBox } from './core/track-box';
 import { TrackBoxEvents } from './core/events';
 import { IRenderVirtualListItem, IVirtualListCollection, IVirtualListItem, IVirtualListItemConfigMap } from './models';
@@ -152,6 +152,8 @@ export class NtListService extends NtBaseScrollViewService implements INtBaseScr
   private _$scrollBarSize = new BehaviorSubject<number>(this._scrollBarSize);
   readonly $scrollBarSize = this._$scrollBarSize.asObservable();
 
+  private _$tick = new Subject<void>();
+
   private _onTickHandler = () => {
     this._$tick.next();
   };
@@ -178,6 +180,8 @@ export class NtListService extends NtBaseScrollViewService implements INtBaseScr
 
   constructor() {
     super();
+
+    this.$tick = this._$tick.asObservable();
 
     this._$selectingMode.pipe(
       takeUntilDestroyed(),
