@@ -4,6 +4,7 @@ import { IScrollOptions } from './scroll-options';
 import { IScrollParams } from './scroll-params';
 import { IItemTransformation } from './item-transformation';
 import { INtListService } from './nt-list-service';
+import { IScrollEvent } from './scroll-event';
 
 export type {
     IAnimationParams,
@@ -12,4 +13,5 @@ export type {
     IScrollOptions,
     IScrollParams,
     INtListService,
+    IScrollEvent,
 }
