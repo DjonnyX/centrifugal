@@ -45,6 +45,14 @@ export type {
 } from './lib/slider';
 
 /*
+ * Public API Surface of NtSwitch
+ */
+export {
+    NtSwitchComponent,
+    NtSwitchModule,
+} from './lib/switch';
+
+/*
  * Public API Surface of NtDrawerContainer
  */
 export {
