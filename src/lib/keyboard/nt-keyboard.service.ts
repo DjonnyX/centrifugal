@@ -60,6 +60,15 @@ export class NtKeyboardService {
         }
     }
 
+    private _$keys = new BehaviorSubject<Array<string>>([]);
+    readonly $keys = this._$keys.asObservable();
+    get keys() { return this._$keys.getValue(); }
+    set keys(v: Array<string>) {
+        if (this.keys !== v) {
+            this._$keys.next(v);
+        }
+    }
+
     private _$latgTextDir = new BehaviorSubject<TextDirection>(TextDirections.LTR);
     readonly $latgTextDir = this._$latgTextDir.asObservable();
     get latgTextDir() { return this._$latgTextDir.getValue(); }

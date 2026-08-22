@@ -368,8 +368,6 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
 
   protected _keyboardPosition: Signal<KeyboardPosition>;
 
-  protected _valueArray: Array<string> = [];
-
   private _$hostScroll = new Subject<IFocusedObject | null>();
   protected $hostScroll = this._$hostScroll.asObservable();
 
@@ -481,16 +479,16 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                 } else if (keyValue.indexOf(KEY_SYS) === -1) {
                   switch (keyValue) {
                     case KeyboardKeys.BACK_SPACE: {
-                      if (this._valueArray.length > 0) {
-                        this._valueArray = this._valueArray.slice(0, this._valueArray.length - 1);
-                        value = this._valueArray.join('');
+                      const info = this.deleteLastSymbol(value);
+                      if (info.deleted) {
+                        value = info.value;
+                      } else {
+                        value = value.length > 0 ? value.slice(0, value.length - 1) : '';
                       }
                       break;
                     }
                     case KeyboardKeys.SPACE: {
-                      const char = ' ';
-                      this._valueArray.push(char);
-                      value += char;
+                      value += ' ';
                       break;
                     }
                     case KeyboardKeys.TAB: {
@@ -538,7 +536,6 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                       break;
                     }
                     case KeyboardKeys.CLEAR: {
-                      this._valueArray = [];
                       value = '';
                       break;
                     }
@@ -556,7 +553,6 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                     }
                     default: {
                       if (keyValue) {
-                        this._valueArray.push(keyValue);
                         value += keyValue;
                       }
                       break;
@@ -577,16 +573,16 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
             }
             switch (keyValue) {
               case KeyboardKeys.BACK_SPACE: {
-                if (this._valueArray.length > 0) {
-                  this._valueArray = this._valueArray.slice(0, this._valueArray.length - 1);
-                  value = this._valueArray.join('');
+                const info = this.deleteLastSymbol(value);
+                if (info.deleted) {
+                  value = info.value;
+                } else {
+                  value = value.length > 0 ? value.slice(0, value.length - 1) : '';
                 }
                 break;
               }
               case KeyboardKeys.SPACE: {
-                const char = ' ';
-                this._valueArray.push(char);
-                value += char;
+                value += ' ';
                 break;
               }
               case KeyboardKeys.ENTER: {
@@ -909,6 +905,27 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
         this._scrollerComponent()?.refresh(true);
       }
     }
+  }
+
+  private deleteLastSymbol(value: string) {
+    let result = value;
+    for (const k of this._keyboardService.keys) {
+      if (k === null) {
+        continue;
+      }
+      const keyIndex = result.lastIndexOf(k);
+      if ((keyIndex + k.length) === result.length) {
+        result = result.substring(0, keyIndex);
+        return {
+          value: result,
+          deleted: true,
+        };
+      }
+    }
+    return {
+      value: result,
+      deleted: false,
+    };
   }
 
   private hostScrollTo(e: IFocusedObject | null, blending: boolean = false, animated: boolean = true) {
