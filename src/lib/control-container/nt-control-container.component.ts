@@ -479,7 +479,12 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                 } else if (keyValue.indexOf(KEY_SYS) === -1) {
                   switch (keyValue) {
                     case KeyboardKeys.BACK_SPACE: {
-                      value = value.length > 0 ? value.slice(0, value.length - 1) : '';
+                      const info = this.deleteLastSymbol(value);
+                      if (info.deleted) {
+                        value = info.value;
+                      } else {
+                        value = value.length > 0 ? value.slice(0, value.length - 1) : '';
+                      }
                       break;
                     }
                     case KeyboardKeys.SPACE: {
@@ -506,6 +511,26 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                     case KeyboardKeys.PAGE_RIGHT:
                     case KeyboardKeys.PAGE_UP:
                     case KeyboardKeys.PAGE_DOWN:
+                    case KeyboardKeys.F1:
+                    case KeyboardKeys.F2:
+                    case KeyboardKeys.F3:
+                    case KeyboardKeys.F4:
+                    case KeyboardKeys.F5:
+                    case KeyboardKeys.F6:
+                    case KeyboardKeys.F7:
+                    case KeyboardKeys.F8:
+                    case KeyboardKeys.F9:
+                    case KeyboardKeys.F10:
+                    case KeyboardKeys.F11:
+                    case KeyboardKeys.F12:
+                    case KeyboardKeys.DELETE:
+                    case KeyboardKeys.META:
+                    case KeyboardKeys.PRINT_SCREEN:
+                    case KeyboardKeys.AUDIO_VOLUME_MUTE:
+                    case KeyboardKeys.AUDIO_VOLUME_DOWN:
+                    case KeyboardKeys.AUDIO_VOLUME_UP:
+                    case KeyboardKeys.UNIDENTIFIED:
+                    case KeyboardKeys.UNIDENTIFIED_LAUNCH_APPLICATION2:
                     case KeyboardKeys.SHIFT: {
                       // skip
                       break;
@@ -527,7 +552,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                       break;
                     }
                     default: {
-                      if (keyValue.length === 1) {
+                      if (keyValue) {
                         value += keyValue;
                       }
                       break;
@@ -548,7 +573,12 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
             }
             switch (keyValue) {
               case KeyboardKeys.BACK_SPACE: {
-                value = value.length > 0 ? value.slice(0, value.length - 1) : '';
+                const info = this.deleteLastSymbol(value);
+                if (info.deleted) {
+                  value = info.value;
+                } else {
+                  value = value.length > 0 ? value.slice(0, value.length - 1) : '';
+                }
                 break;
               }
               case KeyboardKeys.SPACE: {
@@ -875,6 +905,27 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
         this._scrollerComponent()?.refresh(true);
       }
     }
+  }
+
+  private deleteLastSymbol(value: string) {
+    let result = value;
+    for (const k of this._keyboardService.keys) {
+      if (k === null) {
+        continue;
+      }
+      const keyIndex = result.lastIndexOf(k);
+      if ((keyIndex + k.length) === result.length) {
+        result = result.substring(0, keyIndex);
+        return {
+          value: result,
+          deleted: true,
+        };
+      }
+    }
+    return {
+      value: result,
+      deleted: false,
+    };
   }
 
   private hostScrollTo(e: IFocusedObject | null, blending: boolean = false, animated: boolean = true) {
