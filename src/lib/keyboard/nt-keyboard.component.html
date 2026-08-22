@@ -1,4 +1,6 @@
 @let vertical = $isVertical | async;
+@let pressedKey = $pressedKey | async;
+@let caps = $caps | async;
 <div localeSensitive [langTextDir]="($latgTextDir | async)!" class="ntk-container" [ngClass]="{vertical}">
     @let layout = $layout | async;
     @if (!!layout) {
@@ -18,7 +20,7 @@
                                         <ng-container [ngTemplateOutlet]="renderer" [ngTemplateOutletContext]="key"></ng-container>
                                     } @else {
                                     @if (!!key.icon) {
-                                            <button [innerHTML]="key.icon"></button>
+                                            <button [innerHTML]="(pressedKey === key.name || (caps && key.name === 'Shift')) && key?.iconPressed ? key.iconPressed : key?.icon"></button>
                                         } @else {
                                             <button>
                                                 {{key.name ?? ''}}

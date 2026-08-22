@@ -29,13 +29,15 @@ import { NormalizedKeyboardKey } from "./types";
 export class NtKeyboardComponent {
     private _service = inject(NtKeyboardService);
 
-    get $caps() { return this._service.$caps; }
-
     settings = input<IKeyboardSettings>(DEFAULT_KEYBOARD_SETTINGS);
 
     keyRenderer = input<TemplateRef<any> | null>(null);
 
+    get $caps() { return this._service.$caps; }
+
     get $layout() { return this._service.$layout };
+
+    get $pressedKey() { return this._service.$pressedKey; }
 
     get $isVertical() { return this._service.$isVertical; }
 

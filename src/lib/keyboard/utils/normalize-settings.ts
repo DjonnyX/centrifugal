@@ -35,7 +35,7 @@ export const normalizeSettings = (settings: IKeyboardSettings, caps: boolean, sa
  * @email djonnyx@gmail.com
  */
 const normalizeKey = (key: KeyboardKey, caps: boolean, sanitizer?: DomSanitizer): NormalizedKeyboardKey => {
-    let classes: string | null | undefined, style: string | null | undefined, name: string | null, icon: SafeHtml | null,
+    let classes: string | null | undefined, style: string | null | undefined, name: string | null, icon: SafeHtml | null, iconPressed: SafeHtml | null,
         value: KeyboardKeyValue = null;
     if (typeof key === 'object') {
         classes = key?.class ?? '';
@@ -43,12 +43,14 @@ const normalizeKey = (key: KeyboardKey, caps: boolean, sanitizer?: DomSanitizer)
         value = transform(key?.value ?? null, caps);
         name = key?.name ?? value ?? null;
         icon = !!key?.icon && !!sanitizer ? sanitizer.bypassSecurityTrustHtml(key.icon) : null;
+        iconPressed = !!key?.iconPressed && !!sanitizer ? sanitizer.bypassSecurityTrustHtml(key.iconPressed) : null;
     } else {
         value = transform(key ?? '', caps);
         classes = '';
         style = '';
         name = value;
         icon = null;
+        iconPressed = null;
     }
     return {
         class: classes,
@@ -56,6 +58,7 @@ const normalizeKey = (key: KeyboardKey, caps: boolean, sanitizer?: DomSanitizer)
         value,
         name,
         icon,
+        iconPressed,
     };
 }
 

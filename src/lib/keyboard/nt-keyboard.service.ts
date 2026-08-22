@@ -81,6 +81,9 @@ export class NtKeyboardService {
     private _$keyRelease = new Subject<KeyboardKey>();
     readonly $keyRelease = this._$keyRelease.asObservable();
 
+    private _$pressedKey = new BehaviorSubject<string | null>(null);
+    readonly $pressedKey = this._$pressedKey.asObservable();
+
     private _destroyRef = inject(DestroyRef);
 
     constructor() {
@@ -234,14 +237,17 @@ export class NtKeyboardService {
             key.value?.toUpperCase() ?? null : key.value ?? null;
         switch (state) {
             case KeyboardKeyStates.PRESS: {
+                this._$pressedKey.next(key?.name ?? null);
                 this._$keyPress.next(value);
                 break;
             }
             case KeyboardKeyStates.CLICK: {
+                this._$pressedKey.next(null);
                 this._$keyClick.next(value);
                 break;
             }
             case KeyboardKeyStates.CLICK_CANCEL: {
+                this._$pressedKey.next(null);
                 this._$keyRelease.next(value);
                 break;
             }
