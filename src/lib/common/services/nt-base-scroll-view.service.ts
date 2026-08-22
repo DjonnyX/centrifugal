@@ -1,7 +1,7 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { inject, Injectable, OnDestroy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
-import { combineLatest, distinctUntilChanged, Subject, tap } from 'rxjs';
+import { combineLatest, distinctUntilChanged, tap } from 'rxjs';
 import { IScrollable } from '../interfaces/scrollable';
 import { Id, TextDirection } from '../types';
 import { TextDirections } from '../enums';
@@ -10,6 +10,7 @@ import { IOverscroll } from '../interfaces/overscroll';
 import { INtBaseScrollViewService } from '../interfaces/nt-base-scroll-view-service';
 import { INtScroller } from '../interfaces/nt-scroller';
 import { IRect } from '../interfaces';
+import { NtService } from './nt.service';
 
 /**
  * NtBaseScrollViewService
@@ -110,10 +111,9 @@ export class NtBaseScrollViewService implements INtBaseScrollViewService, OnDest
     this._$overscroll.next(v);
   }
 
-  protected _tickerId: number | null = null;
+  protected _ntService = inject(NtService);
 
-  protected _$tick = new Subject<void>();
-  readonly $tick = this._$tick.asObservable();
+  $tick = this._ntService.$tick;
 
   protected _$intersectionElementBySnapToItemAlign = new BehaviorSubject<Id | null>(null);
   readonly $intersectionElementBySnapToItemAlign = this._$intersectionElementBySnapToItemAlign.asObservable();

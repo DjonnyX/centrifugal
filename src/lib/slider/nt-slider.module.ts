@@ -7,7 +7,6 @@ import { NtBaseResetedSliderModule } from './components/nt-base-reseted-slider';
   declarations: [NtSliderComponent],
   exports: [NtSliderComponent],
   imports: [CommonModule, NtBaseResetedSliderModule],
-  providers: [],
   schemas: [NO_ERRORS_SCHEMA],
 })
 export class NtSliderModule { }

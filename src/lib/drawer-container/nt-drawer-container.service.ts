@@ -72,16 +72,6 @@ export class NtDrawerContainerService extends NtBaseScrollViewService implements
 
   constructor() {
     super();
-
-    this.tick();
-  }
-
-  private tick() {
-    this._$tick.next();
-
-    this._tickerId = requestAnimationFrame(() => {
-      this.tick();
-    });
   }
 
   initialize(id: number, scrollView: INtScroller<INtBaseScrollViewService>, parentId: number, emitter: HTMLElement) {
@@ -114,15 +104,6 @@ export class NtDrawerContainerService extends NtBaseScrollViewService implements
   focus(element: HTMLElement) {
     if (!!element) {
       this._$focusedElement.next(element);
-    }
-  }
-
-  override ngOnDestroy() {
-    super.ngOnDestroy();
-
-    if (this._tickerId !== null) {
-      cancelAnimationFrame(this._tickerId);
-      this._tickerId = null;
     }
   }
 }

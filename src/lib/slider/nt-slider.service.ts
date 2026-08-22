@@ -24,16 +24,6 @@ export class NtSliderService extends NtBaseScrollViewService implements INtSlide
 
   constructor() {
     super();
-
-    this.tick();
-  }
-
-  private tick() {
-    this._$tick.next();
-
-    this._tickerId = requestAnimationFrame(() => {
-      this.tick();
-    });
   }
 
   initialize(id: number, scrollView: INtScroller<INtBaseScrollViewService>, parentService: INtBaseScrollViewService | null) {
@@ -87,15 +77,6 @@ export class NtSliderService extends NtBaseScrollViewService implements INtSlide
   override setIntersectionElementBySnapToItemAlign(id: Id | null) {
     if (this._$intersectionElementBySnapToItemAlign.getValue() !== id) {
       this._$intersectionElementBySnapToItemAlign.next(id);
-    }
-  }
-
-  override ngOnDestroy() {
-    super.ngOnDestroy();
-
-    if (this._tickerId !== null) {
-      cancelAnimationFrame(this._tickerId);
-      this._tickerId = null;
     }
   }
 }

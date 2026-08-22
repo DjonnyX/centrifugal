@@ -306,7 +306,7 @@ export class NtScrollView extends NtBaseScrollView {
                     this._isMoving = false;
                     this._grabbing.set(false);
                     this._overscrollIteration = this._overscrollXIteration = this._overscrollYIteration = 0;
-                    this._dragX = this._dragY = this._horizontalScrollRatioWhenGrabbing = this._verticalScrollRatioWhenGrabbing = 0;
+                    this._dragX = this._dragY = 0;
                     this._service.overscroll = { x: false, y: false };
                     this.scrollDirectionX = this.scrollDirectionY = this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
                     this.emitOverscrollEvent(false);
