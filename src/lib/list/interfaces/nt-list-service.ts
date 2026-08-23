@@ -6,7 +6,7 @@ import { FocusItemParams } from "../types/focus-item-params";
 import { IRenderVirtualListCollection } from "../models/render-collection.model";
 import { FocusAlignment } from "../types";
 import { IScrollToParams } from "./scroll-to-params";
-import { IAnimationParams } from "./animation-params";
+import { INtListAnimationParams } from "./nt-list-animation-params";
 import { Id, IRect, ISize, TextDirection } from "../../common";
 import { IScrollOptions } from "./scroll-options";
 import { INtBaseScrollViewService } from "../../common/interfaces/nt-base-scroll-view-service";
@@ -47,7 +47,7 @@ export interface INtListService extends INtBaseScrollViewService {
 
     readonly $cacheVersion: Observable<number>;
 
-    animationParams: IAnimationParams;
+    animationParams: INtListAnimationParams;
 
     trackBy: string;
 

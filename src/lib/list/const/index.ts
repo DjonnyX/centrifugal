@@ -2,7 +2,7 @@ import {
     Alignments, CollapsingModes, CollectionModes, SelectingModes, SnappingMethods, SnapToItemAligns, SpreadingModes,
 } from "../enums";
 import { Directions, SnappingDistance, SnapToItemAlign } from "../../common";
-import { IAnimationParams } from '../interfaces';
+import { INtListAnimationParams } from '../interfaces';
 import { SpreadingMode } from "../types";
 import { Alignment } from "../types";
 
@@ -46,7 +46,7 @@ export const DEFAULT_SPREADING_MODE: SpreadingMode = SpreadingModes.NORMAL;
 
 export const DEFAULT_DIVIDES = 1;
 
-export const DEFAULT_ANIMATION_PARAMS: IAnimationParams = {
+export const DEFAULT_ANIMATION_PARAMS: INtListAnimationParams = {
     scrollToItem: 150,
     snapToItem: 150,
     navigateToItem: 150,

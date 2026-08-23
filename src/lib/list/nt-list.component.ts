@@ -25,7 +25,7 @@ import {
   IRenderVirtualListItem, IVirtualListCollection, IVirtualListItem, IVirtualListItemConfigMap,
 } from './models';
 import {
-  IScrollOptions, IAnimationParams, IRenderStabilizerOptions,
+  IScrollOptions, INtListAnimationParams, IRenderStabilizerOptions,
 } from './interfaces';
 import {
   Alignment, FocusAlignment, ItemTransform, CollectionMode, SelectingMode, SnappingMethod, CollapsingMode, SpreadingMode,
@@ -895,7 +895,7 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
   motionBlurEnabled = input<boolean>(DEFAULT_MOTION_BLUR_ENABLED, { ...this._motionBlurEnabledOptions });
 
   protected _animationParamsOptions = {
-    transform: (v: IAnimationParams) => {
+    transform: (v: INtListAnimationParams) => {
       const valid = validateObject(v, true, true);
 
       if (!validateFloat(v.scrollToItem)) {
@@ -925,7 +925,7 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
   /**
    * Animation parameters. The default value is "{ scrollToItem: 150, snapToItem: 150, navigateToItem: 150, navigateByKeyboard: 50 }".
    */
-  animationParams = input<IAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
+  animationParams = input<INtListAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
 
   protected _overscrollEnabledOptions = {
     transform: (v: boolean) => {

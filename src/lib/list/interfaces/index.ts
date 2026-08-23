@@ -1,4 +1,4 @@
-import { IAnimationParams } from './animation-params';
+import { INtListAnimationParams } from './nt-list-animation-params';
 import { IRenderStabilizerOptions } from './render-stabilizer-options';
 import { IScrollOptions } from './scroll-options';
 import { IScrollParams } from './scroll-params';
@@ -7,7 +7,7 @@ import { INtListService } from './nt-list-service';
 import { IScrollEvent } from './scroll-event';
 
 export type {
-    IAnimationParams,
+    INtListAnimationParams,
     IItemTransformation,
     IRenderStabilizerOptions,
     IScrollOptions,
