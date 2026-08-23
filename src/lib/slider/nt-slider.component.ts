@@ -5,7 +5,6 @@ import {
   ArithmeticExpression, GradientColorPositions, Id, IScrollingSettings, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO,
   SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SnappingDistance, TextDirection, TextDirections,
 } from "../common";
-import { ISliderDragEvent, NtBaseSliderComponent, NtBaseSliderPublicService } from "../../public-api";
 import { DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_SIZE } from "./const";
 import { DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLBAR_INTERACTIVE } from "../common/const/scroller";
 import {
@@ -24,7 +23,7 @@ import { BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, fil
 import { NtSliderService } from './nt-slider.service';
 import { ScrollBox } from '../common/utils/scroll-box';
 import { ScrollerTypes } from "../common/enums/scroller-types";
-import { NtBaseSliderService } from "../core/nt-base-slider";
+import { ISliderDragEvent, NtBaseSliderComponent, NtBaseSliderPublicService, NtBaseSliderService } from "../core/nt-base-slider";
 import { SDirection } from "../core/nt-s-scroller/types";
 
 /**

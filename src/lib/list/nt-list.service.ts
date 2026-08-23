@@ -1,11 +1,11 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
-import { Observable, Subject, tap } from 'rxjs';
+import { Subject, tap } from 'rxjs';
 import { TrackBox } from './core/track-box';
 import { TrackBoxEvents } from './core/events';
 import { IRenderVirtualListItem, IVirtualListCollection, IVirtualListItem, IVirtualListItemConfigMap } from './models';
-import { IAnimationParams, IScrollOptions } from './interfaces';
+import { INtListAnimationParams, IScrollOptions } from './interfaces';
 import { IRenderVirtualListCollection } from './models/render-collection.model';
 import { FocusAlignments } from './enums';
 import { SelectingModesTypes } from './enums/selecting-modes-types';
@@ -105,7 +105,7 @@ export class NtListService extends NtBaseScrollViewService implements INtBaseScr
 
   snapScrollToEnd: boolean = false;
 
-  animationParams: IAnimationParams = DEFAULT_ANIMATION_PARAMS;
+  animationParams: INtListAnimationParams = DEFAULT_ANIMATION_PARAMS;
 
   isNoneCollapse: boolean = false;
 

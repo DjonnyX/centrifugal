@@ -17,7 +17,7 @@ export {
 } from './lib/list/enums';
 
 export type {
-    IAnimationParams as INtListAnimationParams,
+    INtListAnimationParams,
     IScrollEvent,
 } from './lib/list/interfaces';
 
