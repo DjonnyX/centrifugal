@@ -43,8 +43,8 @@ import { NtSheetService } from './nt-sheet.service';
 import { INtScrollViewService } from '../scroll-view';
 import { DISPLAY_BLOCK, DISPLAY_NONE, HEIGHT_PROP_NAME, OPACITY_0, OPACITY_1, PX, WIDTH_PROP_NAME } from '../common/const/base-prop-names';
 import { getBreakpointByPosition, NtSheetBreakpointEvent } from './utils';
-import { NtScrollerComponent } from '../list/components/nt-scroller/nt-scroller.component';
 import { SnappingDistance } from '../common/types/snapping-distance';
+import { NtSScrollerComponent } from '../core/nt-s-scroller/nt-s-scroller.component';
 
 /**
  * NtSheetComponent
@@ -69,7 +69,7 @@ import { SnappingDistance } from '../common/types/snapping-distance';
     ],
 })
 export class NtSheetComponent<S extends INtSheetService, P extends INtScrollViewService>
-    extends NtBaseScrollComponent<S, P, NtScrollerComponent> {
+    extends NtBaseScrollComponent<S, P, NtSScrollerComponent> {
 
     protected _scroller: Signal<ElementRef<HTMLDivElement> | undefined>;
 

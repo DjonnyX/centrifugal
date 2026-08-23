@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NtBaseSliderComponent } from '../nt-base-slider/nt-base-slider.component';
+import { NtBaseSliderComponent } from '../../../core/nt-base-slider';
 
 /**
  * NtBaseResetedSliderComponent
@@ -10,7 +10,7 @@ import { NtBaseSliderComponent } from '../nt-base-slider/nt-base-slider.componen
 @Component({
   selector: 'nt-base-reseted-slider',
   standalone: false,
-  templateUrl: '../nt-base-slider/nt-base-slider.component.html',
-  styleUrl: '../nt-base-slider/nt-base-slider.component.scss'
+  templateUrl: '../../../core/nt-base-slider/nt-base-slider.component.html',
+  styleUrl: '../../../core/nt-base-slider/nt-base-slider.component.scss'
 })
 export class NtBaseResetedSliderComponent extends NtBaseSliderComponent { }

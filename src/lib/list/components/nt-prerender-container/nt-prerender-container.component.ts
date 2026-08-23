@@ -11,7 +11,7 @@ import { NtPrerenderList } from "./components/nt-prerender-list/nt-prerender-lis
 import { PrerenderCache } from "./types";
 import { ISize } from "../../../common";
 import { DEFAULT_SCROLLBAR_ENABLED } from "../../../common/const/scroller";
-import { Direction } from "../../types";
+import { SDirection } from "../../../core/nt-s-scroller/types";
 
 /**
  * NtPrerenderContainer
@@ -35,7 +35,7 @@ export class NtPrerenderContainer {
 
     enabled = input<boolean>(false);
 
-    direction = input<Direction>(DEFAULT_DIRECTION);
+    direction = input<SDirection>(DEFAULT_DIRECTION);
 
     isVertical = input<boolean>(true);
 
