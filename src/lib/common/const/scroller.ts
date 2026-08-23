@@ -48,3 +48,5 @@ export const DEFAULT_SCROLLBAR_THICKNESS: number = 6;
 export const DEFAULT_SCROLLBAR_MIN_SIZE: number = 80;
 
 export const DEFAULT_LANG_TEXT_DIR = TextDirections.LTR;
+
+export const SCROLLER_SCROLL = 'scroll';

@@ -22,7 +22,7 @@
   </div>
 }
 
-<nt-scroller #scroller ntControl class="ntvl__list-scroller" tabindex="-1" [langTextDir]="textDir" [context]="this"
+<nt-s-scroller #scroller ntControl class="ntvl__list-scroller" tabindex="-1" [langTextDir]="textDir" [context]="this"
   [classes]="class" [startOffset]="scrollStartOffset" [endOffset]="scrollEndOffset"
   [alignmentStartOffset]="alignmentScrollStartOffset" [alignmentEndOffset]="alignmentScrollEndOffset"
   [direction]="direction()" [scrollbarThumbRenderer]="scrollbarThumbRenderer()" [isInfinity]="_isInfinity()"
@@ -46,4 +46,4 @@
   (onRightOverscrollAreaTrigger)="onRightOverscrollAreaTrigger.emit($event)"
   (onBottomOverscrollAreaTrigger)="onBottomOverscrollAreaTrigger.emit($event)">
   <ng-container #renderersContainer></ng-container>
-</nt-scroller>
+</nt-s-scroller>

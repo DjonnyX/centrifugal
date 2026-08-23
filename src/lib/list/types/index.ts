@@ -6,7 +6,6 @@ import { CollapsingMode } from "./collapsing-mode";
 import { SelectingMode } from "./selecting-mode";
 import { SnappingMethod } from "./snapping-method";
 import { SpreadingMode } from "./spreading-mode";
-import { Direction } from './direction';
 
 export type {
     Alignment,
@@ -17,5 +16,4 @@ export type {
     SelectingMode,
     SnappingMethod,
     SpreadingMode,
-    Direction,
 }

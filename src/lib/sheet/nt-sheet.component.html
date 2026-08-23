@@ -1,7 +1,7 @@
 @let scrollStartOffset = _precalculatedScrollStartOffset();
 @let scrollEndOffset = _precalculatedScrollEndOffset();
 
-<nt-scroller #scroller class="ntvsh__scroller" [classes]="classes()" [context]="this" [scrollable]="true"
+<nt-s-scroller #scroller class="ntvsh__scroller" [classes]="classes()" [context]="this" [scrollable]="true"
   [prepared]="true" [langTextDir]="langTextDir()" [direction]="_direction()" [focusedElement]="focusedElement()"
   [overscrollEnabled]="overscrollEnabled()" [scrollbarEnabled]="false" [scrollBehavior]="scrollBehavior()"
   [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()"
@@ -24,4 +24,4 @@
       <ng-content></ng-content>
     </div>
   </div>
-</nt-scroller>
+</nt-s-scroller>

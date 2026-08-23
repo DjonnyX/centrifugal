@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, input, Signal, signal, ViewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, from, tap } from 'rxjs';
-import { NtBaseScrollView } from '../../../nt-scroll-view/base';
+import { NtSBaseScrollView } from '../../../../../core/nt-s-scroller/nt-s-scroll-view/base';
 import { SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED } from '../../../../../common';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from '../../../../../common/const/base-prop-names';
-import { NtBaseSliderComponent } from '../../../../../slider/components/nt-base-slider/nt-base-slider.component';
+import { NtBaseSliderComponent } from '../../../../../core/nt-base-slider/nt-base-slider.component';
 import { IScrollToParams } from '../../../../../common/interfaces/scroll-to-params';
 import { BEHAVIOR_INSTANT } from '../../../../../common/const/behavior';
 import { DEFAULT_SCROLLBAR_ENABLED } from '../../../../../common/const/scroller';
@@ -19,7 +19,7 @@ import { ScrollBox } from '../../../../../common/utils/scroll-box';
 @Component({
     selector: 'nt-prerender-scroller',
     templateUrl: './nt-prerender-scroller.component.html',
-    styleUrl: '../../../nt-scroller/nt-scroller.component.scss',
+    styleUrl: '../../../../../core/nt-s-scroller/nt-s-scroller.component.scss',
     providers: [
         { provide: SCROLL_VIEW_INVERSION, useValue: false },
         { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: true },
@@ -28,7 +28,7 @@ import { ScrollBox } from '../../../../../common/utils/scroll-box';
     standalone: false,
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NtPrerenderScrollerComponent extends NtBaseScrollView {
+export class NtPrerenderScrollerComponent extends NtSBaseScrollView {
     @ViewChild('scrollBar', { read: NtBaseSliderComponent })
     scrollBar: NtBaseSliderComponent | undefined;
 

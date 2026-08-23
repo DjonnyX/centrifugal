@@ -6,7 +6,7 @@ import {
   SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SnappingDistance, TextDirection, TextDirections,
 } from "../common";
 import { ISliderDragEvent, NtBaseSliderComponent, NtBaseSliderPublicService } from "../../public-api";
-import { DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_SIZE } from "./components/nt-base-slider/const";
+import { DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_SIZE } from "./const";
 import { DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLBAR_INTERACTIVE } from "../common/const/scroller";
 import {
   isPercentageValue, parseArithmeticExpression, toggleClassName, validateBoolean, validateFloat, validateObject, validateString,
@@ -17,15 +17,15 @@ import {
 } from './const';
 import { IAnimationParams, INtSliderService, ISliderStep, ISliderSteps } from './interfaces';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
-import { Direction } from './types';
 import { Directions } from './enums';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from "../common/const/base-prop-names";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
 import { BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, startWith, switchMap, tap } from "rxjs";
-import { NtBaseSliderService } from "./components/nt-base-slider/nt-base-slider.service";
 import { NtSliderService } from './nt-slider.service';
 import { ScrollBox } from '../common/utils/scroll-box';
 import { ScrollerTypes } from "../common/enums/scroller-types";
+import { NtBaseSliderService } from "../core/nt-base-slider";
+import { SDirection } from "../core/nt-s-scroller/types";
 
 /**
  * NtSliderComponent
@@ -76,7 +76,7 @@ export class NtSliderComponent {
   readonly onChange = output<number>();
 
   protected _directionOptions = {
-    transform: (v: Direction) => {
+    transform: (v: SDirection) => {
       const valid = validateString(v) && (v === Directions.HORIZONTAL || v === Directions.VERTICAL);
       if (!valid) {
         console.error(`The "direction" parameter must be one of type \`${Directions.HORIZONTAL}\` or \`${Directions.VERTICAL}\`.`);
@@ -89,7 +89,7 @@ export class NtSliderComponent {
   /**
    * Determines the slider direction. Default value is "vertical".
    */
-  direction = input<Direction>(DEFAULT_SLIDER_DIRECTION, { ...this._directionOptions });
+  direction = input<SDirection>(DEFAULT_SLIDER_DIRECTION, { ...this._directionOptions });
 
   protected _overscrollEnabledOptions = {
     transform: (v: boolean) => {

@@ -97,8 +97,6 @@ export const VIEWPORT = 'viewport';
 
 export const SCROLL = 'scroll';
 
-export const SCROLLER_SCROLL = 'scroll';
-
 export const SCROLL_END = 'scrollend';
 
 export const CLASS_LIST_VERTICAL = 'vertical';

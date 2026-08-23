@@ -4,7 +4,7 @@ import { IAnimationParams } from '../interfaces';
 export const DEFAULT_SCROLLER_SIZE = 400;
 
 export const DEFAULT_ANIMATION_PARAMS: IAnimationParams = {
-    scrollToItem: 0,
+    scrollToItem: 500,
 };
 
 export const DEFAULT_DIRECTION = Directions.BOTH;
@@ -13,8 +13,6 @@ export const DISPLAY_OBJECTS_LENGTH_MESUREMENT_ERROR = 1;
 
 // presets
 export const SCROLL = 'scroll';
-
-export const SCROLLER_SCROLL = 'scroll';
 
 export const SCROLL_END = 'scrollend';
 

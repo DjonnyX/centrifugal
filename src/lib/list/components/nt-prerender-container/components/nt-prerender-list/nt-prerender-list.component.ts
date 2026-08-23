@@ -19,7 +19,7 @@ import { ISize } from "../../../../../common";
 import { toggleClassName } from "../../../../../common/utils";
 import { PX } from "../../../../../common/const/base-prop-names";
 import { DEFAULT_SCROLLBAR_ENABLED } from "../../../../../common/const/scroller";
-import { Direction } from "../../../../types";
+import { SDirection } from "../../../../../core/nt-s-scroller/types";
 
 /**
  * NtPrerenderList
@@ -44,7 +44,7 @@ export class NtPrerenderList implements OnDestroy {
 
     enabled = input<boolean>(false);
 
-    direction = input<Direction>(DEFAULT_DIRECTION);
+    direction = input<SDirection>(DEFAULT_DIRECTION);
 
     isVertical = input<boolean>(true);
 

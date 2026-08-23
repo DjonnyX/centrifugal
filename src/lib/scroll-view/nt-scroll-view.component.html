@@ -3,7 +3,7 @@
 @let scrollTopOffset = _precalculatedScrollTopOffset();
 @let scrollBottomOffset = _precalculatedScrollBottomOffset();
 
-<nt-scroller #scroller class="ntvs__scroller" [classes]="classes()" [scrollable]="scrollable()" [context]="this"
+<nt-d-scroller #scroller class="ntvs__scroller" [classes]="classes()" [scrollable]="scrollable()" [context]="this"
   [langTextDir]="langTextDir()" [leftOffset]="scrollLeftOffset" [rightOffset]="scrollRightOffset"
   [topOffset]="scrollTopOffset" [bottomOffset]="scrollBottomOffset" [direction]="direction()"
   [scrollbarThumbRenderer]="scrollbarThumbRenderer()" [scrollbarThickness]="scrollbarThickness()"
@@ -30,4 +30,4 @@
   <ng-container #renderersContainer>
     <ng-content></ng-content>
   </ng-container>
-</nt-scroller>
+</nt-d-scroller>

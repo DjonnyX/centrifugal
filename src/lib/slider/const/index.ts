@@ -1,11 +1,11 @@
 import { GradientColorPositions, IScrollingSettings, SnappingDistance } from "../../common";
+import { SDirection } from "../../core/nt-s-scroller/types";
 import { Directions } from "../enums";
 import { IAnimationParams } from "../interfaces";
-import { Direction } from "../types";
 
 export const DEFAULT_THUMB_GRADIENT_POSITIONS: GradientColorPositions = [0, 1];
 
-export const DEFAULT_SLIDER_DIRECTION: Direction = Directions.HORIZONTAL;
+export const DEFAULT_SLIDER_DIRECTION: SDirection = Directions.HORIZONTAL;
 
 export const DEFAULT_OVERSCROLL_ENABLED = false;
 
@@ -24,3 +24,11 @@ export const DEFAULT_SCROLLING_SETTINGS: IScrollingSettings = {
 };
 
 export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '25%';
+
+export const DEFAULT_SIZE = 6;
+
+export const DEFAULT_MOTION_BLUR = 2;
+
+export const DEFAULT_MAX_MOTION_BLUR = 5;
+
+export const DEFAULT_MOTION_BLUR_ENABLED = false;

@@ -27,18 +27,28 @@ export * from './lib/list/models';
  * Public API Surface of NtScrollView
  */
 export {
-    NtScrollerModule,
-    NtScrollerComponent,
     NtScrollViewModule,
     NtScrollViewComponent,
     NtScrollViewService,
-    NtBaseOverscrollAreaComponent,
 } from './lib/scroll-view';
 
 export type {
     INtScrollViewService,
-    INtOverscrollAreaPublicApi,
+
 } from './lib/scroll-view';
+
+/**
+ * Public API Surface of OverscrollArea
+ */
+export {
+    NtOverscrollAreaComponent,
+    NtOverscrollAreaModule,
+    NtBaseOverscrollAreaComponent,
+} from './lib/core/nt-overscroll-area';
+
+export type {
+    INtOverscrollAreaPublicApi,
+} from './lib/core/nt-overscroll-area';
 
 /*
  * Public API Surface of NtSlider
@@ -46,15 +56,18 @@ export type {
 export {
     NtSliderComponent,
     NtSliderModule,
+} from './lib/slider';
+
+export {
     NtBaseSliderComponent,
     NtBaseSliderPublicService,
     SliderStates,
-} from './lib/slider';
+} from './lib/core/nt-base-slider';
 
 export type {
     ISliderDragEvent,
     ISliderTemplateContext,
-} from './lib/slider';
+} from './lib/core/nt-base-slider';
 
 /*
  * Public API Surface of NtDrawerContainer

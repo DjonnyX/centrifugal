@@ -28,7 +28,7 @@ import {
   IScrollOptions, IAnimationParams, IRenderStabilizerOptions,
 } from './interfaces';
 import {
-  Alignment, FocusAlignment, ItemTransform, CollectionMode, SelectingMode, SnappingMethod, CollapsingMode, SpreadingMode, Direction,
+  Alignment, FocusAlignment, ItemTransform, CollectionMode, SelectingMode, SnappingMethod, CollapsingMode, SpreadingMode,
 } from './types';
 import { IRenderVirtualListCollection } from './models/render-collection.model';
 import {
@@ -48,7 +48,7 @@ import {
   validateArray, validateBoolean, validateFloat, validateFunction, validateInt, validateObject, validateString,
 } from '../common/utils/validation';
 import { isCollectionMode } from './utils/is-collection-mode';
-import { NtScrollerComponent } from './components/nt-scroller/nt-scroller.component';
+import { NtSScrollerComponent } from '../core/nt-s-scroller/nt-s-scroller.component';
 import { NtPrerenderContainer } from './components/nt-prerender-container/nt-prerender-container.component';
 import { IScrollParams } from './interfaces';
 import { formatActualDisplayItems, formatScreenReaderMessage } from './utils/screen-reader-formatter';
@@ -82,6 +82,7 @@ import {
   DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, DEFAULT_SCROLLING_SETTINGS,
 } from '../common/const/scroller';
 import { isDirection } from '../scroll-view/utils/is-direction';
+import { SDirection } from '../core/nt-s-scroller/types';
 
 /**
  * Virtual list component.
@@ -107,7 +108,7 @@ import { isDirection } from '../scroll-view/utils/is-direction';
   ],
 })
 export class NtListComponent<S extends INtListService = any, P extends INtScrollViewService = any>
-  extends NtBaseScrollComponent<S, P, NtScrollerComponent> implements OnDestroy {
+  extends NtBaseScrollComponent<S, P, NtSScrollerComponent> implements OnDestroy {
   protected _prerender = viewChild<NtPrerenderContainer>('prerender');
 
   @ViewChild('renderersContainer', { read: ViewContainerRef })
@@ -1096,10 +1097,10 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
   dynamicSize = input(DEFAULT_DYNAMIC_SIZE, { ...this._dynamicSizeOptions });
 
   protected _directionOptions = {
-    transform: (v: Direction) => {
-      const valid = validateString(v) && (v === 'horizontal' || v === 'vertical');
+    transform: (v: SDirection) => {
+      const valid = validateString(v) && (v === Directions.HORIZONTAL || v === Directions.VERTICAL);
       if (!valid) {
-        console.error('The "direction" parameter must be one of `horizontal` or `vertical`.');
+        console.error(`The "direction" parameter must be one of \`${Directions.HORIZONTAL}\` or \`${Directions.VERTICAL}\`.`);
         return DEFAULT_DIRECTION;
       }
       return v;
@@ -1109,7 +1110,7 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
   /**
    * Determines the direction in which elements are placed. Default value is "vertical".
    */
-  direction = input<Direction>(DEFAULT_DIRECTION, { ...this._directionOptions });
+  direction = input<SDirection>(DEFAULT_DIRECTION, { ...this._directionOptions });
 
   protected _collectionModeOptions = {
     transform: (v: CollectionMode) => {
@@ -3510,7 +3511,7 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
     return isCollapseMode(mode, CollapsingModes.ACCORDION);
   }
 
-  private getIsVertical(d?: Direction) {
+  private getIsVertical(d?: SDirection) {
     const dir = d || this.direction();
     return isDirection(dir, Directions.VERTICAL);
   }
