@@ -23,6 +23,7 @@ import { TextFieldTypes } from "./enums";
 import { ATTR_DIR, ATTR_PATTERN, ATTR_TABINDEX, ATTR_TYPE, NT_DIR, NT_SERVICE_ID } from "../common/const/attribute-names";
 import { DEFAULT_INPUT_ELEMETNS } from "../common/directives/nt-control/const";
 import { normalizeValueForTextField, querySelectorAllShadowRoots } from './utils';
+import { EMPTY_STRING, SPACE_STRING } from "../common/const/string";
 
 /**
  * NtControlContainerComponent
@@ -459,12 +460,16 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
               ngControlValue = ngControl?.control?.value ?? null,
               isNgControl = ngControlValue !== null,
               element = this._controlService?.focusedElement?.element ?? null, targetTagName = element?.tagName?.toLowerCase();
-            let value: string = '';
+            let value: string = EMPTY_STRING;
             if (!!targetTagName && isInteractive(targetTagName)) {
               const inputElement = element as HTMLInputElement;
               if (!!inputElement) {
+                const tfValue = inputElement.value ?? EMPTY_STRING;
+                if (tfValue === EMPTY_STRING) {
+                  inputElement.setAttribute(NT_VALUE, tfValue);
+                }
                 const ntValue = inputElement.getAttribute(NT_VALUE);
-                value = String(ngControlValue ?? ntValue ?? inputElement.value ?? '');
+                value = String(ngControlValue ?? ntValue ?? inputElement.value ?? EMPTY_STRING);
                 if (keyValue.indexOf(KEY_SYS) === 0) {
                   if (keyValue === KeyboardKeys.SYS_NEXT_LOCALE) {
                     this._keyboardService.nextPreset();
@@ -483,7 +488,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                       break;
                     }
                     case KeyboardKeys.SPACE: {
-                      value += ' ';
+                      value += SPACE_STRING;
                       break;
                     }
                     case KeyboardKeys.TAB: {
@@ -531,7 +536,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                       break;
                     }
                     case KeyboardKeys.CLEAR: {
-                      value = '';
+                      value = EMPTY_STRING;
                       break;
                     }
                     case KeyboardKeys.ENTER: {
@@ -557,7 +562,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                   const type = inputElement.getAttribute(ATTR_TYPE) ?? TextFieldTypes.TEXT,
                     pattern = inputElement.getAttribute(ATTR_PATTERN) ?? null,
                     { normalizedValue, normalizedNtValue } = normalizeValueForTextField(type, value, ntValue, keyValue, pattern, isNgControl);
-                  inputElement.setAttribute(NT_VALUE, normalizedNtValue ?? '');
+                  inputElement.setAttribute(NT_VALUE, normalizedNtValue ?? EMPTY_STRING);
                   inputElement.value = normalizedValue;
                   if (!!ngControl?.control) {
                     ngControl.control.setValue(normalizedValue);
@@ -577,7 +582,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                 break;
               }
               case KeyboardKeys.SPACE: {
-                value += ' ';
+                value += SPACE_STRING;
                 break;
               }
               case KeyboardKeys.ENTER: {
@@ -809,7 +814,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
       }
     }
     arr.pop();
-    return arr.join('');
+    return arr.join(EMPTY_STRING);
   }
 
   private updateKeyboardPosition(e: IFocusedObject | null, keyboardEnabled: boolean, keyboardSettings: IKeyboardSettings, animated: boolean = true) {
