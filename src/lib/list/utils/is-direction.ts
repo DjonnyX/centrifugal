@@ -1,5 +1,5 @@
-import { Directions } from "../enums";
-import { Direction } from "../types";
+import { Directions } from "../../common";
+import { SDirection } from "../../core/nt-s-scroller/types";
 
 const HORIZONTAL_ALIASES = [Directions.HORIZONTAL, 'horizontal'],
     VERTICAL_ALIASES = [Directions.VERTICAL, 'vertical'];
@@ -10,7 +10,7 @@ const HORIZONTAL_ALIASES = [Directions.HORIZONTAL, 'horizontal'],
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export const isDirection = (src: Direction, expected: Direction): boolean => {
+export const isDirection = (src: SDirection, expected: SDirection): boolean => {
     if (HORIZONTAL_ALIASES.includes(expected)) {
         return HORIZONTAL_ALIASES.includes(src);
     }
