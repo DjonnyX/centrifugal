@@ -10,6 +10,8 @@ export const EVENT_FOCUS_IN = 'focusin';
 
 export const EVENT_FOCUS_OUT = 'focusout';
 
+export const INPUT = 'input';
+
 export const TOUCH_MOVE = 'touchmove';
 
 export const TOUCH_START = 'touchstart';

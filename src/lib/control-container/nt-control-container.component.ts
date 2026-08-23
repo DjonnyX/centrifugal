@@ -6,7 +6,7 @@ import {
   CONTROL_CONTAINER_SERVICE, ElementNames, IKeyboardSettings, INtBaseControlContainerService, KeyboardKeys, KeyboardPosition, KeyboardPositions,
   SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
 } from "../common";
-import { FOCUS, MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, POINTER_DOWN, POINTER_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
+import { FOCUS, INPUT, MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, POINTER_DOWN, POINTER_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
 import { NtControlContainerService } from "./nt-control-container.service";
 import { INtBaseScrollViewService } from "../common/interfaces/nt-base-scroll-view-service";
 import { isInteractive } from "../common/utils/is-interactive";
@@ -561,6 +561,11 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                   inputElement.value = normalizedValue;
                   if (!!ngControl?.control) {
                     ngControl.control.setValue(normalizedValue);
+                  } else {
+                    inputElement.dispatchEvent(new InputEvent(INPUT, {
+                      bubbles: true,
+                      cancelable: true,
+                    }));
                   }
                   return;
                 }
