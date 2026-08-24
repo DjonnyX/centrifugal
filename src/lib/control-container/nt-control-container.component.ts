@@ -21,7 +21,7 @@ import { PX } from "../common/const/base-prop-names";
 import { NtKeyboardService } from "../keyboard/nt-keyboard.service";
 import { TextFieldTypes } from "./enums";
 import { ATTR_DIR, ATTR_PATTERN, ATTR_TABINDEX, ATTR_TYPE, NT_DIR, NT_SERVICE_ID } from "../common/const/attribute-names";
-import { DEFAULT_INPUT_ELEMETNS } from "../common/directives/nt-control/const";
+import { DEFAULT_INPUT_ELEMETNS, TEXTAREA } from "../common/directives/nt-control/const";
 import { normalizeValueForTextField, querySelectorAllShadowRoots } from './utils';
 import { EMPTY_STRING, SPACE_STRING } from "../common/const/string";
 
@@ -540,11 +540,22 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                       break;
                     }
                     case KeyboardKeys.ENTER: {
-                      if (!ngControl) {
-                        element?.dispatchEvent(new PointerEvent(POINTER_DOWN));
-                        element?.dispatchEvent(new PointerEvent(POINTER_UP));
+                      switch (targetTagName) {
+                        case INPUT: {
+                          if (!ngControl) {
+                            if (!!element) {
+                              element.dispatchEvent(new PointerEvent(POINTER_DOWN));
+                              element.dispatchEvent(new PointerEvent(POINTER_UP));
+                            }
+                          }
+                          this.blur();
+                          break;
+                        }
+                        case TEXTAREA: {
+                          value += '\n';
+                          break;
+                        }
                       }
-                      this.blur();
                       break;
                     }
                     case KeyboardKeys.ESCAPE: {
@@ -571,6 +582,14 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                       bubbles: true,
                       cancelable: true,
                     }));
+                  }
+                  switch (targetTagName) {
+                    case TEXTAREA: {
+                      if (!!element) {
+                        element.scrollTop = element?.scrollHeight;
+                      }
+                      break;
+                    }
                   }
                   return;
                 }
