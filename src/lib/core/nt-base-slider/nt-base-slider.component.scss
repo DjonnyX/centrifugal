@@ -62,6 +62,10 @@
             transition: transform 250ms ease-out;
         }
 
+        &.liquid {
+            transition: transform 250ms ease-out, width 250ms ease-out, height 250ms ease-out;
+        }
+
         &.prepared {
             overflow: hidden;
         }

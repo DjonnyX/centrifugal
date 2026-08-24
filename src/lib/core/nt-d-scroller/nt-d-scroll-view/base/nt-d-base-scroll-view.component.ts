@@ -64,6 +64,8 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
 
     readonly overscrollService = input<INtOverscrollService | null>(null);
 
+    readonly interactive = input<boolean>(true);
+
     readonly direction = input<Direction>(Directions.BOTH);
 
     readonly langTextDir = input<TextDirection>(TextDirections.LTR);

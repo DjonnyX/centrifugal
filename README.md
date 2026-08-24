@@ -224,7 +224,8 @@ Methods
 | scrollToEnd | (cb: (() => void) \| null = null, options: [IScrollOptions](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/interfaces/scroll-options.ts) \| null = null) | Scrolls the list to the end of the content height. |
 | getItemBounds | (id: [Id](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/id.ts)) => [ISize \| null](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/size.ts) | Returns the bounds of an element with a given id |
 | focus | [Id](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/id.ts), align: [FocusAlignment](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/types/focus-alignment.ts) = [FocusAlignments.NONE](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/enums/focus-alignments.ts) | Focus an list item by a given id. |
-| preventSnapping |  | Prevents the list from snapping to its start or end edge. |
+| preventSnapping | (): void | Prevents the list from snapping to its start or end edge. |
+| getDisplayItemPosition | (id: [Id](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/id.ts)): [IPoint](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/point.ts) \| null | Returns the position of a display item with a given id. |
 
 <br/>
 

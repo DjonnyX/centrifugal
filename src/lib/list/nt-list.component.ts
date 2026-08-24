@@ -61,7 +61,7 @@ import { isSpreadingMode } from './utils/is-spreading-mode';
 import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interfaces';
 import { getScrollStateVersion } from './utils/get-scroll-state-version';
 import {
-  ArithmeticExpression, Directions, Id, IListScrollEvent, IOverscrollEvent, IScrollingSettings, ISize, KeyboardKeys,
+  ArithmeticExpression, Directions, Id, IListScrollEvent, IOverscrollEvent, IPoint, IScrollingSettings, ISize, KeyboardKeys,
   SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, SnappingDistance, SnapToItemAlign,
   TextDirection, TextDirections,
 } from '../common';
@@ -171,6 +171,22 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
 
   private _$initialized = new BehaviorSubject<boolean>(false);
   readonly $initialized = this._$initialized.asObservable();
+
+  protected _interactiveOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+      if (!valid) {
+        console.error('The "interactive" parameter must be of type `boolean`.');
+        return true;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Interactive. Default value is "true".
+   */
+  interactive = input<boolean>(true, { ...this._interactiveOptions });
 
   protected _scrollbarThickness = {
     transform: (v: number) => {
@@ -982,8 +998,6 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
    * Rendering element template.
    */
   itemRenderer = input.required<TemplateRef<any>>({ ...this._itemRendererOptions });
-
-  protected _itemRenderer = signal<TemplateRef<any> | undefined>(undefined);
 
   protected _itemConfigMapOptions = {
     transform: (v: IVirtualListItemConfigMap) => {
@@ -3239,17 +3253,6 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
       }),
     ).subscribe();
 
-    const $itemRenderer = toObservable(this.itemRenderer);
-
-    $itemRenderer.pipe(
-      takeUntilDestroyed(),
-      distinctUntilChanged(),
-      filter(v => !!v),
-      tap(v => {
-        this._itemRenderer.set(v);
-      }),
-    ).subscribe();
-
     $bounds.pipe(
       takeUntilDestroyed(),
       distinctUntilChanged(),
@@ -3529,10 +3532,11 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
 
     if (this._isSnappingMethodAdvanced && this.stickyEnabled()) {
       if (this._snappedDisplayComponents.length < MAX_REGULAR_SNAPED_COMPONENTS && !!this._snapContainerRef) {
+        const itemRenderer = this.itemRenderer();
         let index = 0;
         while (this._snappedDisplayComponents.length < MAX_REGULAR_SNAPED_COMPONENTS) {
           const comp = this._snapContainerRef.createComponent(this._itemComponentClass);
-          comp.instance.renderer = this._itemRenderer();
+          comp.instance.renderer = itemRenderer;
           comp.instance.regular = true;
           this._snappedDisplayComponents.push(comp);
           this._trackBox.snappedDisplayComponents = this._snappedDisplayComponents;
@@ -3550,13 +3554,13 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
     const maxLength = displayItems.length, components = this._displayComponents;
 
     if (!!listContainerRef) {
-      const doMap: { [id: number]: number } = {};
+      const itemRenderer = this.itemRenderer(), doMap: { [id: number]: number } = {};
       let i = 0;
       for (let l = components.length; i < l; i++) {
         const item = components[i];
         if (!!item) {
           const id = item.instance.id;
-          item.instance.renderer = this._itemRenderer();
+          item.instance.renderer = itemRenderer;
           doMap[id] = i;
         }
       }
@@ -3568,7 +3572,7 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
           ngModuleRef: createNgModule(NtListItemModule, this._injector),
         });
         const id = comp.instance.id;
-        comp.instance.renderer = this._itemRenderer();
+        comp.instance.renderer = itemRenderer;
         doMap[id] = i;
         components.push(comp);
         i++;
@@ -3635,6 +3639,13 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
   }
 
   /**
+   * Returns the position of a display item with a given id
+   */
+  getDisplayItemPosition(id: Id): IPoint | null {
+    return this._service.getDisplayItemPosition(id);
+  }
+
+  /**
    * Focus an list item by a given id.
    */
   focus(id: Id, align: FocusAlignment = FocusAlignments.NONE) {
@@ -3650,7 +3661,8 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
       blending = options?.blending ?? false,
       focused = options?.focused ?? true,
       delay = options?.delay ?? 0,
-      iteration = options?.iteration ?? 0;
+      iteration = options?.iteration ?? 0,
+      alignment = options?.alignment ?? null;
     validateId(id);
     validateScrollBehavior(behavior);
     validateIteration(iteration);
@@ -3658,6 +3670,9 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
     this._elementRef.nativeElement.focus({ preventScroll: true });
     this._$scrollTo.next({
       id, behavior, blending, delay, iteration: actualIteration, isLastIteration: actualIteration === MAX_SCROLL_TO_ITERATIONS, cb: () => {
+        if (!!alignment) {
+          this.focus(id, alignment);
+        }
         this.scrollToFinalize(id, focused, cb);
       }
     });

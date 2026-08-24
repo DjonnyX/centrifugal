@@ -37,6 +37,22 @@ export class NtSwitchComponent {
      */
     readonly onChange = output<boolean>();
 
+    protected _interactiveOptions = {
+        transform: (v: boolean) => {
+            const valid = validateBoolean(v);
+            if (!valid) {
+                console.error('The "interactive" parameter must be of type `boolean`.');
+                return true;
+            }
+            return v;
+        },
+    } as any;
+
+    /**
+     * Interactive. Default value is "true".
+     */
+    interactive = input<boolean>(true, { ...this._interactiveOptions });
+
     protected _valueOptions = {
         transform: (v: boolean) => {
             const valid = validateBoolean(v);

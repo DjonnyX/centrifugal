@@ -1,3 +1,5 @@
+import { FocusAlignment } from "../types";
+
 /**
  * Interface IScrollOptions.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/interfaces/scroll-options.ts
@@ -25,4 +27,8 @@ export interface IScrollOptions {
      * Delay.
      */
     delay?: number;
+    /**
+     * Alignment.
+     */
+    alignment?: FocusAlignment;
 }

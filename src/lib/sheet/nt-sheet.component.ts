@@ -96,6 +96,22 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
     protected _$initialized = new BehaviorSubject<boolean>(false);
     readonly $initialized = this._$initialized.asObservable();
 
+    protected _interactiveOptions = {
+        transform: (v: boolean) => {
+            const valid = validateBoolean(v);
+            if (!valid) {
+                console.error('The "interactive" parameter must be of type `boolean`.');
+                return true;
+            }
+            return v;
+        },
+    } as any;
+
+    /**
+     * Interactive. Default value is "true".
+     */
+    interactive = input<boolean>(true, { ...this._interactiveOptions });
+
     protected _breakpointsOptions = {
         transform: (v: INtSheetBreakpoints) => {
             let valid = validateArray(v);

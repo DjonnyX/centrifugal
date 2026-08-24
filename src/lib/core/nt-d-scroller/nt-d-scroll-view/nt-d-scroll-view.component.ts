@@ -4,7 +4,7 @@ import {
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-    BehaviorSubject, combineLatest, debounceTime, delay, filter, fromEvent, map, of, race, startWith, Subject, switchMap, takeUntil, tap,
+    BehaviorSubject, combineLatest, debounceTime, delay, filter, fromEvent, map, of, race, skipWhile, startWith, Subject, switchMap, takeUntil, tap,
 } from 'rxjs';
 import { ANIMATOR_MIN_TIMESTAMP, Animator, Easing, easeOutQuad } from '../../../common/utils/animator';
 import {
@@ -302,6 +302,7 @@ export class NtDScrollView extends NtDBaseScrollView {
             const $wheel = this.$wheel;
             $wheel.pipe(
                 takeUntilDestroyed(),
+                skipWhile(() => !this.interactive()),
                 switchMap(v => of({ v0X: this.averageVelocityX, v0Y: this.averageVelocityY })),
                 debounceTime(100),
                 tap(({ v0X, v0Y }) => {
@@ -333,6 +334,7 @@ export class NtDScrollView extends NtDBaseScrollView {
             if (!!this._controlContainerService) {
                 this._controlContainerService.$focusEcho.pipe(
                     takeUntilDestroyed(this._destroyRef),
+                    skipWhile(() => !this.interactive()),
                     filter(v => !!v),
                     tap(e => {
                         if (e.serviceId === this._service.id && this._type === ScrollerTypes.SCROLL_VIEW_SCROLLER) {
@@ -347,6 +349,7 @@ export class NtDScrollView extends NtDBaseScrollView {
 
             $wheelEmitter.pipe(
                 takeUntilDestroyed(this._destroyRef),
+                skipWhile(() => !this.interactive()),
                 switchMap(content => {
                     return fromEvent<WheelEvent>(content, WHEEL, { passive: false }).pipe(
                         filter(() => this._interactive),
@@ -408,6 +411,7 @@ export class NtDScrollView extends NtDBaseScrollView {
 
             $content.pipe(
                 takeUntilDestroyed(this._destroyRef),
+                skipWhile(() => !this.interactive()),
                 switchMap(content => {
                     return fromEvent<MouseEvent>(content, MOUSE_DOWN, { passive: false }).pipe(
                         takeUntilDestroyed(this._destroyRef),
@@ -435,6 +439,7 @@ export class NtDScrollView extends NtDBaseScrollView {
 
             $content.pipe(
                 takeUntilDestroyed(this._destroyRef),
+                skipWhile(() => !this.interactive()),
                 switchMap(content => {
                     return fromEvent<MouseEvent>(content, MOUSE_DOWN, { passive: false }).pipe(
                         takeUntilDestroyed(this._destroyRef),
@@ -569,6 +574,7 @@ export class NtDScrollView extends NtDBaseScrollView {
 
             $content.pipe(
                 takeUntilDestroyed(this._destroyRef),
+                skipWhile(() => !this.interactive()),
                 switchMap(content => {
                     return fromEvent<TouchEvent>(content, TOUCH_START, { passive: false }).pipe(
                         takeUntilDestroyed(this._destroyRef),
@@ -596,6 +602,7 @@ export class NtDScrollView extends NtDBaseScrollView {
 
             $content.pipe(
                 takeUntilDestroyed(this._destroyRef),
+                skipWhile(() => !this.interactive()),
                 switchMap(content => {
                     return fromEvent<TouchEvent>(content, TOUCH_START, { passive: false }).pipe(
                         takeUntilDestroyed(this._destroyRef),

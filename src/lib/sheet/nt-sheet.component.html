@@ -1,7 +1,7 @@
 @let scrollStartOffset = _precalculatedScrollStartOffset();
 @let scrollEndOffset = _precalculatedScrollEndOffset();
 
-<nt-s-scroller #scroller class="ntvsh__scroller" [classes]="classes()" [context]="this"
+<nt-s-scroller #scroller class="ntvsh__scroller" [classes]="classes()" [context]="this" [interactive]="interactive()"
   [overscrollService]="overscrollService()" [scrollable]="true" [prepared]="true" [langTextDir]="langTextDir()"
   [direction]="_direction()" [focusedElement]="focusedElement()" [overscrollEnabled]="overscrollEnabled()"
   [scrollbarEnabled]="false" [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()"

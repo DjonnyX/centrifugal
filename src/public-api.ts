@@ -120,6 +120,14 @@ export {
 } from './lib/switch';
 
 /*
+ * Public API Surface of NtTabs
+ */
+export {
+    NtTabsComponent,
+    NtTabsModule,
+} from './lib/tabs';
+
+/*
  * Public API Surface of common
  */
 export * from './lib/common';

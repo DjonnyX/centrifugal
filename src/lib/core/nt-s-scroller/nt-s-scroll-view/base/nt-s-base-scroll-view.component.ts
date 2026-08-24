@@ -61,6 +61,8 @@ export abstract class NtSBaseScrollView implements INtScroller<INtBaseScrollView
 
     readonly overscrollService = input<INtOverscrollService | null>(null);
 
+    readonly interactive = input<boolean>(true);
+
     readonly direction = input<SDirection>(Directions.VERTICAL);
 
     readonly startOffset = input<number>(0);

@@ -1,6 +1,7 @@
 @let grab = grabbing;
 @let filtered = motionBlurEnabled();
-<div class="ntbs__container" [ngStyle]="styles()">
+@let style = _styles();
+<div class="ntbs__container" [ngStyle]="style">
     <svg part="nt-slider-viewport" class="ntbs__viewport" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
         xmlns:xlink="http://www.w3.org/1999/xlink">
         <filter [id]="_filterId">
@@ -8,13 +9,13 @@
         </filter>
         <foreignObject xmlns="http://www.w3.org/1999/xhtml" width="100%" height="100%" class="ntbs__viewport">
             <div class="ntbs__slider-wrapper" [class.filtered]="filtered" [style.filter]="filtered ? _filter : 'unset'">
-                <div #scrollViewport class="track" part="nt-slider-track" [ngStyle]="styles()"
+                <div #scrollViewport class="track" part="nt-slider-track" [ngStyle]="style"
                     [ngClass]="{grabbing: grab}">
                     <div #scrollContent ntControl class="thumb" part="nt-slider-thumb"
-                        [class.horizontal]="!isVertical()" [ngStyle]="thumbStyles()" [ngClass]="thumbClass()"
+                    [ngStyle]="thumbStyles()" [ngClass]="thumbClass()"
                         (pointerdown)="onDownHandler($event)" (onVirtualClick)="onVirtualClick.emit($event)">
                         <ng-container [ngTemplateOutlet]="thumbRenderer()"
-                            [ngTemplateOutletContext]="templateContext()" />
+                            [ngTemplateOutletContext]="_templateContext()" />
                     </div>
                 </div>
             </div>

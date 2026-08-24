@@ -7,7 +7,7 @@ import { IRenderVirtualListCollection } from "../models/render-collection.model"
 import { FocusAlignment } from "../types";
 import { IScrollToParams } from "./scroll-to-params";
 import { INtListAnimationParams } from "./nt-list-animation-params";
-import { Id, IRect, ISize, TextDirection } from "../../common";
+import { Id, IPoint, IRect, ISize, TextDirection } from "../../common";
 import { IScrollOptions } from "./scroll-options";
 import { INtBaseScrollViewService } from "../../common/interfaces/nt-base-scroll-view-service";
 import { INtScroller } from "../../common/interfaces/nt-scroller";
@@ -144,6 +144,8 @@ export interface INtListService extends INtBaseScrollViewService {
     collapse(id: Id, collapsed?: boolean): void;
 
     getItemBounds(id: Id): ISize | null;
+
+    getDisplayItemPosition(id: Id): IPoint | null;
 
     focusById(id: Id, align?: FocusAlignment, scrollBehavior?: ScrollBehavior): void;
 

@@ -23,9 +23,10 @@
 }
 
 <nt-s-scroller #scroller ntControl class="ntvl__list-scroller" tabindex="-1" [langTextDir]="textDir" [context]="this"
-  [classes]="class" [startOffset]="scrollStartOffset" [endOffset]="scrollEndOffset" [overscrollService]="overscrollService()"
-  [alignmentStartOffset]="alignmentScrollStartOffset" [alignmentEndOffset]="alignmentScrollEndOffset"
-  [direction]="direction()" [scrollbarThumbRenderer]="scrollbarThumbRenderer()" [isInfinity]="_isInfinity()"
+  [interactive]="interactive()" [classes]="class" [startOffset]="scrollStartOffset" [endOffset]="scrollEndOffset"
+  [overscrollService]="overscrollService()" [alignmentStartOffset]="alignmentScrollStartOffset"
+  [alignmentEndOffset]="alignmentScrollEndOffset" [direction]="direction()"
+  [scrollbarThumbRenderer]="scrollbarThumbRenderer()" [isInfinity]="_isInfinity()"
   [scrollbarThickness]="scrollbarThickness()" [scrollbarThumbParams]="scrollbarThumbParams()"
   [animationParams]="animationParams()" [focusedElement]="focusedElement()" [loading]="loading()"
   [overscrollEnabled]="overscrollEnabled()" [snappingDistance]="snappingDistance()"
@@ -45,5 +46,7 @@
   (onTopOverscrollAreaTrigger)="onTopOverscrollAreaTrigger.emit($event)"
   (onRightOverscrollAreaTrigger)="onRightOverscrollAreaTrigger.emit($event)"
   (onBottomOverscrollAreaTrigger)="onBottomOverscrollAreaTrigger.emit($event)">
-  <ng-container #renderersContainer></ng-container>
+  <ng-container #renderersContainer>
+    <ng-content></ng-content>
+  </ng-container>
 </nt-s-scroller>
