@@ -1,4 +1,4 @@
-import { Directions, IScrollingSettings } from "../../common";
+import { Directions, IScrollingSettings, SnappingDistance, SnapToItemAlign, SnapToItemAligns } from "../../common";
 import { SDirection } from "../../core/nt-s-scroller/types";
 import { INtListAnimationParams } from "../../list";
 
@@ -22,3 +22,11 @@ export const DEFAULT_ANIMATION_PARAMS: INtListAnimationParams = {
     navigateToItem: 500,
     navigateByKeyboard: 150,
 };
+
+export const DEFAULT_SNAP_TO_ITEM = true;
+
+export const DEFAULT_SNAP_TO_ITEM_ALIGN: SnapToItemAlign = SnapToItemAligns.CENTER;
+
+export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '20%';
+
+export const DEFAULT_OVERSCROLL_ENABLED: boolean = false;

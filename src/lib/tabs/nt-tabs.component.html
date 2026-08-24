@@ -1,11 +1,12 @@
 <div #container part="nt-tabs" class="nttb__container" [ngClass]="_containerClass()">
-    <nt-list #list class="nttb__list" part="nt-tabs-list" style="position: absolute;" direction="horizontal"
-        [langTextDir]="langTextDir()" [overscrollAreaShowAutomatically]="true" [items]="items()" [bufferSize]="1"
-        [maxBufferSize]="1" [animationParams]="animationParams()" [scrollingSettings]="scrollingSettings()"
+    <nt-list #list class="nttb__list" part="nt-tabs-list" style="position: absolute;" [direction]="direction()"
+        [overscrollEnabled]="overscrollEnabled()" [langTextDir]="langTextDir()" [overscrollAreaShowAutomatically]="true"
+        [items]="items()" [bufferSize]="1" [maxBufferSize]="1" [animationParams]="animationParams()"
+        [scrollingSettings]="scrollingSettings()" [snapToItem]="snapToItem()" [snapToItemAlign]="snapToItemAlign()"
         selectingMode="select" [trackBy]="trackBy()" [dynamic]="true" [scrollbarEnabled]="false" [selectByClick]="false"
-        [itemRenderer]="itemRenderer()" [selectedIds]="selectedId()" snappingDistance="5%" zIndexWhenSelecting="1000"
-        [motionBlurEnabled]="motionBlurEnabled()" [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()"
-        (onSelect)="onSelectHandler($event)">
+        [itemRenderer]="itemRenderer()" [selectedIds]="selectedId()" [snappingDistance]="snappingDistance()"
+        zIndexWhenSelecting="1000" [motionBlurEnabled]="motionBlurEnabled()" [motionBlur]="motionBlur()"
+        [maxMotionBlur]="maxMotionBlur()" (onSelect)="onSelectHandler($event)">
         <div #thumb part="nt-tabs-thumb" class="nttb__thumb" [ngStyle]="_thumbStyle()">
             <ng-container [ngTemplateOutlet]="renderer() ?? defaultRenderer"
                 [ngTemplateOutletContext]="_templateContext()" />

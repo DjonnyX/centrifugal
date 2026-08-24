@@ -1,10 +1,10 @@
 import { Component, computed, DestroyRef, effect, ElementRef, inject, input, output, signal, Signal, TemplateRef, viewChild, ViewEncapsulation } from "@angular/core";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
 import { filter, switchMap, tap } from "rxjs";
-import { Directions, Id, IScrollingSettings, ISize, TextDirection, TextDirections } from "../common";
+import { Directions, Id, IScrollingSettings, ISize, SnappingDistance, SnapToItemAlign, TextDirection, TextDirections } from "../common";
 import { toggleClassName, validateArray, validateBoolean, validateFloat, validateObject, validateString } from "../common/utils";
 import { SDirection } from "../core/nt-s-scroller/types";
-import { DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SWITCH_DIRECTION, TRACK_BY_PROPERTY_NAME } from './const';
+import { DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, DEFAULT_SNAPPING_DISTANCE, DEFAULT_SWITCH_DIRECTION, TRACK_BY_PROPERTY_NAME } from './const';
 import { PX } from "../common/const/base-prop-names";
 import { NtService } from "../common/services/nt.service";
 import { DEFAULT_LANG_TEXT_DIR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED } from "../common/const/scroller";
@@ -289,6 +289,23 @@ export class NtTabsComponent {
      */
     langTextDir = input<TextDirection>(DEFAULT_LANG_TEXT_DIR, { ...this._langTextDirOptions });
 
+    protected _overscrollEnabledOptions = {
+        transform: (v: boolean) => {
+            const valid = validateBoolean(v, true);
+
+            if (!valid) {
+                console.error('The "overscrollEnabled" parameter must be of type `boolean`.');
+                return DEFAULT_OVERSCROLL_ENABLED;
+            }
+            return v;
+        },
+    } as any;
+
+    /**
+     * Determines whether the overscroll (re-scroll) feature will work. The default value is "true".
+     */
+    overscrollEnabled = input<boolean>(DEFAULT_OVERSCROLL_ENABLED, { ...this._overscrollEnabledOptions });
+
     protected _motionBlurOptions = {
         transform: (v: number) => {
             const valid = validateFloat(v);
@@ -339,6 +356,58 @@ export class NtTabsComponent {
      * Determines whether to apply motion blur or not. The default value is `false`.
      */
     motionBlurEnabled = input<boolean>(DEFAULT_MOTION_BLUR_ENABLED, { ...this._motionBlurEnabledOptions });
+
+    protected _snapToItemOptions = {
+        transform: (v: boolean) => {
+            const valid = validateBoolean(v);
+
+            if (!valid) {
+                console.error('The "snapToItem" parameter must be of type `boolean`.');
+                return DEFAULT_SNAP_TO_ITEM;
+            }
+            return v;
+        },
+    } as any;
+
+    /**
+     * Snap to an item. The default value is `false`.
+     */
+    snapToItem = input<boolean>(DEFAULT_SNAP_TO_ITEM, { ...this._snapToItemOptions });
+
+    protected _snapToItemAlignOptions = {
+        transform: (v: SnapToItemAlign) => {
+            const valid = validateString(v) && (v === 'start' || v === 'center' || v === 'end');
+
+            if (!valid) {
+                console.error('The "snapToItemAlign" parameter must be one of `start`, `center` or `end`.');
+                return DEFAULT_SNAP_TO_ITEM_ALIGN;
+            }
+            return v;
+        },
+    } as any;
+
+    /**
+     * Alignment for snapToItem. Available values ​​are `start`, `center`, and `end`. The default value is `center`.
+     */
+    snapToItemAlign = input<SnapToItemAlign>(DEFAULT_SNAP_TO_ITEM_ALIGN, { ...this._snapToItemAlignOptions });
+
+    protected _snappingDistanceOptions = {
+        transform: (v: SnappingDistance | any) => {
+            const valid = validateString(v) || validateFloat(v);
+
+            if (!valid) {
+                console.error('The "snappingDistance" parameter must be of type `number` or `string`.');
+                return DEFAULT_SNAPPING_DISTANCE;
+            }
+            return v;
+        },
+    } as any;
+
+    /**
+     * Snapping activation distance. Can be specified as a percentage of the element size or in absolute values.
+     * The default value is `25%`.
+     */
+    snappingDistance = input<SnappingDistance>(DEFAULT_SNAPPING_DISTANCE, { ...this._snappingDistanceOptions });
 
     /**
      * Extra parameters that will be passed to the custom thumb renderer.
