@@ -25,7 +25,7 @@ export const DEFAULT_ANIMATION_PARAMS: INtListAnimationParams = {
 
 export const DEFAULT_SNAP_TO_ITEM = true;
 
-export const DEFAULT_SNAP_TO_ITEM_ALIGN: SnapToItemAlign = SnapToItemAligns.CENTER;
+export const DEFAULT_SNAP_TO_ITEM_ALIGN: SnapToItemAlign = SnapToItemAligns.START;
 
 export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '20%';
 
