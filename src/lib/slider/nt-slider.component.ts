@@ -25,6 +25,7 @@ import { ScrollBox } from '../common/utils/scroll-box';
 import { ScrollerTypes } from "../common/enums/scroller-types";
 import { ISliderDragEvent, NtBaseSliderComponent, NtBaseSliderPublicService, NtBaseSliderService } from "../core/nt-base-slider";
 import { SDirection } from "../core/nt-s-scroller/types";
+import { INtOverscrollService } from "../common/interfaces/nt-overscroll-service";
 
 /**
  * NtSliderComponent
@@ -460,7 +461,43 @@ export class NtSliderComponent {
    */
   readonly renderer = input<TemplateRef<any> | null>(null);
 
+  readonly overscrollService = input<INtOverscrollService | null>(null);
+
   private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  get $scroll() { return this._baseSlider()?.$scroll; }
+
+  get $scrollEnd() { return this._baseSlider()?.$scrollEnd; }
+
+  get scrollLeft(): number {
+    return this._baseSlider()?.scrollLeft ?? 0;
+  }
+
+  set scrollLeft(v: number) {
+    const component = this._baseSlider();
+    if (!!component) {
+      component.scroll({ x: v, behavior: BEHAVIOR_INSTANT, userAction: true, fireUpdate: true });
+    }
+  }
+
+  get scrollTop(): number {
+    return this._baseSlider()?.scrollTop ?? 0;
+  }
+
+  set scrollTop(v: number) {
+    const component = this._baseSlider();
+    if (!!component) {
+      component.scroll({ y: v, behavior: BEHAVIOR_INSTANT, userAction: true, fireUpdate: true });
+    }
+  }
+
+  get scrollWidth(): number {
+    return this._baseSlider()?.scrollWidth ?? 0;
+  }
+
+  get scrollHeight(): number {
+    return this._baseSlider()?.scrollHeight ?? 0;
+  }
 
   protected _thumbGradientPositions = signal<GradientColorPositions>([0, 0]);
 
@@ -510,6 +547,7 @@ export class NtSliderComponent {
         [isVertical ? Directions.HORIZONTAL : Directions.VERTICAL]
       );
     });
+
     const $val = toObservable(this._inputValue);
     $val.pipe(
       takeUntilDestroyed(),

@@ -906,13 +906,23 @@ export class NtDScrollView extends NtDBaseScrollView {
     }
 
     protected emitOverscrollEffectEvent(grabbing: boolean = true, exp: number = DEFAULT_TRANSITION_EXPONENT) {
-        const event = this.createOverflowEvent(grabbing, exp);
-        this._$overscrollEffectEvent.next(event);
+        const event = this.createOverflowEvent(grabbing, exp),
+            overscrollService = this.overscrollService();
+        if (!!overscrollService) {
+            overscrollService.emit(event, true);
+        } else {
+            this._$overscrollEffectEvent.next(event);
+        }
     }
 
     protected emitOverscrollEvent(grabbing: boolean = true, output: boolean = true, exp: number = DEFAULT_TRANSITION_EXPONENT) {
-        const event = this.createOverflowEvent(grabbing, exp);
-        this._$overscroll.next(event);
+        const event = this.createOverflowEvent(grabbing, exp),
+            overscrollService = this.overscrollService();
+        if (!!overscrollService) {
+            overscrollService.emit(event);
+        } else {
+            this._$overscroll.next(event);
+        }
         if (output) {
             this.onOverscroll.emit(event);
         }

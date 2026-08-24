@@ -23,7 +23,7 @@
 }
 
 <nt-s-scroller #scroller ntControl class="ntvl__list-scroller" tabindex="-1" [langTextDir]="textDir" [context]="this"
-  [classes]="class" [startOffset]="scrollStartOffset" [endOffset]="scrollEndOffset"
+  [classes]="class" [startOffset]="scrollStartOffset" [endOffset]="scrollEndOffset" [overscrollService]="overscrollService()"
   [alignmentStartOffset]="alignmentScrollStartOffset" [alignmentEndOffset]="alignmentScrollEndOffset"
   [direction]="direction()" [scrollbarThumbRenderer]="scrollbarThumbRenderer()" [isInfinity]="_isInfinity()"
   [scrollbarThickness]="scrollbarThickness()" [scrollbarThumbParams]="scrollbarThumbParams()"

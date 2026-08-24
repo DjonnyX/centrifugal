@@ -4,7 +4,7 @@ import {
 import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-    CONTROL_CONTAINER_SERVICE, Direction, Directions, IOverscrollEvent, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
+    CONTROL_CONTAINER_SERVICE, Direction, Directions, IOverscrollEvent, ISize, OVERSCROLL_SERVICE, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
     SCROLL_VIEW_TYPE, TextDirection, TextDirections,
 } from '../../../../common';
 import { INtScroller } from '../../../../common/interfaces/nt-scroller';
@@ -13,6 +13,7 @@ import { INtControlContainerService } from '../../../../control-container/interf
 import { IScrollToParams } from '../../../../common/interfaces/scroll-to-params';
 import { INtBaseScrollViewService } from '../../../../common/interfaces/nt-base-scroll-view-service';
 import { INtBaseScrollView } from '../../../../common/interfaces/nt-base-scroll-view';
+import { INtOverscrollService } from '../../../../common/interfaces/nt-overscroll-service';
 
 /**
  * NtDBaseScrollView
@@ -28,6 +29,8 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
     readonly scrollContent = viewChild<ElementRef<HTMLDivElement>>('scrollContent');
 
     readonly scrollViewport = viewChild<ElementRef<HTMLDivElement>>('scrollViewport');
+
+    protected _overscrollService = inject(OVERSCROLL_SERVICE, { optional: true });
 
     readonly onOverscroll = output<IOverscrollEvent>();
 
@@ -58,6 +61,8 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
     readonly overscrollAreaRightRenderer = input<TemplateRef<any> | null>(null);
 
     readonly overscrollAreaBottomRenderer = input<TemplateRef<any> | null>(null);
+
+    readonly overscrollService = input<INtOverscrollService | null>(null);
 
     readonly direction = input<Direction>(Directions.BOTH);
 

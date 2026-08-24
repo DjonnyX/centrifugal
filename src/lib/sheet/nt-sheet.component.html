@@ -1,13 +1,13 @@
 @let scrollStartOffset = _precalculatedScrollStartOffset();
 @let scrollEndOffset = _precalculatedScrollEndOffset();
 
-<nt-s-scroller #scroller class="ntvsh__scroller" [classes]="classes()" [context]="this" [scrollable]="true"
-  [prepared]="true" [langTextDir]="langTextDir()" [direction]="_direction()" [focusedElement]="focusedElement()"
-  [overscrollEnabled]="overscrollEnabled()" [scrollbarEnabled]="false" [scrollBehavior]="scrollBehavior()"
-  [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()"
-  [motionBlurEnabled]="motionBlurEnabled()" [snappingDistance]="snappingDistance()" [snapToItem]="true"
-  snapToItemAlign="start" [startOffset]="scrollStartOffset" [endOffset]="scrollEndOffset"
-  [overscrollAreaShowAutomatically]="overscrollAreaShowAutomatically()"
+<nt-s-scroller #scroller class="ntvsh__scroller" [classes]="classes()" [context]="this"
+  [overscrollService]="overscrollService()" [scrollable]="true" [prepared]="true" [langTextDir]="langTextDir()"
+  [direction]="_direction()" [focusedElement]="focusedElement()" [overscrollEnabled]="overscrollEnabled()"
+  [scrollbarEnabled]="false" [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()"
+  [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()"
+  [snappingDistance]="snappingDistance()" [snapToItem]="true" snapToItemAlign="start" [startOffset]="scrollStartOffset"
+  [endOffset]="scrollEndOffset" [overscrollAreaShowAutomatically]="overscrollAreaShowAutomatically()"
   [overscrollAreaUseOffsets]="overscrollAreaUseOffsets()" [overscrollAreaLeftEnabled]="overscrollAreaLeftEnabled()"
   [overscrollAreaTopEnabled]="overscrollAreaTopEnabled()" [overscrollAreaRightEnabled]="overscrollAreaRightEnabled()"
   [overscrollAreaBottomEnabled]="overscrollAreaBottomEnabled()"
