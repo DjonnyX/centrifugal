@@ -899,8 +899,8 @@ export class NtDScrollView extends NtDBaseScrollView {
             grabbing,
             dragX: transitionExponent(this._horizontalScrollRatio <= 0 || this._horizontalScrollRatio >= 1 ? this._dragX : 0, bounds.width, exp),
             dragY: transitionExponent(this._verticalScrollRatio <= 0 || this._verticalScrollRatio >= 1 ? this._dragY : 0, bounds.height, exp),
-            positionX: (this.langTextDir() === TextDirections.LTR ? (this._horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0) : (this._horizontalScrollRatioWhenGrabbing === 1 ? 0 : 1)),
-            positionY: this._verticalScrollRatioWhenGrabbing === 1 ? 1 : 0,
+            positionX: ((this.langTextDir() === TextDirections.LTR ? (this._horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0) : (this._horizontalScrollRatioWhenGrabbing === 1 ? 0 : 1))),
+            positionY: (this._verticalScrollRatioWhenGrabbing === 1 ? 1 : 0),
         });
         return event;
     }

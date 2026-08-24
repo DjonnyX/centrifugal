@@ -18,6 +18,17 @@
                     </div>
                 </div>
             </div>
+            <nt-overscroll-container class="ntbs" dir="ltr" [bounds]="viewportBounds()" [leftOffset]="_leftOffset()"
+                [topOffset]="_topOffset()" [rightOffset]="_rightOffset()" [bottomOffset]="_bottomOffset()"
+                [overscrollEvent]="(!!_overscrollService ? _overscrollService.$event : $overscroll) | async"
+                [leftIndicatorEnabled]="_actualOverscrollAreaLeftEnabled()"
+                [topIndicatorEnabled]="_actualOverscrollAreaTopEnabled()"
+                [rightIndicatorEnabled]="_actualOverscrollAreaRightEnabled()"
+                [bottomIndicatorEnabled]="_actualOverscrollAreaBottomEnabled()"
+                [leftIndicatorRenderer]="overscrollAreaStartRenderer()"
+                [topIndicatorRenderer]="overscrollAreaStartRenderer()"
+                [rightIndicatorRenderer]="overscrollAreaEndRenderer()"
+                [bottomIndicatorRenderer]="overscrollAreaEndRenderer()" />
         </foreignObject>
     </svg>
 </div>

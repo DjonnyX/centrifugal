@@ -91,6 +91,23 @@ export class NtSliderComponent {
    */
   direction = input<SDirection>(DEFAULT_SLIDER_DIRECTION, { ...this._directionOptions });
 
+  protected _overscrollAreaShowAutomaticallyOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+
+      if (!valid) {
+        console.error('The "overscrollAreaShowAutomatically" parameter must be of type `boolean`.');
+        return true;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   *  Sets whether overscroll areas are automatically displayed if the value is true.
+   */
+  overscrollAreaShowAutomatically = input<boolean>(true, { ...this._overscrollAreaShowAutomaticallyOptions });
+
   protected _overscrollEnabledOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v, true);
