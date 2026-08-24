@@ -75,6 +75,11 @@ export class NtSliderComponent {
    */
   readonly onChange = output<number>();
 
+  /**
+   * Triggers an event when clicked.
+   */
+  readonly onVirtualClick = output<PointerEvent | TouchEvent>();
+
   protected _directionOptions = {
     transform: (v: SDirection) => {
       const valid = validateString(v) && (v === Directions.HORIZONTAL || v === Directions.VERTICAL);

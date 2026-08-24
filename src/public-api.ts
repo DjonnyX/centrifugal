@@ -112,6 +112,14 @@ export type {
 } from './lib/sheet';
 
 /*
+ * Public API Surface of NtSwitch
+ */
+export {
+    NtSwitchComponent,
+    NtSwitchModule,
+} from './lib/switch';
+
+/*
  * Public API Surface of common
  */
 export * from './lib/common';

@@ -58,6 +58,8 @@ export class NtBaseSliderComponent extends NtSScrollView {
 
   readonly onDragEnd = output<ISliderDragEvent>();
 
+  readonly onVirtualClick = output<PointerEvent | TouchEvent>();
+
   readonly thumbGradientPositions = input<GradientColorPositions>([0, 0]);
 
   readonly size = input<number>(DEFAULT_SIZE);
@@ -376,7 +378,7 @@ export class NtBaseSliderComponent extends NtSScrollView {
     return false;
   }
 
-  click(event: PointerEvent | MouseEvent) {
+  onDownHandler(event: PointerEvent | MouseEvent) {
     this._sliderService.click(event);
   }
 }

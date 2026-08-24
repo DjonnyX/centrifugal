@@ -224,4 +224,12 @@ export class NtSwitchComponent {
     protected onChangeHandler(value: number) {
         this.onChange.emit(value === 1);
     }
+
+    protected onVirtualClickHandler(e: PointerEvent | TouchEvent) {
+        const slider = this._slider();
+        if (!!slider) {
+            const value = slider.value();
+            slider.setValue(value === 1 ? 0 : 1);
+        }
+    }
 }

@@ -372,6 +372,7 @@ Outputs
 | onDragEnd | ([ISliderDragEvent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/slider/components/ng-base-slider/interfaces/slider-drag-data.ts)) => void | Fires a drag end event. |
 | onSnap | [Id](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/id.ts) | Triggers an event with a step ID when the step moves the specified distance. |
 | onChange | number | Triggers an event when the value changes. |
+| onVirtualClick | PointerEvent \| TouchEvent | Triggers an event when clicked. |
 
 <br/>
 
