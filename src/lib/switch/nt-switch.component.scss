@@ -45,7 +45,7 @@
     }
 
     &::part(nt-scroller-content) {
-        transition: matrix3d 250ms ease-out;
+        transition: transform 250ms ease-out;
     }
 
     &.horizontal {

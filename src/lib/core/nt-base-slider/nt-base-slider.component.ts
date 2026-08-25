@@ -167,7 +167,7 @@ export class NtBaseSliderComponent extends NtSScrollView {
           nasx = dirX === -1 ? asx : (2 - asx),
           nasy = dirY === -1 ? asy : (2 - asy);
         this.thumbClass.set({
-          [ANIMATED]: !e.grabbing && !this.context()?.component?.userActionDuringAnimation && !this.context()?.component?.grabbing,
+          [ANIMATED]: !grabbing && !e.grabbing && !this.context()?.component?.userActionDuringAnimation && !this.context()?.component?.grabbing,
           [direction]: true, grabbing,
         });
         this.thumbStyles.set({

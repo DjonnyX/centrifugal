@@ -23,7 +23,7 @@ export const DEFAULT_SCROLLING_SETTINGS: IScrollingSettings = {
     optimization: true,
 };
 
-export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '25%';
+export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '50%';
 
 export const DEFAULT_SIZE = 6;
 
