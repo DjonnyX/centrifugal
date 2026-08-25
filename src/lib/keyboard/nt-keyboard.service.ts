@@ -60,6 +60,15 @@ export class NtKeyboardService {
         }
     }
 
+    private _$keyboardEnabled = new BehaviorSubject<boolean>(false);
+    readonly $keyboardEnabled = this._$keyboardEnabled.asObservable();
+    get keyboardEnabled() { return this._$keyboardEnabled.getValue(); }
+    set keyboardEnabled(v: boolean) {
+        if (this.keyboardEnabled !== v) {
+            this._$keyboardEnabled.next(v);
+        }
+    }
+
     private _$latgTextDir = new BehaviorSubject<TextDirection>(TextDirections.LTR);
     readonly $latgTextDir = this._$latgTextDir.asObservable();
     get latgTextDir() { return this._$latgTextDir.getValue(); }
@@ -224,32 +233,34 @@ export class NtKeyboardService {
             }
         }
 
-        switch (key.value) {
-            case KeyboardKeys.TAB: {
-                if (!!e) {
-                    e.preventDefault();
+        if (this.keyboardEnabled) {
+            switch (key.value) {
+                case KeyboardKeys.TAB: {
+                    if (!!e) {
+                        e.preventDefault();
+                    }
+                    break;
                 }
-                break;
             }
-        }
 
-        const value = this.caps && !!key?.value && key.value?.indexOf(KEY_SYS) === -1 && key.value?.indexOf(KEY_LAYOUT) === -1 && SERVICE_KEYS.indexOf(key.value as any) === -1 ?
-            key.value?.toUpperCase() ?? null : key.value ?? null;
-        switch (state) {
-            case KeyboardKeyStates.PRESS: {
-                this._$pressedKey.next(key?.name ?? null);
-                this._$keyPress.next(value);
-                break;
-            }
-            case KeyboardKeyStates.CLICK: {
-                this._$pressedKey.next(null);
-                this._$keyClick.next(value);
-                break;
-            }
-            case KeyboardKeyStates.CLICK_CANCEL: {
-                this._$pressedKey.next(null);
-                this._$keyRelease.next(value);
-                break;
+            const value = this.caps && !!key?.value && key.value?.indexOf(KEY_SYS) === -1 && key.value?.indexOf(KEY_LAYOUT) === -1 && SERVICE_KEYS.indexOf(key.value as any) === -1 ?
+                key.value?.toUpperCase() ?? null : key.value ?? null;
+            switch (state) {
+                case KeyboardKeyStates.PRESS: {
+                    this._$pressedKey.next(key?.name ?? null);
+                    this._$keyPress.next(value);
+                    break;
+                }
+                case KeyboardKeyStates.CLICK: {
+                    this._$pressedKey.next(null);
+                    this._$keyClick.next(value);
+                    break;
+                }
+                case KeyboardKeyStates.CLICK_CANCEL: {
+                    this._$pressedKey.next(null);
+                    this._$keyRelease.next(value);
+                    break;
+                }
             }
         }
     }

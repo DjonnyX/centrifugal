@@ -319,7 +319,7 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
             takeUntilDestroyed(this._destroyRef),
             tap(e => {
                 if (!!e) {
-                    if (!!this._controlService && e.cancelable) {
+                    if (!!this._controlService && this._controlService.keyboardEnabled && e.cancelable) {
                         e.stopImmediatePropagation();
                         e.preventDefault();
                     }
@@ -354,7 +354,7 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
             }),
         ).subscribe();
 
-        if (!!this._controlService) {
+        if (!!this._controlService && this._controlService.keyboardEnabled) {
             fromEvent<PointerEvent>(host, CLICK, { passive: false }).pipe(
                 takeUntilDestroyed(),
                 tap(e => {

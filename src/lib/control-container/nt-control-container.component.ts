@@ -379,6 +379,14 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
       $focusedElement = this._controlService.$focusedElement,
       $keyboardEnabled = toObservable(this.keyboardEnabled);
 
+      $keyboardEnabled.pipe(
+        takeUntilDestroyed(),
+        filter(v => !!v),
+        tap(() => {
+          this._keyboardService.keyboardEnabled = true;
+        }),
+      ).subscribe();
+
     $keyboardEnabled.pipe(
       takeUntilDestroyed(),
       filter(v => !!v),
@@ -673,134 +681,170 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
         map(v => v.host),
       ), $wheelEmitter = $content;
 
-    $wheelEmitter.pipe(
-      takeUntilDestroyed(this._destroyRef),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
       filter(v => !!v),
-      switchMap(content => {
-        return fromEvent<WheelEvent>(content, WHEEL, { passive: false }).pipe(
-          takeUntilDestroyed(this._destroyRef),
-          tap(e => {
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-          }),
-        );
-      }),
+      switchMap(() => $wheelEmitter.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        switchMap(content => {
+          return fromEvent<WheelEvent>(content, WHEEL, { passive: false }).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(e => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
-    $content.pipe(
-      takeUntilDestroyed(this._destroyRef),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
       filter(v => !!v),
-      switchMap(content => {
-        return fromEvent<MouseEvent>(content, MOUSE_DOWN, { passive: false }).pipe(
-          takeUntilDestroyed(this._destroyRef),
-          tap(e => {
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-          }),
-        );
-      }),
+      switchMap(() => $content.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        switchMap(content => {
+          return fromEvent<MouseEvent>(content, MOUSE_DOWN, { passive: false }).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(e => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
-    $content.pipe(
-      takeUntilDestroyed(this._destroyRef),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
       filter(v => !!v),
-      switchMap(content => {
-        return fromEvent<MouseEvent>(content, MOUSE_MOVE, { passive: false }).pipe(
-          takeUntilDestroyed(this._destroyRef),
-          tap(e => {
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-          }),
-        );
-      }),
+      switchMap(() => $content.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        switchMap(content => {
+          return fromEvent<MouseEvent>(content, MOUSE_MOVE, { passive: false }).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(e => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
-    $content.pipe(
-      takeUntilDestroyed(this._destroyRef),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
       filter(v => !!v),
-      switchMap(content => {
-        return fromEvent<MouseEvent>(content, MOUSE_UP, { passive: false }).pipe(
-          takeUntilDestroyed(this._destroyRef),
-          tap(e => {
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-          }),
-        );
-      }),
+      switchMap(() => $content.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        switchMap(content => {
+          return fromEvent<MouseEvent>(content, MOUSE_UP, { passive: false }).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(e => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
-    $content.pipe(
-      takeUntilDestroyed(this._destroyRef),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
       filter(v => !!v),
-      switchMap(content => {
-        return fromEvent<TouchEvent>(content, TOUCH_START, { passive: false }).pipe(
-          takeUntilDestroyed(this._destroyRef),
-          tap(e => {
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-          }),
-        );
-      }),
+      switchMap(() => $content.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        switchMap(content => {
+          return fromEvent<TouchEvent>(content, TOUCH_START, { passive: false }).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(e => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
-    $content.pipe(
-      takeUntilDestroyed(this._destroyRef),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
       filter(v => !!v),
-      switchMap(content => {
-        return fromEvent<TouchEvent>(content, TOUCH_MOVE, { passive: false }).pipe(
-          takeUntilDestroyed(this._destroyRef),
-          tap(e => {
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-          }),
-        );
-      }),
+      switchMap(() => $content.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        switchMap(content => {
+          return fromEvent<TouchEvent>(content, TOUCH_MOVE, { passive: false }).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(e => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
-    $content.pipe(
-      takeUntilDestroyed(this._destroyRef),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
       filter(v => !!v),
-      switchMap(content => {
-        return fromEvent<TouchEvent>(content, TOUCH_END, { passive: false }).pipe(
-          takeUntilDestroyed(this._destroyRef),
-          tap(e => {
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-          }),
-        );
-      }),
+      switchMap(() => $content.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        switchMap(content => {
+          return fromEvent<TouchEvent>(content, TOUCH_END, { passive: false }).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(e => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
     const $keyboardSettings = toObservable(this.keyboardSettings);
-    $keyboardSettings.pipe(
+    $keyboardEnabled.pipe(
       takeUntilDestroyed(),
       filter(v => !!v),
-      tap(keyboardSettings => {
-        this.blur(false);
-      }),
+      switchMap(() => $keyboardSettings.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        tap(() => {
+          this.blur(false);
+        }),
+      )),
     ).subscribe();
 
-    $focusedElement.pipe(
-      takeUntilDestroyed(this._destroyRef),
-      filter(e => !!e),
-      switchMap(e => this.updateKeyboardPosition(e, this.keyboardEnabled(), this.keyboardSettings(), e.animated ?? true)),
-      filter(e => e.visible),
-      switchMap(e => {
-        return this._controlService.$overscrollCanceled.pipe(
-          takeUntilDestroyed(this._destroyRef),
-          skipUntil(timer(100).pipe(switchMap(() => of(true)))),
-          tap(event => {
-            this.blur();
-          }),
-        );
-      }),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      switchMap(() => $focusedElement.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(e => !!e),
+        switchMap(e => this.updateKeyboardPosition(e, this.keyboardEnabled(), this.keyboardSettings(), e.animated ?? true)),
+        filter(e => e.visible),
+        switchMap(() => {
+          return this._controlService.$overscrollCanceled.pipe(
+            takeUntilDestroyed(this._destroyRef),
+            skipUntil(timer(100).pipe(switchMap(() => of(true)))),
+            tap(() => {
+              this.blur();
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
     $scroller.pipe(
