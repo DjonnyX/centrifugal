@@ -1108,7 +1108,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
         const focusedElement = focusedElements[srcIndex] as HTMLElement;
         if (!!focusedElement) {
           if (typeof focusedElement.focus === 'function') {
-            focusedElement.focus({ preventScroll: true });
+            focusedElement.focus({ preventScroll: this._keyboardService.keyboardEnabled });
           }
         }
 
