@@ -12,20 +12,20 @@ import {
 } from "../common/utils";
 import {
   DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SLIDER_DIRECTION, DEFAULT_SNAPPING_DISTANCE,
-  DEFAULT_THUMB_GRADIENT_POSITIONS,
 } from './const';
 import { IAnimationParams, INtSliderService, ISliderStep, ISliderSteps } from './interfaces';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
 import { Directions } from './enums';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from "../common/const/base-prop-names";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, startWith, switchMap, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, startWith, Subject, switchMap, tap } from "rxjs";
 import { NtSliderService } from './nt-slider.service';
 import { ScrollBox } from '../common/utils/scroll-box';
 import { ScrollerTypes } from "../common/enums/scroller-types";
 import { ISliderDragEvent, NtBaseSliderComponent, NtBaseSliderPublicService, NtBaseSliderService } from "../core/nt-base-slider";
 import { SDirection } from "../core/nt-s-scroller/types";
 import { INtOverscrollService } from "../common/interfaces/nt-overscroll-service";
+import { IUpdateParams } from './interfaces';
 
 /**
  * NtSliderComponent
@@ -446,37 +446,16 @@ export class NtSliderComponent {
       const valid = validateFloat(v);
       if (!valid) {
         console.error('The "thumbSize" parameter must be of type `number`.');
-        return 0;
+        return 100;
       }
       return v;
     },
   } as any;
 
   /**
-   * Thumb slider size.
-   * If autoThumbSize is false, the thumbSize property determines the size of the slider.
-   * If autoThumbSize is true, the thumbSize property determines the minimum size of the thumb.
-   * Default value is `6`.
+   * Thumb slider size. Default value is `6`.
    */
-  thumbSize = input<number>(0, { ...this._thumbSizeOptions });
-
-  protected _autoThumbSizeOptions = {
-    transform: (v: boolean) => {
-      const valid = validateBoolean(v);
-      if (!valid) {
-        console.error('The "autoThumbSize" parameter must be of type `boolean`.');
-        return true;
-      }
-      return v;
-    },
-  } as any;
-
-  /**
-   * Determines whether the length of the slider will be calculated automatically.
-   * If autoThumbSize is true, the thumbSize property determines the minimum size of the thumb.
-   * Default value is `true`.
-   */
-  autoThumbSize = input<boolean>(true, { ...this._autoThumbSizeOptions });
+  thumbSize = input<number>(100, { ...this._thumbSizeOptions });
 
   /**
    * Extra parameters that will be passed to the custom thumb renderer.
@@ -491,6 +470,9 @@ export class NtSliderComponent {
   readonly overscrollService = input<INtOverscrollService | null>(null);
 
   private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  private _$update = new Subject<IUpdateParams | null>();
+  protected $update = this._$update.asObservable();
 
   get $scroll() { return this._baseSlider()?.$scroll; }
 
@@ -567,6 +549,19 @@ export class NtSliderComponent {
       return direction === Directions.VERTICAL;
     });
 
+    const $bounds = toObservable(this._bounds).pipe(
+      filter(b => !!b),
+    ),
+      $baseSlider = toObservable(this._baseSlider),
+      $isVertical = toObservable(this._isVertical),
+      $rawScrollStartOffset = toObservable(this.scrollStartOffset),
+      $rawScrollEndOffset = toObservable(this.scrollEndOffset),
+      $init = this.$init,
+      $value = toObservable(this._actualValue),
+      $max = toObservable(this.max),
+      $min = toObservable(this.min),
+      $step = toObservable(this.step);
+
     effect(() => {
       const isVertical = this._isVertical();
       toggleClassName(this._elementRef.nativeElement,
@@ -575,10 +570,51 @@ export class NtSliderComponent {
       );
     });
 
+    const $update = combineLatest([this.$update, $baseSlider.pipe(
+      filter(v => !!v),
+      debounceTime(0),
+      switchMap(slider => slider.$resizeContent.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(null),
+      )),
+    )]);
+    $update.pipe(
+      takeUntilDestroyed(),
+      filter(([v]) => !!v),
+      tap(([v]) => {
+        const baseSlider = this._baseSlider();
+        if (!baseSlider || baseSlider.grabbing || this._animationIds !== null) {
+          return;
+        }
+        const isVertical = this._isVertical(),
+          startOffset = this._precalculatedScrollStartOffset(),
+          {
+            size,
+            position,
+            gradientPositions,
+            animated,
+            userAction,
+          } = v as IUpdateParams;
+
+        this._thumbGradientPositions.set(gradientPositions);
+        this._size.set(size);
+        const actualThumbPosition = position < startOffset ? startOffset : position;
+        baseSlider.stopScrolling(true);
+        baseSlider.scroll({
+          [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: actualThumbPosition,
+          fireUpdate: true,
+          behavior: animated ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
+          userAction,
+          blending: false,
+          duration: animated ? this.animationParams().scroll : 0,
+        });
+      }),
+    ).subscribe();
+
     const $val = toObservable(this.value);
     $val.pipe(
       takeUntilDestroyed(),
-      debounceTime(1),
+      debounceTime(0),
       tap(v => {
         this._inputValue.set(v);
       }),
@@ -587,12 +623,7 @@ export class NtSliderComponent {
     const $inputValue = toObservable(this._inputValue);
     $inputValue.pipe(
       takeUntilDestroyed(),
-      tap(() => {
-        if (!this.init) {
-          this._actualValue.set(this.formatActualValue());
-        }
-      }),
-      debounceTime(1),
+      debounceTime(0),
       tap(() => {
         this._actualValue.set(this.formatActualValue());
       }),
@@ -628,22 +659,6 @@ export class NtSliderComponent {
         this.onSnap.emit(id);
       }),
     ).subscribe();
-
-    const $bounds = toObservable(this._bounds).pipe(
-      filter(b => !!b),
-    ),
-      $baseSlider = toObservable(this._baseSlider),
-      $isVertical = toObservable(this._isVertical),
-      $rawScrollStartOffset = toObservable(this.scrollStartOffset),
-      $rawScrollEndOffset = toObservable(this.scrollEndOffset),
-      $init = this.$init.pipe(
-        takeUntilDestroyed(),
-        debounceTime(1),
-      ),
-      $value = toObservable(this._actualValue),
-      $max = toObservable(this.max),
-      $min = toObservable(this.min),
-      $step = toObservable(this.step);
 
     $init.pipe(
       takeUntilDestroyed(),
@@ -720,19 +735,29 @@ export class NtSliderComponent {
       }),
     ).subscribe();
 
-    combineLatest([$min, $max, $value, $bounds, $baseSlider, $init, $isVertical]).pipe(
+    combineLatest([$baseSlider, $init]).pipe(
       takeUntilDestroyed(),
-      filter(([, , , b, s, i]) => !!b && !!s && !!i),
-      tap(([, , v, , , , i]) => {
-        this.update(v, i, false);
-      }),
+      filter(([s, i]) => !!s && !s.grabbing && !!i),
+      switchMap(([slider]) => combineLatest([
+        $min, $max, $value, $bounds, $isVertical,
+        slider!.$scrollEnd.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          startWith(true),
+        )]).pipe(
+          takeUntilDestroyed(this._destroyRef),
+          filter(([, , , b]) => !!b),
+          tap(([, , v]) => {
+            this.update(v, true, false);
+          }),
+        )),
     ).subscribe();
   }
 
   ngAfterViewInit() {
+    this._inputValue.set(this.value());
+    this._actualValue.set(this._inputValue());
     this.updateBreakpoints();
     this.update(this.value(), false, false);
-    this._inputValue.set(this.value());
     this._$init.next(true);
   }
 
@@ -796,11 +821,7 @@ export class NtSliderComponent {
   protected calculateSliderParams(value: number) {
     const baseSlider = this._baseSlider();
     if (!baseSlider) {
-      return {
-        size: 0,
-        position: 0,
-        gradientPositions: DEFAULT_THUMB_GRADIENT_POSITIONS,
-      };
+      return null;
     }
 
     const bounds = this._bounds(),
@@ -808,6 +829,7 @@ export class NtSliderComponent {
       direction = this.direction(),
       isVertical = this._isVertical(),
       viewportBounds = this._bounds(),
+      minSize = this.thumbSize(),
       contentBounds = {
         width: isVertical ? bounds.width : bounds.width * k,
         height: isVertical ? (bounds.height * k) : bounds.height,
@@ -816,14 +838,14 @@ export class NtSliderComponent {
       endOffset = this._precalculatedScrollEndOffset(),
       min = this.min(),
       max = this.max(),
-      size = isVertical ?
-        (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) :
-        (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
+      preSize = isVertical ?
+        (bounds.height - (!isVertical ? bounds.height : minSize)) :
+        (bounds.width - (isVertical ? bounds.width : minSize)),
+      size = preSize < minSize ? minSize : preSize,
       dist = (max - min),
       stepPX = size / dist;
 
     const v = (value - min) * stepPX,
-      minSize = this.thumbSize(),
       {
         thumbSize,
         thumbGradientPositions,
@@ -841,7 +863,7 @@ export class NtSliderComponent {
       });
 
     return {
-      size: this.autoThumbSize() ? thumbSize : minSize,
+      size: minSize,
       position: v,
       gradientPositions: thumbGradientPositions,
     };
@@ -849,29 +871,14 @@ export class NtSliderComponent {
 
   protected update(value: number, animated: boolean = true, userAction: boolean = true) {
     const baseSlider = this._baseSlider();
-    if (!baseSlider || this._animationIds !== null) {
+    if (!baseSlider || baseSlider.grabbing || this._animationIds !== null) {
       return;
     }
-    const isVertical = this._isVertical(),
-      startOffset = this._precalculatedScrollStartOffset(),
-      {
-        size,
-        position,
-        gradientPositions,
-      } = this.calculateSliderParams(value);
-
-    this._thumbGradientPositions.set(gradientPositions);
-    this._size.set(size);
-    const actualThumbPosition = position < startOffset ? startOffset : position;
-    baseSlider.stopScrolling(true);
-    baseSlider.scroll({
-      [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: actualThumbPosition,
-      fireUpdate: true,
-      behavior: animated ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
-      userAction,
-      blending: false,
-      duration: animated ? this.animationParams().scroll : 0,
-    });
+    const sliderParams = this.calculateSliderParams(value);
+    this._$update.next({
+      ...sliderParams, animated: animated && !!baseSlider.contentElement?.offsetWidth &&
+        !!baseSlider.contentElement?.offsetHeight, userAction,
+    } as IUpdateParams);
   }
 
   private formatActualValue(value: number | null = null) {

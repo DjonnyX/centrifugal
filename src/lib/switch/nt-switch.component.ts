@@ -3,9 +3,9 @@ import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
 import { combineLatest, filter, of, switchMap, tap } from "rxjs";
 import { Directions, ISize, OVERSCROLL_SERVICE, TextDirection, TextDirections } from "../common";
 import { NtSliderComponent } from "../slider";
-import { toggleClassName, validateBoolean, validateString } from "../common/utils";
+import { toggleClassName, validateBoolean, validateFloat, validateString } from "../common/utils";
 import { SDirection } from "../core/nt-s-scroller/types";
-import { DEFAULT_SWITCH_DIRECTION } from './const';
+import { DEFAULT_CONTENT_SCALE, DEFAULT_SWITCH_DIRECTION } from './const';
 import { HEIGHT_PROP_NAME, PX, UNSET, WIDTH_PROP_NAME } from "../common/const/base-prop-names";
 import { NtService } from "../common/services/nt.service";
 import { NtOverscrollService } from "../common/services/nt-overscroll.service";
@@ -85,6 +85,22 @@ export class NtSwitchComponent {
      */
     direction = input<SDirection>(DEFAULT_SWITCH_DIRECTION, { ...this._directionOptions });
 
+    protected _contentScaleOptions = {
+        transform: (v: number) => {
+            const valid = validateFloat(v);
+            if (!valid) {
+                console.error('The "contentScale" parameter must be of type `number`.');
+                return DEFAULT_CONTENT_SCALE;
+            }
+            return v;
+        },
+    } as any;
+
+    /**
+     * Content scale.
+     */
+    contentScale = input<number>(DEFAULT_CONTENT_SCALE, { ...this._contentScaleOptions });
+
     protected _langTextDirOptions = {
         transform: (v: TextDirection) => {
             const valid = validateString(v) && (v === TextDirections.LTR || v === TextDirections.RTL);
@@ -136,6 +152,8 @@ export class NtSwitchComponent {
 
     protected _size: Signal<number>;
 
+    protected _thumbSize: Signal<number>;
+
     protected _containerClass: Signal<{ [cName: string]: boolean; }>;
 
     protected _contentStyle: Signal<{ [sName: string]: string }>;
@@ -171,7 +189,12 @@ export class NtSwitchComponent {
 
         this._size = computed(() => {
             const isVertical = this._isVertical(), bounds = this._bounds();
-            return (isVertical ? bounds.height : bounds.width) * 1.05;
+            return (isVertical ? bounds.height : bounds.width) * this.contentScale();
+        });
+
+        this._thumbSize = computed(() => {
+            const isVertical = this._isVertical(), bounds = this._bounds();
+            return (isVertical ? bounds.height : bounds.width) * .5;
         });
 
         this._contentStyle = computed(() => {
@@ -224,8 +247,10 @@ export class NtSwitchComponent {
         combineLatest([$isVertical, $slider, $scroll, $scrollEnd]).pipe(
             takeUntilDestroyed(),
             tap(([isVertical, slider]) => {
-                const scrollValue = (isVertical ? slider.scrollTop : slider.scrollLeft) / (isVertical ? slider.scrollHeight : slider.scrollWidth),
-                    scroller = this._scroller()
+                const scrollPosition = (isVertical ? slider.scrollTop : slider.scrollLeft),
+                    scrollSize = (isVertical ? slider.scrollHeight : slider.scrollWidth),
+                    scrollValue = scrollSize !== 0 ? (scrollPosition / scrollSize) : 0,
+                    scroller = this._scroller();
                 if (!!scroller) {
                     if (isVertical) {
                         scroller.scrollTop = this.scrollHeight * scrollValue;
@@ -238,13 +263,13 @@ export class NtSwitchComponent {
     }
 
     protected onChangeHandler(value: number) {
-        this.onChange.emit(value === 1);
+        this.onChange.emit(value !== 0);
     }
 
     protected onVirtualClickHandler(e: PointerEvent | TouchEvent) {
         const slider = this._slider();
         if (!!slider) {
-            const value = slider.value(), nextValue = value === 1 ? 0 : 1;
+            const value = slider.value(), nextValue = value !== 0 ? 0 : 1;
             this._sliderValue.set(nextValue);
         }
     }
