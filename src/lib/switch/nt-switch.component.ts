@@ -5,7 +5,7 @@ import { Directions, ISize, OVERSCROLL_SERVICE, TextDirection, TextDirections } 
 import { NtSliderComponent } from "../slider";
 import { toggleClassName, validateBoolean, validateFloat, validateString } from "../common/utils";
 import { SDirection } from "../core/nt-s-scroller/types";
-import { DEFAULT_CONTENT_SCALE, DEFAULT_SWITCH_DIRECTION } from './const';
+import { DEFAULT_CONTENT_SCALE, DEFAULT_SWITCH_DIRECTION, DEFAULT_THUMB_ANIMATION_DURATION } from './const';
 import { HEIGHT_PROP_NAME, PX, UNSET, WIDTH_PROP_NAME } from "../common/const/base-prop-names";
 import { NtService } from "../common/services/nt.service";
 import { NtOverscrollService } from "../common/services/nt-overscroll.service";
@@ -97,9 +97,25 @@ export class NtSwitchComponent {
     } as any;
 
     /**
-     * Content scale.
+     * Scale of content. Default value is `1.05`.
      */
     contentScale = input<number>(DEFAULT_CONTENT_SCALE, { ...this._contentScaleOptions });
+
+    protected _thumbAnimationDurationOptions = {
+        transform: (v: string) => {
+            const valid = validateString(v);
+            if (!valid) {
+                console.error('The "thumbAnimationDuration" parameter must be of type `string`.');
+                return DEFAULT_THUMB_ANIMATION_DURATION;
+            }
+            return v;
+        },
+    } as any;
+
+    /**
+     * Content scale. Default value is `150ms`.
+     */
+    thumbAnimationDuration = input<string>(DEFAULT_THUMB_ANIMATION_DURATION, { ...this._thumbAnimationDurationOptions });
 
     protected _langTextDirOptions = {
         transform: (v: TextDirection) => {

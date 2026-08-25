@@ -1,10 +1,10 @@
 import { Component, computed, effect, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild } from '@angular/core';
-import { combineLatest, debounceTime, filter, fromEvent, of, startWith, Subject, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, filter, fromEvent, of, startWith, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ISliderDragEvent, ISliderTemplateContext } from './interfaces';
 import {
   DEFAULT_MOTION_BLUR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_SIZE, DEFAULT_THICKNESS, HEIGHT, NONE, OPACITY, OPACITY_0, OPACITY_1, PX,
-  TRANSITION, TRANSITION_FADE_IN, WIDTH, DEFAULT_MOTION_BLUR_ENABLED,
+  TRANSITION, TRANSITION_FADE_IN, WIDTH, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_THUMB_ANIMATION_DURATION,
 } from './const';
 import { NtBaseSliderService } from './nt-base-slider.service';
 import { NtBaseSliderPublicService } from './nt-base-slider-public.service';
@@ -76,6 +76,8 @@ export class NtBaseSliderComponent extends NtSScrollView {
 
   readonly motionBlurEnabled = input<boolean>(DEFAULT_MOTION_BLUR_ENABLED);
 
+  readonly thumbAnimationDuration = input<string>(DEFAULT_THUMB_ANIMATION_DURATION);
+
   readonly show = input<boolean>(false);
 
   readonly params = input<{ [propName: string]: any } | null>({});
@@ -100,6 +102,9 @@ export class NtBaseSliderComponent extends NtSScrollView {
 
   public readonly thumbClass = signal<{ [className: string]: boolean; }>({});
 
+  private _$init = new BehaviorSubject<boolean>(false);
+  protected $init = this._$init.asObservable();
+
   private _$scrollingCancel = new Subject<void>();
   protected readonly $scrollingCancel = this._$scrollingCancel.asObservable();
 
@@ -122,6 +127,16 @@ export class NtBaseSliderComponent extends NtSScrollView {
       $grabbing = toObservable(this._grabbing),
       $overscrollEffectEvent = this.$overscrollEffectEvent,
       $resizeViewport = this.$resizeViewport;
+
+    let init = false;
+    const $init = this.$init;
+    $init.pipe(
+      takeUntilDestroyed(),
+      debounceTime(0),
+      tap(v => {
+        init = v;
+      }),
+    ).subscribe();
 
     const $averageVelocity = this.$averageVelocity;
     combineLatest([$isVertical, $averageVelocity, $filter, $motionBlurEnabled, $motionBlur, $maxMotionBlur, $resizeViewport.pipe(
@@ -167,7 +182,7 @@ export class NtBaseSliderComponent extends NtSScrollView {
           nasx = dirX === -1 ? asx : (2 - asx),
           nasy = dirY === -1 ? asy : (2 - asy);
         this.thumbClass.set({
-          [ANIMATED]: !grabbing && !e.grabbing && !this.context()?.component?.userActionDuringAnimation && !this.context()?.component?.grabbing,
+          [ANIMATED]: init && !grabbing && !e.grabbing && !this.context()?.component?.userActionDuringAnimation && !this.context()?.component?.grabbing,
           [direction]: true, grabbing,
         });
         this.thumbStyles.set({
@@ -348,6 +363,10 @@ export class NtBaseSliderComponent extends NtSScrollView {
         }
       }),
     ).subscribe();
+  }
+
+  ngAfterViewInit() {
+    this._$init.next(true);
   }
 
   private createDragEvent(userAction: boolean) {

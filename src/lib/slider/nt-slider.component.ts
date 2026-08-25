@@ -556,7 +556,10 @@ export class NtSliderComponent {
       $isVertical = toObservable(this._isVertical),
       $rawScrollStartOffset = toObservable(this.scrollStartOffset),
       $rawScrollEndOffset = toObservable(this.scrollEndOffset),
-      $init = this.$init,
+      $init = this.$init.pipe(
+        takeUntilDestroyed(),
+        debounceTime(250),
+      ),
       $value = toObservable(this._actualValue),
       $max = toObservable(this.max),
       $min = toObservable(this.min),
@@ -570,9 +573,18 @@ export class NtSliderComponent {
       );
     });
 
+    let init = false;
+    $init.pipe(
+      takeUntilDestroyed(),
+      debounceTime(1),
+      filter(v => !!v),
+      tap(v => {
+        init = v;
+      })
+    ).subscribe();
+
     const $update = combineLatest([this.$update, $baseSlider.pipe(
       filter(v => !!v),
-      debounceTime(0),
       switchMap(slider => slider.$resizeContent.pipe(
         takeUntilDestroyed(this._destroyRef),
         startWith(null),
@@ -583,7 +595,7 @@ export class NtSliderComponent {
       filter(([v]) => !!v),
       tap(([v]) => {
         const baseSlider = this._baseSlider();
-        if (!baseSlider || baseSlider.grabbing || this._animationIds !== null) {
+        if (init && (!baseSlider || baseSlider.grabbing || baseSlider.userActionDuringAnimation || this._animationIds !== null)) {
           return;
         }
         const isVertical = this._isVertical(),
@@ -594,19 +606,20 @@ export class NtSliderComponent {
             gradientPositions,
             animated,
             userAction,
-          } = v as IUpdateParams;
+          } = v as IUpdateParams,
+          useAnimation = init && animated;
 
         this._thumbGradientPositions.set(gradientPositions);
         this._size.set(size);
         const actualThumbPosition = position < startOffset ? startOffset : position;
-        baseSlider.stopScrolling(true);
-        baseSlider.scroll({
+        baseSlider!.stopScrolling(true);
+        baseSlider!.scroll({
           [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: actualThumbPosition,
           fireUpdate: true,
-          behavior: animated ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
+          behavior: useAnimation ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
           userAction,
           blending: false,
-          duration: animated ? this.animationParams().scroll : 0,
+          duration: useAnimation ? this.animationParams().scroll : 0,
         });
       }),
     ).subscribe();
@@ -754,10 +767,10 @@ export class NtSliderComponent {
   }
 
   ngAfterViewInit() {
-    this._inputValue.set(this.value());
-    this._actualValue.set(this._inputValue());
     this.updateBreakpoints();
     this.update(this.value(), false, false);
+    this._inputValue.set(this.value());
+    this._actualValue.set(this._inputValue());
     this._$init.next(true);
   }
 

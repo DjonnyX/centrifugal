@@ -16,3 +16,6 @@ export const DEFAULT_MOTION_BLUR = 2;
 export const DEFAULT_MAX_MOTION_BLUR = 5;
 
 export const DEFAULT_MOTION_BLUR_ENABLED = false;
+
+export const DEFAULT_THUMB_ANIMATION_DURATION = '250ms';
+

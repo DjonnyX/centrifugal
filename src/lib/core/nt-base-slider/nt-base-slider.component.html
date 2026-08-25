@@ -11,8 +11,8 @@
             <div class="ntbs__slider-wrapper" [class.filtered]="filtered" [style.filter]="filtered ? _filter : 'unset'">
                 <div #scrollViewport ntControl class="track" part="nt-slider-track" [ngStyle]="style"
                     [ngClass]="{grabbing: grab}" (onVirtualClick)="onVirtualClick.emit($event)">
-                    <div #scrollContent class="thumb" part="nt-slider-thumb"
-                    [ngStyle]="thumbStyles()" [ngClass]="thumbClass()"
+                    <div #scrollContent class="thumb" [style.--thumb-animation-duration]="this.thumbAnimationDuration()"
+                        part="nt-slider-thumb" [ngStyle]="thumbStyles()" [ngClass]="thumbClass()"
                         (pointerdown)="onDownHandler($event)">
                         <ng-container [ngTemplateOutlet]="thumbRenderer()"
                             [ngTemplateOutletContext]="_templateContext()" />

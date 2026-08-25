@@ -45,7 +45,7 @@
     }
 
     &::part(nt-scroller-content) {
-        transition: transform 250ms ease-out;
+        transition: transform 100ms ease-out;
     }
 
     &.horizontal {
