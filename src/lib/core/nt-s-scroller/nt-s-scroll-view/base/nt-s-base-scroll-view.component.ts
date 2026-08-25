@@ -37,6 +37,8 @@ export abstract class NtSBaseScrollView implements INtScroller<INtBaseScrollView
 
     readonly scrollViewport = viewChild<ElementRef<HTMLDivElement>>('scrollViewport');
 
+    readonly onVirtualClick = output<PointerEvent | TouchEvent>();
+
     readonly onOverscroll = output<IOverscrollEvent>();
 
     readonly onLeftOverscrollAreaTrigger = output<boolean>();

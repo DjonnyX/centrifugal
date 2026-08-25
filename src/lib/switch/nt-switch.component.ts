@@ -130,7 +130,7 @@ export class NtSwitchComponent {
         return this._scroller()?.scrollHeight ?? 0;
     }
 
-    protected _sliderValue: Signal<number>;
+    protected _sliderValue = signal<number>(0);
 
     protected _isVertical: Signal<boolean>;
 
@@ -152,8 +152,8 @@ export class NtSwitchComponent {
     protected _service = inject(NtService);
 
     constructor() {
-        this._sliderValue = computed(() => {
-            return this.value() === true ? 1 : 0;
+        effect(() => {
+            this._sliderValue.set(this.value() === true ? 1 : 0);
         });
 
         this._isVertical = computed(() => {
@@ -244,8 +244,8 @@ export class NtSwitchComponent {
     protected onVirtualClickHandler(e: PointerEvent | TouchEvent) {
         const slider = this._slider();
         if (!!slider) {
-            const value = slider.value();
-            slider.setValue(value === 1 ? 0 : 1);
+            const value = slider.value(), nextValue = value === 1 ? 0 : 1;
+            this._sliderValue.set(nextValue);
         }
     }
 }

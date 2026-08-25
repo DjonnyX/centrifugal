@@ -9,11 +9,11 @@
         </filter>
         <foreignObject xmlns="http://www.w3.org/1999/xhtml" width="100%" height="100%" class="ntbs__viewport">
             <div class="ntbs__slider-wrapper" [class.filtered]="filtered" [style.filter]="filtered ? _filter : 'unset'">
-                <div #scrollViewport class="track" part="nt-slider-track" [ngStyle]="style"
-                    [ngClass]="{grabbing: grab}">
-                    <div #scrollContent ntControl class="thumb" part="nt-slider-thumb"
+                <div #scrollViewport ntControl class="track" part="nt-slider-track" [ngStyle]="style"
+                    [ngClass]="{grabbing: grab}" (onVirtualClick)="onVirtualClick.emit($event)">
+                    <div #scrollContent class="thumb" part="nt-slider-thumb"
                     [ngStyle]="thumbStyles()" [ngClass]="thumbClass()"
-                        (pointerdown)="onDownHandler($event)" (onVirtualClick)="onVirtualClick.emit($event)">
+                        (pointerdown)="onDownHandler($event)">
                         <ng-container [ngTemplateOutlet]="thumbRenderer()"
                             [ngTemplateOutletContext]="_templateContext()" />
                     </div>

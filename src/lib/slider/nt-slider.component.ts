@@ -80,6 +80,11 @@ export class NtSliderComponent {
    */
   readonly onVirtualClick = output<PointerEvent | TouchEvent>();
 
+  /**
+   * Triggers an event when clicked.
+   */
+  readonly onTrackVirtualClick = output<PointerEvent | TouchEvent>();
+
   protected _directionOptions = {
     transform: (v: SDirection) => {
       const valid = validateString(v) && (v === Directions.HORIZONTAL || v === Directions.VERTICAL);
@@ -570,7 +575,7 @@ export class NtSliderComponent {
       );
     });
 
-    const $val = toObservable(this._inputValue);
+    const $val = toObservable(this.value);
     $val.pipe(
       takeUntilDestroyed(),
       debounceTime(1),

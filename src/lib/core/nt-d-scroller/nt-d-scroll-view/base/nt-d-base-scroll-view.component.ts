@@ -32,6 +32,8 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
 
     protected _overscrollService = inject(OVERSCROLL_SERVICE, { optional: true });
 
+    readonly onVirtualClick = output<PointerEvent | TouchEvent>();
+
     readonly onOverscroll = output<IOverscrollEvent>();
 
     readonly onLeftOverscrollAreaTrigger = output<boolean>();

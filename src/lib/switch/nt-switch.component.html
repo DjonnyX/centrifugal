@@ -11,8 +11,10 @@
             <ng-content></ng-content>
         </div>
     </nt-scroll-view>
-    <nt-slider #slider class="ntsw__switch-slider" style="position: absolute;" part="nt-switch-slider" [langTextDir]="langTextDir()"
-        [overscrollService]="_overscrollService" [renderer]="renderer()" [params]="params()" [overscrollEnabled]="false" [interactive]="interactive()"
+    <nt-slider #slider class="ntsw__switch-slider" style="position: absolute;" part="nt-switch-slider"
+        [langTextDir]="langTextDir()" [overscrollService]="_overscrollService" [renderer]="renderer()"
+        [params]="params()" [overscrollEnabled]="false" [interactive]="interactive()"
         [style.width.px]="container.offsetWidth" [style.height.px]="container.offsetHeight" [direction]="dir" [min]="0"
-        [max]="1" [step]="1" [value]="_sliderValue()" (onVirtualClick)="onVirtualClickHandler($event)" (onChange)="onChangeHandler($event)"></nt-slider>
+        [max]="1" [step]="1" [value]="_sliderValue()" (onVirtualClick)="onVirtualClickHandler($event)"
+        (onChange)="onChangeHandler($event)"></nt-slider>
 </div>

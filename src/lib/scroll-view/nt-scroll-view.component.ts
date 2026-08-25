@@ -69,37 +69,42 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
   /**
    * Fires when the list has been scrolled.
    */
-  onScroll = output<IScrollViewScrollEvent>();
+  readonly onScroll = output<IScrollViewScrollEvent>();
 
   /**
    * Fires when the list has completed scrolling.
    */
-  onScrollEnd = output<IScrollViewScrollEvent>();
+  readonly onScrollEnd = output<IScrollViewScrollEvent>();
 
   /**
    * Fires when the viewport size is changed.
    */
-  onViewportChange = output<ISize>();
+  readonly onViewportChange = output<ISize>();
 
   /**
    * Fires when the scroll reaches the left.
    */
-  onScrollReachLeft = output<void>();
+  readonly onScrollReachLeft = output<void>();
 
   /**
    * Fires when the scroll reaches the right.
    */
-  onScrollReachRight = output<void>();
+  readonly onScrollReachRight = output<void>();
 
   /**
    * Fires when the scroll reaches the top.
    */
-  onScrollReachTop = output<void>();
+  readonly onScrollReachTop = output<void>();
 
   /**
    * Fires when the scroll reaches the bottom.
    */
-  onScrollReachBottom = output<void>();
+  readonly onScrollReachBottom = output<void>();
+
+  /**
+   * Triggers an event when clicked.
+   */
+  readonly onVirtualClick = output<PointerEvent | TouchEvent>();
 
   protected _$initialized = new BehaviorSubject<boolean>(false);
   readonly $initialized = this._$initialized.asObservable();

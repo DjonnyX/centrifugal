@@ -23,7 +23,8 @@
   (onLeftOverscrollAreaTrigger)="onLeftOverscrollAreaTrigger.emit($event)"
   (onTopOverscrollAreaTrigger)="onTopOverscrollAreaTrigger.emit($event)"
   (onRightOverscrollAreaTrigger)="onRightOverscrollAreaTrigger.emit($event)"
-  (onBottomOverscrollAreaTrigger)="onBottomOverscrollAreaTrigger.emit($event)">
+  (onBottomOverscrollAreaTrigger)="onBottomOverscrollAreaTrigger.emit($event)"
+  (onVirtualClick)="onVirtualClick.emit($event)">
   <ng-container #renderersContainer>
     <ng-content></ng-content>
   </ng-container>
