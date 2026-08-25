@@ -5,7 +5,7 @@ import {
   ArithmeticExpression, GradientColorPositions, Id, IScrollingSettings, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO,
   SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SnappingDistance, TextDirection, TextDirections,
 } from "../common";
-import { DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_SIZE } from "./const";
+import { DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_SIZE, DEFAULT_THUMB_SIZE } from "./const";
 import { DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLBAR_INTERACTIVE } from "../common/const/scroller";
 import {
   isPercentageValue, parseArithmeticExpression, toggleClassName, validateBoolean, validateFloat, validateObject, validateString,
@@ -236,7 +236,7 @@ export class NtSliderComponent {
     transform: (v: number) => {
       const valid = validateFloat(v, true) || isPercentageValue(v);
       if (!valid) {
-        console.error('The "scrollEndOffset" parameter must be one of type `number` or `string`.');
+        console.error('The "scrollEndOffset" parameter must be one of type `ArithmeticExpression`.');
         return 0;
       }
       return v;
@@ -443,19 +443,22 @@ export class NtSliderComponent {
 
   protected _thumbSizeOptions = {
     transform: (v: number) => {
-      const valid = validateFloat(v);
+      const valid = validateFloat(v) || isPercentageValue(v);
       if (!valid) {
-        console.error('The "thumbSize" parameter must be of type `number`.');
-        return 100;
+        console.error('The "thumbSize" parameter must be of type `ArithmeticExpression`.');
+        return DEFAULT_THUMB_SIZE;
       }
       return v;
     },
   } as any;
 
   /**
-   * Thumb slider size. Default value is `6`.
+   * Thumb slider size.
+   * Can be specified in absolute or percentage values.
+   * Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0".
+   * Default value is `25%`.
    */
-  thumbSize = input<number>(100, { ...this._thumbSizeOptions });
+  thumbSize = input<ArithmeticExpression>(DEFAULT_THUMB_SIZE, { ...this._thumbSizeOptions });
 
   /**
    * Extra parameters that will be passed to the custom thumb renderer.
@@ -511,6 +514,8 @@ export class NtSliderComponent {
   protected _thumbGradientPositions = signal<GradientColorPositions>([0, 0]);
 
   protected _thickness = signal<number>(20);
+
+  protected _precalculatedThumbSize = signal<number>(0);
 
   protected _precalculatedScrollStartOffset = signal<number>(0);
 
@@ -732,6 +737,15 @@ export class NtSliderComponent {
         )),
     ).subscribe();
 
+    const $thumbSize = toObservable(this.thumbSize);
+    combineLatest([$bounds, $isVertical, $thumbSize]).pipe(
+      takeUntilDestroyed(),
+      tap(([bounds, isVertical, value]) => {
+        const val = parseArithmeticExpression(value, isVertical ? bounds.height : bounds.width);
+        this._precalculatedThumbSize.set(val);
+      }),
+    ).subscribe();
+
     combineLatest([$bounds, $isVertical, $rawScrollStartOffset]).pipe(
       takeUntilDestroyed(),
       tap(([bounds, isVertical, value]) => {
@@ -842,7 +856,7 @@ export class NtSliderComponent {
       direction = this.direction(),
       isVertical = this._isVertical(),
       viewportBounds = this._bounds(),
-      minSize = this.thumbSize(),
+      minSize = this._precalculatedThumbSize(),
       contentBounds = {
         width: isVertical ? bounds.width : bounds.width * k,
         height: isVertical ? (bounds.height * k) : bounds.height,
@@ -860,7 +874,6 @@ export class NtSliderComponent {
 
     const v = (value - min) * stepPX,
       {
-        thumbSize,
         thumbGradientPositions,
       } = this._scrollBox.calculateScroll({
         direction,
