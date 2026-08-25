@@ -2,9 +2,9 @@
     <nt-list #list class="nttb__list" part="nt-tabs-list" style="position: absolute;" [direction]="direction()"
         [overscrollEnabled]="overscrollEnabled()" [langTextDir]="langTextDir()" [overscrollAreaShowAutomatically]="true"
         [items]="items()" [bufferSize]="1" [maxBufferSize]="1" [animationParams]="animationParams()"
-        [scrollingSettings]="scrollingSettings()" [snapToItem]="snapToItem()" [snapToItemAlign]="snapToItemAlign()"
+        [scrollingSettings]="scrollingSettings()" [snapToItem]="snapToItem()" [snapToItemAlign]="_snapToItemAlign()"
         selectingMode="select" [trackBy]="trackBy()" [dynamic]="true" [scrollbarEnabled]="false" [selectByClick]="false"
-        [itemRenderer]="itemRenderer()" [selectedIds]="selectedId()" [snappingDistance]="snappingDistance()"
+        [itemRenderer]="itemRenderer()" [selectedIds]="_selectedId()" [snappingDistance]="snappingDistance()"
         zIndexWhenSelecting="1000" [motionBlurEnabled]="motionBlurEnabled()" [motionBlur]="motionBlur()"
         [maxMotionBlur]="maxMotionBlur()" (onSelect)="onSelectHandler($event)">
         <div #thumb part="nt-tabs-thumb" class="nttb__thumb" [ngStyle]="_thumbStyle()">

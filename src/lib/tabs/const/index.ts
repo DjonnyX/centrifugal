@@ -1,10 +1,17 @@
 import { Directions, IScrollingSettings, SnappingDistance, SnapToItemAlign, SnapToItemAligns } from "../../common";
 import { SDirection } from "../../core/nt-s-scroller/types";
 import { INtListAnimationParams } from "../../list";
+import { ITabsTemplateContext } from "../interfaces";
 
 export const DEFAULT_SWITCH_DIRECTION: SDirection = Directions.HORIZONTAL;
 
 export const TRACK_BY_PROPERTY_NAME: string = 'id';
+
+export const DEFAULT_TEMPLATE_CONTEXT: ITabsTemplateContext = {
+    width: 0,
+    height: 0,
+    params: {},
+};
 
 export const DEFAULT_SCROLLING_SETTINGS: IScrollingSettings = {
     frictionalForce: 0.035,

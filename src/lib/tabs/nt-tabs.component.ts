@@ -1,10 +1,13 @@
 import { Component, computed, DestroyRef, effect, ElementRef, inject, input, output, signal, Signal, TemplateRef, viewChild, ViewEncapsulation } from "@angular/core";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { filter, switchMap, tap } from "rxjs";
-import { Directions, Id, IScrollingSettings, ISize, SnappingDistance, SnapToItemAlign, TextDirection, TextDirections } from "../common";
+import { combineLatest, debounceTime, filter, startWith, Subject, switchMap, tap } from "rxjs";
+import { Directions, Id, IScrollingSettings, ISize, SnappingDistance, SnapToItemAlign, SnapToItemAligns, TextDirection, TextDirections } from "../common";
 import { toggleClassName, validateArray, validateBoolean, validateFloat, validateObject, validateString } from "../common/utils";
 import { SDirection } from "../core/nt-s-scroller/types";
-import { DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, DEFAULT_SNAPPING_DISTANCE, DEFAULT_SWITCH_DIRECTION, TRACK_BY_PROPERTY_NAME } from './const';
+import {
+    DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, DEFAULT_SNAPPING_DISTANCE,
+    DEFAULT_SWITCH_DIRECTION, DEFAULT_TEMPLATE_CONTEXT, TRACK_BY_PROPERTY_NAME,
+} from './const';
 import { PX } from "../common/const/base-prop-names";
 import { NtService } from "../common/services/nt.service";
 import { DEFAULT_LANG_TEXT_DIR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED } from "../common/const/scroller";
@@ -34,22 +37,6 @@ export class NtTabsComponent {
      * Triggers an event when the value changes.
      */
     readonly onChange = output<Id | null>();
-
-    protected _selectedIdOptions = {
-        transform: (v: Id | undefined) => {
-            const valid = validateString(v as any, true, true) || validateFloat(v as any, true);
-            if (!valid) {
-                console.error('The "selectedId" parameter must be of type `Id` or `null`.');
-                return undefined;
-            }
-            return v;
-        },
-    } as any;
-
-    /**
-     * Sets the selected item.
-     */
-    selectedId = input<Id | null>(null, { ...this._selectedIdOptions });
 
     protected _interactiveOptions = {
         transform: (v: boolean) => {
@@ -374,23 +361,6 @@ export class NtTabsComponent {
      */
     snapToItem = input<boolean>(DEFAULT_SNAP_TO_ITEM, { ...this._snapToItemOptions });
 
-    protected _snapToItemAlignOptions = {
-        transform: (v: SnapToItemAlign) => {
-            const valid = validateString(v) && (v === 'start' || v === 'center' || v === 'end');
-
-            if (!valid) {
-                console.error('The "snapToItemAlign" parameter must be one of `start`, `center` or `end`.');
-                return DEFAULT_SNAP_TO_ITEM_ALIGN;
-            }
-            return v;
-        },
-    } as any;
-
-    /**
-     * Alignment for snapToItem. Available values ​​are `start`, `center`, and `end`. The default value is `center`.
-     */
-    snapToItemAlign = input<SnapToItemAlign>(DEFAULT_SNAP_TO_ITEM_ALIGN, { ...this._snapToItemAlignOptions });
-
     protected _snappingDistanceOptions = {
         transform: (v: SnappingDistance | any) => {
             const valid = validateString(v) || validateFloat(v);
@@ -419,7 +389,7 @@ export class NtTabsComponent {
      */
     readonly renderer = input<TemplateRef<any> | null>(null);
 
-    protected readonly _templateContext!: Signal<ITabsTemplateContext>;
+    protected readonly _templateContext = signal<ITabsTemplateContext>(DEFAULT_TEMPLATE_CONTEXT);
 
     get scrollLeft(): number {
         return this._list()?.scrollLeft ?? 0;
@@ -445,6 +415,8 @@ export class NtTabsComponent {
 
     protected _thumbStyle: Signal<{ [sName: string]: string }>;
 
+    protected _snapToItemAlign: Signal<SnapToItemAlign>;
+
     protected _elementRef = inject<ElementRef<HTMLDivElement>>(ElementRef);
 
     protected _bounds = signal<ISize>({
@@ -457,6 +429,9 @@ export class NtTabsComponent {
         height: this._elementRef.nativeElement.offsetHeight,
     });
 
+    private _$update = new Subject<void>();
+    protected $update = this._$update.asObservable();
+
     protected _service = inject(NtService);
 
     protected _destroyRef = inject(DestroyRef);
@@ -465,6 +440,11 @@ export class NtTabsComponent {
         this._isVertical = computed(() => {
             const direction = this.direction();
             return direction === Directions.VERTICAL;
+        });
+
+        this._snapToItemAlign = computed(() => {
+            const isVertical = this._isVertical(), langTextDir = this.langTextDir();
+            return (langTextDir === TextDirections.RTL && !isVertical) ? SnapToItemAligns.START : SnapToItemAligns.START;
         });
 
         effect(() => {
@@ -478,50 +458,6 @@ export class NtTabsComponent {
         effect(() => {
             const id = this.value();
             this._selectedId.set(id);
-        });
-
-        effect(() => {
-            const list = this._list(), id = this._selectedId();
-            if (!!list && id !== null) {
-                const thumb = this._thumb()?.nativeElement, isVertical = this._isVertical();
-                if (!!thumb) {
-                    const list = this._list();
-                    if (!!list) {
-                        const isRTL = this.langTextDir() === TextDirections.RTL,
-                            contentBounds = list?.component?.contentBounds() ?? { width: 0, height: 0 },
-                            itemBounds = list.getItemBounds(id), position = list.getDisplayItemPosition(id);
-                        if (!!itemBounds && !!position) {
-                            if (isVertical) {
-                                thumb.style.transform = matrix3d(0, position.y, 0, 1, 1, 1, 0, 0, 0);
-                                thumb.style.height = `${itemBounds.height}${PX}`;
-                            } else {
-                                thumb.style.transform = matrix3d(isRTL ? (position.x - contentBounds.width + itemBounds.width) : position.x, 0, 0, 1, 1, 1, 0, 0, 0);
-                                thumb.style.width = `${itemBounds.width}${PX}`;
-                            }
-                        }
-                    }
-                }
-            }
-        })
-
-        this._templateContext = computed(() => {
-            const list = this._list(), id = this._selectedId();
-            if (!!list && id !== null) {
-                if (id !== null) {
-                    const itemBounds = list.getItemBounds(id) ?? { width: 0, height: 0 },
-                        context: ITabsTemplateContext = {
-                            width: itemBounds.width,
-                            height: itemBounds.height,
-                            params: this.params() ?? {},
-                        };
-                    return context;
-                }
-            }
-            return {
-                width: 0,
-                height: 0,
-                params: this.params() ?? {},
-            }
         });
 
         this._thumbStyle = computed(() => {
@@ -553,12 +489,53 @@ export class NtTabsComponent {
             }),
         ).subscribe();
 
-        const $list = toObservable(this._list),
+        const $list = toObservable(this._list).pipe(
+            takeUntilDestroyed(),
+            filter(v => !!v),
+        ),
             $listContentBounds = $list.pipe(
                 takeUntilDestroyed(),
                 filter(v => !!v && !!v.component),
                 switchMap(list => list!.component!.$resizeContent),
-            );
+            ),
+            $listViewportBounds = $list.pipe(
+                takeUntilDestroyed(),
+                filter(v => !!v && !!v.component),
+                switchMap(list => list!.component!.$resizeViewport),
+            ),
+            $listCacheChanged = $list.pipe(
+                takeUntilDestroyed(),
+                switchMap(list => list!.$cacheChanged),
+            ),
+            $selectedId = toObservable(this._selectedId);
+
+        $list.pipe(
+            takeUntilDestroyed(),
+            switchMap(list => {
+                return combineLatest([$selectedId,
+                    $listCacheChanged.pipe(
+                        takeUntilDestroyed(this._destroyRef),
+                        startWith(null),
+                    ), $update.pipe(
+                        takeUntilDestroyed(this._destroyRef),
+                        startWith(null),
+                    )]).pipe(
+                        takeUntilDestroyed(this._destroyRef),
+                        debounceTime(1),
+                        tap(([id]) => {
+                            if (id !== null) {
+                                const itemBounds = list.getItemBounds(id) ?? { width: 0, height: 0 },
+                                    context: ITabsTemplateContext = {
+                                        width: itemBounds.width,
+                                        height: itemBounds.height,
+                                        params: this.params() ?? {},
+                                    };
+                                this._templateContext.set(context);
+                            }
+                        }),
+                    );
+            }),
+        ).subscribe();
 
         $listContentBounds.pipe(
             takeUntilDestroyed(),
@@ -566,6 +543,82 @@ export class NtTabsComponent {
                 this._listSize.set({ ...v });
             }),
         ).subscribe();
+
+        $selectedId.pipe(
+            takeUntilDestroyed(),
+            debounceTime(1),
+            tap(() => {
+                this.updatePosition(true);
+            }),
+        ).subscribe();
+
+        $listCacheChanged.pipe(
+            takeUntilDestroyed(),
+            debounceTime(1),
+            tap(() => {
+                this.updatePosition();
+            }),
+        ).subscribe();
+
+        $listViewportBounds.pipe(
+            takeUntilDestroyed(),
+            tap(v => {
+                this.updatePosition();
+            }),
+        ).subscribe();
+
+        const $update = this.$update;
+        $update.pipe(
+            takeUntilDestroyed(),
+            tap(() => {
+                this.updatePosition();
+            }),
+        ).subscribe();
+    }
+
+    protected updatePosition(full: boolean = false) {
+        const list = this._list(), id = this._selectedId();
+        if (!!list && id !== null) {
+            const thumb = this._thumb()?.nativeElement, isVertical = this._isVertical();
+            if (!!thumb) {
+                const list = this._list();
+                if (!!list) {
+                    if (full) {
+                        const itemBounds = list.getItemBounds(id);
+                        if (!!itemBounds) {
+                            const position = list.getDisplayItemPosition(id);
+                            if (!!position) {
+                                this.updatePosition();
+                            } else {
+                                list.scrollTo(id, () => {
+                                    this.updatePosition();
+                                    this._$update.next();
+                                });
+                            }
+                        }
+                    } else {
+                        const isRTL = this.langTextDir() === TextDirections.RTL,
+                            contentBounds = list?.component?.contentBounds() ?? { width: 0, height: 0 },
+                            itemBounds = list.getItemBounds(id);
+                        if (!!itemBounds) {
+                            if (isVertical) {
+                                thumb.style.height = `${itemBounds.height}${PX}`;
+                            } else {
+                                thumb.style.width = `${itemBounds.width}${PX}`;
+                            }
+                            const position = list.getDisplayItemPosition(id);
+                            if (!!position) {
+                                if (isVertical) {
+                                    thumb.style.transform = matrix3d(0, position.y, 0, 1, 1, 1, 0, 0, 0);
+                                } else {
+                                    thumb.style.transform = matrix3d(isRTL ? (position.x - contentBounds.width + itemBounds.width) : position.x, 0, 0, 1, 1, 1, 0, 0, 0);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     protected onSelectHandler(value: Array<Id> | Id | null) {
@@ -576,9 +629,5 @@ export class NtTabsComponent {
 
     protected onChangeHandler(id: Id | null) {
         this.onChange.emit(id);
-    }
-
-    protected onVirtualClickHandler(e: PointerEvent | TouchEvent) {
-
     }
 }

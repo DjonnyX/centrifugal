@@ -1470,6 +1470,8 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
    */
   private _trackBox: TrackBox = new this._trackBoxClass(this.trackBy());
 
+  get $cacheChanged() { return this._service.$cacheVersion; }
+
   private _$update = new Subject<string>();
   protected readonly $update = this._$update.asObservable();
 
@@ -3141,7 +3143,7 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
               if (!notChanged && iteration < MAX_SCROLL_TO_ITERATIONS) {
                 this._trackBox.clearDelta();
                 const params: IListScrollToParams = {
-                  [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: scrollSize, behavior: BEHAVIOR_INSTANT as ScrollBehavior,
+                  [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: (inverted ? (maxScrollSize - scrollSize) : scrollSize), behavior: BEHAVIOR_INSTANT as ScrollBehavior,
                   fireUpdate, blending, force: true, snap: false, normalize: false,
                 };
                 scrollerComponent?.scrollTo?.(params);
@@ -3216,7 +3218,7 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
                 this._$preventScrollSnapping.next(true);
 
                 const params: IListScrollToParams = {
-                  [this._isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: scrollSize, fireUpdate: false,
+                  [this._isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: (inverted ? (maxScrollSize - scrollSize) : scrollSize), fireUpdate: false,
                   behavior: BEHAVIOR_INSTANT as ScrollBehavior, blending, force: true, snap: false, normalize: false,
                 };
                 scrollerComponent?.scrollTo?.(params);
