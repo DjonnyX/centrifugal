@@ -379,13 +379,12 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
       $focusedElement = this._controlService.$focusedElement,
       $keyboardEnabled = toObservable(this.keyboardEnabled);
 
-      $keyboardEnabled.pipe(
-        takeUntilDestroyed(),
-        filter(v => !!v),
-        tap(() => {
-          this._keyboardService.keyboardEnabled = true;
-        }),
-      ).subscribe();
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._controlService.keyboardEnabled = this._keyboardService.keyboardEnabled = v;
+      }),
+    ).subscribe();
 
     $keyboardEnabled.pipe(
       takeUntilDestroyed(),

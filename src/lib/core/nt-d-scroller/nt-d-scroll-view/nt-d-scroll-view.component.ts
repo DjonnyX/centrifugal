@@ -331,7 +331,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                 ),
                 $wheelEmitter = this._inversion ? $viewport : $content;
 
-            if (!!this._controlContainerService) {
+            if (!!this._controlContainerService && this._controlContainerService.keyboardEnabled) {
                 this._controlContainerService.$focusEcho.pipe(
                     takeUntilDestroyed(this._destroyRef),
                     skipWhile(() => !this.interactive()),
