@@ -5,6 +5,7 @@ import { ISliderDragEvent, ISliderTemplateContext } from './interfaces';
 import {
   DEFAULT_MOTION_BLUR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_SIZE, DEFAULT_THICKNESS, HEIGHT, NONE, OPACITY, OPACITY_0, OPACITY_1, PX,
   TRANSITION, TRANSITION_FADE_IN, WIDTH, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_THUMB_ANIMATION_DURATION,
+  AVG_FILTER_ITERATIONS,
 } from './const';
 import { NtBaseSliderService } from './nt-base-slider.service';
 import { NtBaseSliderPublicService } from './nt-base-slider-public.service';
@@ -112,6 +113,8 @@ export class NtBaseSliderComponent extends NtSScrollView {
 
   protected _filter: string;
 
+  protected _filterValue: Array<number> = [];
+
   constructor() {
     super();
 
@@ -151,7 +154,24 @@ export class NtBaseSliderComponent extends NtSScrollView {
           this.dropVelocity();
         }
         const _v = v * (mb as number), value = _v > mbMax ? mbMax : _v;
-        filter!.nativeElement.setStdDeviation(isVertical ? 0 : v * value, isVertical ? v * value : 0);
+        if (this._filterValue.length > AVG_FILTER_ITERATIONS) {
+          this._filterValue.shift();
+        }
+        this._filterValue.push(v * value);
+        let actualIterations = 0, nextValue: number | null = null, vSum = 0;
+        for (let i = 0, l = this._filterValue.length, li = l > 0 ? (l - i) : 0; i < l; i++) {
+          const currValue = this._filterValue[i];
+          nextValue = i < li ? this._filterValue[i] : null;
+          if (nextValue !== null) {
+            if (currValue > nextValue) {
+              continue;
+            }
+          }
+          actualIterations++;
+          vSum += currValue;
+        }
+        const weight = vSum / actualIterations;
+        filter!.nativeElement.setStdDeviation(isVertical ? 0 : weight, isVertical ? weight : 0);
       }),
       debounceTime(50),
       tap(([, , filter, ,]) => {

@@ -19,3 +19,6 @@ export const DEFAULT_MOTION_BLUR_ENABLED = false;
 
 export const DEFAULT_THUMB_ANIMATION_DURATION = '250ms';
 
+export const AVG_FILTER_ITERATIONS = 5;
+
+
