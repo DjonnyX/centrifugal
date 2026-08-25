@@ -861,6 +861,33 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
         );
       }),
     ).subscribe();
+
+    $scroller.pipe(
+      takeUntilDestroyed(),
+      filter(s => !!s),
+      switchMap(scroller => {
+        return scroller.$resizeViewport.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          debounceTime(200),
+        ).pipe(
+          tap(() => {
+            const keyboardSettings = this.keyboardSettings(),
+              element = this._controlService.focusedElement, el = element?.element, tagName = el?.tagName ?? null;
+            if (!tagName || !isInteractive(tagName)) {
+              this.updateKeyboardPosition(element, this.keyboardEnabled(), {
+                ...keyboardSettings, animation: {
+                  transition: {
+                    in: 1,
+                    out: 1,
+                    focusedScroller: 1,
+                  },
+                }
+              }, true);
+            }
+          }),
+        );
+      }),
+    ).subscribe();
   }
 
   ngOnInit() {
