@@ -117,9 +117,9 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
   @ViewChild('snapRendererContainer', { read: ViewContainerRef })
   protected _snapContainerRef: ViewContainerRef | undefined;
 
-  protected _scroller: Signal<ElementRef<HTMLDivElement> | undefined>;
+  protected _scroller: Signal<ElementRef<HTMLDivElement> | null>;
 
-  protected _list: Signal<ElementRef<HTMLDivElement> | undefined>;
+  protected _list: Signal<ElementRef<HTMLDivElement> | null>;
 
   /**
    * Fires when the list has been scrolled.
@@ -1652,7 +1652,7 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
         if (this.dynamicSize() === true) {
           this.checkBoundsOfElements();
         }
-        this._scrollerComponent()?.tick();
+        this._scrollerComponent()?.tick?.();
       }),
     ).subscribe();
 
@@ -1763,11 +1763,11 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
       );
 
     this._scroller = computed(() => {
-      return this._scrollerComponent()?.scrollViewport();
+      return this._scrollerComponent()?.scrollViewport?.() ?? null;
     });
 
     this._list = computed(() => {
-      return this._scrollerComponent()?.scrollContent();
+      return this._scrollerComponent()?.scrollContent?.() ?? null;
     });
 
     this._service.$focusItem.pipe(

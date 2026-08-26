@@ -1,0 +1,9 @@
+:host {
+    display: block;
+}
+
+.ntcc-drawer-layout {
+    display: grid;
+    grid-template-columns: var(--left-size) var(--width) var(--right-size);
+    grid-template-rows: var(--top-size) var(--height) var(--bottom-size);
+}

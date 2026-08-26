@@ -12,7 +12,7 @@ import { INtBaseScrollViewService } from "../common/interfaces/nt-base-scroll-vi
 import { isInteractive } from "../common/utils/is-interactive";
 import { IFocusedObject } from "../common/interfaces/focused-object";
 import { validateArray, validateBoolean, validateInt, validateObject, validateString } from "../common/utils";
-import { DEFAULT_EXCLUDE_ELEMETN_LIST } from "../drawer-container/const";
+import { DEFAULT_EXCLUDE_ELEMETN_LIST } from "./const";
 import { DEFAULT_KEYBOARD_ENABLED, NT_VALUE } from "./const";
 import { DEFAULT_KEYBOARD_SETTINGS, KEY_LAYOUT, KEY_SYS } from '../common/const/keyboard';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";

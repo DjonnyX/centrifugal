@@ -8,7 +8,7 @@ import {
 } from 'rxjs';
 import { ANIMATOR_MIN_TIMESTAMP, Animator, Easing, easeOutQuad } from '../../../common/utils/animator';
 import {
-    DEFAULT_ANIMATION_PARAMS,
+    DEFAULT_ANIMATION_PARAMS, DEFAULT_SCROLLING_ONE_BY_ONE, DEFAULT_SNAP_TO_ITEM, DEFAULT_SNAP_TO_ITEM_ALIGN, DEFAULT_SNAPPING_DISTANCE,
 } from './const';
 import {
     ACCELERATION_SCALE, ANIMATION_DURATION, DURATION, FRICTION_FORCE, MASS, MAX_DIST, MAX_DURATION, MAX_ITERATIONS_FOR_AVERAGE_CALCULATIONS,
@@ -20,7 +20,7 @@ import { NtDBaseScrollView } from './base';
 import { INtDScrollViewScrollingSettings } from './interfaces';
 import { INtDScrollViewAnimationParams } from './interfaces';
 import { calculateVelocity } from './utils/calculate-velocity';
-import { Directions, Id, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_USER_INTERACTION_ENABLED, ScrollDirection, TextDirections } from '../../../common';
+import { Directions, Id, IPoint, ISize, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_USER_INTERACTION_ENABLED, ScrollDirection, SnappingDistance, SnapToItemAlign, SnapToItemAligns, TextDirections } from '../../../common';
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL, } from '../../../common/const/event-names';
 import { INTERACTIVE } from '../../../common/const/class-names';
 import { IScrollToParams } from '../../../common/interfaces/scroll-to-params';
@@ -36,6 +36,7 @@ import { DEFAULT_TRANSITION_EXPONENT } from '../../../common/const/transitions';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT, BEHAVIOR_SMOOTH } from '../../../common/const/behavior';
 import { DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLABLE, DEFAULT_SCROLLING_SETTINGS } from '../../../common/const/scroller';
 import { SCROLL_EVENT } from '../../const/index';
+import { isPercentageValue, parseFloatOrPersentageValue } from '../../../common/utils';
 
 /**
  * NtDScrollView
@@ -60,6 +61,14 @@ export class NtDScrollView extends NtDBaseScrollView {
     readonly scrollingSettings = input<INtDScrollViewScrollingSettings>(DEFAULT_SCROLLING_SETTINGS);
 
     readonly animationParams = input<INtDScrollViewAnimationParams>(DEFAULT_ANIMATION_PARAMS);
+
+    readonly snapToItem = input<boolean>(DEFAULT_SNAP_TO_ITEM);
+
+    readonly scrollingOneByOne = input<boolean>(DEFAULT_SCROLLING_ONE_BY_ONE);
+
+    readonly snapToItemAlign = input<SnapToItemAlign>(DEFAULT_SNAP_TO_ITEM_ALIGN);
+
+    readonly snappingDistance = input<SnappingDistance>(DEFAULT_SNAPPING_DISTANCE);
 
     protected _normalizeValueFromZero = inject(SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO);
 
@@ -159,7 +168,7 @@ export class NtDScrollView extends NtDBaseScrollView {
     }
     override get x() { return this._x; }
 
-    protected setX(x: number, normalize: boolean = true) {
+    protected setX(x: number, snap: boolean = true, normalize: boolean = true) {
         if (x !== undefined && !Number.isNaN(x)) {
             this._x = this._actualY = x;
 
@@ -172,6 +181,10 @@ export class NtDScrollView extends NtDBaseScrollView {
             this.refreshCoordinate(this._x, this._y);
 
             this.measureVelocity();
+
+            if (snap) {
+                this.checkIntersectionComponent();
+            }
         }
     }
 
@@ -180,7 +193,7 @@ export class NtDScrollView extends NtDBaseScrollView {
     }
     override get y() { return this._y; }
 
-    protected setY(y: number, normalize: boolean = true) {
+    protected setY(y: number, snap: boolean = true, normalize: boolean = true) {
         if (y !== undefined && !Number.isNaN(y)) {
             this._y = this._actualY = y;
 
@@ -193,6 +206,10 @@ export class NtDScrollView extends NtDBaseScrollView {
             this.refreshCoordinate(this._x, this._y);
 
             this.measureVelocity();
+
+            if (snap) {
+                this.checkIntersectionComponent();
+            }
         }
     }
 
@@ -227,6 +244,8 @@ export class NtDScrollView extends NtDBaseScrollView {
     override get startLayoutOffsetY() { return this._startLayoutOffsetY; }
 
     protected _intersectionComponentId: Id | null = null;
+
+    protected _isAlignmentAnimation = false;
 
     get animatedX() { return this._animatorX?.isAnimated ?? false; }
 
@@ -313,6 +332,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                     this._service.overscroll = { x: false, y: false };
                     this.scrollDirectionX = this.scrollDirectionY = this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
                     this.emitOverscrollEvent(false);
+                    this.snapWithInitialForceIfNecessary(v0X, v0Y);
                 }),
             ).subscribe();
 
@@ -376,8 +396,13 @@ export class NtDScrollView extends NtDBaseScrollView {
                             this._verticalScrollRatioWhenGrabbing = Math.sign(-dragY) < 0 ? 1 : 0;
                             this.checkOverscroll(e, true);
                             let positionX = 0, positionY = 0;
-                            positionX = dpX < 0 ? 0 : dpX > scrollWidth ? scrollWidth : dpX;
-                            positionY = dpY < 0 ? 0 : dpY > scrollHeight ? scrollHeight : dpY;
+                            if (this.isInfinity()) {
+                                positionX = dpX;
+                                positionY = dpY;
+                            } else {
+                                positionX = dpX < 0 ? 0 : dpX > scrollWidth ? scrollWidth : dpX;
+                                positionY = dpY < 0 ? 0 : dpY > scrollHeight ? scrollHeight : dpY;
+                            }
                             this.scroll({ [LEFT_PROP_NAME]: positionX, [TOP_PROP_NAME]: positionY, behavior: BEHAVIOR_INSTANT, userAction: true, blending: false, fireUpdate: true });
                             this._$wheel.next({ deltaX, deltaY });
                         }),
@@ -405,6 +430,10 @@ export class NtDScrollView extends NtDBaseScrollView {
                         }
                         mouseCanceled = true;
                         this.cancelOverscroll({ event: e, released: true });
+                        if (this.snapToItem() && this.scrollingOneByOne()) {
+                            this._isAlignmentAnimation = false;
+                            this.alignPosition(true, true);
+                        }
                         this._$scrollEnd.next(true);
                     }),
                 );
@@ -429,6 +458,10 @@ export class NtDScrollView extends NtDBaseScrollView {
                                     }
                                     mouseCanceled = true;
                                     this.cancelOverscroll({ event: e, released: true });
+                                    if (this.snapToItem() || this.scrollingOneByOne()) {
+                                        this._isAlignmentAnimation = false;
+                                        this.alignPosition(true, true);
+                                    }
                                     this._$scrollEnd.next(true);
                                 }),
                             );
@@ -451,7 +484,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                             this.scrollDirectionX = this.scrollDirectionY = this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
                             this.cancelOverscroll();
                             this.onDragStart();
-                            this.stopScrolling();
+                            this.stopScrolling(true);
                             this.stopMoving();
                             const target = e.target as HTMLElement;
                             if (target.classList.contains(INTERACTIVE)) {
@@ -496,6 +529,17 @@ export class NtDScrollView extends NtDBaseScrollView {
                                     this._verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
                                     this.checkOverscroll(e);
                                     this.move(positionX, positionY, true, true, true);
+                                    const offsetX = Math.abs(positionX) - Math.abs(this._x),
+                                        offsetY = Math.abs(positionY) - Math.abs(this._y),
+                                        scrollWidth = this.scrollWidth,
+                                        scrollHeight = this.scrollHeight,
+                                        { width: viewportWidth, height: viewportHeight } = this.viewportBounds();
+                                    if (positionX >= (scrollWidth - viewportWidth * .5) || positionX <= 0) {
+                                        startClientPosX -= offsetX;
+                                    }
+                                    if (positionY >= (scrollHeight - viewportHeight * .5) || positionY <= 0) {
+                                        startClientPosY -= offsetY;
+                                    }
                                     startTimeX = endTimeX;
                                     startTimeY = endTimeY;
                                     return race([fromEvent<MouseEvent>(root, MOUSE_UP, { passive: false }), fromEvent<MouseEvent>(content, MOUSE_UP, { passive: false })]).pipe(
@@ -516,7 +560,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                                             this._isMoving = false;
                                             this._grabbing.set(false);
                                             this.cancelOverscroll({ event: e, released: true });
-                                            if (this.scrollBehavior() !== BEHAVIOR_INSTANT) {
+                                            if (!this.snapIfNecessary(v0X, v0Y, false) && this.scrollBehavior() !== BEHAVIOR_INSTANT) {
                                                 this.moveWithAcceleration(
                                                     positionX, v0X, a0X, timestampX,
                                                     positionY, v0Y, a0Y, timestampY,
@@ -561,6 +605,10 @@ export class NtDScrollView extends NtDBaseScrollView {
                         }
                         touchCanceled = true;
                         this.cancelOverscroll({ event: e, released: true });
+                        if (this.snapToItem() && this.scrollingOneByOne()) {
+                            this._isAlignmentAnimation = false;
+                            this.alignPosition(true, true);
+                        }
                         this._$scrollEnd.next(true);
                     }),
                 ), $touchMove.pipe(
@@ -592,6 +640,10 @@ export class NtDScrollView extends NtDBaseScrollView {
                                         this.stopMoving();
                                     }
                                     touchCanceled = true;
+                                    if (this.snapToItem() || this.scrollingOneByOne()) {
+                                        this._isAlignmentAnimation = false;
+                                        this.alignPosition(true, true);
+                                    }
                                     this._$scrollEnd.next(true);
                                 }),
                             );
@@ -614,7 +666,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                             this.scrollDirectionX = this.scrollDirectionY = this._scrollDirectionValueX = this._scrollDirectionValueY = 0;
                             this.cancelOverscroll();
                             this.onDragStart();
-                            this.stopScrolling();
+                            this.stopScrolling(true);
                             this.stopMoving();
                             const target = e.target as HTMLElement;
                             if (target.classList.contains(INTERACTIVE)) {
@@ -670,6 +722,17 @@ export class NtDScrollView extends NtDBaseScrollView {
                                     this._verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
                                     this.checkOverscroll(e);
                                     this.move(positionX, positionY, true, true, true);
+                                    const offsetX = Math.abs(positionX) - Math.abs(this._x),
+                                        offsetY = Math.abs(positionY) - Math.abs(this._y),
+                                        scrollWidth = this.scrollWidth,
+                                        scrollHeight = this.scrollHeight,
+                                        { width: viewportWidth, height: viewportHeight } = this.viewportBounds();
+                                    if (positionX >= (scrollWidth - viewportWidth * .5) || positionX <= 0) {
+                                        startClientPosX -= offsetX;
+                                    }
+                                    if (positionY >= (scrollHeight - viewportHeight * .5) || positionY <= 0) {
+                                        startClientPosY -= offsetY;
+                                    }
                                     startTimeX = endTimeX;
                                     startTimeY = endTimeY;
                                     return race([fromEvent<TouchEvent>(root, TOUCH_END, { passive: false }), fromEvent<TouchEvent>(content, TOUCH_END, { passive: false })]).pipe(
@@ -691,7 +754,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                                             this._isMoving = false;
                                             this._grabbing.set(false);
                                             this.cancelOverscroll({ event: e, released: true });
-                                            if (this.scrollBehavior() !== BEHAVIOR_INSTANT) {
+                                            if (!this.snapIfNecessary(v0X, v0Y, false) && this.scrollBehavior() !== BEHAVIOR_INSTANT) {
                                                 this.moveWithAcceleration(
                                                     positionX, v0X, a0X, timestampX,
                                                     positionY, v0Y, a0Y, timestampY,
@@ -744,23 +807,25 @@ export class NtDScrollView extends NtDBaseScrollView {
         }
         const positionX = this._x,
             positionY = this._y;
-        let reseted = false;
-        if (this._horizontalAxisEnabled() && (positionX <= 0 || positionX >= this.scrollWidth)) {
-            this._velocitiesX = [0];
-            this._$averageVelocityX.next(0);
-            this._measureVelocityLastPositionX = positionX;
-            this._measureVelocityTimestampX = time;
-            reseted = true;
-        }
-        if (this._verticalAxisEnabled() && (positionY <= 0 || positionY >= this.scrollHeight)) {
-            this._velocitiesY = [0];
-            this._$averageVelocityY.next(0);
-            this._measureVelocityLastPositionY = positionY;
-            this._measureVelocityTimestampY = time;
-            reseted = true;
-        }
-        if (reseted) {
-            return;
+        if (!this.isInfinity()) {
+            let reseted = false;
+            if (this._horizontalAxisEnabled() && (positionX <= 0 || positionX >= this.scrollWidth)) {
+                this._velocitiesX = [0];
+                this._$averageVelocityX.next(0);
+                this._measureVelocityLastPositionX = positionX;
+                this._measureVelocityTimestampX = time;
+                reseted = true;
+            }
+            if (this._verticalAxisEnabled() && (positionY <= 0 || positionY >= this.scrollHeight)) {
+                this._velocitiesY = [0];
+                this._$averageVelocityY.next(0);
+                this._measureVelocityLastPositionY = positionY;
+                this._measureVelocityTimestampY = time;
+                reseted = true;
+            }
+            if (reseted) {
+                return;
+            }
         }
         if (this._deltaX === 0) {
             const timeDelta = time - this._measureVelocityTimestampX,
@@ -795,6 +860,37 @@ export class NtDScrollView extends NtDBaseScrollView {
     }
 
     protected stopMoving() { }
+
+    private snapIfNecessary(v0X: number, v0Y: number, withInitialForce: boolean = true, animated: boolean = true, force: boolean = false) {
+        const scrollDirectionX = this.scrollDirectionX || (force ? 1 : 0),
+            scrollDirectionY = this.scrollDirectionY || (force ? 1 : 0);
+        if (scrollDirectionX === 0 && scrollDirectionY === 0) {
+            return false;
+        }
+        const snapToItem = this.snapToItem();
+        if (!!snapToItem) {
+            const scrollingOneByOne = this.scrollingOneByOne();
+            if (scrollingOneByOne) {
+                return this.alignPosition();
+            }
+            if (withInitialForce) {
+                return this.snapWithInitialForceIfNecessary(v0X, v0Y, animated, force);
+            }
+        }
+        return false;
+    }
+
+    protected snapWithInitialForceIfNecessary(v0X: number | null = null, v0Y: number | null = null, animated = true, force: boolean = false) {
+        const t = this.animationParams().snapToItem * .01, s = this.getSnappedComponentSize(),
+            vaX = s !== null && t !== 0 ? (s.width / t) : 0,
+            vaY = s !== null && t !== 0 ? (s.height / t) : 0,
+            vX = Math.abs(v0X ?? this.averageVelocityX),
+            vY = Math.abs(v0Y ?? this.averageVelocityY);
+        if (vaX >= vX || vaY >= vY) {
+            return this.alignPosition(animated, force);
+        }
+        return false;
+    }
 
     private calculatePosition(isVertical: boolean, enabled: boolean, axisInversion: boolean, e: MouseEvent | TouchEvent | any, inversion: boolean, startClientPos: number, startTime: number,
         prevClientPosition: number | null, offsets: Array<[number, number]>, velocities: Array<[number, number]>, touchId: number = -1,
@@ -990,7 +1086,11 @@ export class NtDScrollView extends NtDBaseScrollView {
         return { a0: Math.abs(a0) < MIN_ACCELERATION ? 0 : a0 };
     }
 
-    stopScrolling() {
+    stopScrolling(force: boolean = false) {
+        if (this._isAlignmentAnimation && !force) {
+            return;
+        }
+        this._isAlignmentAnimation = false;
         this._animatorX.stop();
         this._animatorY.stop();
     }
@@ -1038,29 +1138,39 @@ export class NtDScrollView extends NtDBaseScrollView {
                 const { startPosition, endPosition, duration } = this.calculateParamsWithVelocity(positionY, vY, a0Y, this.y);
                 this.animate(Y_PROP_NAME, startPosition, endPosition, duration, easeOutQuad, false, true);
             }
+        } else {
+            this.alignPosition(true, true);
         }
     }
 
     protected normalizeValueX(value: number) {
+        if (this.isInfinity()) {
+            return value;
+        }
         const startOffset = this._normalizeValueFromZero ? 0 : this.leftOffset(),
             scrollable = this.scrollableX,
-            scrollSize = scrollable ? this.scrollWidth : 0,
+            scrollSize = scrollable ? (this.scrollWidth - this.alignmentRightOffset()) : 0,
             result = scrollable ? (value <= startOffset ? startOffset : value > scrollSize ? scrollSize : value) : startOffset;
         return result;
     }
 
     protected normalizeValueY(value: number) {
+        if (this.isInfinity()) {
+            return value;
+        }
         const startOffset = this._normalizeValueFromZero ? 0 : this.topOffset(),
             scrollable = this.scrollableY,
-            scrollSize = scrollable ? this.scrollHeight : 0,
+            scrollSize = scrollable ? (this.scrollHeight - this.alignmentBottomOffset()) : 0,
             result = scrollable ? (value <= startOffset ? startOffset : value > scrollSize ? scrollSize : value) : startOffset;
         return result;
     }
 
     protected animate(axis: typeof X_PROP_NAME | typeof Y_PROP_NAME, startValue: number, endValue: number, duration = ANIMATION_DURATION, easingFunction: Easing = easeOutQuad, blending: boolean = false,
-        userAction: boolean = false, onUpdate: ((data: IAnimatorUpdateData) => void) | null = null, onComplete: ((data: IAnimatorUpdateData) => void) | null = null): number {
+        userAction: boolean = false, alignmentAtComplete: boolean = true, skipOverridedCoordinates: boolean = false, onUpdate: ((data: IAnimatorUpdateData) => void) | null = null,
+        onComplete: ((data: IAnimatorUpdateData) => void) | null = null): number {
         const isVertical = axis === Y_PROP_NAME, animator = isVertical ? this._animatorY : this._animatorX;
         let position = startValue;
+        this._isAlignmentAnimation = !alignmentAtComplete;
 
         if (this.hasAnimation() && blending) {
             const updatable = animator.updateTo(endValue);
@@ -1070,7 +1180,7 @@ export class NtDScrollView extends NtDBaseScrollView {
         }
         let overflowTime: number | null = null, overscrollEffectCanceled = -1;
         return animator.animate({
-            withDelta: true,
+            withDelta: !this.isInfinity(),
             startValue,
             endValue,
             duration,
@@ -1079,7 +1189,14 @@ export class NtDScrollView extends NtDBaseScrollView {
                 return isVertical ? this._y : this._x;
             }, onUpdate: data => {
                 this._userActionDuringAnimation.set(userAction);
-                const { value, timestamp, complete } = data, time = Date.now(), scrollSize = (isVertical ? this.scrollHeight : this.scrollWidth);
+                const { value, timestamp, elapsed, complete } = data;
+                if (this._isCoordinatesOverrided && !skipOverridedCoordinates) {
+                    this._isCoordinatesOverrided = false;
+                    const currentCoordinate = isVertical ? this._y : this._x, delta = endValue - value;
+                    this.animate(axis, currentCoordinate, currentCoordinate + delta, duration - elapsed, easingFunction, blending, userAction, alignmentAtComplete);
+                    return;
+                }
+                const time = Date.now(), scrollSize = (isVertical ? this.scrollHeight : this.scrollWidth);
                 if (!overflowTime && (value! <= 0 || value! >= scrollSize)) {
                     overflowTime = Date.now();
                 }
@@ -1105,29 +1222,280 @@ export class NtDScrollView extends NtDBaseScrollView {
                     complete();
                 }
 
-                calculateVelocity(position, value! - (isVertical ? this._deltaY : this._deltaX), timestamp) ?? (isVertical ? this.averageVelocityY : this.averageVelocityX);
+                const v0 = calculateVelocity(position, value - (isVertical ? this._deltaY : this._deltaX), timestamp) ?? (isVertical ? this.averageVelocityY : this.averageVelocityX);
                 position = value!;
-                this.move(isVertical ? null : value, isVertical ? value : null, false, userAction);
+                if (alignmentAtComplete && !this._isAlignmentAnimation && !skipOverridedCoordinates) {
+                    if (!this.snapIfNecessary(isVertical ? 0 : v0, isVertical ? v0 : 0)) {
+                        this.move(isVertical ? null : value, isVertical ? value : null, false, userAction);
+                    }
+                } else {
+                    this.move(isVertical ? null : value, isVertical ? value : null, false, userAction);
+                }
                 this._service.update(true);
                 if (typeof onUpdate === 'function') {
                     onUpdate(data);
                 }
             }, onComplete: data => {
+                this._isAlignmentAnimation = false;
                 this._userActionDuringAnimation.set(false);
-                const { value, timestamp } = data;
-                calculateVelocity(position, value!, timestamp);
+                const { timestamp } = data;
+                const v0 = calculateVelocity(position, endValue, timestamp);
                 overscrollEffectCanceled = 1;
                 this._dragX = this._dragY = 0;
                 this.emitOverscrollEffectEvent(false);
-                this.move(isVertical ? null : value!, isVertical ? value : null, false, userAction);
+                if (alignmentAtComplete && !this._isAlignmentAnimation && !skipOverridedCoordinates) {
+                    this.snapIfNecessary(isVertical ? 0 : v0, isVertical ? v0 : 0);
+                } else {
+                    this.move(isVertical ? null : endValue!, isVertical ? endValue : null, false, userAction);
+                }
                 this._$scrollEnd.next(userAction);
                 this._service.update(true);;
-                this.onAnimationComplete(value);
+                this.onAnimationComplete(endValue);
                 if (typeof onComplete === 'function') {
                     onComplete(data);
                 }
             },
         });
+    }
+
+    protected getSnappedComponentSize(): ISize | null {
+        const align = this.snapToItemAlign(),
+            sd = this.snappingDistance(),
+            snappingDistance = parseFloatOrPersentageValue(sd),
+            isPersentageSnappingDistance = isPercentageValue(sd);
+        let size: ISize | null = null;
+        const scrollDirectionX = this.scrollDirectionX,
+            scrollDirectionY = this.scrollDirectionY,
+            currentPositionX = this.scrollLeft - this._startLayoutOffsetX,
+            currentPositionY = this.scrollTop - this._startLayoutOffsetY,
+            currentComponentBounds = this._service.getComponentBoundsByIntersectionPosition(currentPositionX, currentPositionY),
+            currentComponentWidth = currentComponentBounds?.width ?? 0,
+            currentComponentHeigth = currentComponentBounds?.height ?? 0;
+        switch (align) {
+            case SnapToItemAligns.START: {
+                const offsetX = ((scrollDirectionX === 1 ? currentComponentWidth : 0) - (isPersentageSnappingDistance ? currentComponentWidth * snappingDistance : snappingDistance)) * scrollDirectionX,
+                    offsetY = ((scrollDirectionY === 1 ? currentComponentHeigth : 0) - (isPersentageSnappingDistance ? currentComponentHeigth * snappingDistance : snappingDistance)) * scrollDirectionY,
+                    componentBounds = this._service.getComponentBoundsByIntersectionPosition(currentPositionX + offsetX, currentPositionY + offsetY);
+                if (!!componentBounds) {
+                    const { width, height } = componentBounds;
+                    size = {
+                        width,
+                        height,
+                    };
+                }
+                break;
+            }
+            case SnapToItemAligns.CENTER: {
+                const viewportWidth = this.viewportBounds().width,
+                    viewportHeight = this.viewportBounds().height,
+                    offsetX = (currentComponentWidth * .5 - (isPersentageSnappingDistance ? currentComponentWidth * snappingDistance : snappingDistance)) * scrollDirectionX,
+                    offsetY = (currentComponentHeigth * .5 - (isPersentageSnappingDistance ? currentComponentHeigth * snappingDistance : snappingDistance)) * scrollDirectionY,
+                    actualPosX = currentPositionX + offsetX + viewportWidth * .5,
+                    actualPosY = currentPositionY + offsetY + viewportHeight * .5,
+                    maxPosX = this.scrollWidth,
+                    maxPosY = this.scrollHeight,
+                    posX = Math.min(actualPosX, maxPosX),
+                    posY = Math.min(actualPosY, maxPosY);
+                const componentBounds = this._service.getComponentBoundsByIntersectionPosition(posX, posY);
+                if (!!componentBounds) {
+                    const { width, height } = componentBounds;
+                    size = {
+                        width,
+                        height,
+                    };
+                }
+                break;
+            }
+            case SnapToItemAligns.END: {
+                const viewportWidth = this.viewportBounds().width,
+                    viewportHeight = this.viewportBounds().height,
+                    offsetX = ((scrollDirectionX === 1 ? currentComponentWidth : 0) - (isPersentageSnappingDistance ? currentComponentWidth * snappingDistance : snappingDistance)) * scrollDirectionX,
+                    offsetY = ((scrollDirectionY === 1 ? currentComponentHeigth : 0) - (isPersentageSnappingDistance ? currentComponentHeigth * snappingDistance : snappingDistance)) * scrollDirectionY,
+                    actualPosX = currentPositionX + offsetX + viewportWidth,
+                    actualPosY = currentPositionY + offsetY + viewportHeight,
+                    maxPosX = this.scrollWidth,
+                    maxPosY = this.scrollHeight,
+                    posX = Math.min(actualPosX, maxPosX),
+                    posY = Math.min(actualPosY, maxPosY);
+                const componentBounds = this._service.getComponentBoundsByIntersectionPosition(posX, posY);
+                if (!!componentBounds) {
+                    const { width, height } = componentBounds;
+                    size = {
+                        width,
+                        height,
+                    };
+                }
+                break;
+            }
+        }
+        return size;
+    }
+
+    protected alignPosition(animated: boolean = true, force: boolean = false) {
+        if (!this.snapToItem() || (this._isAlignmentAnimation && !force)) {
+            return false;
+        }
+        const scrollDirectionX = this.scrollDirectionX || (force ? 1 : 0),
+            scrollDirectionY = this.scrollDirectionY || (force ? 1 : 0);
+        if (scrollDirectionX === 0 && scrollDirectionY === 0) {
+            return false;
+        }
+        const align = this.snapToItemAlign(),
+            viewportWidth = this.viewportBounds().width,
+            viewportHeight = this.viewportBounds().height,
+            sd = this.snappingDistance(),
+            snappingDistance = parseFloatOrPersentageValue(sd),
+            isPersentageSnappingDistance = isPercentageValue(sd);
+        let position: IPoint | null = null;
+        const currentPositionX = this.scrollLeft - this._startLayoutOffsetX,
+            currentPositionY = this.scrollTop - this._startLayoutOffsetY,
+            currentComponentBounds = this._service.getComponentBoundsByIntersectionPosition(currentPositionX, currentPositionY),
+            currentComponentWidth = currentComponentBounds?.width ?? 0,
+            currentComponentHeight = currentComponentBounds?.height ?? 0;
+        switch (align) {
+            case SnapToItemAligns.START: {
+                const offsetX = ((scrollDirectionX === 1 ? currentComponentWidth : 0) - (isPersentageSnappingDistance ? currentComponentWidth * snappingDistance : snappingDistance)) * scrollDirectionX,
+                    offsetY = ((scrollDirectionY === 1 ? currentComponentHeight : 0) - (isPersentageSnappingDistance ? currentComponentHeight * snappingDistance : snappingDistance)) * scrollDirectionY,
+                    componentBounds = this._service.getComponentBoundsByIntersectionPosition(currentPositionX + offsetX, currentPositionY + offsetY);
+                if (!!componentBounds) {
+                    const { x, y } = componentBounds, leftOffset = this.leftOffset(), topOffset = this.topOffset(),
+                        alignmentLeftOffset = this.alignmentLeftOffset(), alignmentTopOffset = this.alignmentTopOffset(),
+                        maxPosX = this.scrollWidth - (leftOffset - alignmentLeftOffset) + this._startLayoutOffsetX,
+                        maxPosY = this.scrollHeight - (topOffset - alignmentTopOffset) + this._startLayoutOffsetY;
+                    position = {
+                        x: x - (leftOffset - alignmentLeftOffset) + this._startLayoutOffsetX,
+                        y: y - (topOffset - alignmentTopOffset) + this._startLayoutOffsetY,
+                    }
+                    if (this.isInfinity()) {
+                        if (position.x < 0 || position.x > maxPosX) {
+                            position.x = maxPosX;
+                            this._x = this.scrollWidth;
+                        }
+                        if (position.y < 0 || position.y > maxPosY) {
+                            position.y = maxPosY;
+                            this._y = this.scrollHeight;
+                        }
+                    }
+                }
+                break;
+            }
+            case SnapToItemAligns.CENTER: {
+                const offsetX = (currentComponentWidth * .5 - (isPersentageSnappingDistance ? currentComponentWidth * snappingDistance : snappingDistance)) * scrollDirectionX,
+                    offsetY = (currentComponentHeight * .5 - (isPersentageSnappingDistance ? currentComponentHeight * snappingDistance : snappingDistance)) * scrollDirectionY,
+                    actualPosX = currentPositionX + offsetX + viewportWidth * .5,
+                    actualPosY = currentPositionY + offsetY + viewportHeight * .5,
+                    maxPosX = this.scrollWidth,
+                    maxPosY = this.scrollHeight,
+                    posX = Math.min(actualPosX, maxPosX),
+                    posY = Math.min(actualPosY, maxPosY);
+                const componentBounds = this._service.getComponentBoundsByIntersectionPosition(posX, posY);
+                if (!!componentBounds) {
+                    const { x, y, width, height } = componentBounds, leftOffset = this.leftOffset(), alignmentLeftOffset = this.alignmentLeftOffset(),
+                        topOffset = this.topOffset(), alignmentTopOffset = this.alignmentTopOffset();
+                    const maxPosX = this.scrollWidth - width * .5 - viewportWidth * .5 - (leftOffset - alignmentLeftOffset) * .5,
+                        maxPosY = this.scrollHeight - height * .5 - viewportHeight * .5 - (topOffset - alignmentTopOffset) * .5;
+                    position = {
+                        x: x + width * .5 - viewportWidth * .5 - (leftOffset - alignmentLeftOffset) * .5 + this._startLayoutOffsetX,
+                        y: y + height * .5 - viewportHeight * .5 - (topOffset - alignmentTopOffset) * .5 + this._startLayoutOffsetY,
+                    };
+                    if (this.isInfinity()) {
+                        if (position.x <= 0 || position.x > maxPosX) {
+                            position.x = maxPosX;
+                            this._x = this.scrollWidth;
+                        }
+                        if (position.y <= 0 || position.y > maxPosY) {
+                            position.y = maxPosY;
+                            this._y = this.scrollHeight;
+                        }
+                    }
+                }
+                break;
+            }
+            case SnapToItemAligns.END: {
+                const offsetX = ((scrollDirectionX === 1 ? currentComponentWidth : 0) - (isPersentageSnappingDistance ? currentComponentWidth * snappingDistance : snappingDistance)) * scrollDirectionX,
+                    offsetY = ((scrollDirectionY === 1 ? currentComponentHeight : 0) - (isPersentageSnappingDistance ? currentComponentHeight * snappingDistance : snappingDistance)) * scrollDirectionY,
+                    actualPosX = currentPositionX + offsetX + viewportWidth,
+                    actualPosY = currentPositionY + offsetY + viewportHeight,
+                    maxPosX = this.scrollWidth,
+                    maxPosY = this.scrollHeight,
+                    posX = Math.min(actualPosX, maxPosX),
+                    posY = Math.min(actualPosY, maxPosY);
+                const componentBounds = this._service.getComponentBoundsByIntersectionPosition(posX, posY);
+                if (!!componentBounds) {
+                    const { x, y } = componentBounds;
+                    position = {
+                        x: x - viewportWidth + this._startLayoutOffsetX,
+                        y: y - viewportHeight + this._startLayoutOffsetY,
+                    };
+                }
+                break;
+            }
+        }
+
+        const cPosX = this.scrollLeft,
+            cPosY = this.scrollTop;
+
+        if (position !== null && !(position.x === cPosX && position.y === cPosY)) {
+            this.stopScrolling(true);
+            this.animate(X_PROP_NAME, cPosX, position.x, animated ? this.animationParams().snapToItem : 1, easeOutQuad, false, false, false, true);
+            this.animate(Y_PROP_NAME, cPosY, position.y, animated ? this.animationParams().snapToItem : 1, easeOutQuad, false, false, false, true);
+            return true;
+        }
+        return false;
+    }
+
+    protected checkIntersectionComponent() {
+        const align = this.snapToItemAlign(),
+            viewportWidth = this.viewportBounds().width,
+            viewportHeight = this.viewportBounds().height;
+        let componentId: Id | null = null;
+        const currentPositionX = this.scrollLeft - this._startLayoutOffsetX,
+            currentPositionY = this.scrollTop - this._startLayoutOffsetY;
+        switch (align) {
+            case SnapToItemAligns.START: {
+                const maxPosX = this.scrollWidth,
+                    maxPosY = this.scrollHeight,
+                    componentBounds = this._service.getComponentBoundsByIntersectionPosition(currentPositionX, currentPositionY, maxPosX, maxPosY);
+                if (!!componentBounds) {
+                    const { id } = componentBounds;
+                    componentId = id;
+                }
+                break;
+            }
+            case SnapToItemAligns.CENTER: {
+                const actualPosX = currentPositionX + viewportWidth * .5,
+                    actualPosY = currentPositionY + viewportHeight * .5,
+                    maxPosX = this.scrollWidth,
+                    maxPosY = this.scrollHeight,
+                    posX = Math.min(actualPosX, maxPosX),
+                    posY = Math.min(actualPosY, maxPosY);
+                const componentBounds = this._service.getComponentBoundsByIntersectionPosition(posX, posY, maxPosX, maxPosY);
+                if (!!componentBounds) {
+                    const { id } = componentBounds;
+                    componentId = id;
+                }
+                break;
+            }
+            case SnapToItemAligns.END: {
+                const actualPosX = currentPositionX + viewportWidth,
+                    actualPosY = currentPositionY + viewportHeight,
+                    maxPosX = this.scrollWidth,
+                    maxPosY = this.scrollHeight,
+                    posX = Math.min(actualPosX, maxPosX),
+                    posY = Math.min(actualPosY, maxPosY);
+                const componentBounds = this._service.getComponentBoundsByIntersectionPosition(posX, posY, maxPosX, maxPosY);
+                if (!!componentBounds) {
+                    const { id } = componentBounds;
+                    componentId = id;
+                }
+                break;
+            }
+        }
+
+        if (componentId !== this._intersectionComponentId && componentId !== null) {
+            this._service.setIntersectionElementBySnapToItemAlign(componentId);
+        }
+        this._intersectionComponentId = componentId;
     }
 
     protected override normalizeScrollWidth() {
@@ -1169,25 +1537,27 @@ export class NtDScrollView extends NtDBaseScrollView {
     }
 
     scrollLimits(value?: number | undefined, silent: boolean = false): boolean {
-        const x = value !== undefined ? value : this._x, y = value !== undefined ? value : this._y,
-            yy = this.normalizeValueY(y), xx = this.normalizeValueX(x);
-        if (y !== yy) {
-            if (silent) {
-                this._y = yy;
-                this.refreshCoordinate(this._x, this._y);
-            } else {
-                this.y = yy;
+        if (!this.isInfinity()) {
+            const x = value !== undefined ? value : this._x, y = value !== undefined ? value : this._y,
+                yy = this.normalizeValueY(y), xx = this.normalizeValueX(x);
+            if (y !== yy) {
+                if (silent) {
+                    this._y = yy;
+                    this.refreshCoordinate(this._x, this._y);
+                } else {
+                    this.y = yy;
+                }
+                return true;
             }
-            return true;
-        }
-        if (x !== xx) {
-            if (silent) {
-                this._x = xx;
-                this.refreshCoordinate(this._x, this._y);
-            } else {
-                this.x = xx;
+            if (x !== xx) {
+                if (silent) {
+                    this._x = xx;
+                    this.refreshCoordinate(this._x, this._y);
+                } else {
+                    this.x = xx;
+                }
+                return true;
             }
-            return true;
         }
         return false;
     }
@@ -1196,11 +1566,12 @@ export class NtDScrollView extends NtDBaseScrollView {
         this._dragX = this._dragY = 0;
     }
 
-    override scroll(params: IScrollToParams): Array<number> | null {
+    scroll(params: IScrollToParams): Array<number> | null {
         const animationIds = new Array<number>(),
             posX = params.x ?? params.left ?? null,
             posY = params.y ?? params.top ?? null,
             userAction = params.userAction ?? false,
+            snap = params.snap ?? true,
             normalize = params.normalize ?? true,
             ease = params.ease || easeOutQuad,
             fireUpdate = params.fireUpdate ?? true,
@@ -1219,17 +1590,17 @@ export class NtDScrollView extends NtDBaseScrollView {
             prevY = this._y;
         if (behavior === BEHAVIOR_AUTO || behavior === BEHAVIOR_SMOOTH) {
             if (horizontalAxisEnabled && x !== null && prevX !== x) {
-                const id = this.animate(X_PROP_NAME, prevX, x, duration, ease, blending, userAction, onUpdate, onComplete);
+                const id = this.animate(X_PROP_NAME, prevX, x, duration, ease, blending, userAction, false, false, onUpdate, onComplete);
                 animationIds.push(id);
             }
             if (verticalAxisEnabled && y !== null && prevY !== y) {
-                const id = this.animate(Y_PROP_NAME, prevY, y, duration, ease, blending, userAction, onUpdate, onComplete);
+                const id = this.animate(Y_PROP_NAME, prevY, y, duration, ease, blending, userAction, false, false, onUpdate, onComplete);
                 animationIds.push(id);
             }
             return animationIds;
         } else {
             if (horizontalAxisEnabled && x !== null && (x !== prevX || force)) {
-                this.setX(x, normalize);
+                this.setX(x, snap, normalize);
                 if (userAction) {
                     const scrollWidth = Math.abs(this.scrollWidth),
                         xx = Math.abs(this._x);
@@ -1244,7 +1615,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                 this.updateDirectionX(x, this._x);
             }
             if (verticalAxisEnabled && y !== null && (y !== prevY || force)) {
-                this.setY(y, normalize);
+                this.setY(y, snap, normalize);
                 if (userAction) {
                     const scrollHeight = Math.abs(this.scrollHeight),
                         yy = Math.abs(this._y);

@@ -1079,20 +1079,20 @@ export class NtSScrollView extends NtSBaseScrollView {
                 }
             }, onComplete: data => {
                 this._userActionDuringAnimation.set(false);
-                const { value, timestamp } = data;
+                const { timestamp } = data;
                 this._isAlignmentAnimation = false;
                 overscrollEffectCanceled = 1;
                 this._dragX = this._dragY = 0;
                 this.emitOverscrollEffectEvent(false);
-                const v0 = calculateVelocity(position, value, timestamp);
+                const v0 = calculateVelocity(position, endValue, timestamp);
                 if (alignmentAtComplete && !this._isAlignmentAnimation && !skipOverridedCoordinates) {
                     this.snapIfNecessary(v0);
                 } else {
-                    this.move(isVertical, value, false, userAction, fireUpdate);
+                    this.move(isVertical, endValue, false, userAction, fireUpdate);
                 }
                 this._$scrollEnd.next(userAction);
                 this._service.update(true);
-                this.onAnimationComplete(value);
+                this.onAnimationComplete(endValue);
                 if (typeof onComplete === 'function') {
                     onComplete(data);
                 }

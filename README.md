@@ -58,13 +58,13 @@ items = Array.from({ length: 100000 }, (_, i) => ({ id: i, name: `Item #${i}` })
 
 ## 📚 API
 
-### [NtVirtualSCrollViewComponent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/nt-scroll-view.component.ts)
+### [NtScrollViewComponent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/nt-scroll-view.component.ts)
 
 Inputs
 
 | Property | Type | Description |
 |---|---|---|
-| animationParams | [IAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/animation-params.ts)? = { scrollToItem: 150, navigateByKeyboard: 50 } | Animation parameters. The default value is "{ scrollToItem: 150, navigateByKeyboard: 50 }". |
+| animationParams | [IAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/animation-params.ts)? = { scrollToItem: 500, snapToItem: 500 } | Animation parameters. The default value is "{ scrollToItem: 150, snapToItem: 250 }". |
 | clickDistance | number? = 40 | The maximum scroll distance at which a click event is triggered. |
 | direction | [Direction? = 'both'](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/direction.ts) | Determines the direction in which elements are placed. Default value is "both". |
 | id | number | Readonly. Returns the unique identifier of the component. | 

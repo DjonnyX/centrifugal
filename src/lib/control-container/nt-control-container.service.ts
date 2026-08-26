@@ -106,9 +106,7 @@ export class NtControlContainerService extends NtBaseScrollViewService implement
     this._$overscrollCanceled.next(focusedObject);
   }
 
-  override ngOnDestroy() {
-    super.ngOnDestroy();
-
+  ngOnDestroy() {
     this._$focusedElement.next(null);
 
     this.focusedScroller = null;

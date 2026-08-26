@@ -1096,7 +1096,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
         this._service?.$tick?.pipe(
             takeUntilDestroyed(),
             tap(() => {
-                this._scrollerComponent()?.tick();
+                this._scrollerComponent()?.tick?.();
             }),
         ).subscribe();
 

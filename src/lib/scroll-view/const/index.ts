@@ -5,6 +5,7 @@ export const DEFAULT_SCROLLER_SIZE = 400;
 
 export const DEFAULT_ANIMATION_PARAMS: IAnimationParams = {
     scrollToItem: 500,
+    snapToItem: 250,
 };
 
 export const DEFAULT_DIRECTION = Directions.BOTH;

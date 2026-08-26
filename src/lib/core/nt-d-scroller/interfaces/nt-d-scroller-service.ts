@@ -1,7 +1,7 @@
-import { IScrollOptions } from "../../../common";
+import { IRect, IScrollOptions } from "../../../common";
 import { INtBaseScrollViewService } from "../../../common/interfaces/nt-base-scroll-view-service";
 import { INtScroller } from "../../../common/interfaces/nt-scroller";
-import { Direction } from "../../../common/types";
+import { Direction, Id } from "../../../common/types";
 
 /**
  * INtDScrollerService
@@ -21,6 +21,11 @@ export interface INtDScrollerService extends INtBaseScrollViewService {
     scrollTopOffset: number;
 
     scrollBottomOffset: number;
+
+    getComponentBoundsByIntersectionPosition: (positionX: number, positionY: number, maxPositionX?: number | null, maxPositionY?: number | null) =>
+        (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null;
+
+    setIntersectionElementBySnapToItemAlign: (id: Id | null) => void;
 
     update(immediately?: boolean): void;
 

@@ -1,38 +1,47 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
-import { IAnimationParams, INtSheetService } from './interfaces';
-import { SheetPositions } from './enums';
-import { Direction, SheetPosition } from './types';
-import { DEFAULT_ANIMATION_PARAMS } from './const';
+import { INtDrawerService } from './interfaces/nt-drawer-service';
+import { DEFAULT_ANIMATION_PARAMS } from '../scroll-view/const';
+import { IAnimationParams } from '../scroll-view';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
 import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-view-service';
+import { Direction, Directions, Id, IRect, IScrollOptions } from '../common';
 import { INtScroller } from '../common/interfaces/nt-scroller';
-import { Directions, Id, IRect, IScrollOptions } from '../common';
-import { ISheetPrecalculatedBreakpoints } from './interfaces';
+import { IDrawerBreakpoints } from './interfaces/drawer-breakpoints';
 
 /**
- * NtSheetService
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/sheet/nt-sheet.service.ts
+ * NtDrawerService
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/drawer/nt-drawer.service.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
 @Injectable({
   providedIn: 'root'
 })
-export class NtSheetService extends NtBaseScrollViewService implements INtSheetService {
-  scrollStartOffset: number = 0;
+export class NtDrawerService extends NtBaseScrollViewService implements INtBaseScrollViewService, INtDrawerService {
+  scrollLeftOffset: number = 0;
 
-  scrollEndOffset: number = 0;
+  scrollRightOffset: number = 0;
+
+  scrollTopOffset: number = 0;
+
+  scrollBottomOffset: number = 0;
+
+  isInfinity: boolean = false;
 
   isVertical: boolean = true;
 
-  direction: Direction = this.isVertical ? Directions.VERTICAL : Directions.HORIZONTAL;
+  snapScrollToLeft: boolean = false;
+
+  snapScrollToRight: boolean = false;
+
+  snapScrollToTop: boolean = false;
+
+  snapScrollToBottom: boolean = false;
 
   animationParams: IAnimationParams = DEFAULT_ANIMATION_PARAMS;
 
-  position: SheetPosition = SheetPositions.BOTTOM;
-
-  breakpoints: ISheetPrecalculatedBreakpoints | null = null;
+  direction: Direction = Directions.BOTH;
 
   private _$scrollBarSize = new BehaviorSubject<number>(0);
   readonly $scrollBarSize = this._$scrollBarSize.asObservable();
@@ -45,6 +54,24 @@ export class NtSheetService extends NtBaseScrollViewService implements INtSheetS
 
     this._$scrollBarSize.next(v);
   }
+
+  private _$focusedElement = new BehaviorSubject<HTMLElement | null>(null);
+  readonly $focusedElement = this._$focusedElement.asObservable();
+  set focusedElement(v: HTMLElement | null) {
+    if (this._$focusedElement.getValue() !== v) {
+      this._$focusedElement.next(v);
+    }
+  }
+  get focusedElement() {
+    return this._$focusedElement.getValue();
+  }
+
+  private _emitter: HTMLElement = window as unknown as HTMLElement;
+  get emitter() {
+    return this._emitter;
+  };
+
+  breakpoints: IDrawerBreakpoints | null = null;
 
   constructor() {
     super();
@@ -59,7 +86,7 @@ export class NtSheetService extends NtBaseScrollViewService implements INtSheetS
     }
   }
 
-  override getComponentBoundsByIntersectionPosition(position: number, maxPosition: number | null = null):
+  override getComponentBoundsByIntersectionPosition(positionX: number, positionY: number, maxPositionX: number | null = null, maxPositionY: number | null = null):
     (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null {
     const breakpointItems = this.breakpoints;
     let first: (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null = null,
@@ -67,7 +94,7 @@ export class NtSheetService extends NtBaseScrollViewService implements INtSheetS
     if (!!breakpointItems) {
       for (let i = 0, l = breakpointItems.length; i < l; i++) {
         const breakpoint = breakpointItems[i],
-          id = breakpoint.id ?? null, isVertical = breakpoint.config.isVertical,
+          id = breakpoint.id ?? null,
           inverted = breakpoint.config.inverted ?? false,
           maxScrollSize = breakpoint.measures.maxScrollSize ?? 0,
           { width, height } = breakpoint.bounds,
@@ -76,10 +103,9 @@ export class NtSheetService extends NtBaseScrollViewService implements INtSheetS
           y = breakpoint.measures?.y ?? 0,
           isFirst = breakpoint.config.isFirst ?? false,
           isLast = breakpoint.config.isLast ?? false,
-          pos = position;
-        if (isVertical && (pos >= y && pos < y + height)) {
-          return { id, x: xx, y, width, height, isFirst, isLast };
-        } else if (!isVertical && (pos >= xx && pos < xx + width)) {
+          posX = positionX,
+          posY = positionY;
+        if ((posY >= y && posY < y + height) && (posX >= xx && posX < xx + width)) {
           return { id, x: xx, y, width, height, isFirst, isLast };
         }
         if (isFirst) {
@@ -89,10 +115,10 @@ export class NtSheetService extends NtBaseScrollViewService implements INtSheetS
         }
       }
     }
-    if (position < 0) {
+    if (positionX < 0 && positionY < 0) {
       return first;
     }
-    if (maxPosition !== null && position > maxPosition) {
+    if ((maxPositionX !== null && positionX > maxPositionX) && (maxPositionY !== null && positionY > maxPositionY)) {
       return last;
     }
     return null;
@@ -123,4 +149,10 @@ export class NtSheetService extends NtBaseScrollViewService implements INtSheetS
    * Scrolls the list to the end of the content size.
    */
   scrollToBottom(options?: IScrollOptions) { }
+
+  focus(element: HTMLElement) {
+    if (!!element) {
+      this._$focusedElement.next(element);
+    }
+  }
 }

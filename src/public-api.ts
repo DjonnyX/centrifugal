@@ -70,16 +70,16 @@ export type {
 } from './lib/core/nt-base-slider';
 
 /*
- * Public API Surface of NtDrawerContainer
+ * Public API Surface of NtDrawer
  */
 export {
-    NtDrawerContainerModule,
-    NtDrawerContainerComponent,
-} from './lib/drawer-container';
+    NtDrawerModule,
+    NtDrawerComponent,
+} from './lib/drawer';
 
 export type {
-    INtDrawerContainerService,
-} from './lib/drawer-container';
+    INtDrawerService,
+} from './lib/drawer';
 
 /*
  * Public API Surface of NtControlContainer

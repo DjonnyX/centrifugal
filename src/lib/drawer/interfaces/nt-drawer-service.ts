@@ -1,18 +1,17 @@
 import { Observable } from "rxjs";
 import { Direction, Id, IRect, IScrollOptions } from "../../common";
-import { IAnimationParams } from "../../scroll-view";
+import { IAnimationParams, INtScrollViewService } from "../../scroll-view";
 import { INtBaseScrollViewService } from "../../common/interfaces/nt-base-scroll-view-service";
 import { INtScroller } from "../../common/interfaces/nt-scroller";
+import { IDrawerBreakpoints } from "./drawer-breakpoints";
 
 /**
- * INtDrawerContainerService
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/drawer-container/interfaces/drawer-container-service.ts
+ * INtDrawerService
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/drawer/interfaces/drawer-service.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export interface INtDrawerContainerService extends INtBaseScrollViewService {
-    initialize: (id: number, scrollView: INtScroller<INtBaseScrollViewService>, parentId: number, emitter: HTMLElement) => void;
-
+export interface INtDrawerService extends INtScrollViewService {
     animationParams: IAnimationParams;
 
     direction: Direction;
@@ -25,13 +24,7 @@ export interface INtDrawerContainerService extends INtBaseScrollViewService {
 
     scrollBottomOffset: number;
 
-    snapScrollToLeft: boolean;
-
-    snapScrollToRight: boolean;
-
-    snapScrollToTop: boolean;
-
-    snapScrollToBottom: boolean;
+    breakpoints: IDrawerBreakpoints | null;
 
     get scrollBarSize(): number;
 
@@ -40,6 +33,8 @@ export interface INtDrawerContainerService extends INtBaseScrollViewService {
     readonly $scrollBarSize: Observable<number>;
 
     readonly $tick: Observable<void>;
+
+    initialize: (id: number, scrollView: INtScroller<INtBaseScrollViewService>, parentService: INtBaseScrollViewService | null) => void;
 
     getComponentBoundsByIntersectionPosition: (positionX: number, positionY: number, maxPositionX?: number | null, maxPositionY?: number | null) =>
         (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null;
