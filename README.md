@@ -36,17 +36,19 @@ npm i centrifugal
 
 ## 🚀 Quick Start
 ```html
-<nt-scroll-view #scrollView class="scroll-view" direction="both">
-  <div class="scroll-view__background" [style.width.px]="3000" [style.height.px]="3000" [class.grabbing]="scrollView.$grabbing | async"></div>
-</nt-scroll-view>
+<nt-control-container [keyboardEnabled]="true">
+  <nt-scroll-view #scrollView class="scroll-view" direction="both">
+    <div class="scroll-view__background" [style.width.px]="3000" [style.height.px]="3000" [class.grabbing]="scrollView.$grabbing | async"></div>
+  </nt-scroll-view>
 
-<nt-list [items]="items" [bufferSize]="5" [itemRenderer]="itemRenderer" [dynamicSize]="false" [itemSize]="64"></nt-list>
+  <nt-list [items]="items" [bufferSize]="5" [itemRenderer]="itemRenderer" [dynamicSize]="false" [itemSize]="64"></nt-list>
 
-<ng-template #itemRenderer let-data="data">
-  @if (data) {
-      <span>{{data.name}}</span>
-  }
-</ng-template>
+  <ng-template #itemRenderer let-data="data">
+    @if (data) {
+        <span>{{data.name}}</span>
+    }
+  </ng-template>
+</nt-control-container>
 ```
 ```ts
 items = Array.from({ length: 100000 }, (_, i) => ({ id: i, name: `Item #${i}` }));
