@@ -13,6 +13,8 @@ export const SCROLL_VIEW_USER_INTERACTION_ENABLED = new InjectionToken<boolean>(
 
 export const SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO = new InjectionToken<boolean>('ScrollViewNormalizeValueFromZero');
 
+export const SCROLL_VIEW_AXLE_LOCK = new InjectionToken<boolean>('ScrollViewAxleLock');
+
 export const SCROLL_VIEW_SERVICE = new InjectionToken<INtBaseScrollViewService>('ScrollViewService');
 
 export const OVERSCROLL_SERVICE = new InjectionToken<INtOverscrollService | null>('OverscrollService');

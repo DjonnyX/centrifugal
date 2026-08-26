@@ -151,4 +151,8 @@ export class NtBaseScrollViewService implements INtBaseScrollViewService {
       this._$intersectionElementBySnapToItemAlign.next(id);
     }
   }
+
+  getAccessibilityOfMovement(positionX: number, positionY: number, maxPositionX: number | null = null, maxPositionY: number | null = null): boolean {
+    return true;
+  }
 }

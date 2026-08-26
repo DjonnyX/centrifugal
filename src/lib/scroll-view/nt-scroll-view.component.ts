@@ -25,7 +25,7 @@ import {
   DEFAULT_SNAP_SCROLLTO_TOP,
 } from '../common/const/scroller';
 import {
-  ArithmeticExpression, Direction, Directions, Id, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED,
+  ArithmeticExpression, Direction, Directions, Id, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED,
   SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
 } from '../common';
 import {
@@ -58,6 +58,7 @@ import { NtDScrollerComponent } from '../core/nt-d-scroller';
   providers: [
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
+    { provide: SCROLL_VIEW_AXLE_LOCK, useValue: false },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
   ],
 })

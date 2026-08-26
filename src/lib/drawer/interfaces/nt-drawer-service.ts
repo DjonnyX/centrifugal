@@ -1,5 +1,5 @@
 import { Observable } from "rxjs";
-import { Direction, Id, IRect, IScrollOptions } from "../../common";
+import { Direction, Id, IRect, IScrollOptions, ISize } from "../../common";
 import { IAnimationParams, INtScrollViewService } from "../../scroll-view";
 import { INtBaseScrollViewService } from "../../common/interfaces/nt-base-scroll-view-service";
 import { INtScroller } from "../../common/interfaces/nt-scroller";
@@ -26,6 +26,8 @@ export interface INtDrawerService extends INtScrollViewService {
 
     breakpoints: IDrawerBreakpoints | null;
 
+    bounds: ISize | null;
+
     get scrollBarSize(): number;
 
     set scrollBarSize(v: number);
@@ -40,6 +42,8 @@ export interface INtDrawerService extends INtScrollViewService {
         (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null;
 
     setIntersectionElementBySnapToItemAlign: (id: Id | null) => void;
+
+    getAccessibilityOfMovement(positionX: number, positionY: number, maxPositionX: number | null, maxPositionY: number | null): boolean;
 
     update: (immediately?: boolean) => void;
 

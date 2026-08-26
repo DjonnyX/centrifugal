@@ -27,6 +27,8 @@ export interface INtDScrollerService extends INtBaseScrollViewService {
 
     setIntersectionElementBySnapToItemAlign: (id: Id | null) => void;
 
+    getAccessibilityOfMovement(positionX: number, positionY: number, maxPositionX: number | null, maxPositionY: number | null): boolean
+
     update(immediately?: boolean): void;
 
     scrollToLeft(options?: IScrollOptions): void;

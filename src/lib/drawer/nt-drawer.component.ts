@@ -1,13 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, input, OnDestroy, Signal, signal, TemplateRef, ViewEncapsulation } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, effect, input, OnDestroy, Signal, signal, TemplateRef, ViewEncapsulation } from "@angular/core";
 import { INtScrollViewService, NtScrollViewComponent, NtScrollViewService } from "../scroll-view";
 import {
-  ArithmeticExpression, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
+  ArithmeticExpression, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
   TextDirections,
 } from "../common";
 import { isPercentageValue, parseArithmeticExpression, validateFloat } from "../common/utils";
 import { DEFAULT_DOCK_SIZE } from "./const";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { combineLatest, filter, tap } from "rxjs";
+import { combineLatest, debounceTime, filter, tap } from "rxjs";
 import { IDrawerBreakpoint, IDrawerBreakpoints, INtDrawerService } from "./interfaces";
 import { NtDrawerService } from './nt-drawer.service';
 
@@ -30,6 +30,7 @@ import { NtDrawerService } from './nt-drawer.service';
   providers: [
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
+    { provide: SCROLL_VIEW_AXLE_LOCK, useValue: true },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtDrawerService },
   ],
 })
@@ -249,6 +250,20 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
       }),
     ).subscribe();
 
+    const $precalculatedDockLeftSize = toObservable(this._precalculatedDockLeftSize),
+      $precalculatedDockTopSize = toObservable(this._precalculatedDockTopSize);
+
+    const $init = this.$initialized;
+    combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, $init]).pipe(
+      takeUntilDestroyed(),
+      filter(([, , v]) => !!v),
+      debounceTime(50),
+      tap(([left, top]) => {
+        this.scrollLeft = left;
+        this.scrollTop = top;
+      }),
+    ).subscribe()
+
     this._breakpoints = computed(() => {
       const langTextDir = this.langTextDir(),
         bounds = this._bounds() ?? { width: 0, height: 0 },
@@ -295,6 +310,7 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
           const breakpoint: IDrawerBreakpoint = {
             id,
             config: {
+              available: id !== 0 && id !== 2 && id !== 6 && id !== 8,
               isFirst: id === 0,
               isLast: id === 8,
               inverted,
@@ -330,6 +346,13 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
       takeUntilDestroyed(),
       tap(v => {
         this._service.breakpoints = v;
+      }),
+    ).subscribe();
+
+    $bounds.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._service.bounds = v;
       }),
     ).subscribe();
   }

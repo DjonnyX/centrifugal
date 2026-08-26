@@ -389,7 +389,7 @@ export class NtSScrollView extends NtSBaseScrollView {
                                     }
                                     mouseCanceled = true;
                                     this.cancelOverscroll({ event: e, released: true });
-                                    if (this.snapToItem() || this.scrollingOneByOne()) {
+                                    if (this.snapToItem() && this.scrollingOneByOne()) {
                                         this._isAlignmentAnimation = false;
                                         this.alignPosition(true, true);
                                     }
@@ -563,7 +563,7 @@ export class NtSScrollView extends NtSBaseScrollView {
                                     }
                                     touchCanceled = true;
                                     this.cancelOverscroll({ event: e, released: true });
-                                    if (this.snapToItem() || this.scrollingOneByOne()) {
+                                    if (this.snapToItem() && this.scrollingOneByOne()) {
                                         this._isAlignmentAnimation = false;
                                         this.alignPosition(true, true);
                                     }

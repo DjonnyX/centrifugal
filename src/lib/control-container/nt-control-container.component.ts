@@ -4,7 +4,7 @@ import { BehaviorSubject, combineLatest, debounceTime, delay, filter, fromEvent,
 import { INtScrollViewService, NtScrollViewComponent, NtScrollViewService } from "../scroll-view";
 import {
   CONTROL_CONTAINER_SERVICE, ElementNames, IKeyboardSettings, INtBaseControlContainerService, KeyboardKeys, KeyboardPosition, KeyboardPositions,
-  SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
+  SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
 } from "../common";
 import { FOCUS, INPUT, MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, POINTER_DOWN, POINTER_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
 import { NtControlContainerService } from "./nt-control-container.service";
@@ -43,6 +43,7 @@ import { EMPTY_STRING, SPACE_STRING } from "../common/const/string";
   providers: [
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: false },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: false },
+    { provide: SCROLL_VIEW_AXLE_LOCK, useValue: false },
     { provide: CONTROL_CONTAINER_SERVICE, useClass: NtControlContainerService },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
     NtKeyboardService,

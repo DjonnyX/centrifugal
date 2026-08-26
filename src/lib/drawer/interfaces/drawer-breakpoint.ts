@@ -9,6 +9,7 @@ import { ISize } from "../../common";
 export interface IDrawerBreakpoint {
     id: number;
     config: {
+        available: boolean;
         isFirst: boolean;
         isLast: boolean;
         inverted: boolean;

@@ -5,9 +5,10 @@ import { DEFAULT_ANIMATION_PARAMS } from '../scroll-view/const';
 import { IAnimationParams } from '../scroll-view';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
 import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-view-service';
-import { Direction, Directions, Id, IRect, IScrollOptions } from '../common';
+import { Direction, Directions, Id, IRect, IScrollOptions, ISize } from '../common';
 import { INtScroller } from '../common/interfaces/nt-scroller';
 import { IDrawerBreakpoints } from './interfaces/drawer-breakpoints';
+import { MAX_TRACE_VALUE, MIN_TRACE_VALUE } from './const';
 
 /**
  * NtDrawerService
@@ -42,6 +43,8 @@ export class NtDrawerService extends NtBaseScrollViewService implements INtBaseS
   animationParams: IAnimationParams = DEFAULT_ANIMATION_PARAMS;
 
   direction: Direction = Directions.BOTH;
+
+  bounds: ISize | null = null;
 
   private _$scrollBarSize = new BehaviorSubject<number>(0);
   readonly $scrollBarSize = this._$scrollBarSize.asObservable();
@@ -87,10 +90,10 @@ export class NtDrawerService extends NtBaseScrollViewService implements INtBaseS
   }
 
   override getComponentBoundsByIntersectionPosition(positionX: number, positionY: number, maxPositionX: number | null = null, maxPositionY: number | null = null):
-    (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null {
+    (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; available?: boolean; }) | null {
     const breakpointItems = this.breakpoints;
-    let first: (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null = null,
-      last: (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null = null;
+    let first: (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; available: boolean }) | null = null,
+      last: (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; available: boolean }) | null = null;
     if (!!breakpointItems) {
       for (let i = 0, l = breakpointItems.length; i < l; i++) {
         const breakpoint = breakpointItems[i],
@@ -103,15 +106,16 @@ export class NtDrawerService extends NtBaseScrollViewService implements INtBaseS
           y = breakpoint.measures?.y ?? 0,
           isFirst = breakpoint.config.isFirst ?? false,
           isLast = breakpoint.config.isLast ?? false,
+          available = breakpoint.config.available ?? null,
           posX = positionX,
           posY = positionY;
         if ((posY >= y && posY < y + height) && (posX >= xx && posX < xx + width)) {
-          return { id, x: xx, y, width, height, isFirst, isLast };
+          return { id, x: xx, y, width, height, isFirst, isLast, available };
         }
         if (isFirst) {
-          first = { id, x: xx, y, width, height, isFirst, isLast };
+          first = { id, x: xx, y, width, height, isFirst, isLast, available };
         } else if (isLast) {
-          last = { id, x: xx, y, width, height, isFirst, isLast };
+          last = { id, x: xx, y, width, height, isFirst, isLast, available };
         }
       }
     }
@@ -128,6 +132,59 @@ export class NtDrawerService extends NtBaseScrollViewService implements INtBaseS
     if (this._$intersectionElementBySnapToItemAlign.getValue() !== id) {
       this._$intersectionElementBySnapToItemAlign.next(id);
     }
+  }
+
+  // 4 edges trace
+  getBreakpointsByIntersectionPosition(positionX: number, positionY: number, maxPositionX: number | null = null, maxPositionY: number | null = null):
+    (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; available?: boolean; }) | null {
+    const breakpointItems = this.breakpoints;
+    let first: (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; available: boolean }) | null = null,
+      last: (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; available: boolean }) | null = null;
+    if (!!breakpointItems) {
+      for (let i = 0, l = breakpointItems.length; i < l; i++) {
+        const breakpoint = breakpointItems[i],
+          id = breakpoint.id ?? null,
+          inverted = breakpoint.config.inverted ?? false,
+          maxScrollSize = breakpoint.measures.maxScrollSize ?? 0,
+          { width, height } = breakpoint.bounds,
+          x = breakpoint.measures.x ?? 0,
+          xx = inverted ? (maxScrollSize - x) - width : x,
+          y = breakpoint.measures?.y ?? 0,
+          isFirst = breakpoint.config.isFirst ?? false,
+          isLast = breakpoint.config.isLast ?? false,
+          available = breakpoint.config.available ?? null,
+          posX = positionX,
+          posY = positionY;
+        if ((posY >= y && posY < y + height) && (posX >= xx && posX < xx + width)) {
+          return { id, x: xx, y, width, height, isFirst, isLast, available };
+        }
+        if (isFirst) {
+          first = { id, x: xx, y, width, height, isFirst, isLast, available };
+        } else if (isLast) {
+          last = { id, x: xx, y, width, height, isFirst, isLast, available };
+        }
+      }
+    }
+    if (positionX < 0 && positionY < 0) {
+      return first;
+    }
+    if ((maxPositionX !== null && positionX > maxPositionX) && (maxPositionY !== null && positionY > maxPositionY)) {
+      return last;
+    }
+    return null;
+  }
+
+  override getAccessibilityOfMovement(positionX: number, positionY: number, maxPositionX: number | null = null, maxPositionY: number | null = null): boolean {
+    const bounds = this.bounds;
+    if (!bounds) {
+      return false;
+    }
+    const breakpointsLT = this.getBreakpointsByIntersectionPosition(positionX + MIN_TRACE_VALUE, positionY + MIN_TRACE_VALUE, maxPositionX, maxPositionY),
+      breakpointsRT = this.getBreakpointsByIntersectionPosition(positionX + bounds.width - MAX_TRACE_VALUE, positionY + MIN_TRACE_VALUE, maxPositionX, maxPositionY),
+      breakpointsRB = this.getBreakpointsByIntersectionPosition(positionX + bounds.width - MAX_TRACE_VALUE, positionY + bounds.height - MAX_TRACE_VALUE, maxPositionX, maxPositionY),
+      breakpointsLB = this.getBreakpointsByIntersectionPosition(positionX + MAX_TRACE_VALUE, positionY + bounds.height - MAX_TRACE_VALUE, maxPositionX, maxPositionY);
+    return ((!breakpointsLT || breakpointsLT.available) && (!breakpointsRT || breakpointsRT.available) &&
+      (!breakpointsRB || breakpointsRB.available) && (!breakpointsLB || breakpointsLB.available)) as any;
   }
 
   /**
