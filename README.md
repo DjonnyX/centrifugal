@@ -1,18 +1,28 @@
 # Centrifugal
 
-🚀 A high-performance web-based development kit for POS and IoT devices. Smooth, customizable, and developer-friendly.
-
-⚡A powerful API for implementing components of varying functionality and complexity.
-
-💻 Works correctly in all browsers and platforms.
-
-💪 The software portion of the project was completed without a single line of code written using AI (artificial intelligence)!
-
 <img width="1033" height="171" alt="logo" src="https://github.com/user-attachments/assets/b559cfde-405a-4361-b71b-6715478d997d" />
 
-<b>Angular version 19v. - 22v.</b>.
+<b>Angular version 19v. - 22v.</b>. <br/>
 
 [Documentation](https://centrifugal.eugene-grebennikov.pro/)
+
+<br/><br/>
+
+🚀 A high-performance web-centric development kit for building mobile-like user interfaces. <br/> <br/>
+🛠️ Fast, customizable and developer-friendly. <br/> <br/>
+⚡A powerful API for implementing components of varying functionality and complexity. <br/> <br/>
+💻 Works correctly in all browsers and platforms. <br/> <br/>
+💪 The software portion of the project was completed without a single line of code written using AI (artificial intelligence)! <br/>
+
+<br/>
+
+## 📱 When to Use It: Ideal Use Cases
+
+Platform-independent web applications. Scrolling, animation, and mechanics should look consistent across all browsers, including desktop and mobile devices.
+
+User interfaces for self-service terminals.
+
+PWA platform-independent apps. The mechanics should be identical on any platform.
 
 <br/>
 
