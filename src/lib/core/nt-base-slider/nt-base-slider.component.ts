@@ -1,10 +1,11 @@
 import { Component, computed, effect, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild } from '@angular/core';
-import { combineLatest, debounceTime, filter, fromEvent, of, startWith, Subject, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, combineLatest, debounceTime, filter, fromEvent, of, startWith, Subject, switchMap, tap } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ISliderDragEvent, ISliderTemplateContext } from './interfaces';
 import {
   DEFAULT_MOTION_BLUR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_SIZE, DEFAULT_THICKNESS, HEIGHT, NONE, OPACITY, OPACITY_0, OPACITY_1, PX,
-  TRANSITION, TRANSITION_FADE_IN, WIDTH, DEFAULT_MOTION_BLUR_ENABLED,
+  TRANSITION, TRANSITION_FADE_IN, WIDTH, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_THUMB_ANIMATION_DURATION,
+  AVG_FILTER_ITERATIONS,
 } from './const';
 import { NtBaseSliderService } from './nt-base-slider.service';
 import { NtBaseSliderPublicService } from './nt-base-slider-public.service';
@@ -18,7 +19,7 @@ import {
   LEFT, POSITION, POSITION_ABSOLUTE, POSITION_RELATIVE, RIGHT, TOP, BOTTOM, ZERO_PX, UNSET, SIZE_AUTO, SIZE_100_PERSENT,
 } from '../../common/const/base-prop-names';
 import { ScrollerTypes } from '../../common/enums/scroller-types';
-import { DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MIN_OVERSCROLL_EFFECT, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_INTERACTIVE, MOTION_BLUR } from '../../common/const/scroller';
+import { DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MIN_OVERSCROLL_EFFECT, DEFAULT_OVERLAPPING_SCROLLBAR, MOTION_BLUR } from '../../common/const/scroller';
 import { POINTER_DOWN, POINTER_ENTER, POINTER_LEAVE, POINTER_UP } from '../../common/const/event-names';
 import { matrix3d } from '../../common/utils/matrix-3d';
 import { ANIMATED } from '../../common/const/class-names';
@@ -68,8 +69,6 @@ export class NtBaseSliderComponent extends NtSScrollView {
 
   readonly prepared = input<boolean>(false);
 
-  readonly interactive = input<boolean>(DEFAULT_SCROLLBAR_INTERACTIVE);
-
   readonly overlapping = input<boolean>(DEFAULT_OVERLAPPING_SCROLLBAR);
 
   readonly motionBlur = input<number | 'disabled'>(DEFAULT_MOTION_BLUR);
@@ -77,6 +76,8 @@ export class NtBaseSliderComponent extends NtSScrollView {
   readonly maxMotionBlur = input<number>(DEFAULT_MAX_MOTION_BLUR);
 
   readonly motionBlurEnabled = input<boolean>(DEFAULT_MOTION_BLUR_ENABLED);
+
+  readonly thumbAnimationDuration = input<string>(DEFAULT_THUMB_ANIMATION_DURATION);
 
   readonly show = input<boolean>(false);
 
@@ -86,21 +87,24 @@ export class NtBaseSliderComponent extends NtSScrollView {
 
   readonly thumbRenderer = signal<TemplateRef<any> | null>(this._defaultRenderer() ?? null);
 
-  protected readonly hoverState = signal<boolean>(false);
+  protected readonly _hoverState = signal<boolean>(false);
 
-  protected readonly pressedState = signal<boolean>(false);
+  protected readonly _pressedState = signal<boolean>(false);
 
-  protected readonly templateContext!: Signal<ISliderTemplateContext>;
+  protected readonly _templateContext!: Signal<ISliderTemplateContext>;
 
-  protected readonly styles: Signal<{ [sName: string]: any }>;
+  protected readonly _styles: Signal<{ [sName: string]: any }>;
 
-  protected readonly thumbWidth: Signal<number>;
+  protected readonly _thumbWidth: Signal<number>;
 
-  protected readonly thumbHeight: Signal<number>;
+  protected readonly _thumbHeight: Signal<number>;
 
   public readonly thumbStyles = signal<{ [styleName: string]: string; }>({});
 
   public readonly thumbClass = signal<{ [className: string]: boolean; }>({});
+
+  private _$init = new BehaviorSubject<boolean>(false);
+  protected $init = this._$init.asObservable();
 
   private _$scrollingCancel = new Subject<void>();
   protected readonly $scrollingCancel = this._$scrollingCancel.asObservable();
@@ -108,6 +112,8 @@ export class NtBaseSliderComponent extends NtSScrollView {
   protected _filterId: string;
 
   protected _filter: string;
+
+  protected _filterValue: Array<number> = [];
 
   constructor() {
     super();
@@ -120,8 +126,20 @@ export class NtBaseSliderComponent extends NtSScrollView {
       $maxMotionBlur = toObservable(this.maxMotionBlur),
       $motionBlurEnabled = toObservable(this.motionBlurEnabled),
       $isVertical = toObservable(this.isVertical),
+      $direction = toObservable(this.direction),
+      $grabbing = toObservable(this._grabbing),
       $overscrollEffectEvent = this.$overscrollEffectEvent,
       $resizeViewport = this.$resizeViewport;
+
+    let init = false;
+    const $init = this.$init;
+    $init.pipe(
+      takeUntilDestroyed(),
+      debounceTime(0),
+      tap(v => {
+        init = v;
+      }),
+    ).subscribe();
 
     const $averageVelocity = this.$averageVelocity;
     combineLatest([$isVertical, $averageVelocity, $filter, $motionBlurEnabled, $motionBlur, $maxMotionBlur, $resizeViewport.pipe(
@@ -136,7 +154,24 @@ export class NtBaseSliderComponent extends NtSScrollView {
           this.dropVelocity();
         }
         const _v = v * (mb as number), value = _v > mbMax ? mbMax : _v;
-        filter!.nativeElement.setStdDeviation(isVertical ? 0 : v * value, isVertical ? v * value : 0);
+        if (this._filterValue.length > AVG_FILTER_ITERATIONS) {
+          this._filterValue.shift();
+        }
+        this._filterValue.push(v * value);
+        let actualIterations = 0, nextValue: number | null = null, vSum = 0;
+        for (let i = 0, l = this._filterValue.length, li = l > 0 ? (l - i) : 0; i < l; i++) {
+          const currValue = this._filterValue[i];
+          nextValue = i < li ? this._filterValue[i] : null;
+          if (nextValue !== null) {
+            if (currValue > nextValue) {
+              continue;
+            }
+          }
+          actualIterations++;
+          vSum += currValue;
+        }
+        const weight = vSum / actualIterations;
+        filter!.nativeElement.setStdDeviation(isVertical ? 0 : weight, isVertical ? weight : 0);
       }),
       debounceTime(50),
       tap(([, , filter, ,]) => {
@@ -144,9 +179,18 @@ export class NtBaseSliderComponent extends NtSScrollView {
       }),
     ).subscribe();
 
-    $overscrollEffectEvent.pipe(
+    combineLatest([$overscrollEffectEvent.pipe(
+      takeUntilDestroyed(this._destroyRef),
+      startWith({
+        dragX: 0,
+        dragY: 0,
+        positionX: 0,
+        positionY: 0,
+        grabbing: false,
+      }),
+    ), $direction, $grabbing]).pipe(
       takeUntilDestroyed(),
-      tap(e => {
+      tap(([e, direction, grabbing]) => {
         const langTextDir = this.langTextDir(), isRTL = langTextDir === TextDirections.RTL, tds = isRTL ? -1 : 1,
           dirX = (e.positionX === 0 ? 1 : -1), dirY = (e.positionY === 0 ? 1 : -1),
           viewportBounds = this.viewportBounds(), dx = e.dragX, dy = e.dragY,
@@ -157,7 +201,10 @@ export class NtBaseSliderComponent extends NtSScrollView {
           asy = sy > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sy < DEFAULT_MIN_OVERSCROLL_EFFECT ? DEFAULT_MIN_OVERSCROLL_EFFECT : sy,
           nasx = dirX === -1 ? asx : (2 - asx),
           nasy = dirY === -1 ? asy : (2 - asy);
-        this.thumbClass.set({ [ANIMATED]: !e.grabbing && !this.context()?.component?.userActionDuringAnimation && !this.context()?.component?.grabbing });
+        this.thumbClass.set({
+          [ANIMATED]: init && !grabbing && !e.grabbing && !this.context()?.component?.userActionDuringAnimation && !this.context()?.component?.grabbing,
+          [direction]: true, grabbing,
+        });
         this.thumbStyles.set({
           transform: matrix3d(this.scrollLeft * tds, this.scrollTop, 0, nasx, nasy, 1, 0, 0, 0),
           transformOrigin: `${dirX === 1 ? RIGHT : LEFT} ${dirY === 1 ? BOTTOM : TOP}`,
@@ -165,11 +212,11 @@ export class NtBaseSliderComponent extends NtSScrollView {
       }),
     ).subscribe();
 
-    this.templateContext = computed(() => {
+    this._templateContext = computed(() => {
       const context: ISliderTemplateContext = {
         api: this._apiService,
-        width: this.thumbWidth(),
-        height: this.thumbHeight(),
+        width: this._thumbWidth(),
+        height: this._thumbHeight(),
         fillPositions: this.thumbGradientPositions(),
         params: this.params() ?? {},
       };
@@ -202,11 +249,11 @@ export class NtBaseSliderComponent extends NtSScrollView {
       }),
     ).subscribe();
 
-    this.thumbWidth = computed(() => {
+    this._thumbWidth = computed(() => {
       return this.isVertical() ? this.thickness() : this.size();
     });
 
-    this.thumbHeight = computed(() => {
+    this._thumbHeight = computed(() => {
       return this.isVertical() ? this.size() : this.thickness();
     });
 
@@ -237,33 +284,33 @@ export class NtBaseSliderComponent extends NtSScrollView {
     $pointerDown.pipe(
       takeUntilDestroyed(),
       tap(e => {
-        this.pressedState.set(this.thumbHit(e.clientX, e.clientY));
+        this._pressedState.set(this.thumbHit(e.clientX, e.clientY));
       }),
     ).subscribe();
 
     combineLatest([$docPointerUp, $pointerUp]).pipe(
       takeUntilDestroyed(),
       tap(() => {
-        this.pressedState.set(false);
+        this._pressedState.set(false);
       }),
     ).subscribe();
 
     $pointerEnter.pipe(
       takeUntilDestroyed(),
       tap(() => {
-        this.hoverState.set(true);
+        this._hoverState.set(true);
       }),
     ).subscribe();
 
     $pointerLeave.pipe(
       takeUntilDestroyed(),
       tap(() => {
-        this.hoverState.set(false);
+        this._hoverState.set(false);
       }),
     ).subscribe();
 
     effect(() => {
-      const pressed = this.pressedState(), hover = this.hoverState();
+      const pressed = this._pressedState(), hover = this._hoverState();
       if (pressed) {
         this._sliderService.state = SliderStates.PRESSED;
         return;
@@ -279,7 +326,7 @@ export class NtBaseSliderComponent extends NtSScrollView {
       this._interactive = this.interactive();
     });
 
-    this.styles = computed(() => {
+    this._styles = computed(() => {
       const show = this.show(), sizePropName = this.isVertical() ? WIDTH : HEIGHT;
       return {
         [sizePropName]: `${show ? this.thickness() : 0}${PX}`,
@@ -338,6 +385,10 @@ export class NtBaseSliderComponent extends NtSScrollView {
     ).subscribe();
   }
 
+  ngAfterViewInit() {
+    this._$init.next(true);
+  }
+
   private createDragEvent(userAction: boolean) {
     const isVertical = this.isVertical(), scrollSize = isVertical ? this.scrollHeight : this.scrollWidth,
       scrollPosition = isVertical ? this.scrollTop : this.scrollLeft,
@@ -376,7 +427,7 @@ export class NtBaseSliderComponent extends NtSScrollView {
     return false;
   }
 
-  click(event: PointerEvent | MouseEvent) {
+  onDownHandler(event: PointerEvent | MouseEvent) {
     this._sliderService.click(event);
   }
 }

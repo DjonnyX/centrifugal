@@ -193,7 +193,8 @@ export class NtSScrollerComponent extends NtSScrollView {
       $motionBlurEnabled = toObservable(this.motionBlurEnabled),
       $isVertical = toObservable(this.isVertical),
       $scrollContent = toObservable(this.scrollContent),
-      $overscrollEffectEvent = this.$overscrollEffectEvent,
+      overscrollService = this._overscrollService,
+      $overscrollEffectEvent = !!overscrollService ? overscrollService.$effectEvent : this.$overscrollEffectEvent,
       $resizeViewport = this.$resizeViewport;
 
     $resizeViewport.pipe(

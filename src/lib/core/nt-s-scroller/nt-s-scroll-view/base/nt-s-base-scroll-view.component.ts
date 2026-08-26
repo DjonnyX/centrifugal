@@ -4,7 +4,7 @@ import {
 import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
 import {
     Directions,
-    IOverscrollEvent, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
+    IOverscrollEvent, ISize, OVERSCROLL_SERVICE, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
     TextDirection, TextDirections,
 } from '../../../../common';
 import { INtScroller } from '../../../../common/interfaces/nt-scroller';
@@ -14,6 +14,7 @@ import { INtBaseScrollView } from '../../../../common/interfaces/nt-base-scroll-
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { SDirection } from '../../types';
 import { INtSScrollerService } from '../../interfaces';
+import { INtOverscrollService } from '../../../../common/interfaces/nt-overscroll-service';
 
 /**
  * NtBaseScrollView
@@ -28,11 +29,15 @@ import { INtSScrollerService } from '../../interfaces';
 export abstract class NtSBaseScrollView implements INtScroller<INtBaseScrollViewService> {
     protected _service = inject<INtSScrollerService>(SCROLL_VIEW_SERVICE);
 
+    protected _overscrollService = inject(OVERSCROLL_SERVICE, { optional: true });
+
     get service() { return this._service; }
 
     readonly scrollContent = viewChild<ElementRef<HTMLDivElement>>('scrollContent');
 
     readonly scrollViewport = viewChild<ElementRef<HTMLDivElement>>('scrollViewport');
+
+    readonly onVirtualClick = output<PointerEvent | TouchEvent>();
 
     readonly onOverscroll = output<IOverscrollEvent>();
 
@@ -55,6 +60,10 @@ export abstract class NtSBaseScrollView implements INtScroller<INtBaseScrollView
     readonly overscrollAreaStartRenderer = input<TemplateRef<any> | null>(null);
 
     readonly overscrollAreaEndRenderer = input<TemplateRef<any> | null>(null);
+
+    readonly overscrollService = input<INtOverscrollService | null>(null);
+
+    readonly interactive = input<boolean>(true);
 
     readonly direction = input<SDirection>(Directions.VERTICAL);
 

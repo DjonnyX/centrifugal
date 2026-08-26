@@ -1,4 +1,4 @@
-import { GradientColorPositions, IScrollingSettings, SnappingDistance } from "../../common";
+import { ArithmeticExpression, GradientColorPositions, IScrollingSettings, SnappingDistance } from "../../common";
 import { SDirection } from "../../core/nt-s-scroller/types";
 import { Directions } from "../enums";
 import { IAnimationParams } from "../interfaces";
@@ -23,7 +23,7 @@ export const DEFAULT_SCROLLING_SETTINGS: IScrollingSettings = {
     optimization: true,
 };
 
-export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '25%';
+export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '50%';
 
 export const DEFAULT_SIZE = 6;
 
@@ -32,3 +32,5 @@ export const DEFAULT_MOTION_BLUR = 2;
 export const DEFAULT_MAX_MOTION_BLUR = 5;
 
 export const DEFAULT_MOTION_BLUR_ENABLED = false;
+
+export const DEFAULT_THUMB_SIZE: ArithmeticExpression = '25%';

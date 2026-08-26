@@ -27,7 +27,11 @@ export interface INtScroller<S extends INtBaseScrollViewService> {
 
     get offsetLeft(): number;
 
+    set offsetLeft(v: number);
+
     get offsetTop(): number;
+
+    set offsetTop(v: number);
 
     get offsetRight(): number;
 

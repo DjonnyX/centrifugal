@@ -5,6 +5,8 @@ import { INtBaseScrollView } from "../interfaces/nt-base-scroll-view";
 import { IOverscrollEvent, ISize } from "../interfaces";
 import { INtScroller } from "../interfaces/nt-scroller";
 import { validateBoolean, validateObject } from "../utils";
+import { BEHAVIOR_INSTANT } from "../const/behavior";
+import { INtOverscrollService } from "../interfaces/nt-overscroll-service";
 
 @Component({
     selector: 'nt-base-scroll-component',
@@ -62,6 +64,8 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
      * Fires when the bottom overscroll area has reached its position limit.
      */
     onBottomOverscrollAreaTrigger = output<boolean>();
+
+    readonly overscrollService = input<INtOverscrollService | null>(null);
 
     protected _overscrollAreaShowAutomaticallyOptions = {
         transform: (v: boolean) => {
@@ -249,8 +253,22 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
         return (this.component as INtScroller<S>)?.scrollLeft ?? 0;
     }
 
+    set scrollLeft(v: number) {
+        const component = this.component as INtScroller<S>;
+        if (!!component) {
+            component.scroll({ x: v, behavior: BEHAVIOR_INSTANT, userAction: true, fireUpdate: true });
+        }
+    }
+
     get scrollTop(): number {
         return (this.component as INtScroller<S>)?.scrollTop ?? 0;
+    }
+
+    set scrollTop(v: number) {
+        const component = this.component as INtScroller<S>;
+        if (!!component) {
+            component.scroll({ y: v, behavior: BEHAVIOR_INSTANT, userAction: true, fireUpdate: true });
+        }
     }
 
     get scrollWidth(): number {

@@ -11,7 +11,8 @@
         <foreignObject xmlns="http://www.w3.org/1999/xhtml" width="100%" height="100%" class="ntvs__viewport">
             <div class="ntvs__scroller-wrapper" [class.filtered]="filtered"
                 [style.filter]="filtered ? _filter : 'unset'" [ngStyle]="wrapperStyles()" [ngClass]="wrapperClass()">
-                <div cdkScrollable #scrollViewport part="nt-scroller" class="ntvs__scroller">
+                <div cdkScrollable ntControl #scrollViewport part="nt-scroller" class="ntvs__scroller"
+                    (onVirtualClick)="onVirtualClick.emit($event)">
                     <div #scrollContent [attr.aria-orientation]="direction()"
                         [attr.aria-activedescendant]="focusedElement()" tabindex="-1" part="nt-scroller-content"
                         class="ntvs__content" [ngClass]="actualClasses()" [ngStyle]="listStyles()">
@@ -21,7 +22,8 @@
             </div>
             <nt-overscroll-container class="ntoa" dir="ltr" [bounds]="viewportBounds()" [leftOffset]="_leftOffset()"
                 [topOffset]="_topOffset()" [rightOffset]="_rightOffset()" [bottomOffset]="_bottomOffset()"
-                [overscrollEvent]="$overscroll | async" [leftIndicatorEnabled]="_actualOverscrollAreaLeftEnabled()"
+                [overscrollEvent]="(!!_overscrollService ? _overscrollService.$event : $overscroll) | async"
+                [leftIndicatorEnabled]="_actualOverscrollAreaLeftEnabled()"
                 [topIndicatorEnabled]="_actualOverscrollAreaTopEnabled()"
                 [rightIndicatorEnabled]="_actualOverscrollAreaRightEnabled()"
                 [bottomIndicatorEnabled]="_actualOverscrollAreaBottomEnabled()"
@@ -48,7 +50,7 @@
                 [sliderMinSize]="scrollbarMinSize()" [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()"
                 [motionBlurEnabled]="filtered" (onDrag)="onScrollBarDragHandler($event)"
                 (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-base-slider>
-        }
+            }
         @if (scrollbarHorizontalEnabled()) {
             <nt-base-slider #scrollBarHorizontal direction="horizontal" [size]="thumbSizeHorizontal()" [context]="parent"
                 [renderer]="scrollbarThumbRenderer()" [thickness]="scrollbarThickness()" [params]="scrollbarThumbParams()"

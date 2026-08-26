@@ -13,7 +13,6 @@
 
     .ntbs__viewport {
         position: absolute;
-
     }
 
     .ntbs__slider-wrapper {
@@ -23,6 +22,10 @@
         &.filtered {
             overflow: unset;
         }
+    }
+
+    .ntbs {
+        position: relative;
     }
 
     .ntbs__slider-wrapper,
@@ -56,7 +59,7 @@
         overflow: hidden;
 
         &.animated {
-            transition: transform 250ms ease-out;
+            transition: transform var(--thumb-animation-duration) ease-out;
         }
 
         &.prepared {

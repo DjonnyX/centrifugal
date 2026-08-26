@@ -9,7 +9,8 @@
         <foreignObject xmlns="http://www.w3.org/1999/xhtml" width="100%" height="100%" class="ntvl__viewport">
             <div class="ntvl__scroller-wrapper" [class.filtered]="filtered"
                 [style.filter]="filtered ? _filter : 'unset'" [ngStyle]="wrapperStyles()" [ngClass]="wrapperClass()">
-                <div cdkScrollable #scrollViewport part="nt-scroller" class="ntvl__scroller">
+                <div cdkScrollable ntControl #scrollViewport part="nt-scroller" class="ntvl__scroller"
+                    (onVirtualClick)="onVirtualClick.emit($event)">
                     <div #scrollContent [attr.aria-orientation]="direction()" tabindex="-1"
                         [attr.aria-activedescendant]="focusedElement()" part="nt-list" class="ntvl__list"
                         [ngClass]="actualClasses()" [ngStyle]="listStyles()">
@@ -19,7 +20,8 @@
             </div>
             <nt-overscroll-container class="ntoa" dir="ltr" [bounds]="viewportBounds()" [leftOffset]="_leftOffset()"
                 [topOffset]="_topOffset()" [rightOffset]="_rightOffset()" [bottomOffset]="_bottomOffset()"
-                [overscrollEvent]="$overscroll | async" [leftIndicatorEnabled]="_actualOverscrollAreaLeftEnabled()"
+                [overscrollEvent]="(!!_overscrollService ? _overscrollService.$event : $overscroll) | async"
+                [leftIndicatorEnabled]="_actualOverscrollAreaLeftEnabled()"
                 [topIndicatorEnabled]="_actualOverscrollAreaTopEnabled()"
                 [rightIndicatorEnabled]="_actualOverscrollAreaRightEnabled()"
                 [bottomIndicatorEnabled]="_actualOverscrollAreaBottomEnabled()"
@@ -42,7 +44,7 @@
             [show]="scrollbarShow() && scrollbarEnabled() && prepared" [startOffset]="startOffset()"
             [endOffset]="endOffset()" [langTextDir]="langTextDir()" [overscrollEnabled]="overscrollEnabled()"
             [scrollBehavior]="scrollBehavior()" [sliderMinSize]="scrollbarMinSize()" [motionBlur]="motionBlur()"
-            [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="filtered"
-            (onDrag)="onScrollBarDragHandler($event)" (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-base-slider>
+            [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="filtered" (onDrag)="onScrollBarDragHandler($event)"
+            (onDragEnd)="onScrollBarDragEndHandler($event)"></nt-base-slider>
     }
 </div>

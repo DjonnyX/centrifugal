@@ -381,6 +381,13 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
 
     $keyboardEnabled.pipe(
       takeUntilDestroyed(),
+      tap(v => {
+        this._controlService.keyboardEnabled = this._keyboardService.keyboardEnabled = v;
+      }),
+    ).subscribe();
+
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
       filter(v => !!v),
       switchMap(() => {
         return fromEvent(this._elementRef.nativeElement, FOCUS, { passive: false }).pipe(
@@ -673,134 +680,170 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
         map(v => v.host),
       ), $wheelEmitter = $content;
 
-    $wheelEmitter.pipe(
-      takeUntilDestroyed(this._destroyRef),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
       filter(v => !!v),
-      switchMap(content => {
-        return fromEvent<WheelEvent>(content, WHEEL, { passive: false }).pipe(
-          takeUntilDestroyed(this._destroyRef),
-          tap(e => {
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-          }),
-        );
-      }),
+      switchMap(() => $wheelEmitter.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        switchMap(content => {
+          return fromEvent<WheelEvent>(content, WHEEL, { passive: false }).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(e => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
-    $content.pipe(
-      takeUntilDestroyed(this._destroyRef),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
       filter(v => !!v),
-      switchMap(content => {
-        return fromEvent<MouseEvent>(content, MOUSE_DOWN, { passive: false }).pipe(
-          takeUntilDestroyed(this._destroyRef),
-          tap(e => {
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-          }),
-        );
-      }),
+      switchMap(() => $content.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        switchMap(content => {
+          return fromEvent<MouseEvent>(content, MOUSE_DOWN, { passive: false }).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(e => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
-    $content.pipe(
-      takeUntilDestroyed(this._destroyRef),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
       filter(v => !!v),
-      switchMap(content => {
-        return fromEvent<MouseEvent>(content, MOUSE_MOVE, { passive: false }).pipe(
-          takeUntilDestroyed(this._destroyRef),
-          tap(e => {
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-          }),
-        );
-      }),
+      switchMap(() => $content.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        switchMap(content => {
+          return fromEvent<MouseEvent>(content, MOUSE_MOVE, { passive: false }).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(e => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
-    $content.pipe(
-      takeUntilDestroyed(this._destroyRef),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
       filter(v => !!v),
-      switchMap(content => {
-        return fromEvent<MouseEvent>(content, MOUSE_UP, { passive: false }).pipe(
-          takeUntilDestroyed(this._destroyRef),
-          tap(e => {
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-          }),
-        );
-      }),
+      switchMap(() => $content.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        switchMap(content => {
+          return fromEvent<MouseEvent>(content, MOUSE_UP, { passive: false }).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(e => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
-    $content.pipe(
-      takeUntilDestroyed(this._destroyRef),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
       filter(v => !!v),
-      switchMap(content => {
-        return fromEvent<TouchEvent>(content, TOUCH_START, { passive: false }).pipe(
-          takeUntilDestroyed(this._destroyRef),
-          tap(e => {
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-          }),
-        );
-      }),
+      switchMap(() => $content.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        switchMap(content => {
+          return fromEvent<TouchEvent>(content, TOUCH_START, { passive: false }).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(e => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
-    $content.pipe(
-      takeUntilDestroyed(this._destroyRef),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
       filter(v => !!v),
-      switchMap(content => {
-        return fromEvent<TouchEvent>(content, TOUCH_MOVE, { passive: false }).pipe(
-          takeUntilDestroyed(this._destroyRef),
-          tap(e => {
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-          }),
-        );
-      }),
+      switchMap(() => $content.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        switchMap(content => {
+          return fromEvent<TouchEvent>(content, TOUCH_MOVE, { passive: false }).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(e => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
-    $content.pipe(
-      takeUntilDestroyed(this._destroyRef),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
       filter(v => !!v),
-      switchMap(content => {
-        return fromEvent<TouchEvent>(content, TOUCH_END, { passive: false }).pipe(
-          takeUntilDestroyed(this._destroyRef),
-          tap(e => {
-            if (e.cancelable) {
-              e.preventDefault();
-            }
-          }),
-        );
-      }),
+      switchMap(() => $content.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        switchMap(content => {
+          return fromEvent<TouchEvent>(content, TOUCH_END, { passive: false }).pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(e => {
+              if (e.cancelable) {
+                e.preventDefault();
+              }
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
     const $keyboardSettings = toObservable(this.keyboardSettings);
-    $keyboardSettings.pipe(
+    $keyboardEnabled.pipe(
       takeUntilDestroyed(),
       filter(v => !!v),
-      tap(keyboardSettings => {
-        this.blur(false);
-      }),
+      switchMap(() => $keyboardSettings.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        tap(() => {
+          this.blur(false);
+        }),
+      )),
     ).subscribe();
 
-    $focusedElement.pipe(
-      takeUntilDestroyed(this._destroyRef),
-      filter(e => !!e),
-      switchMap(e => this.updateKeyboardPosition(e, this.keyboardEnabled(), this.keyboardSettings(), e.animated ?? true)),
-      filter(e => e.visible),
-      switchMap(e => {
-        return this._controlService.$overscrollCanceled.pipe(
-          takeUntilDestroyed(this._destroyRef),
-          skipUntil(timer(100).pipe(switchMap(() => of(true)))),
-          tap(event => {
-            this.blur();
-          }),
-        );
-      }),
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      switchMap(() => $focusedElement.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(e => !!e),
+        switchMap(e => this.updateKeyboardPosition(e, this.keyboardEnabled(), this.keyboardSettings(), e.animated ?? true)),
+        filter(e => e.visible),
+        switchMap(() => {
+          return this._controlService.$overscrollCanceled.pipe(
+            takeUntilDestroyed(this._destroyRef),
+            skipUntil(timer(100).pipe(switchMap(() => of(true)))),
+            tap(() => {
+              this.blur();
+            }),
+          );
+        }),
+      )),
     ).subscribe();
 
     $scroller.pipe(
@@ -814,6 +857,33 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
           tap(() => {
             const keyboardSettings = this.keyboardSettings();
             this._contentOffset.set((this._isVertical() ? scroller.verticalScrollRatio : scroller.horizontalScrollRatio) * keyboardSettings.common.size * keyboardSettings.common.scrollerOffsetWhenFocused);
+          }),
+        );
+      }),
+    ).subscribe();
+
+    $scroller.pipe(
+      takeUntilDestroyed(),
+      filter(s => !!s),
+      switchMap(scroller => {
+        return scroller.$resizeViewport.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          debounceTime(200),
+        ).pipe(
+          tap(() => {
+            const keyboardSettings = this.keyboardSettings(),
+              element = this._controlService.focusedElement, el = element?.element, tagName = el?.tagName ?? null;
+            if (!tagName || !isInteractive(tagName)) {
+              this.updateKeyboardPosition(element, this.keyboardEnabled(), {
+                ...keyboardSettings, animation: {
+                  transition: {
+                    in: 1,
+                    out: 1,
+                    focusedScroller: 1,
+                  },
+                }
+              }, true);
+            }
           }),
         );
       }),
@@ -1064,7 +1134,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
         const focusedElement = focusedElements[srcIndex] as HTMLElement;
         if (!!focusedElement) {
           if (typeof focusedElement.focus === 'function') {
-            focusedElement.focus({ preventScroll: true });
+            focusedElement.focus({ preventScroll: this._keyboardService.keyboardEnabled });
           }
         }
 

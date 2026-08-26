@@ -1,23 +1,35 @@
 @let grab = grabbing;
 @let filtered = motionBlurEnabled();
-<div class="ntbs__container" [ngStyle]="styles()">
+@let style = _styles();
+<div class="ntbs__container" [ngStyle]="style">
     <svg part="nt-slider-viewport" class="ntbs__viewport" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"
         xmlns:xlink="http://www.w3.org/1999/xlink">
         <filter [id]="_filterId">
             <feGaussianBlur #filter></feGaussianBlur>
         </filter>
         <foreignObject xmlns="http://www.w3.org/1999/xhtml" width="100%" height="100%" class="ntbs__viewport">
-            <div class="ntbs__slider-wrapper" [class.filtered]="filtered"
-                [style.filter]="filtered ? _filter : 'unset'">
-                <div #scrollViewport class="track" part="nt-slider-track" [ngStyle]="styles()"
-                    [ngClass]="{grabbing: grab}">
-                    <div #scrollContent class="thumb" part="nt-slider-thumb" [class.horizontal]="!isVertical()" [ngStyle]="thumbStyles()" [ngClass]="thumbClass()"
-                        (pointerdown)="click($event)">
+            <div class="ntbs__slider-wrapper" [class.filtered]="filtered" [style.filter]="filtered ? _filter : 'unset'">
+                <div #scrollViewport ntControl class="track" part="nt-slider-track" [ngStyle]="style"
+                    [ngClass]="{grabbing: grab}" (onVirtualClick)="onVirtualClick.emit($event)">
+                    <div #scrollContent class="thumb" [style.--thumb-animation-duration]="this.thumbAnimationDuration()"
+                        part="nt-slider-thumb" [ngStyle]="thumbStyles()" [ngClass]="thumbClass()"
+                        (pointerdown)="onDownHandler($event)">
                         <ng-container [ngTemplateOutlet]="thumbRenderer()"
-                            [ngTemplateOutletContext]="templateContext()" />
+                            [ngTemplateOutletContext]="_templateContext()" />
                     </div>
                 </div>
             </div>
+            <nt-overscroll-container class="ntbs" dir="ltr" [bounds]="viewportBounds()" [leftOffset]="_leftOffset()"
+                [topOffset]="_topOffset()" [rightOffset]="_rightOffset()" [bottomOffset]="_bottomOffset()"
+                [overscrollEvent]="(!!_overscrollService ? _overscrollService.$event : $overscroll) | async"
+                [leftIndicatorEnabled]="_actualOverscrollAreaLeftEnabled()"
+                [topIndicatorEnabled]="_actualOverscrollAreaTopEnabled()"
+                [rightIndicatorEnabled]="_actualOverscrollAreaRightEnabled()"
+                [bottomIndicatorEnabled]="_actualOverscrollAreaBottomEnabled()"
+                [leftIndicatorRenderer]="overscrollAreaStartRenderer()"
+                [topIndicatorRenderer]="overscrollAreaStartRenderer()"
+                [rightIndicatorRenderer]="overscrollAreaEndRenderer()"
+                [bottomIndicatorRenderer]="overscrollAreaEndRenderer()" />
         </foreignObject>
     </svg>
 </div>

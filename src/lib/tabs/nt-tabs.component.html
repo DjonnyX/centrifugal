@@ -1,0 +1,21 @@
+<div #container part="nt-tabs" class="nttb__container" [ngClass]="_containerClass()">
+    <nt-list #list class="nttb__list" part="nt-tabs-list" style="position: absolute;" [direction]="direction()"
+        [overscrollEnabled]="overscrollEnabled()" [langTextDir]="langTextDir()" [overscrollAreaShowAutomatically]="true"
+        [items]="items()" [bufferSize]="1" [maxBufferSize]="1" [animationParams]="animationParams()"
+        [scrollingSettings]="scrollingSettings()" [snapToItem]="snapToItem()" [snapToItemAlign]="_snapToItemAlign()"
+        selectingMode="select" [trackBy]="trackBy()" [dynamic]="true" [scrollbarEnabled]="false" [selectByClick]="false"
+        [itemRenderer]="itemRenderer()" [selectedIds]="_selectedId()" [snappingDistance]="snappingDistance()"
+        zIndexWhenSelecting="1000" [motionBlurEnabled]="motionBlurEnabled()" [motionBlur]="motionBlur()"
+        [maxMotionBlur]="maxMotionBlur()" (onSelect)="onSelectHandler($event)">
+        <div #thumb part="nt-tabs-thumb" class="nttb__thumb" [ngStyle]="_thumbStyle()">
+            <ng-container [ngTemplateOutlet]="renderer() ?? defaultRenderer"
+                [ngTemplateOutletContext]="_templateContext()" />
+        </div>
+    </nt-list>
+</div>
+
+<ng-template #defaultRenderer let-width="width" let-height="height" let-params="params">
+    <div class="shape" part="nt-tabs-thumb__shape" [style.width.px]="width" [style.height.px]="height"
+        style="box-sizing: border-box; pointer-events: none; background-color: #818181; border-radius: 0px; overflow: hidden;">
+    </div>
+</ng-template>

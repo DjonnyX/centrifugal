@@ -4,7 +4,7 @@ import {
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-    BehaviorSubject, combineLatest, debounceTime, delay, filter, fromEvent, map, of, race, startWith, Subject, switchMap,
+    BehaviorSubject, combineLatest, debounceTime, delay, filter, fromEvent, map, of, race, skipWhile, startWith, Subject, switchMap,
     takeUntil, tap,
 } from 'rxjs';
 import {
@@ -269,7 +269,8 @@ export class NtSScrollView extends NtSBaseScrollView {
             const $wheel = this.$wheel;
             $wheel.pipe(
                 takeUntilDestroyed(),
-                switchMap(v => of(this.averageVelocity)),
+                skipWhile(() => !this.interactive()),
+                switchMap(() => of(this.averageVelocity)),
                 debounceTime(100),
                 tap(v => {
                     this._isMoving = false;
@@ -296,7 +297,7 @@ export class NtSScrollView extends NtSBaseScrollView {
                 map(v => v.nativeElement),
             ), $wheelEmitter = this._inversion ? $viewport : $content;
 
-            if (!!this._controlContainerService) {
+            if (!!this._controlContainerService && this._controlContainerService.keyboardEnabled) {
                 this._controlContainerService.$focusEcho.pipe(
                     takeUntilDestroyed(this._destroyRef),
                     filter(v => !!v),
@@ -310,6 +311,7 @@ export class NtSScrollView extends NtSBaseScrollView {
 
             $wheelEmitter.pipe(
                 takeUntilDestroyed(this._destroyRef),
+                skipWhile(() => !this.interactive()),
                 switchMap(content => {
                     return fromEvent<WheelEvent>(content, WHEEL, { passive: false }).pipe(
                         filter(() => this._interactive),
@@ -370,6 +372,7 @@ export class NtSScrollView extends NtSBaseScrollView {
 
             $content.pipe(
                 takeUntilDestroyed(this._destroyRef),
+                skipWhile(() => !this.interactive()),
                 switchMap(content => {
                     return fromEvent<MouseEvent>(content, MOUSE_DOWN, { passive: false }).pipe(
                         takeUntilDestroyed(this._destroyRef),
@@ -400,6 +403,7 @@ export class NtSScrollView extends NtSBaseScrollView {
 
             $content.pipe(
                 takeUntilDestroyed(this._destroyRef),
+                skipWhile(() => !this.interactive()),
                 switchMap(content => {
                     return fromEvent<MouseEvent>(content, MOUSE_DOWN, { passive: false }).pipe(
                         takeUntilDestroyed(this._destroyRef),
@@ -512,6 +516,7 @@ export class NtSScrollView extends NtSBaseScrollView {
             ),
                 $touchCanceler = race([$touchUp.pipe(
                     takeUntilDestroyed(this._destroyRef),
+                    skipWhile(() => !this.interactive()),
                     filter(e => Array.from(e.targetTouches).findIndex(({ identifier }) => identifier === this._touchId) === -1),
                     delay(0),
                     tap(e => {
@@ -540,6 +545,7 @@ export class NtSScrollView extends NtSBaseScrollView {
 
             $content.pipe(
                 takeUntilDestroyed(this._destroyRef),
+                skipWhile(() => !this.interactive()),
                 switchMap(content => {
                     return fromEvent<TouchEvent>(content, TOUCH_START, { passive: false }).pipe(
                         takeUntilDestroyed(this._destroyRef),
@@ -571,6 +577,7 @@ export class NtSScrollView extends NtSBaseScrollView {
 
             $content.pipe(
                 takeUntilDestroyed(this._destroyRef),
+                skipWhile(() => !this.interactive()),
                 switchMap(content => {
                     return fromEvent<TouchEvent>(content, TOUCH_START, { passive: false }).pipe(
                         takeUntilDestroyed(this._destroyRef),
@@ -876,15 +883,20 @@ export class NtSScrollView extends NtSBaseScrollView {
             grabbing,
             dragX: transitionExponent(this.scrollRatio <= 0 || this.scrollRatio >= 1 ? this._dragX : 0, bounds.width, exp),
             dragY: transitionExponent(this.scrollRatio <= 0 || this.scrollRatio >= 1 ? this._dragY : 0, bounds.height, exp),
-            positionX: (isVertical ? 0 : (this.langTextDir() === TextDirections.LTR ? (this._scrollRatioWhenGrabbing === 1 ? 1 : 0) : (this._scrollRatioWhenGrabbing === 1 ? 0 : 1))),
-            positionY: (isVertical ? (this._scrollRatioWhenGrabbing === 1 ? 1 : 0) : 0),
+            positionX: ((isVertical ? 0 : (this.langTextDir() === TextDirections.LTR ? (this._scrollRatioWhenGrabbing === 1 ? 1 : 0) : (this._scrollRatioWhenGrabbing === 1 ? 0 : 1)))),
+            positionY: ((isVertical ? (this._scrollRatioWhenGrabbing === 1 ? 1 : 0) : 0)),
         });
         return event;
     }
 
     protected emitOverscrollEffectEvent(grabbing: boolean = true, exp: number = DEFAULT_TRANSITION_EXPONENT) {
-        const event = this.createOverflowEvent(grabbing, exp);
-        this._$overscrollEffectEvent.next(event);
+        const event = this.createOverflowEvent(grabbing, exp),
+            overscrollService = this.overscrollService();
+        if (!!overscrollService) {
+            overscrollService.emit(event, true);
+        } else {
+            this._$overscrollEffectEvent.next(event);
+        }
     }
 
     protected emitOverscrollEvent(grabbing: boolean = true, output: boolean = true, exp: number = DEFAULT_TRANSITION_EXPONENT) {
@@ -892,7 +904,12 @@ export class NtSScrollView extends NtSBaseScrollView {
             return;
         }
         const event = this.createOverflowEvent(grabbing, exp);
-        this._$overscroll.next(event);
+        const overscrollService = this.overscrollService();
+        if (!!overscrollService) {
+            overscrollService.emit(event);
+        } else {
+            this._$overscroll.next(event);
+        }
         if (output) {
             this.onOverscroll.emit(event);
         }

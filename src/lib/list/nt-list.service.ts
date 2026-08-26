@@ -19,7 +19,7 @@ import { FocusItemParams } from './types/focus-item-params';
 import { validateFocusAlignment, validateId } from './utils/list-validators';
 import { getSelectorByItemId } from './utils/get-selector-by-item-id';
 import { IScrollToParams } from './interfaces/scroll-to-params';
-import { Id, IRect, ISize } from '../common';
+import { Id, IPoint, IRect, ISize } from '../common';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
 import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-view-service';
 import { INtScroller } from '../common/interfaces/nt-scroller';
@@ -373,6 +373,21 @@ export class NtListService extends NtBaseScrollViewService implements INtBaseScr
   getItemBounds(id: Id): ISize | null {
     validateId(id);
     return this._trackBox?.getItemBounds(id) ?? null;
+  }
+
+  /**
+   * Returns the position of a display item with a given id
+   */
+  getDisplayItemPosition(id: Id): IPoint | null {
+    validateId(id);
+    const displayItems = this.displayItems, item = displayItems.find(item => item.id === id) ?? null;
+    if (!!item) {
+      return {
+        x: item.measures.transformedX,
+        y: item.measures.transformedY,
+      };
+    }
+    return null;
   }
 
   /**

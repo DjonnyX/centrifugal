@@ -16,6 +16,7 @@ export interface INtBaseControlContainerService extends INtBaseScrollViewService
 
     readonly $keyboardEnabled: Observable<boolean>;
     get keyboardEnabled(): boolean;
+    set keyboardEnabled(v: boolean);
 
     readonly $input: Observable<KeyboardKeyValue | null>;
     get input(): KeyboardKeyValue | null;

@@ -224,7 +224,8 @@ Methods
 | scrollToEnd | (cb: (() => void) \| null = null, options: [IScrollOptions](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/interfaces/scroll-options.ts) \| null = null) | Scrolls the list to the end of the content height. |
 | getItemBounds | (id: [Id](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/id.ts)) => [ISize \| null](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/size.ts) | Returns the bounds of an element with a given id |
 | focus | [Id](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/id.ts), align: [FocusAlignment](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/types/focus-alignment.ts) = [FocusAlignments.NONE](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/enums/focus-alignments.ts) | Focus an list item by a given id. |
-| preventSnapping |  | Prevents the list from snapping to its start or end edge. |
+| preventSnapping | (): void | Prevents the list from snapping to its start or end edge. |
+| getDisplayItemPosition | (id: [Id](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/id.ts)): [IPoint](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/point.ts) \| null | Returns the position of a display item with a given id. |
 
 <br/>
 
@@ -358,8 +359,7 @@ Inputs
 | scrollingSettings | [IScrollingSettings](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/scrolling-settings.ts) = { frictionalForce: 0.035, mass: 0.005, maxDistance: 100000, maxDuration: 4000, speedScale: 10, breakpointStoppingFactor: 10, optimization: false } | Scrolling settings. - frictionalForce - Frictional force. Default value is 0.035. - mass - Mass. Default value is 0.005. - maxDistance - Maximum scrolling distance. Default value is 100000. - maxDuration - Maximum animation duration. Default value is 4000. - speedScale - Speed scale. Default value is 10. - breakpointStoppingFactor - Default value is 10. - optimization - Enables scrolling performance optimization. Default value is `true`. |
 | animationParams | [IAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/slider/interfaces/animation-params.ts) = { scroll: 500 } | Animation parameters. The default value is "{ scroll: 500 }". |
 | snappingDistance | [SnappingDistance](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/snapping-distance.ts) = '25%' | Snapping activation distance. Can be specified as a percentage of the element size or in absolute values. The default value is `25%`. |
-| thumbSize  | number = 0 | Thumb slider size. If autoThumbSize is false, the thumbSize property determines the size of the slider. If autoThumbSize is true, the thumbSize property determines the minimum size of the thumb. Default value is `6`. |
-| autoThumbSize | boolean = true | Determines whether the length of the slider will be calculated automatically. If autoThumbSize is true, the thumbSize property determines the minimum size of the thumb. Default value is `true`. |
+| thumbSize | [ArithmeticExpression](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/arithmetic-expression.ts) = '25%' | Thumb slider size. Can be specified in absolute or percentage values. Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0". Default value is `25%`. | 
 | langTextDir | [TextDirection](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/text-direction.ts) | A string indicating the direction of text for the locale. Can be either "ltr" (left-to-right) or "rtl" (right-to-left). |
 
 <br/>
@@ -372,6 +372,7 @@ Outputs
 | onDragEnd | ([ISliderDragEvent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/slider/components/ng-base-slider/interfaces/slider-drag-data.ts)) => void | Fires a drag end event. |
 | onSnap | [Id](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/id.ts) | Triggers an event with a step ID when the step moves the specified distance. |
 | onChange | number | Triggers an event when the value changes. |
+| onVirtualClick | PointerEvent \| TouchEvent | Triggers an event when clicked. |
 
 <br/>
 

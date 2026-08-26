@@ -27,6 +27,8 @@ export interface INtSScrollerService extends INtBaseScrollViewService {
 
     snapToItem: boolean;
 
+    readonly $tick: Observable<void>;
+
     readonly $intersectionElementBySnapToItemAlign: Observable<Id | null>;
 
     update(immediately?: boolean): void;

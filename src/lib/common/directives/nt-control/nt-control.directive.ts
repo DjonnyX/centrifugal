@@ -2,7 +2,7 @@ import { DestroyRef, Directive, ElementRef, inject, Input, input, OnInit, output
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { NgControl } from '@angular/forms';
 import { BehaviorSubject, combineLatest, fromEvent, of, race, timer } from 'rxjs';
-import { distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { CONTROL_CONTAINER_SERVICE, SCROLL_VIEW_SERVICE } from '../../injection';
 import { toggleClassName, validateBoolean, validateFloat } from '../../utils';
 import { ANCHOR, DEFAULT_CLICK_DISTANCE, DEFAULT_LONG_PRESS_TIMEOUT, INPUT } from './const';
@@ -176,9 +176,18 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
             host = this._elementRef.nativeElement,
             targetTagName = host.tagName.toLowerCase();
 
-        if (!this._elementRef.nativeElement.hasAttribute(ATTR_TABINDEX)) {
-            this._elementRef.nativeElement.tabIndex = -1;
-        }
+        const $keyboardEnabled = this._controlService.$keyboardEnabled;
+        $keyboardEnabled.pipe(
+            takeUntilDestroyed(),
+            debounceTime(0),
+            tap(enabled => {
+                if (enabled) {
+                    if (!this._elementRef.nativeElement.hasAttribute(ATTR_TABINDEX)) {
+                        this._elementRef.nativeElement.tabIndex = -1;
+                    }
+                }
+            }),
+        ).subscribe();
 
         host.setAttribute(NT_SERVICE_ID, this._service.id.toString());
 
@@ -190,7 +199,7 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
             }),
         ).subscribe();
 
-        this._controlService.$keyboardEnabled.pipe(
+        $keyboardEnabled.pipe(
             takeUntilDestroyed(),
             switchMap(keyboardEnabled => {
                 return fromEvent(this._elementRef.nativeElement, FOCUS).pipe(
