@@ -75,10 +75,12 @@ export type {
 export {
     NtDrawerModule,
     NtDrawerComponent,
+    DrawerDockPositions,
 } from './lib/drawer';
 
 export type {
     INtDrawerService,
+    DrawerDockPosition,
 } from './lib/drawer';
 
 /*

@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, effect, input, OnDestroy, Signal, signal, TemplateRef, ViewEncapsulation } from "@angular/core";
-import { INtScrollViewService, NtScrollViewComponent, NtScrollViewService } from "../scroll-view";
+import { ChangeDetectionStrategy, Component, computed, input, Signal, signal, TemplateRef, ViewEncapsulation } from "@angular/core";
+import { INtScrollViewService, NtScrollViewComponent } from "../scroll-view";
 import {
-  ArithmeticExpression, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
+  ArithmeticExpression, IScrollOptions, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
   TextDirections,
 } from "../common";
 import { isPercentageValue, parseArithmeticExpression, validateFloat } from "../common/utils";
@@ -10,6 +10,8 @@ import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
 import { combineLatest, debounceTime, filter, tap } from "rxjs";
 import { IDrawerBreakpoint, IDrawerBreakpoints, INtDrawerService } from "./interfaces";
 import { NtDrawerService } from './nt-drawer.service';
+import { DrawerDockPositions } from './enums';
+import { DrawerDockPosition } from './types';
 
 /**
  * NtDrawerComponent
@@ -355,5 +357,35 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
         this._service.bounds = v;
       }),
     ).subscribe();
+  }
+
+  /**
+   * Opens the dock at the specified position.
+   */
+  open(position: DrawerDockPosition) {
+    const params: IScrollOptions = { blending: false, behavior: this.scrollBehavior(), duration: this.animationParams().scrollToItem };
+    switch (position) {
+      case DrawerDockPositions.LEFT: {
+        params.x = 0;
+        params.y = this._precalculatedDockTopSize();
+        break;
+      }
+      case DrawerDockPositions.TOP: {
+        params.x = this._precalculatedDockLeftSize();
+        params.y = 0;
+        break;
+      }
+      case DrawerDockPositions.RIGHT: {
+        params.x = this._precalculatedDockLeftSize() + this._precalculatedDockRightSize() + (this._bounds()?.width ?? 0);
+        params.y = this._precalculatedDockTopSize();
+        break;
+      }
+      case DrawerDockPositions.BOTTOM: {
+        params.x = this._precalculatedDockLeftSize();
+        params.y = this._precalculatedDockTopSize() + this._precalculatedDockBottomSize() + (this._bounds()?.height ?? 0);
+        break;
+      }
+    }
+    this.scrollTo(params);
   }
 }
