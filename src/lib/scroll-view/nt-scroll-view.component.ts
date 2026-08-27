@@ -26,7 +26,7 @@ import {
 } from '../common/const/scroller';
 import {
   ArithmeticExpression, Direction, Directions, Id, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED,
-  SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
+  SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
 } from '../common';
 import {
   isPercentageValue, parseArithmeticExpression, toggleClassName, validateBoolean, validateFloat, validateInt, validateObject,
@@ -38,6 +38,7 @@ import { NtBaseScrollComponent } from '../common/components/nt-base-scroll-compo
 import { IScrollToParams } from '../common/interfaces/scroll-to-params';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from '../common/const/behavior';
 import { NtDScrollerComponent } from '../core/nt-d-scroller';
+import { ScrollerTypes } from '../common/enums/scroller-types';
 
 /**
  * NtScrollViewComponent
@@ -56,6 +57,7 @@ import { NtDScrollerComponent } from '../core/nt-d-scroller';
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.ShadowDom,
   providers: [
+    { provide: SCROLL_VIEW_TYPE, useValue: ScrollerTypes.SCROLL_VIEW_SCROLLER },
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_AXLE_LOCK, useValue: false },

@@ -62,7 +62,7 @@ import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interf
 import { getScrollStateVersion } from './utils/get-scroll-state-version';
 import {
   ArithmeticExpression, Directions, Id, IListScrollEvent, IOverscrollEvent, IPoint, IScrollingSettings, ISize, KeyboardKeys,
-  SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, SnappingDistance, SnapToItemAlign,
+  SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SCROLL_VIEW_USER_INTERACTION_ENABLED, SnappingDistance, SnapToItemAlign,
   TextDirection, TextDirections,
 } from '../common';
 import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, parseArithmeticExpression, toggleClassName } from '../common/utils';
@@ -83,6 +83,7 @@ import {
 } from '../common/const/scroller';
 import { isDirection } from '../scroll-view/utils/is-direction';
 import { SDirection } from '../core/nt-s-scroller/types';
+import { ScrollerTypes } from '../common/enums/scroller-types';
 
 /**
  * Virtual list component.
@@ -101,6 +102,7 @@ import { SDirection } from '../core/nt-s-scroller/types';
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.ShadowDom,
   providers: [
+    { provide: SCROLL_VIEW_TYPE, useValue: ScrollerTypes.LIST_SCROLLER },
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtListService },
