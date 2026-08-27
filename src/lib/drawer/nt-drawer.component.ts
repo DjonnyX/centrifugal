@@ -4,10 +4,10 @@ import {
   ArithmeticExpression, IScrollOptions, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
   TextDirection, TextDirections,
 } from "../common";
-import { isPercentageValue, parseArithmeticExpression, validateFloat } from "../common/utils";
-import { DEFAULT_DOCK_SIZE } from "./const";
+import { isPercentageValue, parseArithmeticExpression, validateBoolean, validateFloat } from "../common/utils";
+import { DEFAULT_BACKDROP, DEFAULT_DOCK_SIZE } from "./const";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { combineLatest, debounceTime, filter, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, debounceTime, filter, tap } from "rxjs";
 import { IDrawerBreakpoint, IDrawerBreakpoints, INtDrawerService } from "./interfaces";
 import { NtDrawerService } from './nt-drawer.service';
 import { DrawerDockPositions } from './enums';
@@ -141,6 +141,22 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
    */
   override langTextDir = input<TextDirection>(TextDirections.LTR, { ...this._langTextDir });
 
+  protected _backdropOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+      if (!valid) {
+        console.error('The "backdrop" parameter must be of type `boolean`.');
+        return DEFAULT_BACKDROP;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether the content will be covered by an overlay when clicked to close the dock. Default value is `true`.
+   */
+  backdrop = input<boolean>(DEFAULT_BACKDROP, { ...this._backdropOptions });
+
   protected _dockLeftSizeOptions = {
     transform: (v: number) => {
       const valid = validateFloat(v, true) || isPercentageValue(v);
@@ -249,6 +265,12 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
    */
   dockBottom = input<TemplateRef<any> | null>(null);
 
+  private _$opened = new BehaviorSubject<boolean>(false);
+  protected $opened = this._$opened.asObservable();
+
+  private _$scrollRatio = new BehaviorSubject<number>(0);
+  protected $scrollRatio = this._$scrollRatio.asObservable();
+
   protected _precalculatedDockLeftSize = signal<number>(0);
 
   protected _precalculatedDockTopSize = signal<number>(0);
@@ -306,7 +328,9 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
     ).subscribe();
 
     const $precalculatedDockLeftSize = toObservable(this._precalculatedDockLeftSize),
-      $precalculatedDockTopSize = toObservable(this._precalculatedDockTopSize);
+      $precalculatedDockTopSize = toObservable(this._precalculatedDockTopSize),
+      $precalculatedDockRightSize = toObservable(this._precalculatedDockRightSize),
+      $precalculatedDockBottomSize = toObservable(this._precalculatedDockBottomSize);
 
     const $init = this.$initialized;
     combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, $init]).pipe(
@@ -317,7 +341,37 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
         this.scrollLeft = left;
         this.scrollTop = top;
       }),
-    ).subscribe()
+    ).subscribe();
+
+    combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, this.$scroll, $bounds]).pipe(
+      takeUntilDestroyed(),
+      tap(([dockLeftSize, dockTopSize]) => {
+        this._$opened.next(!(this.scrollLeft === dockLeftSize && this.scrollTop === dockTopSize));
+      }),
+    ).subscribe();
+
+    combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, $precalculatedDockRightSize, $precalculatedDockBottomSize, this.$scroll, $bounds]).pipe(
+      takeUntilDestroyed(),
+      tap(([dockLeftSize, dockTopSize, dockRightSize, dockBottomSize]) => {
+        const scrollLeft = this.scrollLeft, scrollTop = this.scrollTop;
+        let sx: number, sy: number;
+        if (scrollLeft < dockLeftSize) {
+          sx = dockLeftSize !== 0 ? (scrollLeft / dockLeftSize) : 0;
+        } else if (scrollLeft > dockLeftSize) {
+          sx = 1 - (dockRightSize !== 0 ? ((scrollLeft - dockLeftSize) / dockRightSize) : 0);
+        } else {
+          sx = 1;
+        }
+        if (scrollTop < dockTopSize) {
+          sy = dockTopSize !== 0 ? (scrollTop / dockTopSize) : 0;
+        } else if (scrollTop > dockTopSize) {
+          sy = 1 - (dockBottomSize !== 0 ? ((scrollTop - dockTopSize) / dockBottomSize) : 0);
+        } else {
+          sy = 1;
+        }
+        this._$scrollRatio.next(sx !== 1 ? sx : sy);
+      }),
+    ).subscribe();
 
     this._breakpoints = computed(() => {
       const bounds = this._bounds() ?? { width: 0, height: 0 },

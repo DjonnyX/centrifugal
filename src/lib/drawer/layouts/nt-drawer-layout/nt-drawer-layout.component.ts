@@ -1,4 +1,5 @@
-import { Component, input, TemplateRef } from "@angular/core";
+import { Component, input, output, TemplateRef } from "@angular/core";
+import { DEFAULT_BACKDROP } from "../../const";
 
 /**
  * NtDrawerLayoutComponent
@@ -16,6 +17,14 @@ import { Component, input, TemplateRef } from "@angular/core";
     standalone: false,
 })
 export class NtDrawerLayoutComponent {
+    onBackdrop = output<void>();
+
+    backdrop = input<boolean>(DEFAULT_BACKDROP);
+
+    opened = input<boolean>(false);
+
+    scrollRatio = input<number>(0);
+
     dockLeftSize = input<number>(0);
 
     dockTopSize = input<number>(0);
