@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, Signal, signal, Te
 import { INtScrollViewService, NtScrollViewComponent } from "../scroll-view";
 import {
   ArithmeticExpression, IScrollOptions, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
-  TextDirections,
+  TextDirection, TextDirections,
 } from "../common";
 import { isPercentageValue, parseArithmeticExpression, validateFloat } from "../common/utils";
 import { DEFAULT_DOCK_SIZE } from "./const";
@@ -128,6 +128,19 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
    */
   override overlappingScrollbar = input<boolean>(false, { ...this._overlappingScrollbarOptions });
 
+  protected override _langTextDir = {
+    transform: (v: TextDirection) => {
+      console.error('The "langTextDir" property is not available.');
+      return TextDirections.LTR;
+    },
+  } as any;
+
+  /**
+   * @deprecated
+   * The `overlappingScrollbar` property is not available for the control container.
+   */
+  override langTextDir = input<TextDirection>(TextDirections.LTR, { ...this._langTextDir });
+
   protected _dockLeftSizeOptions = {
     transform: (v: number) => {
       const valid = validateFloat(v, true) || isPercentageValue(v);
@@ -195,6 +208,46 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
    * Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "100%".
    */
   dockBottomSize = input<ArithmeticExpression>(DEFAULT_DOCK_SIZE, { ...this._dockBottomSizeOptions });
+
+  /**
+   * Left dock.
+   * Example: `<nt-drawer [leftDock]="leftDockTemplate">
+   *  <ng-template #leftDockTemplate>
+   *    Left content
+   * </ng-template>
+   * `
+   */
+  dockLeft = input<TemplateRef<any> | null>(null);
+
+  /**
+   * Top dock.
+   * Example: `<nt-drawer [topDock]="topDockTemplate">
+   *  <ng-template #topDockTemplate>
+   *    Top content
+   * </ng-template>
+   * `
+   */
+  dockTop = input<TemplateRef<any> | null>(null);
+
+  /**
+   * Right dock.
+   * Example: `<nt-drawer [rightDock]="rightDockTemplate">
+   *  <ng-template #rightDockTemplate>
+   *    Right content
+   * </ng-template>
+   * `
+   */
+  dockRight = input<TemplateRef<any> | null>(null);
+
+  /**
+   * Bottom dock.
+   * Example: `<nt-drawer [bottomDock]="bottomDockTemplate">
+   *  <ng-template #bottomDockTemplate>
+   *    Bottom content
+   * </ng-template>
+   * `
+   */
+  dockBottom = input<TemplateRef<any> | null>(null);
 
   protected _precalculatedDockLeftSize = signal<number>(0);
 
@@ -267,14 +320,13 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
     ).subscribe()
 
     this._breakpoints = computed(() => {
-      const langTextDir = this.langTextDir(),
-        bounds = this._bounds() ?? { width: 0, height: 0 },
+      const bounds = this._bounds() ?? { width: 0, height: 0 },
         leftSize = this._precalculatedDockLeftSize(),
         topSize = this._precalculatedDockTopSize(),
         rightSize = this._precalculatedDockRightSize(),
         bottomSize = this._precalculatedDockBottomSize(),
         maxScrollSize = leftSize + rightSize,
-        inverted = langTextDir === TextDirections.RTL,
+        inverted = false,
         result: IDrawerBreakpoints = [];
       const rows = 3, columns = 3;
       let id = 0, x = 0, y = 0, width = 0, height = 0;
@@ -387,5 +439,12 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
       }
     }
     this.scrollTo(params);
+  }
+
+  /**
+   * Closes the dock
+   */
+  close() {
+    this.scrollTo({ x: this._precalculatedDockLeftSize(), y: this._precalculatedDockTopSize(), blending: false, behavior: this.scrollBehavior(), duration: this.animationParams().scrollToItem });
   }
 }

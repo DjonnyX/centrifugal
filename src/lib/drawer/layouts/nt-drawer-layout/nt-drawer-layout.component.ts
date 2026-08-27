@@ -1,4 +1,4 @@
-import { Component, input } from "@angular/core";
+import { Component, input, TemplateRef } from "@angular/core";
 
 /**
  * NtDrawerLayoutComponent
@@ -17,14 +17,22 @@ import { Component, input } from "@angular/core";
 })
 export class NtDrawerLayoutComponent {
     dockLeftSize = input<number>(0);
-    
+
     dockTopSize = input<number>(0);
-    
+
     dockRightSize = input<number>(0);
-    
+
     dockBottomSize = input<number>(0);
-    
+
+    dockLeft = input<TemplateRef<any> | null>(null);
+
+    dockTop = input<TemplateRef<any> | null>(null);
+
+    dockRight = input<TemplateRef<any> | null>(null);
+
+    dockBottom = input<TemplateRef<any> | null>(null);
+
     width = input<number>(0);
-    
+
     height = input<number>(0);
 }

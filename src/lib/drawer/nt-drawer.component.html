@@ -9,23 +9,24 @@
 @let textDir = langTextDir();
 
 <div #container class="ntdc__container">
-    <nt-d-scroller #scroller class="ntdc__scroller" [classes]="classes()" [context]="this" [scrollable]="scrollable()"
-        [langTextDir]="textDir" [leftOffset]="scrollLeftOffset" [rightOffset]="scrollRightOffset"
-        [topOffset]="scrollTopOffset" [bottomOffset]="scrollBottomOffset" [direction]="direction()"
-        [scrollbarThumbRenderer]="scrollbarThumbRenderer()" [scrollbarThickness]="scrollbarThickness()"
-        [scrollbarThumbParams]="scrollbarThumbParams()" [animationParams]="animationParams()"
-        [focusedElement]="focusedElement()" [loading]="loading()" [overscrollEnabled]="overscrollEnabled()"
-        [overlappingScrollbar]="overlappingScrollbar()" [scrollbarEnabled]="scrollbarEnabled()"
-        [scrollbarInteractive]="scrollbarInteractive()" [scrollbarMinSize]="scrollbarMinSize()"
-        [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()"
-        [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()"
-        [snapToItem]="true" snapToItemAlign="start">
-        <ng-container #renderersContainer>
-          @let bounds = _bounds();
-          <nt-drawer-layout [dockLeftSize]="dockLeftWidth" [dockTopSize]="dockTopHeight" [dockRightSize]="dockRightWidth"
-          [dockBottomSize]="dockBottomHeight" [width]="bounds?.width ?? 0" [height]="bounds?.height ?? 0">
-          <ng-content></ng-content>
-        </nt-drawer-layout>
-        </ng-container>
-    </nt-d-scroller>
+  <nt-d-scroller #scroller class="ntdc__scroller" [classes]="classes()" [context]="this" [scrollable]="scrollable()"
+    [langTextDir]="textDir" [leftOffset]="scrollLeftOffset" [rightOffset]="scrollRightOffset"
+    [topOffset]="scrollTopOffset" [bottomOffset]="scrollBottomOffset" [direction]="direction()"
+    [scrollbarThumbRenderer]="scrollbarThumbRenderer()" [scrollbarThickness]="scrollbarThickness()"
+    [scrollbarThumbParams]="scrollbarThumbParams()" [animationParams]="animationParams()"
+    [focusedElement]="focusedElement()" [loading]="loading()" [overscrollEnabled]="overscrollEnabled()"
+    [overlappingScrollbar]="overlappingScrollbar()" [scrollbarEnabled]="scrollbarEnabled()"
+    [scrollbarInteractive]="scrollbarInteractive()" [scrollbarMinSize]="scrollbarMinSize()"
+    [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()"
+    [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()" [snapToItem]="true"
+    snapToItemAlign="start">
+    <ng-container #renderersContainer>
+      @let bounds = _bounds();
+      <nt-drawer-layout [dockLeftSize]="dockLeftWidth" [dockTopSize]="dockTopHeight" [dockRightSize]="dockRightWidth"
+        [dockBottomSize]="dockBottomHeight" [dockLeft]="dockLeft()" [dockTop]="dockTop()" [dockRight]="dockRight()"
+        [dockBottom]="dockBottom()" [width]="bounds?.width ?? 0" [height]="bounds?.height ?? 0">
+        <ng-content></ng-content>
+      </nt-drawer-layout>
+    </ng-container>
+  </nt-d-scroller>
 </div>

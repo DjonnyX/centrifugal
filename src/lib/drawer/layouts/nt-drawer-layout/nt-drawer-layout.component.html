@@ -3,22 +3,34 @@
     [style.--top-size]="dockTopSize() + 'px'" [style.--bottom-size]="dockBottomSize() + 'px'"
     [style.--right-size]="dockRightSize() + 'px'">
     <div></div>
-    <div class="ntcc-dock-left" part="nt-drawer-dock-left">
-
+    <div class="ntcc-dock-top" part="nt-drawer-dock-top">
+        @let topContent = dockTop();
+        @if (!!topContent) {
+            <ng-container [ngTemplateOutlet]="topContent" />
+        }
     </div>
     <div></div>
-    <div class="ntcc-dock-top" part="nt-drawer-dock-top">
-
+    <div class="ntcc-dock-left" part="nt-drawer-dock-left">
+        @let leftContent = dockLeft();
+        @if (!!leftContent) {
+            <ng-container [ngTemplateOutlet]="leftContent" />
+        }
     </div>
     <div class="nt-cc-dock-content" part="nt-drawer-dock-content">
         <ng-content></ng-content>
     </div>
-    <div class="ntcc-dock-bottom" part="nt-drawer-dock-bottom">
-
+    <div class="ntcc-dock-right" part="nt-drawer-dock-right">
+        @let rightContent = dockRight();
+        @if (!!rightContent) {
+            <ng-container [ngTemplateOutlet]="rightContent" />
+        }
     </div>
     <div></div>
-    <div class="ntcc-dock-right" part="nt-drawer-dock-left">
-
+    <div class="ntcc-dock-bottom" part="nt-drawer-dock-bottom">
+        @let bottomContent = dockBottom();
+        @if (!!bottomContent) {
+            <ng-container [ngTemplateOutlet]="bottomContent" />
+        }
     </div>
     <div></div>
 </div>
