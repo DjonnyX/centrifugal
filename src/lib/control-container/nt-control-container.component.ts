@@ -478,8 +478,10 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                 if (tfValue === EMPTY_STRING) {
                   inputElement.setAttribute(NT_VALUE, tfValue);
                 }
-                const ntValue = inputElement.getAttribute(NT_VALUE);
-                value = String(ngControlValue ?? ntValue ?? inputElement.value ?? EMPTY_STRING);
+                const type = inputElement.getAttribute(ATTR_TYPE) ?? TextFieldTypes.TEXT,
+                  ntValue = inputElement.getAttribute(NT_VALUE);
+                value = String((type === TextFieldTypes.NUMBER && Number(ngControlValue) === Number(ntValue) ? ntValue : ngControlValue) ??
+                  ntValue ?? inputElement.value ?? EMPTY_STRING);
                 if (keyValue.indexOf(KEY_SYS) === 0) {
                   if (keyValue === KeyboardKeys.SYS_NEXT_LOCALE) {
                     this._keyboardService.nextPreset();
@@ -586,7 +588,18 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                   inputElement.setAttribute(NT_VALUE, normalizedNtValue ?? EMPTY_STRING);
                   inputElement.value = normalizedValue;
                   if (!!ngControl?.control) {
-                    ngControl.control.setValue(normalizedValue);
+                    let ctrlValue: any;
+                    switch (type) {
+                      case TextFieldTypes.NUMBER: {
+                        ctrlValue = Number(normalizedValue);
+                        break;
+                      }
+                      default: {
+                        ctrlValue = normalizedValue;
+                        break;
+                      }
+                    }
+                    ngControl.control.setValue(ctrlValue);
                   } else {
                     inputElement.dispatchEvent(new InputEvent(INPUT, {
                       bubbles: true,
