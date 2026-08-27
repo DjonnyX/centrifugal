@@ -155,6 +155,9 @@ export class NtDrawerService extends NtBaseScrollViewService implements INtBaseS
           available = breakpoint.config.available ?? null,
           posX = positionX,
           posY = positionY;
+        if (width === 0 || height === 0) {
+          continue;
+        }
         if ((posY >= y && posY < y + height) && (posX >= xx && posX < xx + width)) {
           return { id, x: xx, y, width, height, isFirst, isLast, available };
         }

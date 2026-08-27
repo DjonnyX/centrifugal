@@ -19,7 +19,16 @@
     [scrollbarInteractive]="scrollbarInteractive()" [scrollbarMinSize]="scrollbarMinSize()"
     [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()"
     [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()" [snapToItem]="true"
-    snapToItemAlign="start">
+    [overscrollAreaShowAutomatically]="overscrollAreaShowAutomatically()"
+    [overscrollAreaUseOffsets]="overscrollAreaUseOffsets()"
+    [overscrollAreaLeftEnabled]="overscrollAreaLeftEnabled() && dockLeftWidth > 0"
+    [overscrollAreaTopEnabled]="overscrollAreaTopEnabled() && dockTopHeight > 0"
+    [overscrollAreaRightEnabled]="overscrollAreaRightEnabled() && dockRightWidth > 0"
+    [overscrollAreaBottomEnabled]="overscrollAreaBottomEnabled() && dockBottomHeight > 0"
+    [overscrollAreaLeftRenderer]="overscrollAreaLeftRenderer()"
+    [overscrollAreaTopRenderer]="overscrollAreaTopRenderer()"
+    [overscrollAreaRightRenderer]="overscrollAreaRightRenderer()"
+    [overscrollAreaBottomRenderer]="overscrollAreaBottomRenderer()" snapToItemAlign="start">
     <ng-container #renderersContainer>
       @let bounds = _bounds();
       <nt-drawer-layout [backdrop]="backdrop()" [opened]="($opened | async)!" [scrollRatio]="($scrollRatio | async)!"

@@ -49,6 +49,19 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
    */
   onClose = output<void>();
 
+  protected override _overscrollAreaShowAutomaticallyOptions = {
+    transform: (v: boolean) => {
+      console.error('The "overscrollAreaShowAutomatically" property is not available.');
+      return false;
+    },
+  } as any;
+
+  /**
+     * @deprecated
+   *  Sets whether overscroll areas are automatically displayed if the value is true.
+   */
+  override overscrollAreaShowAutomatically = input<boolean>(false, { ...this._overscrollAreaShowAutomaticallyOptions });
+
   protected override _scrollbarThickness = {
     transform: (v: number) => {
       console.error('The "scrollbarThickness" property is not available.');
