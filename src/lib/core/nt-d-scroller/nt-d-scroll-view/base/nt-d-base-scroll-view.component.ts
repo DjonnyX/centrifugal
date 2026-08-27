@@ -172,6 +172,12 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
         return this._inversion ? (totalSize < viewportSize) : (totalSize > viewportSize);
     }
 
+    protected _moveIteration = 0;
+
+    protected _clientPositionOffsetX = 0;
+
+    protected _clientPositionOffsetY = 0;
+
     protected _destroyRef = inject(DestroyRef);
 
     protected _service = inject<INtDScrollerService>(SCROLL_VIEW_SERVICE);
@@ -452,4 +458,11 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
     abstract stopScrolling(force?: boolean): void;
 
     abstract scroll(params: IScrollToParams): Array<number> | null;
+
+    setClientPositionOffset(x: number, y: number): void {
+        if (this._moveIteration === 0) {
+            this._clientPositionOffsetX = x;
+            this._clientPositionOffsetY = y;
+        }
+    }
 }
