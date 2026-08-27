@@ -19,7 +19,7 @@ import { ISheetPrecalculatedBreakpoints } from './interfaces';
 @Injectable({
   providedIn: 'root'
 })
-export class NtSheetService extends NtBaseScrollViewService implements INtSheetService, OnDestroy {
+export class NtSheetService extends NtBaseScrollViewService implements INtSheetService {
   scrollStartOffset: number = 0;
 
   scrollEndOffset: number = 0;
@@ -78,7 +78,7 @@ export class NtSheetService extends NtBaseScrollViewService implements INtSheetS
           isLast = breakpoint.config.isLast ?? false,
           pos = position;
         if (isVertical && (pos >= y && pos < y + height)) {
-          return { id, x, y, width, height, isFirst, isLast };
+          return { id, x: xx, y, width, height, isFirst, isLast };
         } else if (!isVertical && (pos >= xx && pos < xx + width)) {
           return { id, x: xx, y, width, height, isFirst, isLast };
         }

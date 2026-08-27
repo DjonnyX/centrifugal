@@ -34,7 +34,7 @@ import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from '../common/const/behavior';
 @Injectable({
   providedIn: 'root'
 })
-export class NtListService extends NtBaseScrollViewService implements INtBaseScrollViewService, OnDestroy {
+export class NtListService extends NtBaseScrollViewService implements INtBaseScrollViewService {
   private _$virtualClick = new Subject<IRenderVirtualListItem<any> | null>();
   $virtualClick = this._$virtualClick.asObservable();
 
@@ -481,9 +481,5 @@ export class NtListService extends NtBaseScrollViewService implements INtBaseScr
    */
   scrollToEnd(options?: IScrollOptions) {
     this._$scrollToEnd.next(options);
-  }
-
-  override ngOnDestroy(): void {
-    super.ngOnDestroy();
   }
 }

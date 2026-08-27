@@ -6,4 +6,5 @@
  */
 export interface INtDScrollViewAnimationParams {
     scrollToItem: number;
+    snapToItem: number;
 }

@@ -4,7 +4,7 @@ import {
 import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-    CONTROL_CONTAINER_SERVICE, Direction, Directions, IOverscrollEvent, ISize, OVERSCROLL_SERVICE, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
+    CONTROL_CONTAINER_SERVICE, Direction, Directions, IOverscrollEvent, ISize, OVERSCROLL_SERVICE, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
     SCROLL_VIEW_TYPE, TextDirection, TextDirections,
 } from '../../../../common';
 import { INtScroller } from '../../../../common/interfaces/nt-scroller';
@@ -80,6 +80,16 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
 
     readonly bottomOffset = input<number>(0);
 
+    readonly alignmentLeftOffset = input<number>(0);
+
+    readonly alignmentTopOffset = input<number>(0);
+
+    readonly alignmentRightOffset = input<number>(0);
+
+    readonly alignmentBottomOffset = input<number>(0);
+
+    readonly isInfinity = input<boolean>(false);
+
     protected _leftOffset: Signal<number>;
 
     protected _topOffset: Signal<number>;
@@ -125,6 +135,8 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
     protected _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
     protected _inversion = inject(SCROLL_VIEW_INVERSION);
+
+    protected _axleLock = inject(SCROLL_VIEW_AXLE_LOCK);
 
     protected _overscrollEnabled = inject(SCROLL_VIEW_OVERSCROLL_ENABLED);
 
@@ -194,8 +206,8 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
     set totalWidth(v: number) {
         if (this._totalWidth !== v) {
             this._totalWidth = v;
-            const startOffset = this.leftOffset();
-            this._actualTotalWidth = v + startOffset;
+            const startOffset = this.leftOffset(), endOffset = this.alignmentRightOffset();
+            this._actualTotalWidth = v + startOffset + endOffset;
 
             this.normalizeScrollWidth();
         }
@@ -209,8 +221,8 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
     set totalHeight(v: number) {
         if (this._totalHeight !== v) {
             this._totalHeight = v;
-            const startOffset = this.topOffset();
-            this._actualTotalHeight = v + startOffset;
+            const startOffset = this.topOffset(), endOffset = this.alignmentBottomOffset();
+            this._actualTotalHeight = v + startOffset + endOffset;
 
             this.normalizeScrollHeight();
         }
@@ -281,9 +293,9 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
             startOffset = this.leftOffset(),
             endOffset = this.rightOffset();
         if (this._inversion) {
-            return contentWidth > viewportWidth ? endOffset : (viewportWidth - contentWidth);
+            return contentWidth > viewportWidth ? endOffset : (viewportWidth - (contentWidth + this.alignmentRightOffset()));
         }
-        return contentWidth < viewportWidth ? startOffset : (contentWidth - viewportWidth);
+        return contentWidth < viewportWidth ? startOffset : ((contentWidth + this.alignmentRightOffset()) - viewportWidth);
     }
 
     get scrollHeight() {
@@ -292,14 +304,16 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
             startOffset = this.topOffset(),
             endOffset = this.bottomOffset();
         if (this._inversion) {
-            return contentHeight > viewportHeight ? endOffset : (viewportHeight - contentHeight);
+            return contentHeight > viewportHeight ? endOffset : (viewportHeight - (contentHeight + this.alignmentBottomOffset()));
         }
-        return contentHeight < viewportHeight ? startOffset : (contentHeight - viewportHeight);
+        return contentHeight < viewportHeight ? startOffset : ((contentHeight + this.alignmentBottomOffset()) - viewportHeight);
     }
 
     readonly viewportBounds = signal<ISize>({ width: 0, height: 0 });
 
     readonly contentBounds = signal<ISize>({ width: 0, height: 0 });
+
+    protected _isCoordinatesOverrided: boolean = false;
 
     constructor() {
         const $viewportBounds = toObservable(this.viewportBounds),
@@ -353,10 +367,44 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
     protected overrideCoordinates(x: number, y: number) { }
 
     protected normalizeScrollWidth() {
+        if (this.isInfinity()) {
+            const scrollSize = (this._totalWidth - this.viewportBounds().width);
+            if (this._x < 0) {
+                this._isCoordinatesOverrided = true;
+                const currentPosition = scrollSize;
+                this.overrideCoordinates(currentPosition, this._y);
+                this._x = currentPosition;
+                return true;
+            } else if (this._x > scrollSize) {
+                this._isCoordinatesOverrided = true;
+                const currentPosition = 0;
+                this.overrideCoordinates(currentPosition, this._y);
+                this._x = currentPosition;
+                return true;
+            }
+        }
+        this._isCoordinatesOverrided = false;
         return false;
     }
 
     protected normalizeScrollHeight() {
+        if (this.isInfinity()) {
+            const scrollSize = (this._totalHeight - this.viewportBounds().height);
+            if (this._y < 0) {
+                this._isCoordinatesOverrided = true;
+                const currentPosition = scrollSize;
+                this.overrideCoordinates(this._x, currentPosition);
+                this._y = currentPosition;
+                return true;
+            } else if (this._y > scrollSize) {
+                this._isCoordinatesOverrided = true;
+                const currentPosition = 0;
+                this.overrideCoordinates(this._x, currentPosition);
+                this._y = currentPosition;
+                return true;
+            }
+        }
+        this._isCoordinatesOverrided = false;
         return false;
     }
 

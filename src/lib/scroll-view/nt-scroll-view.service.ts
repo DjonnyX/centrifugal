@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { IAnimationParams, INtScrollViewService } from './interfaces';
 import { DEFAULT_ANIMATION_PARAMS } from './const';
@@ -16,7 +16,7 @@ import { Direction, Directions, IScrollOptions } from '../common';
 @Injectable({
   providedIn: 'root'
 })
-export class NtScrollViewService extends NtBaseScrollViewService implements INtScrollViewService, OnDestroy {
+export class NtScrollViewService extends NtBaseScrollViewService implements INtScrollViewService {
   scrollLeftOffset: number = 0;
 
   scrollRightOffset: number = 0;

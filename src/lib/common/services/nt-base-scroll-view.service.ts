@@ -1,4 +1,4 @@
-import { inject, Injectable, OnDestroy } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { combineLatest, distinctUntilChanged, tap } from 'rxjs';
@@ -21,7 +21,7 @@ import { NtService } from './nt.service';
 @Injectable({
   providedIn: 'root'
 })
-export class NtBaseScrollViewService implements INtBaseScrollViewService, OnDestroy {
+export class NtBaseScrollViewService implements INtBaseScrollViewService {
   protected _nextComponentId: number = 0;
 
   protected _id: number = 0;
@@ -152,7 +152,7 @@ export class NtBaseScrollViewService implements INtBaseScrollViewService, OnDest
     }
   }
 
-  ngOnDestroy(): void {
-
+  getAccessibilityOfMovement(positionX: number, positionY: number, maxPositionX: number | null = null, maxPositionY: number | null = null): boolean {
+    return true;
   }
 }

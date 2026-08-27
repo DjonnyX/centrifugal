@@ -36,17 +36,19 @@ npm i centrifugal
 
 ## 🚀 Quick Start
 ```html
-<nt-scroll-view #scrollView class="scroll-view" direction="both">
-  <div class="scroll-view__background" [style.width.px]="3000" [style.height.px]="3000" [class.grabbing]="scrollView.$grabbing | async"></div>
-</nt-scroll-view>
+<nt-control-container [keyboardEnabled]="true">
+  <nt-scroll-view #scrollView class="scroll-view" direction="both">
+    <div class="scroll-view__background" [style.width.px]="3000" [style.height.px]="3000" [class.grabbing]="scrollView.$grabbing | async"></div>
+  </nt-scroll-view>
 
-<nt-list [items]="items" [bufferSize]="5" [itemRenderer]="itemRenderer" [dynamicSize]="false" [itemSize]="64"></nt-list>
+  <nt-list [items]="items" [bufferSize]="5" [itemRenderer]="itemRenderer" [dynamicSize]="false" [itemSize]="64"></nt-list>
 
-<ng-template #itemRenderer let-data="data">
-  @if (data) {
-      <span>{{data.name}}</span>
-  }
-</ng-template>
+  <ng-template #itemRenderer let-data="data">
+    @if (data) {
+        <span>{{data.name}}</span>
+    }
+  </ng-template>
+</nt-control-container>
 ```
 ```ts
 items = Array.from({ length: 100000 }, (_, i) => ({ id: i, name: `Item #${i}` }));
@@ -56,13 +58,13 @@ items = Array.from({ length: 100000 }, (_, i) => ({ id: i, name: `Item #${i}` })
 
 ## 📚 API
 
-### [NtVirtualSCrollViewComponent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/nt-scroll-view.component.ts)
+### [NtScrollViewComponent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/nt-scroll-view.component.ts)
 
 Inputs
 
 | Property | Type | Description |
 |---|---|---|
-| animationParams | [IAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/animation-params.ts)? = { scrollToItem: 150, navigateByKeyboard: 50 } | Animation parameters. The default value is "{ scrollToItem: 150, navigateByKeyboard: 50 }". |
+| animationParams | [IAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/animation-params.ts)? = { scrollToItem: 500, snapToItem: 500 } | Animation parameters. The default value is "{ scrollToItem: 150, snapToItem: 250 }". |
 | clickDistance | number? = 40 | The maximum scroll distance at which a click event is triggered. |
 | direction | [Direction? = 'both'](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/direction.ts) | Determines the direction in which elements are placed. Default value is "both". |
 | id | number | Readonly. Returns the unique identifier of the component. | 

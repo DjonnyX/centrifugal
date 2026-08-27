@@ -1,3 +1,4 @@
+import { SnappingDistance, SnapToItemAlign, SnapToItemAligns } from "../../../../common";
 import { INtDScrollViewAnimationParams } from "../interfaces";
 
 export const DURATION = 2000,
@@ -20,5 +21,13 @@ export const MAX_ITERATIONS_FOR_AVERAGE_CALCULATIONS = 5,
 
 export const DEFAULT_ANIMATION_PARAMS: INtDScrollViewAnimationParams = {
     scrollToItem: 500,
+    snapToItem: 250,
 };
 
+export const DEFAULT_SNAP_TO_ITEM: boolean = false;
+
+export const DEFAULT_SCROLLING_ONE_BY_ONE: boolean = false;
+
+export const DEFAULT_SNAP_TO_ITEM_ALIGN: SnapToItemAlign = SnapToItemAligns.START;
+
+export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '25%';

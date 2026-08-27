@@ -1,5 +1,5 @@
 import {
-  ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, Injector, input, OnDestroy, output, Signal,
+  ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, inject, Injector, input, output, Signal,
   signal, TemplateRef, ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
@@ -25,7 +25,7 @@ import {
   DEFAULT_SNAP_SCROLLTO_TOP,
 } from '../common/const/scroller';
 import {
-  ArithmeticExpression, Direction, Directions, Id, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED,
+  ArithmeticExpression, Direction, Directions, Id, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED,
   SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
 } from '../common';
 import {
@@ -58,13 +58,14 @@ import { NtDScrollerComponent } from '../core/nt-d-scroller';
   providers: [
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
+    { provide: SCROLL_VIEW_AXLE_LOCK, useValue: false },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
   ],
 })
 export class NtScrollViewComponent<S extends INtScrollViewService, P extends INtScrollViewService>
-  extends NtBaseScrollComponent<S, P, NtDScrollerComponent> implements OnDestroy {
+  extends NtBaseScrollComponent<S, P, NtDScrollerComponent> {
 
-  protected _scroller: Signal<ElementRef<HTMLDivElement> | undefined>;
+  protected _scroller: Signal<ElementRef<HTMLDivElement> | null>;
 
   /**
    * Fires when the list has been scrolled.
@@ -771,6 +772,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
     ).subscribe();
 
     const $bounds = toObservable(this._bounds).pipe(
+      takeUntilDestroyed(),
       filter(b => !!b),
     ),
       $rawScrollLeftOffset = toObservable(this.scrollLeftOffset),
@@ -810,22 +812,30 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
       }),
     ).subscribe();
 
-    this._service?.$tick?.pipe(
+    const $tick = this._service.$tick;
+    combineLatest([$scrollerComponent, $tick]).pipe(
       takeUntilDestroyed(),
-      tap(() => {
-        this._scrollerComponent()?.tick();
+      filter(([s]) => !!s),
+      tap(([scroller]) => {
+        scroller!.tick();
       }),
     ).subscribe();
 
     const $resizeViewport = $scrollerComponent.pipe(
       takeUntilDestroyed(),
       filter(v => !!v),
-      switchMap(scroller => scroller.$resizeViewport),
+      switchMap(scroller => scroller.$resizeViewport.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(scroller.viewportBounds()),
+      )),
     ),
       $resizeContent = $scrollerComponent.pipe(
         takeUntilDestroyed(),
         filter(v => !!v),
-        switchMap(scroller => scroller.$resizeContent),
+        switchMap(scroller => scroller.$resizeContent.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          startWith(scroller.contentBounds()),
+        )),
       );
 
     $resizeViewport.pipe(
@@ -864,7 +874,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
       );
 
     this._scroller = computed(() => {
-      return this._scrollerComponent()?.scrollViewport();
+      return this._scrollerComponent()?.scrollViewport?.() ?? null;
     });
 
     const $scrollbarThickness = toObservable(this.scrollbarThickness);
@@ -1058,6 +1068,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
       $precalculatedScrollTopOffset = toObservable(this._precalculatedScrollTopOffset),
       $precalculatedScrollBottomOffset = toObservable(this._precalculatedScrollBottomOffset),
       $scrollerBounds = toObservable(this._scrollerBounds).pipe(
+        takeUntilDestroyed(),
         filter(b => !!b),
       ),
       $scrollSizeX = this._$scrollSizeX.asObservable().pipe(
@@ -1519,9 +1530,5 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
     if (!!scroller) {
       scroller.stopScrolling();
     }
-  }
-
-  ngOnDestroy(): void {
-
   }
 }

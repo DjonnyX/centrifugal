@@ -54,7 +54,7 @@ export class NtSliderService extends NtBaseScrollViewService implements INtSlide
           isLast = breakpoint.config.isLast ?? false,
           pos = position;
         if (isVertical && (pos >= y && pos < y + height)) {
-          return { id, x, y, width, height, isFirst, isLast };
+          return { id, x: xx, y, width, height, isFirst, isLast };
         } else if (!isVertical && (pos >= xx && pos < xx + width)) {
           return { id, x: xx, y, width, height, isFirst, isLast };
         }
