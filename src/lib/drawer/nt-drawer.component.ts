@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, Signal, signal, TemplateRef, ViewEncapsulation } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, input, output, Signal, signal, TemplateRef, ViewEncapsulation } from "@angular/core";
 import { INtScrollViewService, NtScrollViewComponent } from "../scroll-view";
 import {
   ArithmeticExpression, IScrollOptions, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
@@ -7,7 +7,7 @@ import {
 import { isPercentageValue, parseArithmeticExpression, validateBoolean, validateFloat } from "../common/utils";
 import { DEFAULT_BACKDROP, DEFAULT_DOCK_SIZE } from "./const";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { BehaviorSubject, combineLatest, debounceTime, filter, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, tap } from "rxjs";
 import { IDrawerBreakpoint, IDrawerBreakpoints, INtDrawerService } from "./interfaces";
 import { NtDrawerService } from './nt-drawer.service';
 import { DrawerDockPositions } from './enums';
@@ -37,6 +37,16 @@ import { DrawerDockPosition } from './types';
   ],
 })
 export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, INtScrollViewService> {
+  /**
+   * Triggered when the drawer is opened.
+   */
+  onOpen = output<DrawerDockPosition>();
+
+  /**
+   * Triggered when the drawer is closed.
+   */
+  onClose = output<void>();
+
   protected override _scrollbarThickness = {
     transform: (v: number) => {
       console.error('The "scrollbarThickness" property is not available.');
@@ -268,6 +278,9 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
   private _$opened = new BehaviorSubject<boolean>(false);
   protected $opened = this._$opened.asObservable();
 
+  private _$open = new BehaviorSubject<DrawerDockPosition | null>(null);
+  protected $open = this._$open.asObservable();
+
   private _$scrollRatio = new BehaviorSubject<number>(0);
   protected $scrollRatio = this._$scrollRatio.asObservable();
 
@@ -330,7 +343,21 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
     const $precalculatedDockLeftSize = toObservable(this._precalculatedDockLeftSize),
       $precalculatedDockTopSize = toObservable(this._precalculatedDockTopSize),
       $precalculatedDockRightSize = toObservable(this._precalculatedDockRightSize),
-      $precalculatedDockBottomSize = toObservable(this._precalculatedDockBottomSize);
+      $precalculatedDockBottomSize = toObservable(this._precalculatedDockBottomSize),
+      $open = this.$open;
+
+    $open.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      debounceTime(100),
+      tap(v => {
+        if (v !== null) {
+          this.onOpen.emit(v);
+        } else {
+          this.onClose.emit();
+        }
+      }),
+    ).subscribe();
 
     const $init = this.$initialized;
     combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, $init]).pipe(
@@ -370,6 +397,18 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
           sy = 1;
         }
         this._$scrollRatio.next(sx !== 1 ? sx : sy);
+
+        if (sx === 0 && dockLeftSize > 0) {
+          this._$open.next(DrawerDockPositions.LEFT);
+        } else if (sx === 1 && dockRightSize > 0) {
+          this._$open.next(DrawerDockPositions.RIGHT);
+        } else if (sy === 0 && dockTopSize > 0) {
+          this._$open.next(DrawerDockPositions.TOP);
+        } else if (sy === 1 && dockBottomSize > 0) {
+          this._$open.next(DrawerDockPositions.BOTTOM);
+        } else if (sx === 1 && sy === 1) {
+          this._$open.next(null);
+        }
       }),
     ).subscribe();
 
