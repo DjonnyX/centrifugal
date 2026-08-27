@@ -2,7 +2,7 @@ import { Easing } from "../../common/utils/animator";
 import { IAnimatorUpdateData } from "../../common/utils/animator/interfaces";
 
 /**
- * Interface IScrollOptions
+ * IScrollOptions
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/scroll-options.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -12,6 +12,7 @@ export interface IScrollOptions {
     y?: number | null;
     left?: number | null;
     top?: number | null;
+    snap?: boolean;
     blending?: boolean;
     behavior?: ScrollBehavior;
     onUpdate?: ((data: IAnimatorUpdateData) => void) | null;
