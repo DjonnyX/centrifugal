@@ -321,6 +321,8 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
 
     protected _isCoordinatesOverrided: boolean = false;
 
+    protected _disableAlignment: boolean = false;
+
     constructor() {
         const $viewportBounds = toObservable(this.viewportBounds),
             $contentBounds = toObservable(this.contentBounds),

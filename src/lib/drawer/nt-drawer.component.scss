@@ -6,6 +6,12 @@
     overflow: hidden;
 }
 
+.ntdc__container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
 .ntdc__scroller {
     -webkit-tap-highlight-color: transparent;
     position: absolute;

@@ -228,8 +228,14 @@ export class NtDScrollerComponent extends NtDScrollView {
     $resizeViewport.pipe(
       takeUntilDestroyed(),
       tap(() => {
+        this._disableAlignment = true;
         this.resetDrag();
         this.emitOverscrollEffectEvent(false);
+      }),
+      debounceTime(1),
+      tap(() => {
+        this._disableAlignment = false;
+        this.snapIfNeed(false, true);
       }),
     ).subscribe();
 
@@ -274,6 +280,9 @@ export class NtDScrollerComponent extends NtDScrollView {
       filter(([, , , f, e, mb]) => !!f && (!!e && mb !== 0)),
       debounceTime(0),
       tap(([x, y, filter, , mb, mbMax]) => {
+        if (this._disableAlignment) {
+          this.dropVelocity();
+        }
         const _x = x * (mb as number), valueX = _x > mbMax ? mbMax : _x,
           _y = y * (mb as number), valueY = _y > mbMax ? mbMax : _y;
         filter!.nativeElement.setStdDeviation(x * valueX, y * valueY);
@@ -544,8 +553,8 @@ export class NtDScrollerComponent extends NtDScrollView {
     }
   }
 
-  snapIfNeed(animated = true) {
-    this.snapWithInitialForceIfNecessary(null, null, animated, true);
+  snapIfNeed(animated = true, fireUpdate: boolean = true) {
+    this.snapWithInitialForceIfNecessary(null, null, animated, true, fireUpdate);
   }
 
   startScrollTo() {

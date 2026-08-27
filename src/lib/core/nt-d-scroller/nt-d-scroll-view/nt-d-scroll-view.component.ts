@@ -987,14 +987,14 @@ export class NtDScrollView extends NtDBaseScrollView {
         return false;
     }
 
-    protected snapWithInitialForceIfNecessary(v0X: number | null = null, v0Y: number | null = null, animated = true, force: boolean = false) {
+    protected snapWithInitialForceIfNecessary(v0X: number | null = null, v0Y: number | null = null, animated = true, force: boolean = false, fireUpdate: boolean = true) {
         const t = this.animationParams().snapToItem * .01, s = this.getSnappedComponentSize(),
             vaX = s !== null && t !== 0 ? (s.width / t) : 0,
             vaY = s !== null && t !== 0 ? (s.height / t) : 0,
             vX = Math.abs(v0X ?? this.averageVelocityX),
             vY = Math.abs(v0Y ?? this.averageVelocityY);
         if (vaX >= vX || vaY >= vY) {
-            return this.alignPosition(animated, force);
+            return this.alignPosition(animated, force, fireUpdate);
         }
         return false;
     }
@@ -1273,7 +1273,7 @@ export class NtDScrollView extends NtDBaseScrollView {
     }
 
     protected animate(axis: typeof X_PROP_NAME | typeof Y_PROP_NAME, startValue: number, endValue: number, duration = ANIMATION_DURATION, easingFunction: Easing = easeOutQuad, blending: boolean = false,
-        userAction: boolean = false, alignmentAtComplete: boolean = true, skipOverridedCoordinates: boolean = false, onUpdate: ((data: IAnimatorUpdateData) => void) | null = null,
+        userAction: boolean = false, alignmentAtComplete: boolean = true, skipOverridedCoordinates: boolean = false, fireUpdate: boolean = true, onUpdate: ((data: IAnimatorUpdateData) => void) | null = null,
         onComplete: ((data: IAnimatorUpdateData) => void) | null = null): number {
         const isVertical = axis === Y_PROP_NAME, animator = isVertical ? this._animatorY : this._animatorX;
         let position = startValue;
@@ -1300,7 +1300,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                 if (this._isCoordinatesOverrided && !skipOverridedCoordinates) {
                     this._isCoordinatesOverrided = false;
                     const currentCoordinate = isVertical ? this._y : this._x, delta = endValue - value;
-                    this.animate(axis, currentCoordinate, currentCoordinate + delta, duration - elapsed, easingFunction, blending, userAction, alignmentAtComplete);
+                    this.animate(axis, currentCoordinate, currentCoordinate + delta, duration - elapsed, easingFunction, blending, userAction, alignmentAtComplete, false, true);
                     return;
                 }
                 const time = Date.now(), scrollSize = (isVertical ? this.scrollHeight : this.scrollWidth);
@@ -1333,10 +1333,10 @@ export class NtDScrollView extends NtDBaseScrollView {
                 position = value!;
                 if (alignmentAtComplete && !this._isAlignmentAnimation && !skipOverridedCoordinates) {
                     if (!this.snapIfNecessary(isVertical ? 0 : v0, isVertical ? v0 : 0)) {
-                        this.move(isVertical ? null : value, isVertical ? value : null, false, userAction);
+                        this.move(isVertical ? null : value, isVertical ? value : null, false, userAction, fireUpdate);
                     }
                 } else {
-                    this.move(isVertical ? null : value, isVertical ? value : null, false, userAction);
+                    this.move(isVertical ? null : value, isVertical ? value : null, false, userAction, fireUpdate);
                 }
                 this._service.update(true);
                 if (typeof onUpdate === 'function') {
@@ -1353,7 +1353,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                 if (alignmentAtComplete && !this._isAlignmentAnimation && !skipOverridedCoordinates) {
                     this.snapIfNecessary(isVertical ? 0 : v0, isVertical ? v0 : 0);
                 } else {
-                    this.move(isVertical ? null : endValue!, isVertical ? endValue : null, false, userAction);
+                    this.move(isVertical ? null : endValue!, isVertical ? endValue : null, false, userAction, fireUpdate);
                 }
                 this._$scrollEnd.next(userAction);
                 this._service.update(true);;
@@ -1438,8 +1438,8 @@ export class NtDScrollView extends NtDBaseScrollView {
         return size;
     }
 
-    protected alignPosition(animated: boolean = true, force: boolean = false) {
-        if (!this.snapToItem() || (this._isAlignmentAnimation && !force)) {
+    protected alignPosition(animated: boolean = true, force: boolean = false, fireUpdate: boolean = false) {
+        if (this._disableAlignment || !this.snapToItem() || (this._isAlignmentAnimation && !force)) {
             return false;
         }
         const scrollDirectionX = this.scrollDirectionX || (force ? 1 : 0),
@@ -1544,8 +1544,8 @@ export class NtDScrollView extends NtDBaseScrollView {
 
         if (position !== null && !(position.x === cPosX && position.y === cPosY)) {
             this.stopScrolling(true);
-            this.animate(X_PROP_NAME, cPosX, position.x, animated ? this.animationParams().snapToItem : 1, easeOutQuad, false, false, false, true);
-            this.animate(Y_PROP_NAME, cPosY, position.y, animated ? this.animationParams().snapToItem : 1, easeOutQuad, false, false, false, true);
+            this.animate(X_PROP_NAME, cPosX, position.x, animated ? this.animationParams().snapToItem : 1, easeOutQuad, false, false, false, true, fireUpdate);
+            this.animate(Y_PROP_NAME, cPosY, position.y, animated ? this.animationParams().snapToItem : 1, easeOutQuad, false, false, false, true, fireUpdate);
             return true;
         }
         return false;
@@ -1697,11 +1697,11 @@ export class NtDScrollView extends NtDBaseScrollView {
             prevY = this._y;
         if (behavior === BEHAVIOR_AUTO || behavior === BEHAVIOR_SMOOTH) {
             if (horizontalAxisEnabled && x !== null && prevX !== x) {
-                const id = this.animate(X_PROP_NAME, prevX, x, duration, ease, blending, userAction, false, false, onUpdate, onComplete);
+                const id = this.animate(X_PROP_NAME, prevX, x, duration, ease, blending, userAction, false, false, fireUpdate, onUpdate, onComplete);
                 animationIds.push(id);
             }
             if (verticalAxisEnabled && y !== null && prevY !== y) {
-                const id = this.animate(Y_PROP_NAME, prevY, y, duration, ease, blending, userAction, false, false, onUpdate, onComplete);
+                const id = this.animate(Y_PROP_NAME, prevY, y, duration, ease, blending, userAction, false, false, fireUpdate, onUpdate, onComplete);
                 animationIds.push(id);
             }
             return animationIds;
