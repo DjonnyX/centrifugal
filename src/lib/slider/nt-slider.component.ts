@@ -18,7 +18,7 @@ import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
 import { Directions } from './enums';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from "../common/const/base-prop-names";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, startWith, Subject, switchMap, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, map, startWith, Subject, switchMap, tap } from "rxjs";
 import { NtSliderService } from './nt-slider.service';
 import { ScrollBox } from '../common/utils/scroll-box';
 import { ScrollerTypes } from "../common/enums/scroller-types";
@@ -597,8 +597,10 @@ export class NtSliderComponent {
     )]);
     $update.pipe(
       takeUntilDestroyed(),
-      filter(([v]) => !!v),
-      tap(([v]) => {
+      map(([v]) => v),
+      distinctUntilChanged(),
+      filter(v => !!v),
+      tap(v => {
         const baseSlider = this._baseSlider();
         if (init && (!baseSlider || baseSlider.grabbing || baseSlider.userActionDuringAnimation || this._animationIds !== null)) {
           return;
@@ -614,8 +616,6 @@ export class NtSliderComponent {
           } = v as IUpdateParams,
           useAnimation = init && animated;
 
-        this._thumbGradientPositions.set(gradientPositions);
-        this._size.set(size);
         const actualThumbPosition = position < startOffset ? startOffset : position;
         baseSlider!.stopScrolling(true);
         baseSlider!.scroll({
@@ -783,16 +783,28 @@ export class NtSliderComponent {
       }),
     ).subscribe();
 
+    let userAction = false;
+    $baseSlider.pipe(
+      takeUntilDestroyed(),
+      filter(s => !!s),
+      switchMap(slider => combineLatest([slider.$scroll, slider.$scrollEnd]).pipe(
+        takeUntilDestroyed(this._destroyRef),
+        map(([s, se]) => !!s || !!se),
+        tap(v => {
+          userAction = v;
+        }),
+      )),
+    ).subscribe();
+
     combineLatest([$baseSlider, $init]).pipe(
       takeUntilDestroyed(),
       filter(([s, i]) => !!s && !s.grabbing && !!i),
       switchMap(() => combineLatest([
-        $min, $max, $value.pipe(
-        ), $bounds, $isVertical]).pipe(
+        $min, $max, $val, $bounds, $isVertical]).pipe(
           takeUntilDestroyed(this._destroyRef),
           filter(([, , , b]) => !!b),
           tap(([, , v]) => {
-            this.update(v, true, false);
+            this.update(v, this.init, userAction);
           }),
         )),
     ).subscribe();
@@ -800,7 +812,7 @@ export class NtSliderComponent {
 
   ngAfterViewInit() {
     this.updateBreakpoints();
-    this.update(this.value(), false, false);
+    this.update(this.value(), false, true);
     this._inputValue.set(this.value());
     this._actualValue.set(this.value());
     this._$init.next(true);
@@ -921,6 +933,12 @@ export class NtSliderComponent {
       return;
     }
     const sliderParams = this.calculateSliderParams(value);
+
+    if (!!sliderParams) {
+      this._thumbGradientPositions.set(sliderParams.gradientPositions);
+      this._size.set(sliderParams.size);
+    }
+
     this._$update.next({
       ...sliderParams, animated: animated && !!baseSlider.contentElement?.offsetWidth &&
         !!baseSlider.contentElement?.offsetHeight, userAction,
