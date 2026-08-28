@@ -554,8 +554,8 @@ export class NtDScrollView extends NtDBaseScrollView {
                                     dragDeltaY += absScrollDeltaY;
                                     const dx = (currentPosX ?? 0) - startClientPosX,
                                         dy = (currentPosY ?? 0) - startClientPosY,
-                                        dragX = dx >= 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - this.scrollWidth)),
-                                        dragY = dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - this.scrollHeight));
+                                        dragX = this._inversion ? (dx >= 0 ? (dx - (this.scrollWidth - this.alignmentRightOffset()) + this._startPositionX) : (dx + this._startPositionX)) : (dx >= 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - (this.scrollWidth - this.alignmentRightOffset())))),
+                                        dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentBottomOffset()) + this._startPositionY) : (dy + this._startPositionY)) : (dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentBottomOffset()))));
                                     this._dragX = this.scrollableX ? Math.abs(dragX) : 0;
                                     this._dragY = this.scrollableY ? Math.abs(dragY) : 0;
                                     this._horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
@@ -800,8 +800,8 @@ export class NtDScrollView extends NtDBaseScrollView {
                                     dragDeltaY += absScrollDeltaY;
                                     const dx = (currentPosX ?? 0) - startClientPosX,
                                         dy = (currentPosY ?? 0) - startClientPosY,
-                                        dragX = dx >= 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - this.scrollWidth)),
-                                        dragY = dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - this.scrollHeight));
+                                        dragX = this._inversion ? (dx >= 0 ? (dx - (this.scrollWidth - this.alignmentRightOffset()) + this._startPositionX) : (dx + this._startPositionX)) : (dx >= 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - (this.scrollWidth - this.alignmentRightOffset())))),
+                                        dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentBottomOffset()) + this._startPositionY) : (dy + this._startPositionY)) : (dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentBottomOffset()))));
                                     this._dragX = this.scrollableX ? Math.abs(dragX) : 0;
                                     this._dragY = this.scrollableY ? Math.abs(dragY) : 0;
                                     this._horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
@@ -1720,7 +1720,7 @@ export class NtDScrollView extends NtDBaseScrollView {
             if (horizontalAxisEnabled && x !== null && (x !== prevX || force)) {
                 this.setX(x, snap, normalize);
                 if (userAction) {
-                    const scrollWidth = Math.abs(this.scrollWidth),
+                    const scrollWidth = Math.abs(this.scrollWidth - this.alignmentRightOffset()),
                         xx = Math.abs(this._x);
                     this._horizontalScrollRatio = scrollWidth !== 0 ? (xx / scrollWidth) : 0;
                     this._horizontalScrollRatioWhenGrabbing = this._horizontalScrollRatio === 0 ? 0 : 1;
@@ -1735,7 +1735,7 @@ export class NtDScrollView extends NtDBaseScrollView {
             if (verticalAxisEnabled && y !== null && (y !== prevY || force)) {
                 this.setY(y, snap, normalize);
                 if (userAction) {
-                    const scrollHeight = Math.abs(this.scrollHeight),
+                    const scrollHeight = Math.abs(this.scrollHeight - this.alignmentBottomOffset()),
                         yy = Math.abs(this._y);
                     this._verticalScrollRatio = scrollHeight !== 0 ? yy / scrollHeight : 0;
                     this._verticalScrollRatioWhenGrabbing = this._verticalScrollRatio === 0 ? 0 : 1;
