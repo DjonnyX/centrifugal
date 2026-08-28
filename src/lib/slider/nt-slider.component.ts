@@ -638,7 +638,7 @@ export class NtSliderComponent {
       }),
     ).subscribe();
 
-    const $inputValue = toObservable(this._inputValue);
+    const $inputValue = toObservable(this.value);
     $inputValue.pipe(
       takeUntilDestroyed(),
       debounceTime(0),
@@ -722,6 +722,27 @@ export class NtSliderComponent {
     $baseSlider.pipe(
       takeUntilDestroyed(),
       filter(v => !!v),
+      switchMap(baseSlider => baseSlider.$scrollEnd.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(true),
+      ).pipe(
+        takeUntilDestroyed(this._destroyRef),
+        tap(() => {
+          this.setupValue();
+          this._actualValue.set(this._inputValue());
+        }),
+        debounceTime(1),
+        filter(userAction => !!userAction),
+        tap(() => {
+          this.onChange.emit(this._inputValue());
+        }),
+      ),
+      ),
+    ).subscribe();
+
+    $baseSlider.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
       switchMap(baseSlider => combineLatest([$step, $min, $max, $bounds, $isVertical, $value,
         baseSlider!.$resizeViewport.pipe(
           takeUntilDestroyed(this._destroyRef),
@@ -765,12 +786,9 @@ export class NtSliderComponent {
     combineLatest([$baseSlider, $init]).pipe(
       takeUntilDestroyed(),
       filter(([s, i]) => !!s && !s.grabbing && !!i),
-      switchMap(([slider]) => combineLatest([
-        $min, $max, $value, $bounds, $isVertical,
-        slider!.$scrollEnd.pipe(
-          takeUntilDestroyed(this._destroyRef),
-          startWith(true),
-        )]).pipe(
+      switchMap(() => combineLatest([
+        $min, $max, $value.pipe(
+        ), $bounds, $isVertical]).pipe(
           takeUntilDestroyed(this._destroyRef),
           filter(([, , , b]) => !!b),
           tap(([, , v]) => {
@@ -784,7 +802,7 @@ export class NtSliderComponent {
     this.updateBreakpoints();
     this.update(this.value(), false, false);
     this._inputValue.set(this.value());
-    this._actualValue.set(this._inputValue());
+    this._actualValue.set(this.value());
     this._$init.next(true);
   }
 
@@ -796,28 +814,30 @@ export class NtSliderComponent {
       ns = step > max ? max : step < 0 ? 0 : step,
       stepPX = ns > 0 ? ((size * ns) / dist) : 0,
       stepLength = stepPX > 0 ? (size / stepPX) : 0;
-    for (let i = 0, li = stepLength - 1; i < stepLength + 1; i++) {
-      const s: ISliderStep = {
-        id: `${i}`,
-        measures: {
-          x: isVertical ? 0 : (i * stepPX),
-          y: isVertical ? (i * stepPX) : 0,
-          maxScrollSize: 0,
-        },
-        config: {
-          isFirst: i === 0,
-          isLast: i === li - 1,
-          inverted: false,
-          isVertical,
-        },
-        bounds: {
-          width: isVertical ? bounds.width : stepPX,
-          height: isVertical ? stepPX : bounds.height,
-        },
-      };
-      steps.push(s);
+    if (step > 0) {
+      for (let i = 0, li = stepLength - 1; i < stepLength + 1; i++) {
+        const s: ISliderStep = {
+          id: `${i}`,
+          measures: {
+            x: isVertical ? 0 : (i * stepPX),
+            y: isVertical ? (i * stepPX) : 0,
+            maxScrollSize: 0,
+          },
+          config: {
+            isFirst: i === 0,
+            isLast: i === li - 1,
+            inverted: false,
+            isVertical,
+          },
+          bounds: {
+            width: isVertical ? bounds.width : stepPX,
+            height: isVertical ? stepPX : bounds.height,
+          },
+        };
+        steps.push(s);
+      }
     }
-    this._service.steps = steps;
+    this._service.steps = step > 0 ? steps : null;
   }
 
   private setupValue() {

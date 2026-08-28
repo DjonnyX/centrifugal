@@ -1,6 +1,6 @@
 import { Component, computed, effect, ElementRef, inject, input, output, signal, Signal, TemplateRef, viewChild, ViewEncapsulation } from "@angular/core";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { combineLatest, filter, of, switchMap, tap } from "rxjs";
+import { combineLatest, debounceTime, filter, of, switchMap, tap } from "rxjs";
 import { Directions, ISize, OVERSCROLL_SERVICE, TextDirection, TextDirections } from "../common";
 import { NtSliderComponent } from "../slider";
 import { toggleClassName, validateBoolean, validateFloat, validateString } from "../common/utils";
@@ -231,6 +231,15 @@ export class NtSwitchComponent {
             return { [this.direction()]: true };
         });
 
+        const $value = toObservable(this._sliderValue);
+        $value.pipe(
+            takeUntilDestroyed(),
+            debounceTime(1),
+            tap(v => {
+                this.onChange.emit(v !== 0);
+            }),
+        ).subscribe();
+        
         this._service.$tick.pipe(
             takeUntilDestroyed(),
             tap(() => {
@@ -279,7 +288,7 @@ export class NtSwitchComponent {
     }
 
     protected onChangeHandler(value: number) {
-        this.onChange.emit(value !== 0);
+        this._sliderValue.set(value);
     }
 
     protected onVirtualClickHandler(e: PointerEvent | TouchEvent) {
