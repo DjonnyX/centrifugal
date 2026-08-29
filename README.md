@@ -1,9 +1,10 @@
+<img width="1280" height="534" alt="intro_1280" src="https://github.com/user-attachments/assets/50347979-a74b-4cce-bc49-48289578e117" />
+
 # Centrifugal
 
 <img width="1033" height="171" alt="logo" src="https://github.com/user-attachments/assets/b559cfde-405a-4361-b71b-6715478d997d" />
 
 <b>Angular version 19v. - 22v.</b>. <br/>
-
 [Documentation](https://centrifugal.eugene-grebennikov.pro/)
 
 <br/><br/>
