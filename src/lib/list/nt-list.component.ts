@@ -32,7 +32,7 @@ import {
 } from './types';
 import { IRenderVirtualListCollection } from './models/render-collection.model';
 import {
-  Alignments, CollectionModes, FocusAlignments, SelectingModes, SnappingMethods, SnapToItemAligns, SpreadingModes,
+  Alignments, CollectionModes, FocusAlignments, SelectingModes, SnappingMethods, SpreadingModes,
 } from './enums';
 import { ScrollEvent } from './utils';
 import { TrackBox } from './core/track-box';
@@ -62,8 +62,8 @@ import { IGetItemPositionOptions, IUpdateCollectionOptions } from './core/interf
 import { getScrollStateVersion } from './utils/get-scroll-state-version';
 import {
   ArithmeticExpression, Directions, Id, IListScrollEvent, IOverscrollEvent, IPoint, IScrollingSettings, ISize, KeyboardKeys,
-  SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED, SnappingDistance, SnapToItemAlign,
-  TextDirection, TextDirections,
+  SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SCROLL_VIEW_USER_INTERACTION_ENABLED, SnappingDistance, SnapToItemAlign,
+  SnapToItemAligns, TextDirection, TextDirections,
 } from '../common';
 import { copyValueAsReadonly, debounce, isPercentageValue, objectAsReadonly, parseArithmeticExpression, toggleClassName } from '../common/utils';
 import { INtListService } from './interfaces';
@@ -83,6 +83,7 @@ import {
 } from '../common/const/scroller';
 import { isDirection } from '../scroll-view/utils/is-direction';
 import { SDirection } from '../core/nt-s-scroller/types';
+import { ScrollerTypes } from '../common/enums/scroller-types';
 
 /**
  * Virtual list component.
@@ -101,6 +102,7 @@ import { SDirection } from '../core/nt-s-scroller/types';
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.ShadowDom,
   providers: [
+    { provide: SCROLL_VIEW_TYPE, useValue: ScrollerTypes.LIST_SCROLLER },
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtListService },

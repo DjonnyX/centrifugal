@@ -60,4 +60,6 @@ export interface INtScroller<S extends INtBaseScrollViewService> {
     scroll(params: IScrollToParams): Array<number> | number | null;
 
     stopScrolling(force?: boolean): void;
+
+    setClientPositionOffset(x: number, y: number): void;
 }

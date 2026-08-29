@@ -1,4 +1,5 @@
 import { SnappingDistance, SnapToItemAlign, SnapToItemAligns } from "../../../../common";
+import { ScrollerTypes } from "../../../../common/enums/scroller-types";
 import { INtDScrollViewAnimationParams } from "../interfaces";
 
 export const DURATION = 2000,
@@ -31,3 +32,5 @@ export const DEFAULT_SCROLLING_ONE_BY_ONE: boolean = false;
 export const DEFAULT_SNAP_TO_ITEM_ALIGN: SnapToItemAlign = SnapToItemAligns.START;
 
 export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '25%';
+
+export const EXCLUDED_CONTAINERS = [ScrollerTypes.CONTROL_CONTAINER, ScrollerTypes.DRAWER];

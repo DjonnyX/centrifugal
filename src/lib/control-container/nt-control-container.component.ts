@@ -4,7 +4,7 @@ import { BehaviorSubject, combineLatest, debounceTime, delay, filter, fromEvent,
 import { INtScrollViewService, NtScrollViewComponent, NtScrollViewService } from "../scroll-view";
 import {
   CONTROL_CONTAINER_SERVICE, ElementNames, IKeyboardSettings, INtBaseControlContainerService, KeyboardKeys, KeyboardPosition, KeyboardPositions,
-  SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
+  SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
 } from "../common";
 import { FOCUS, INPUT, MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, POINTER_DOWN, POINTER_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL } from "../common/const/event-names";
 import { NtControlContainerService } from "./nt-control-container.service";
@@ -12,7 +12,7 @@ import { INtBaseScrollViewService } from "../common/interfaces/nt-base-scroll-vi
 import { isInteractive } from "../common/utils/is-interactive";
 import { IFocusedObject } from "../common/interfaces/focused-object";
 import { validateArray, validateBoolean, validateInt, validateObject, validateString } from "../common/utils";
-import { DEFAULT_EXCLUDE_ELEMETN_LIST } from "./const";
+import { DEFAULT_EXCLUDE_ELEMETN_LIST, EXCLUDED_CONTAINERS } from "./const";
 import { DEFAULT_KEYBOARD_ENABLED, NT_VALUE } from "./const";
 import { DEFAULT_KEYBOARD_SETTINGS, KEY_LAYOUT, KEY_SYS } from '../common/const/keyboard';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
@@ -24,10 +24,11 @@ import { ATTR_DIR, ATTR_PATTERN, ATTR_TABINDEX, ATTR_TYPE, NT_DIR, NT_SERVICE_ID
 import { DEFAULT_INPUT_ELEMETNS, TEXTAREA } from "../common/directives/nt-control/const";
 import { normalizeValueForTextField, querySelectorAllShadowRoots } from './utils';
 import { EMPTY_STRING, SPACE_STRING } from "../common/const/string";
+import { ScrollerTypes } from "../common/enums/scroller-types";
 
 /**
  * NtControlContainerComponent
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/nt-control-container.component.ts
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/control-container/nt-control-container.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
@@ -41,6 +42,7 @@ import { EMPTY_STRING, SPACE_STRING } from "../common/const/string";
   standalone: false,
   encapsulation: ViewEncapsulation.ShadowDom,
   providers: [
+    { provide: SCROLL_VIEW_TYPE, useValue: ScrollerTypes.CONTROL_CONTAINER },
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: false },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: false },
     { provide: SCROLL_VIEW_AXLE_LOCK, useValue: false },
@@ -476,8 +478,10 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                 if (tfValue === EMPTY_STRING) {
                   inputElement.setAttribute(NT_VALUE, tfValue);
                 }
-                const ntValue = inputElement.getAttribute(NT_VALUE);
-                value = String(ngControlValue ?? ntValue ?? inputElement.value ?? EMPTY_STRING);
+                const type = inputElement.getAttribute(ATTR_TYPE) ?? TextFieldTypes.TEXT,
+                  ntValue = inputElement.getAttribute(NT_VALUE);
+                value = String((type === TextFieldTypes.NUMBER && Number(ngControlValue) === Number(ntValue) ? ntValue : ngControlValue) ??
+                  ntValue ?? inputElement.value ?? EMPTY_STRING);
                 if (keyValue.indexOf(KEY_SYS) === 0) {
                   if (keyValue === KeyboardKeys.SYS_NEXT_LOCALE) {
                     this._keyboardService.nextPreset();
@@ -584,7 +588,18 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
                   inputElement.setAttribute(NT_VALUE, normalizedNtValue ?? EMPTY_STRING);
                   inputElement.value = normalizedValue;
                   if (!!ngControl?.control) {
-                    ngControl.control.setValue(normalizedValue);
+                    let ctrlValue: any;
+                    switch (type) {
+                      case TextFieldTypes.NUMBER: {
+                        ctrlValue = Number(normalizedValue);
+                        break;
+                      }
+                      default: {
+                        ctrlValue = normalizedValue;
+                        break;
+                      }
+                    }
+                    ngControl.control.setValue(ctrlValue);
                   } else {
                     inputElement.dispatchEvent(new InputEvent(INPUT, {
                       bubbles: true,
@@ -1027,7 +1042,12 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
           if (s === this._service) {
             break;
           }
-          hostService = s ?? null;
+
+          if (EXCLUDED_CONTAINERS.indexOf(s.scrollView.type as ScrollerTypes) === -1) {
+            if (!!s) {
+              hostService = s;
+            }
+          }
           s = s.parent;
           if (!s?.scrollView) {
             break;

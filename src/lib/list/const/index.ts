@@ -1,7 +1,7 @@
 import {
-    Alignments, CollapsingModes, CollectionModes, SelectingModes, SnappingMethods, SnapToItemAligns, SpreadingModes,
+    Alignments, CollapsingModes, CollectionModes, SelectingModes, SnappingMethods, SpreadingModes,
 } from "../enums";
-import { Directions, SnappingDistance, SnapToItemAlign } from "../../common";
+import { Directions, SnappingDistance, SnapToItemAlign, SnapToItemAligns } from "../../common";
 import { INtListAnimationParams } from '../interfaces';
 import { SpreadingMode } from "../types";
 import { Alignment } from "../types";

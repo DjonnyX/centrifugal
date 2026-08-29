@@ -3,14 +3,12 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, debounceTime, filter, Subject, tap } from 'rxjs';
 import { NtDScrollView } from './nt-d-scroll-view';
 import {
-  GradientColorPositions, Id, ISize, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_INVERSION, SCROLL_VIEW_TYPE,
-  Directions,
+  GradientColorPositions, Id, ISize, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_INVERSION, Directions,
 } from '../../common';
 import { NtBaseSliderComponent } from '../nt-base-slider/nt-base-slider.component';
 import { ISliderDragEvent } from '../nt-base-slider/interfaces';
 import { BOTTOM, LEFT_PROP_NAME, PX, RIGHT, TOP_PROP_NAME } from '../../common/const/base-prop-names';
 import { IScrollToParams } from '../../common/interfaces/scroll-to-params';
-import { ScrollerTypes } from '../../common/enums/scroller-types';
 import { BEHAVIOR_INSTANT } from '../../common/const/behavior';
 import { ScrollBox } from '../../common/utils/scroll-box';
 import {
@@ -34,7 +32,6 @@ const TOP = 'top',
 @Component({
   selector: 'nt-d-scroller',
   providers: [
-    { provide: SCROLL_VIEW_TYPE, useValue: ScrollerTypes.SCROLL_VIEW_SCROLLER },
     { provide: SCROLL_VIEW_INVERSION, useValue: false },
     { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: true },
   ],
@@ -228,8 +225,14 @@ export class NtDScrollerComponent extends NtDScrollView {
     $resizeViewport.pipe(
       takeUntilDestroyed(),
       tap(() => {
+        this._disableAlignment = true;
         this.resetDrag();
         this.emitOverscrollEffectEvent(false);
+      }),
+      debounceTime(1),
+      tap(() => {
+        this._disableAlignment = false;
+        this.snapIfNeed(false, true);
       }),
     ).subscribe();
 
@@ -274,6 +277,9 @@ export class NtDScrollerComponent extends NtDScrollView {
       filter(([, , , f, e, mb]) => !!f && (!!e && mb !== 0)),
       debounceTime(0),
       tap(([x, y, filter, , mb, mbMax]) => {
+        if (this._disableAlignment) {
+          this.dropVelocity();
+        }
         const _x = x * (mb as number), valueX = _x > mbMax ? mbMax : _x,
           _y = y * (mb as number), valueY = _y > mbMax ? mbMax : _y;
         filter!.nativeElement.setStdDeviation(x * valueX, y * valueY);
@@ -544,8 +550,8 @@ export class NtDScrollerComponent extends NtDScrollView {
     }
   }
 
-  snapIfNeed(animated = true) {
-    this.snapWithInitialForceIfNecessary(null, null, animated, true);
+  snapIfNeed(animated = true, fireUpdate: boolean = true) {
+    this.snapWithInitialForceIfNecessary(null, null, animated, true, fireUpdate);
   }
 
   startScrollTo() {

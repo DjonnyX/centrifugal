@@ -1,17 +1,19 @@
-import { ChangeDetectionStrategy, Component, computed, input, Signal, signal, TemplateRef, ViewEncapsulation } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, input, output, Signal, signal, TemplateRef, ViewEncapsulation } from "@angular/core";
 import { INtScrollViewService, NtScrollViewComponent } from "../scroll-view";
 import {
-  ArithmeticExpression, IScrollOptions, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
+  ArithmeticExpression, IScrollOptions, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SCROLL_VIEW_USER_INTERACTION_ENABLED,
   TextDirection, TextDirections,
 } from "../common";
 import { isPercentageValue, parseArithmeticExpression, validateBoolean, validateFloat } from "../common/utils";
 import { DEFAULT_BACKDROP, DEFAULT_DOCK_SIZE } from "./const";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { BehaviorSubject, combineLatest, debounceTime, filter, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, tap } from "rxjs";
 import { IDrawerBreakpoint, IDrawerBreakpoints, INtDrawerService } from "./interfaces";
 import { NtDrawerService } from './nt-drawer.service';
 import { DrawerDockPositions } from './enums';
 import { DrawerDockPosition } from './types';
+import { ScrollerTypes } from "../common/enums/scroller-types";
+import { BEHAVIOR_INSTANT } from "../common/const/behavior";
 
 /**
  * NtDrawerComponent
@@ -30,6 +32,7 @@ import { DrawerDockPosition } from './types';
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.ShadowDom,
   providers: [
+    { provide: SCROLL_VIEW_TYPE, useValue: ScrollerTypes.DRAWER },
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_AXLE_LOCK, useValue: true },
@@ -37,6 +40,29 @@ import { DrawerDockPosition } from './types';
   ],
 })
 export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, INtScrollViewService> {
+  /**
+   * Triggered when the drawer is opened.
+   */
+  onOpen = output<DrawerDockPosition>();
+
+  /**
+   * Triggered when the drawer is closed.
+   */
+  onClose = output<void>();
+
+  protected override _overscrollAreaShowAutomaticallyOptions = {
+    transform: (v: boolean) => {
+      console.error('The "overscrollAreaShowAutomatically" property is not available.');
+      return false;
+    },
+  } as any;
+
+  /**
+     * @deprecated
+   *  Sets whether overscroll areas are automatically displayed if the value is true.
+   */
+  override overscrollAreaShowAutomatically = input<boolean>(false, { ...this._overscrollAreaShowAutomaticallyOptions });
+
   protected override _scrollbarThickness = {
     transform: (v: number) => {
       console.error('The "scrollbarThickness" property is not available.');
@@ -265,8 +291,14 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
    */
   dockBottom = input<TemplateRef<any> | null>(null);
 
+  private _$visible = new BehaviorSubject<boolean>(false);
+  protected $visible = this._$visible.asObservable();
+
   private _$opened = new BehaviorSubject<boolean>(false);
   protected $opened = this._$opened.asObservable();
+
+  private _$open = new BehaviorSubject<DrawerDockPosition | null>(null);
+  protected $open = this._$open.asObservable();
 
   private _$scrollRatio = new BehaviorSubject<number>(0);
   protected $scrollRatio = this._$scrollRatio.asObservable();
@@ -285,93 +317,6 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
     super();
 
     this._service.initialize(this._id, this._scrollerComponent()!, this._parentService);
-
-    const $bounds = toObservable(this._bounds).pipe(
-      takeUntilDestroyed(),
-      filter(b => !!b),
-    ),
-      $rawDockLeftSize = toObservable(this.dockLeftSize),
-      $rawDockTopSize = toObservable(this.dockTopSize),
-      $rawDockRightSize = toObservable(this.dockRightSize),
-      $rawDockBottomSize = toObservable(this.dockBottomSize);
-
-    combineLatest([$bounds, $rawDockLeftSize]).pipe(
-      takeUntilDestroyed(),
-      tap(([bounds, value]) => {
-        const val = parseArithmeticExpression(value, bounds.width);
-        this._precalculatedDockLeftSize.set(val);
-      }),
-    ).subscribe();
-
-    combineLatest([$bounds, $rawDockTopSize]).pipe(
-      takeUntilDestroyed(),
-      tap(([bounds, value]) => {
-        const val = parseArithmeticExpression(value, bounds.height);
-        this._precalculatedDockTopSize.set(val);
-      }),
-    ).subscribe();
-
-    combineLatest([$bounds, $rawDockRightSize]).pipe(
-      takeUntilDestroyed(),
-      tap(([bounds, value]) => {
-        const val = parseArithmeticExpression(value, bounds.width);
-        this._precalculatedDockRightSize.set(val);
-      }),
-    ).subscribe();
-
-    combineLatest([$bounds, $rawDockBottomSize]).pipe(
-      takeUntilDestroyed(),
-      tap(([bounds, value]) => {
-        const val = parseArithmeticExpression(value, bounds.height);
-        this._precalculatedDockBottomSize.set(val);
-      }),
-    ).subscribe();
-
-    const $precalculatedDockLeftSize = toObservable(this._precalculatedDockLeftSize),
-      $precalculatedDockTopSize = toObservable(this._precalculatedDockTopSize),
-      $precalculatedDockRightSize = toObservable(this._precalculatedDockRightSize),
-      $precalculatedDockBottomSize = toObservable(this._precalculatedDockBottomSize);
-
-    const $init = this.$initialized;
-    combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, $init]).pipe(
-      takeUntilDestroyed(),
-      filter(([, , v]) => !!v),
-      debounceTime(50),
-      tap(([left, top]) => {
-        this.scrollLeft = left;
-        this.scrollTop = top;
-      }),
-    ).subscribe();
-
-    combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, this.$scroll, $bounds]).pipe(
-      takeUntilDestroyed(),
-      tap(([dockLeftSize, dockTopSize]) => {
-        this._$opened.next(!(this.scrollLeft === dockLeftSize && this.scrollTop === dockTopSize));
-      }),
-    ).subscribe();
-
-    combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, $precalculatedDockRightSize, $precalculatedDockBottomSize, this.$scroll, $bounds]).pipe(
-      takeUntilDestroyed(),
-      tap(([dockLeftSize, dockTopSize, dockRightSize, dockBottomSize]) => {
-        const scrollLeft = this.scrollLeft, scrollTop = this.scrollTop;
-        let sx: number, sy: number;
-        if (scrollLeft < dockLeftSize) {
-          sx = dockLeftSize !== 0 ? (scrollLeft / dockLeftSize) : 0;
-        } else if (scrollLeft > dockLeftSize) {
-          sx = 1 - (dockRightSize !== 0 ? ((scrollLeft - dockLeftSize) / dockRightSize) : 0);
-        } else {
-          sx = 1;
-        }
-        if (scrollTop < dockTopSize) {
-          sy = dockTopSize !== 0 ? (scrollTop / dockTopSize) : 0;
-        } else if (scrollTop > dockTopSize) {
-          sy = 1 - (dockBottomSize !== 0 ? ((scrollTop - dockTopSize) / dockBottomSize) : 0);
-        } else {
-          sy = 1;
-        }
-        this._$scrollRatio.next(sx !== 1 ? sx : sy);
-      }),
-    ).subscribe();
 
     this._breakpoints = computed(() => {
       const bounds = this._bounds() ?? { width: 0, height: 0 },
@@ -448,7 +393,121 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
       return result;
     });
 
-    const $breakpoints = toObservable(this._breakpoints);
+    const $bounds = toObservable(this._bounds).pipe(
+      takeUntilDestroyed(),
+      filter(b => !!b),
+    ),
+      $breakpoints = toObservable(this._breakpoints),
+      $rawDockLeftSize = toObservable(this.dockLeftSize),
+      $rawDockTopSize = toObservable(this.dockTopSize),
+      $rawDockRightSize = toObservable(this.dockRightSize),
+      $rawDockBottomSize = toObservable(this.dockBottomSize);
+
+    combineLatest([$bounds, $rawDockLeftSize]).pipe(
+      takeUntilDestroyed(),
+      tap(([bounds, value]) => {
+        const val = parseArithmeticExpression(value, bounds.width);
+        this._precalculatedDockLeftSize.set(val);
+      }),
+    ).subscribe();
+
+    combineLatest([$bounds, $rawDockTopSize]).pipe(
+      takeUntilDestroyed(),
+      tap(([bounds, value]) => {
+        const val = parseArithmeticExpression(value, bounds.height);
+        this._precalculatedDockTopSize.set(val);
+      }),
+    ).subscribe();
+
+    combineLatest([$bounds, $rawDockRightSize]).pipe(
+      takeUntilDestroyed(),
+      tap(([bounds, value]) => {
+        const val = parseArithmeticExpression(value, bounds.width);
+        this._precalculatedDockRightSize.set(val);
+      }),
+    ).subscribe();
+
+    combineLatest([$bounds, $rawDockBottomSize]).pipe(
+      takeUntilDestroyed(),
+      tap(([bounds, value]) => {
+        const val = parseArithmeticExpression(value, bounds.height);
+        this._precalculatedDockBottomSize.set(val);
+      }),
+    ).subscribe();
+
+    const $precalculatedDockLeftSize = toObservable(this._precalculatedDockLeftSize),
+      $precalculatedDockTopSize = toObservable(this._precalculatedDockTopSize),
+      $precalculatedDockRightSize = toObservable(this._precalculatedDockRightSize),
+      $precalculatedDockBottomSize = toObservable(this._precalculatedDockBottomSize),
+      $open = this.$open;
+
+    $open.pipe(
+      takeUntilDestroyed(),
+      distinctUntilChanged(),
+      debounceTime(100),
+      tap(v => {
+        if (v !== null) {
+          this.onOpen.emit(v);
+        } else {
+          this.onClose.emit();
+        }
+      }),
+    ).subscribe();
+
+    const $init = this.$initialized;
+    combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, $init]).pipe(
+      takeUntilDestroyed(),
+      debounceTime(100),
+      filter(([, , v]) => !!v),
+      tap(([left, top]) => {
+        this.scrollTo({
+          x: left, y: top, behavior: BEHAVIOR_INSTANT, duration: 0, blending: false, snap: false,
+        });
+        this._$visible.next(true);
+      }),
+    ).subscribe();
+
+    combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, this.$scroll, $bounds]).pipe(
+      takeUntilDestroyed(),
+      tap(([dockLeftSize, dockTopSize]) => {
+        this._$opened.next(!(this.scrollLeft === dockLeftSize && this.scrollTop === dockTopSize));
+      }),
+    ).subscribe();
+
+    combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, $precalculatedDockRightSize, $precalculatedDockBottomSize, this.$scroll, $bounds]).pipe(
+      takeUntilDestroyed(),
+      tap(([dockLeftSize, dockTopSize, dockRightSize, dockBottomSize]) => {
+        const scrollLeft = this.scrollLeft, scrollTop = this.scrollTop;
+        let sx: number, sy: number;
+        if (scrollLeft < dockLeftSize) {
+          sx = dockLeftSize !== 0 ? (scrollLeft / dockLeftSize) : 0;
+        } else if (scrollLeft > dockLeftSize) {
+          sx = 1 - (dockRightSize !== 0 ? ((scrollLeft - dockLeftSize) / dockRightSize) : 0);
+        } else {
+          sx = 1;
+        }
+        if (scrollTop < dockTopSize) {
+          sy = dockTopSize !== 0 ? (scrollTop / dockTopSize) : 0;
+        } else if (scrollTop > dockTopSize) {
+          sy = 1 - (dockBottomSize !== 0 ? ((scrollTop - dockTopSize) / dockBottomSize) : 0);
+        } else {
+          sy = 1;
+        }
+        this._$scrollRatio.next(sx !== 1 ? sx : sy);
+
+        if (sx === 0 && dockLeftSize > 0) {
+          this._$open.next(DrawerDockPositions.LEFT);
+        } else if (sx === 1 && dockRightSize > 0) {
+          this._$open.next(DrawerDockPositions.RIGHT);
+        } else if (sy === 0 && dockTopSize > 0) {
+          this._$open.next(DrawerDockPositions.TOP);
+        } else if (sy === 1 && dockBottomSize > 0) {
+          this._$open.next(DrawerDockPositions.BOTTOM);
+        } else if (sx === 1 && sy === 1) {
+          this._$open.next(null);
+        }
+      }),
+    ).subscribe();
 
     $breakpoints.pipe(
       takeUntilDestroyed(),
