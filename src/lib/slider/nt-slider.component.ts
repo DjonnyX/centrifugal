@@ -608,9 +608,7 @@ export class NtSliderComponent {
         const isVertical = this._isVertical(),
           startOffset = this._precalculatedScrollStartOffset(),
           {
-            size,
             position,
-            gradientPositions,
             animated,
             userAction,
           } = v as IUpdateParams,
@@ -624,6 +622,7 @@ export class NtSliderComponent {
           behavior: useAnimation ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
           userAction,
           blending: false,
+          snap: false,
           duration: useAnimation ? this.animationParams().scroll : 0,
         });
       }),
@@ -872,11 +871,6 @@ export class NtSliderComponent {
     }
   }
 
-  private calculateContentRatio() {
-    const min = this.min(), max = this.max(), k = min === 0 ? 0 : max / min, ak = k < 2 ? 2 : k;
-    return ak;
-  }
-
   protected calculateSliderParams(value: number) {
     const baseSlider = this._baseSlider();
     if (!baseSlider) {
@@ -884,14 +878,12 @@ export class NtSliderComponent {
     }
 
     const bounds = this._bounds(),
-      k = this.calculateContentRatio(),
       direction = this.direction(),
       isVertical = this._isVertical(),
-      viewportBounds = this._bounds(),
       minSize = this._precalculatedThumbSize(),
       contentBounds = {
-        width: isVertical ? bounds.width : bounds.width * k,
-        height: isVertical ? (bounds.height * k) : bounds.height,
+        width: isVertical ? bounds.width : bounds.width * 2,
+        height: isVertical ? (bounds.height * 2) : bounds.height,
       },
       startOffset = this._precalculatedScrollStartOffset(),
       endOffset = this._precalculatedScrollEndOffset(),
@@ -909,8 +901,8 @@ export class NtSliderComponent {
         thumbGradientPositions,
       } = this._scrollBox.calculateScroll({
         direction,
-        viewportWidth: viewportBounds.width,
-        viewportHeight: viewportBounds.height,
+        viewportWidth: bounds.width,
+        viewportHeight: bounds.height,
         contentWidth: contentBounds.width,
         contentHeight: contentBounds.height,
         startOffset,

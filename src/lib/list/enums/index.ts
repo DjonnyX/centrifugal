@@ -3,7 +3,6 @@ import { CollectionModes } from "./collection-modes";
 import { FocusAlignments } from "./focus-alignments";
 import { CollapsingModes } from "./collapsing-modes";
 import { SelectingModes } from "./selecting-modes";
-import { SnapToItemAligns } from "../../common/enums/snap-to-item-aligns";
 import { SnappingMethods } from "./snapping-methods";
 import { SpreadingModes } from "./spreading-modes";
 
@@ -14,6 +13,5 @@ export {
     FocusAlignments,
     SelectingModes,
     SnappingMethods,
-    SnapToItemAligns,
     SpreadingModes,
 };

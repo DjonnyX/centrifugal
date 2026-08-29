@@ -81,7 +81,7 @@ export class NtSwitchComponent {
     } as any;
 
     /**
-     * Determines the switch direction. Default value is "horizontal".
+     * Determines the switch direction. Default value is `horizontal`.
      */
     direction = input<SDirection>(DEFAULT_SWITCH_DIRECTION, { ...this._directionOptions });
 
