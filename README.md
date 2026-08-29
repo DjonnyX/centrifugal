@@ -58,7 +58,7 @@ items = Array.from({ length: 100000 }, (_, i) => ({ id: i, name: `Item #${i}` })
 
 ## 📚 API
 
-### [NtScrollViewComponent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/nt-scroll-view.component.ts)
+### [NtControlContainerComponent](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/control-container/nt-control-container.component.ts)
 
 Inputs
 
