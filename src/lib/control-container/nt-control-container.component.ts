@@ -28,7 +28,7 @@ import { ScrollerTypes } from "../common/enums/scroller-types";
 
 /**
  * NtControlContainerComponent
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/nt-control-container.component.ts
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/control-container/nt-control-container.component.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */

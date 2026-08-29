@@ -81,7 +81,7 @@ export class NtSliderComponent {
   readonly onVirtualClick = output<PointerEvent | TouchEvent>();
 
   /**
-   * Triggers an event when clicked.
+   * Clicking on a track triggers an event.
    */
   readonly onTrackVirtualClick = output<PointerEvent | TouchEvent>();
 
@@ -97,7 +97,7 @@ export class NtSliderComponent {
   } as any;
 
   /**
-   * Determines the slider direction. Default value is "vertical".
+   * Determines the slider direction. Default value is "horizontal".
    */
   direction = input<SDirection>(DEFAULT_SLIDER_DIRECTION, { ...this._directionOptions });
 
@@ -959,6 +959,9 @@ export class NtSliderComponent {
     this.onDragEnd.emit(e);
   }
 
+  /**
+   * Sets the slider value.
+   */
   setValue(v: number) {
     this._inputValue.set(this.formatActualValue(Number(v)));
   }
