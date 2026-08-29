@@ -3,4 +3,5 @@
  */
 export * from './nt-control-container.component';
 export * from './nt-control-container.module';
+export * from './nt-control-container.service';
 export * from './interfaces';

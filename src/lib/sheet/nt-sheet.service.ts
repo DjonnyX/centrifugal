@@ -1,6 +1,6 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
-import { IAnimationParams, INtSheetService } from './interfaces';
+import { INtSheetAnimationParams, INtSheetService } from './interfaces';
 import { SheetPositions } from './enums';
 import { Direction, SheetPosition } from './types';
 import { DEFAULT_ANIMATION_PARAMS } from './const';
@@ -28,7 +28,7 @@ export class NtSheetService extends NtBaseScrollViewService implements INtSheetS
 
   direction: Direction = this.isVertical ? Directions.VERTICAL : Directions.HORIZONTAL;
 
-  animationParams: IAnimationParams = DEFAULT_ANIMATION_PARAMS;
+  animationParams: INtSheetAnimationParams = DEFAULT_ANIMATION_PARAMS;
 
   position: SheetPosition = SheetPositions.BOTTOM;
 

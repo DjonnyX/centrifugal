@@ -11,7 +11,7 @@ import {
   DEFAULT_ANIMATION_PARAMS, CLASS_SCROLL_VIEW_BOTH, DEFAULT_SCROLLER_SIZE,
 } from './const';
 import {
-  IAnimationParams, IScrollingSettings, INtScrollViewService,
+  INtScrollViewAnimationParams, IScrollingSettings, INtScrollViewService,
 } from './interfaces';
 import { ScrollEvent } from './utils';
 import { isDirection } from './utils/is-direction';
@@ -572,7 +572,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
   motionBlurEnabled = input<boolean>(DEFAULT_MOTION_BLUR_ENABLED, { ...this._motionBlurEnabledOptions });
 
   protected _animationParamsOptions = {
-    transform: (v: IAnimationParams) => {
+    transform: (v: INtScrollViewAnimationParams) => {
       const valid = validateObject(v, true, true);
 
       if (!validateFloat(v.scrollToItem)) {
@@ -590,7 +590,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
   /**
    * Animation parameters. The default value is "{ scrollToItem: 0 }".
    */
-  animationParams = input<IAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
+  animationParams = input<INtScrollViewAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
 
   protected _overscrollEnabledOptions = {
     transform: (v: boolean) => {

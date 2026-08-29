@@ -1,5 +1,5 @@
 import { Observable } from "rxjs";
-import { IAnimationParams } from "./animation-params";
+import { INtSheetAnimationParams } from "./nt-sheet-animation-params";
 import { IScrollOptions, TextDirection } from "../../common";
 import { INtBaseScrollViewService } from "../../common/interfaces/nt-base-scroll-view-service";
 import { INtScroller } from "../../common/interfaces/nt-scroller";
@@ -15,7 +15,7 @@ import { ISheetPrecalculatedBreakpoints } from '../interfaces';
 export interface INtSheetService extends INtBaseScrollViewService {
     initialize: (id: number, component: INtScroller<INtBaseScrollViewService>, parentService: INtBaseScrollViewService | null) => void;
 
-    animationParams: IAnimationParams;
+    animationParams: INtSheetAnimationParams;
 
     position: SheetPosition;
 

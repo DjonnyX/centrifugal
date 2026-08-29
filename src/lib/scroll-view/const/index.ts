@@ -1,9 +1,9 @@
 import { Directions } from '../../common';
-import { IAnimationParams } from '../interfaces';
+import { INtScrollViewAnimationParams } from '../interfaces';
 
 export const DEFAULT_SCROLLER_SIZE = 400;
 
-export const DEFAULT_ANIMATION_PARAMS: IAnimationParams = {
+export const DEFAULT_ANIMATION_PARAMS: INtScrollViewAnimationParams = {
     scrollToItem: 500,
     snapToItem: 250,
 };

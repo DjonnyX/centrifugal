@@ -2,7 +2,7 @@ import {
   Component, computed, DestroyRef, effect, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild, ViewEncapsulation,
 } from "@angular/core";
 import {
-  ArithmeticExpression, GradientColorPositions, Id, IScrollingSettings, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO,
+  ArithmeticExpression, Directions, GradientColorPositions, Id, IScrollingSettings, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO,
   SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SnappingDistance, TextDirection, TextDirections,
 } from "../common";
 import { DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_SIZE, DEFAULT_THUMB_SIZE } from "./const";
@@ -13,9 +13,8 @@ import {
 import {
   DEFAULT_ANIMATION_PARAMS, DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLLING_SETTINGS, DEFAULT_SLIDER_DIRECTION, DEFAULT_SNAPPING_DISTANCE,
 } from './const';
-import { IAnimationParams, INtSliderService, ISliderStep, ISliderSteps } from './interfaces';
+import { INtSliderAnimationParams, INtSliderService, ISliderStep, ISliderSteps } from './interfaces';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
-import { Directions } from './enums';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from "../common/const/base-prop-names";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
 import { BehaviorSubject, combineLatest, debounceTime, distinctUntilChanged, filter, map, startWith, Subject, switchMap, tap } from "rxjs";
@@ -387,7 +386,7 @@ export class NtSliderComponent {
   scrollingSettings = input<IScrollingSettings>(DEFAULT_SCROLLING_SETTINGS, { ...this._scrollingSettingsOptions });
 
   protected _animationParamsOptions = {
-    transform: (v: IAnimationParams) => {
+    transform: (v: INtSliderAnimationParams) => {
       const valid = validateObject(v, true, true);
       if (!validateFloat(v.scroll)) {
         console.error('The "scroll" parameter must be of type `number`.');
@@ -404,7 +403,7 @@ export class NtSliderComponent {
   /**
    * Animation parameters. The default value is "{ scroll: 500 }".
    */
-  animationParams = input<IAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
+  animationParams = input<INtSliderAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
 
   protected _snappingDistanceOptions = {
     transform: (v: SnappingDistance | any) => {

@@ -2,10 +2,10 @@ import { IScrollingSettings } from '../../common';
 import { SnappingDistance } from '../../common/types/snapping-distance';
 import { SheetPositions } from '../enums';
 import { INtSheetBreakpoints } from '../interfaces';
-import { IAnimationParams } from '../interfaces/animation-params';
+import { INtSheetAnimationParams } from '../interfaces/nt-sheet-animation-params';
 import { SheetPosition } from '../types';
 
-export const DEFAULT_ANIMATION_PARAMS: IAnimationParams = {
+export const DEFAULT_ANIMATION_PARAMS: INtSheetAnimationParams = {
     fadeIn: 500,
     fadeOut: 500,
 };

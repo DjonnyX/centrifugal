@@ -67,7 +67,7 @@ Inputs
 |---|---|---|
 | keyboardEnabled | boolean = true | Determines whether to show the virtual keyboard for input fields or not. |
 | keyboardSettings | [IKeyboardSettings](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/keyboard-settings.ts) | Sets settings for the virtual keyboard. |
-| animationParams | [IAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/animation-params.ts)? = { scrollToItem: 500, snapToItem: 500 } | Animation parameters. The default value is "{ scrollToItem: 150, snapToItem: 250 }". |
+| animationParams | [INtScrollViewAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/nt-scroll-view-animation-params.ts)? = { scrollToItem: 500, snapToItem: 500 } | Animation parameters. The default value is "{ scrollToItem: 150, snapToItem: 250 }". |
 | direction | [Direction? = 'both'](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/direction.ts) | Determines the direction in which elements are placed. Default value is "both". |
 | id | number | Readonly. Returns the unique identifier of the component. | 
 | langTextDir | [TextDirection? = 'ltr'](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/text-direction.ts) | A string indicating the direction of text for the locale. Can be either "ltr" (left-to-right) or "rtl" (right-to-left). |
@@ -125,7 +125,7 @@ Inputs
 
 | Property | Type | Description |
 |---|---|---|
-| animationParams | [IAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/animation-params.ts)? = { scrollToItem: 500, snapToItem: 500 } | Animation parameters. The default value is "{ scrollToItem: 150, snapToItem: 250 }". |
+| animationParams | [INtScrollViewAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/nt-scroll-view-animation-params.ts)? = { scrollToItem: 500, snapToItem: 500 } | Animation parameters. The default value is "{ scrollToItem: 150, snapToItem: 250 }". |
 | clickDistance | number? = 40 | The maximum scroll distance at which a click event is triggered. |
 | direction | [Direction? = 'both'](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/direction.ts) | Determines the direction in which elements are placed. Default value is "both". |
 | id | number | Readonly. Returns the unique identifier of the component. | 
@@ -200,7 +200,7 @@ Inputs
 | Property | Type | Description |
 |---|---|---|
 | alignment | [Alignment](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/types/alignment.ts) | Determines the alignment of the list. Two modes are available: `none` and `center`. The `center` mode aligns the list items to the center of the viewport, ideal for use with the `itemTransform` property. The `none` mode means no alignment. The default value is `none`. |
-| animationParams | [IAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/interfaces/animation-params.ts)? = { scrollToItem: 150, snapToItem: 150, navigateToItem: 150, navigateByKeyboard: 50 } | Animation parameters. The default value is "{ scrollToItem: 150, snapToItem: 150, navigateToItem: 150, navigateByKeyboard: 50 }". |
+| animationParams | [INtListAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/interfaces/nt-list-animation-params.ts)? = { scrollToItem: 150, snapToItem: 150, navigateToItem: 150, navigateByKeyboard: 50 } | Animation parameters. The default value is "{ scrollToItem: 150, snapToItem: 150, navigateToItem: 150, navigateByKeyboard: 50 }". |
 | bufferSize | number? = 2 | Number of elements outside the scope of visibility. Default value is 2. |
 | clickDistance | number? = 40 | The maximum scroll distance at which a click event is triggered. |
 | collapsedIds | Array<[Id](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/id.ts)> | Sets the collapsed items. |
@@ -367,7 +367,7 @@ Inputs
 | motionBlur | number = 0.15 | Motion blur effect. The default value is `0.15`. |
 | maxMotionBlur | number = 0.5 | Maximum motion blur effect. The default value is `0.5`. |
 | motionBlurEnabled | boolean = false | Determines whether to apply motion blur or not. The default value is `false`. |
-| animationParams | [IAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/sheet/interfaces/animation-params.ts) = { fadeIn: 500, fadeOut: 500 } | Animation parameters. The default value is "{ fadeIn: 500, fadeOut: 500 }". |
+| animationParams | [INtSheetAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/sheet/interfaces/nt-sheet-animation-params.ts) = { fadeIn: 500, fadeOut: 500 } | Animation parameters. The default value is "{ fadeIn: 500, fadeOut: 500 }". |
 | overscrollEnabled | boolean = true | Determines whether the overscroll (re-scroll) feature will work. The default value is "true". |
 | position | [SheetPosition](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/types/sheet-position.ts) = 'bottom' | Determines the position in which elements are placed. Default value is "bottom". |
 | langTextDir | [TextDirection](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/text-direction.ts) | A string indicating the direction of text for the locale. Can be either "ltr" (left-to-right) or "rtl" (right-to-left). |
@@ -432,7 +432,7 @@ Inputs
 | maxMotionBlur | number = 10 | Maximum motion blur effect. The default value is `5`. |
 | motionBlurEnabled | boolean = false | Determines whether to apply motion blur or not. The default value is `false`. |
 | scrollingSettings | [IScrollingSettings](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/scrolling-settings.ts) = { frictionalForce: 0.035, mass: 0.005, maxDistance: 100000, maxDuration: 4000, speedScale: 10, breakpointStoppingFactor: 10, optimization: false } | Scrolling settings. - frictionalForce - Frictional force. Default value is 0.035. - mass - Mass. Default value is 0.005. - maxDistance - Maximum scrolling distance. Default value is 100000. - maxDuration - Maximum animation duration. Default value is 4000. - speedScale - Speed scale. Default value is 10. - breakpointStoppingFactor - Default value is 10. - optimization - Enables scrolling performance optimization. Default value is `true`. |
-| animationParams | [IAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/slider/interfaces/animation-params.ts) = { scroll: 500 } | Animation parameters. The default value is "{ scroll: 500 }". |
+| animationParams | [INtSliderAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/slider/interfaces/nt-slider-animation-params.ts) = { scroll: 500 } | Animation parameters. The default value is "{ scroll: 500 }". |
 | snappingDistance | [SnappingDistance](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/snapping-distance.ts) = '25%' | Snapping activation distance. Can be specified as a percentage of the element size or in absolute values. The default value is `25%`. |
 | thumbSize | [ArithmeticExpression](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/arithmetic-expression.ts) = '25%' | Thumb slider size. Can be specified in absolute or percentage values. Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0". Default value is `25%`. | 
 | langTextDir | [TextDirection](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/text-direction.ts) | A string indicating the direction of text for the locale. Can be either "ltr" (left-to-right) or "rtl" (right-to-left). |

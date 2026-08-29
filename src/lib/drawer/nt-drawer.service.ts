@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs/internal/BehaviorSubject';
 import { INtDrawerService } from './interfaces/nt-drawer-service';
 import { DEFAULT_ANIMATION_PARAMS } from '../scroll-view/const';
-import { IAnimationParams } from '../scroll-view';
+import { INtScrollViewAnimationParams } from '../scroll-view';
 import { NtBaseScrollViewService } from '../common/services/nt-base-scroll-view.service';
 import { INtBaseScrollViewService } from '../common/interfaces/nt-base-scroll-view-service';
 import { Direction, Directions, Id, IRect, IScrollOptions, ISize } from '../common';
@@ -40,7 +40,7 @@ export class NtDrawerService extends NtBaseScrollViewService implements INtBaseS
 
   snapScrollToBottom: boolean = false;
 
-  animationParams: IAnimationParams = DEFAULT_ANIMATION_PARAMS;
+  animationParams: INtScrollViewAnimationParams = DEFAULT_ANIMATION_PARAMS;
 
   direction: Direction = Directions.BOTH;
 

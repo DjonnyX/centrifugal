@@ -19,9 +19,14 @@ export {
 export type {
     INtListAnimationParams,
     IScrollEvent,
+    IItemTransformation,
 } from './lib/list/interfaces';
 
+export * from './lib/list/const';
 export * from './lib/list/models';
+export * from './lib/list/enums';
+export * from './lib/list/types';
+export * from './lib/list/transformations';
 
 /*
  * Public API Surface of NtScrollView
@@ -34,7 +39,7 @@ export {
 
 export type {
     INtScrollViewService,
-
+    INtScrollViewAnimationParams,
 } from './lib/scroll-view';
 
 /**
@@ -56,6 +61,10 @@ export type {
 export {
     NtSliderComponent,
     NtSliderModule,
+} from './lib/slider';
+
+export type {
+    INtSliderAnimationParams,
 } from './lib/slider';
 
 export {
@@ -89,6 +98,7 @@ export type {
 export {
     NtControlContainerModule,
     NtControlContainerComponent,
+    NtControlContainerService,
 } from './lib/control-container';
 
 export type {
@@ -110,6 +120,7 @@ export type {
     INtSheetBreakpointInfo,
     INtSheetBreakpointEvent,
     INtSheetService,
+    INtSheetAnimationParams,
     SheetPosition,
 } from './lib/sheet';
 

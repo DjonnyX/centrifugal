@@ -1,7 +1,6 @@
-import { ArithmeticExpression, GradientColorPositions, IScrollingSettings, SnappingDistance } from "../../common";
+import { ArithmeticExpression, Directions, GradientColorPositions, IScrollingSettings, SnappingDistance } from "../../common";
 import { SDirection } from "../../core/nt-s-scroller/types";
-import { Directions } from "../enums";
-import { IAnimationParams } from "../interfaces";
+import { INtSliderAnimationParams } from "../interfaces";
 
 export const DEFAULT_THUMB_GRADIENT_POSITIONS: GradientColorPositions = [0, 1];
 
@@ -9,7 +8,7 @@ export const DEFAULT_SLIDER_DIRECTION: SDirection = Directions.HORIZONTAL;
 
 export const DEFAULT_OVERSCROLL_ENABLED = false;
 
-export const DEFAULT_ANIMATION_PARAMS: IAnimationParams = {
+export const DEFAULT_ANIMATION_PARAMS: INtSliderAnimationParams = {
     scroll: 500,
 };
 
