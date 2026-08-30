@@ -4,8 +4,8 @@ import {
 import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-    CONTROL_CONTAINER_SERVICE, Direction, Directions, IOverscrollEvent, ISize, OVERSCROLL_SERVICE, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
-    SCROLL_VIEW_TYPE, TextDirection, TextDirections,
+    CONTROL_CONTAINER_SERVICE, Direction, Directions, IOverscrollEvent, ISize, OVERSCROLL_SERVICE, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_INVERSION,
+    SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, TextDirection, TextDirections,
 } from '../../../../common';
 import { INtScroller } from '../../../../common/interfaces/nt-scroller';
 import { INtDScrollerService } from '../../interfaces';
@@ -465,6 +465,24 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
         if (this._moveIteration === 0) {
             this._clientPositionOffsetX = x;
             this._clientPositionOffsetY = y;
+        }
+    }
+
+    setOverscrollEffectEvent(e: IOverscrollEvent): void {
+        const overscrollService = this.overscrollService();
+        if (!!overscrollService) {
+            overscrollService.emit(e, true);
+        } else {
+            this._$overscrollEffectEvent.next(e);
+        }
+    }
+
+    setOverscrollEvent(e: IOverscrollEvent): void {
+        const overscrollService = this.overscrollService();
+        if (!!overscrollService) {
+            overscrollService.emit(e, true);
+        } else {
+            this._$overscroll.next(e);
         }
     }
 }

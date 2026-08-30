@@ -1140,6 +1140,10 @@ export class NtDScrollView extends NtDBaseScrollView {
         } else {
             this._$overscrollEffectEvent.next(event);
         }
+        const parentScroller = this._service.parent?.scrollView;
+        if (!!parentScroller) {
+            parentScroller.setOverscrollEffectEvent(event);
+        }
     }
 
     protected emitOverscrollEvent(grabbing: boolean = true, output: boolean = true, exp: number = DEFAULT_TRANSITION_EXPONENT) {
@@ -1149,6 +1153,10 @@ export class NtDScrollView extends NtDBaseScrollView {
             overscrollService.emit(event);
         } else {
             this._$overscroll.next(event);
+        }
+        const parentScroller = this._service.parent?.scrollView;
+        if (!!parentScroller) {
+            parentScroller.setOverscrollEvent(event);
         }
         if (output) {
             this.onOverscroll.emit(event);
@@ -1725,11 +1733,11 @@ export class NtDScrollView extends NtDBaseScrollView {
         } else {
             if (horizontalAxisEnabled && x !== null && (x !== prevX || force)) {
                 this.setX(x, snap, normalize);
+                const scrollWidth = Math.abs(this.scrollWidth - this.alignmentRightOffset()),
+                    xx = Math.abs(this._x);
+                this._horizontalScrollRatio = scrollWidth !== 0 ? (xx / scrollWidth) : 0;
                 if (userAction) {
-                    const scrollWidth = Math.abs(this.scrollWidth - this.alignmentRightOffset()),
-                        xx = Math.abs(this._x);
-                    this._horizontalScrollRatio = scrollWidth !== 0 ? (xx / scrollWidth) : 0;
-                    this._horizontalScrollRatioWhenGrabbing = this._horizontalScrollRatio === 0 ? 0 : 1;
+                    this._horizontalScrollRatioWhenGrabbing = this._horizontalScrollRatio <= 0 ? 0 : 1;
                 }
                 this.emitScrollableEvent();
                 if (fireUpdate) {
@@ -1740,11 +1748,11 @@ export class NtDScrollView extends NtDBaseScrollView {
             }
             if (verticalAxisEnabled && y !== null && (y !== prevY || force)) {
                 this.setY(y, snap, normalize);
+                const scrollHeight = Math.abs(this.scrollHeight - this.alignmentBottomOffset()),
+                    yy = Math.abs(this._y);
+                this._verticalScrollRatio = scrollHeight !== 0 ? yy / scrollHeight : 0;
                 if (userAction) {
-                    const scrollHeight = Math.abs(this.scrollHeight - this.alignmentBottomOffset()),
-                        yy = Math.abs(this._y);
-                    this._verticalScrollRatio = scrollHeight !== 0 ? yy / scrollHeight : 0;
-                    this._verticalScrollRatioWhenGrabbing = this._verticalScrollRatio === 0 ? 0 : 1;
+                    this._verticalScrollRatioWhenGrabbing = this._verticalScrollRatio <= 0 ? 0 : 1;
                 }
                 this.emitScrollableEvent();
                 if (fireUpdate) {

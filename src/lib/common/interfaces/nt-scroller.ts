@@ -62,4 +62,8 @@ export interface INtScroller<S extends INtBaseScrollViewService> {
     stopScrolling(force?: boolean): void;
 
     setClientPositionOffset(x: number, y: number): void;
+
+    setOverscrollEffectEvent(e: IOverscrollEvent): void;
+
+    setOverscrollEvent(e: IOverscrollEvent): void;
 }

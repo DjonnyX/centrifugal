@@ -209,8 +209,31 @@ export class NtSScrollerComponent extends NtSScrollView {
       }),
     ).subscribe();
 
+    if (!!overscrollService) {
+      overscrollService.$event.pipe(
+        takeUntilDestroyed(),
+        tap(e => {
+          const parentScroller = this._service.parent?.scrollView;
+          if (!!parentScroller) {
+            parentScroller.setOverscrollEvent(e);
+          }
+        }),
+      ).subscribe();
+
+      overscrollService.$effectEvent.pipe(
+        takeUntilDestroyed(),
+        tap(e => {
+          const parentScroller = this._service.parent?.scrollView;
+          if (!!parentScroller) {
+            parentScroller.setOverscrollEffectEvent(e);
+          }
+        }),
+      ).subscribe();
+    }
+
     combineLatest([$overscrollEffectEvent, this.$resizeViewport]).pipe(
       takeUntilDestroyed(),
+      debounceTime(0),
       tap(([e, viewportBounds]) => {
         const dx = e.dragX, dy = e.dragY, sx = viewportBounds.width !== 1 ? (dx !== 0 ? Math.pow((dx + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,
           sy = viewportBounds.height !== 0 ? (dy !== 0 ? Math.pow((dy + viewportBounds.height) / viewportBounds.height, 0.1) : 1) : 1;
