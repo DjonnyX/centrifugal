@@ -1,4 +1,4 @@
-import { Directions } from '../../common';
+import { Directions, SnappingDistance } from '../../common';
 import { INtScrollViewAnimationParams } from '../interfaces';
 
 export const DEFAULT_SCROLLER_SIZE = 400;
@@ -7,6 +7,8 @@ export const DEFAULT_ANIMATION_PARAMS: INtScrollViewAnimationParams = {
     scrollToItem: 500,
     snapToItem: 250,
 };
+
+export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '25%';
 
 export const DEFAULT_DIRECTION = Directions.BOTH;
 

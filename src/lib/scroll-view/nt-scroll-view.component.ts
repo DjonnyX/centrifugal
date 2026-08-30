@@ -8,7 +8,7 @@ import {
 } from 'rxjs';
 import {
   CLASS_SCROLL_VIEW_HORIZONTAL, CLASS_SCROLL_VIEW_VERTICAL, DEFAULT_DIRECTION, MIN_PIXELS_FOR_PREVENT_SNAPPING,
-  DEFAULT_ANIMATION_PARAMS, CLASS_SCROLL_VIEW_BOTH, DEFAULT_SCROLLER_SIZE,
+  DEFAULT_ANIMATION_PARAMS, CLASS_SCROLL_VIEW_BOTH, DEFAULT_SCROLLER_SIZE, DEFAULT_SNAPPING_DISTANCE,
 } from './const';
 import {
   INtScrollViewAnimationParams, IScrollingSettings, INtScrollViewService,
@@ -26,7 +26,7 @@ import {
 } from '../common/const/scroller';
 import {
   ArithmeticExpression, Direction, Directions, Id, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED,
-  SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
+  SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SCROLL_VIEW_USER_INTERACTION_ENABLED, SnappingDistance, TextDirection, TextDirections,
 } from '../common';
 import {
   isPercentageValue, parseArithmeticExpression, toggleClassName, validateBoolean, validateFloat, validateInt, validateObject,
@@ -212,6 +212,24 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
    * The maximum scroll distance at which a click event is triggered.
    */
   clickDistance = input<number>(DEFAULT_CLICK_DISTANCE, { ...this._clickDistance });
+
+  protected _snappingDistanceOptions = {
+    transform: (v: SnappingDistance | any) => {
+      const valid = validateString(v) || validateFloat(v);
+
+      if (!valid) {
+        console.error('The "snappingDistance" parameter must be of type `number` or `string`.');
+        return DEFAULT_SNAPPING_DISTANCE;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Snapping activation distance. Can be specified as a percentage of the element size or in absolute values.
+   * The default value is `25%`.
+   */
+  snappingDistance = input<SnappingDistance>(DEFAULT_SNAPPING_DISTANCE, { ...this._snappingDistanceOptions });
 
   protected _scrollLeftOffsetOptions = {
     transform: (v: number) => {
