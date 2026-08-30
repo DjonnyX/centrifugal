@@ -28,7 +28,8 @@
     [overscrollAreaLeftRenderer]="overscrollAreaLeftRenderer()"
     [overscrollAreaTopRenderer]="overscrollAreaTopRenderer()"
     [overscrollAreaRightRenderer]="overscrollAreaRightRenderer()"
-    [overscrollAreaBottomRenderer]="overscrollAreaBottomRenderer()" snapToItemAlign="start">
+    [overscrollAreaBottomRenderer]="overscrollAreaBottomRenderer()" [snappingDistance]="snappingDistance()"
+    snapToItemAlign="start">
     <ng-container #renderersContainer>
       @let bounds = _bounds();
       <nt-drawer-layout [backdrop]="backdrop()" [opened]="($opened | async)!" [scrollRatio]="($scrollRatio | async)!"
