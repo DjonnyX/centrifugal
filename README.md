@@ -125,7 +125,7 @@ Inputs
 
 | Property | Type | Description |
 |---|---|---|
-| animationParams | [INtScrollViewAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/nt-scroll-view-animation-params.ts)? = { scrollToItem: 500, snapToItem: 500 } | Animation parameters. The default value is "{ scrollToItem: 150, snapToItem: 250 }". |
+| animationParams | [INtScrollViewAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/nt-scroll-view-animation-params.ts)? = { scrollToItem: 500, snapToItem: 500 } | Animation parameters. The default value is "{ scrollToItem: 500, snapToItem: 250 }". |
 | clickDistance | number? = 40 | The maximum scroll distance at which a click event is triggered. |
 | direction | [Direction? = 'both'](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/direction.ts) | Determines the direction in which elements are placed. Default value is "both". |
 | id | number | Readonly. Returns the unique identifier of the component. | 

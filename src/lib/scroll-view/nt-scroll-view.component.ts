@@ -606,7 +606,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
   } as any;
 
   /**
-   * Animation parameters. The default value is "{ scrollToItem: 0 }".
+   * Animation parameters. The default value is "{ scrollToItem: 500, snapToItem: 250 }".
    */
   animationParams = input<INtScrollViewAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
 
