@@ -146,7 +146,7 @@ export class NtBaseSliderComponent extends NtSScrollView {
       overscrollService.$event.pipe(
         takeUntilDestroyed(),
         tap(e => {
-          const parentScroller = this._service.parent?.scrollView;
+        const parentScroller = this._service.parent?.scrollView;
           if (!!parentScroller) {
             parentScroller.setOverscrollEvent(e);
           }
@@ -154,6 +154,26 @@ export class NtBaseSliderComponent extends NtSScrollView {
       ).subscribe();
 
       overscrollService.$effectEvent.pipe(
+        takeUntilDestroyed(),
+        tap(e => {
+          const parentScroller = this._service.parent?.scrollView;
+          if (!!parentScroller) {
+            parentScroller.setOverscrollEffectEvent(e);
+          }
+        }),
+      ).subscribe();
+    } else {
+      this.$overscroll.pipe(
+        takeUntilDestroyed(),
+        tap(e => {
+        const parentScroller = this._service.parent?.scrollView;
+          if (!!parentScroller) {
+            parentScroller.setOverscrollEvent(e);
+          }
+        }),
+      ).subscribe();
+
+      this.$overscrollEffectEvent.pipe(
         takeUntilDestroyed(),
         tap(e => {
           const parentScroller = this._service.parent?.scrollView;

@@ -19,8 +19,9 @@
                     </div>
                 </div>
             </div>
-            <nt-overscroll-container class="ntbs" dir="ltr" [bounds]="viewportBounds()" [leftOffset]="_leftOffset()"
-                [topOffset]="_topOffset()" [rightOffset]="_rightOffset()" [bottomOffset]="_bottomOffset()"
+            <nt-overscroll-container class="ntbs" dir="ltr" [context]="parent" [bounds]="viewportBounds()"
+                [leftOffset]="_leftOffset()" [topOffset]="_topOffset()" [rightOffset]="_rightOffset()"
+                [bottomOffset]="_bottomOffset()"
                 [overscrollEvent]="(!!_overscrollService ? _overscrollService.$event : $overscroll) | async"
                 [leftIndicatorEnabled]="_actualOverscrollAreaLeftEnabled()"
                 [topIndicatorEnabled]="_actualOverscrollAreaTopEnabled()"

@@ -2,7 +2,7 @@ import {
   Component, computed, DestroyRef, effect, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild, ViewEncapsulation,
 } from "@angular/core";
 import {
-  ArithmeticExpression, Directions, GradientColorPositions, Id, IScrollingSettings, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO,
+  ArithmeticExpression, Directions, GradientColorPositions, Id, IScrollingSettings, ISize, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO,
   SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SnappingDistance, TextDirection, TextDirections,
 } from "../common";
 import { DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_SIZE, DEFAULT_THUMB_SIZE } from "./const";
@@ -25,6 +25,8 @@ import { ISliderDragEvent, NtBaseSliderComponent, NtBaseSliderPublicService, NtB
 import { SDirection } from "../core/nt-s-scroller/types";
 import { INtOverscrollService } from "../common/interfaces/nt-overscroll-service";
 import { IUpdateParams } from './interfaces';
+import { INtScrollViewService } from "../scroll-view";
+import { NtBaseComponent } from "../common/components/nt-base-component";
 
 /**
  * NtSliderComponent
@@ -44,6 +46,7 @@ import { IUpdateParams } from './interfaces';
   providers: [
     { provide: SCROLL_VIEW_TYPE, useValue: ScrollerTypes.SLIDER_SCROLLER },
     { provide: SCROLL_VIEW_INVERSION, useValue: true },
+    { provide: SCROLL_VIEW_AXLE_LOCK, useValue: true },
     { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: false },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtSliderService },
@@ -51,8 +54,10 @@ import { IUpdateParams } from './interfaces';
     NtBaseSliderPublicService,
   ],
 })
-export class NtSliderComponent {
+export class NtSliderComponent<S extends INtSliderService = any, P extends INtScrollViewService = any> extends NtBaseComponent<S, P> {
   protected _baseSlider = viewChild<NtBaseSliderComponent>('baseSlider');
+
+  get component(): NtBaseSliderComponent | undefined { return this._baseSlider(); }
 
   /**
    * Fires a drag event.
@@ -471,8 +476,6 @@ export class NtSliderComponent {
 
   readonly overscrollService = input<INtOverscrollService | null>(null);
 
-  private _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-
   private _$update = new Subject<IUpdateParams | null>();
   protected $update = this._$update.asObservable();
 
@@ -526,11 +529,6 @@ export class NtSliderComponent {
 
   protected _actualValue = signal<number>(0);
 
-  protected _bounds = signal<ISize>({
-    width: this._elementRef.nativeElement.offsetWidth,
-    height: this._elementRef.nativeElement.offsetHeight,
-  });
-
   protected _size = signal<number>(DEFAULT_SIZE);
 
   protected _$init = new BehaviorSubject<boolean>(false);
@@ -541,13 +539,13 @@ export class NtSliderComponent {
 
   private _scrollBox = new ScrollBox();
 
-  private _service = inject<INtSliderService>(SCROLL_VIEW_SERVICE);
-
   private _animationIds: Array<number> | number | null = null;
 
   protected _destroyRef = inject(DestroyRef);
 
   constructor() {
+    super();
+
     this._isVertical = computed(() => {
       const direction = this.direction();
       return direction === Directions.VERTICAL;
@@ -624,6 +622,15 @@ export class NtSliderComponent {
           snap: false,
           duration: useAnimation ? this.animationParams().scroll : 0,
         });
+      }),
+    ).subscribe();
+
+    const $slider = toObservable(this._baseSlider);
+    $slider.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      tap(component => {
+        this._service.initialize(this._id, component, this._parentService);
       }),
     ).subscribe();
 

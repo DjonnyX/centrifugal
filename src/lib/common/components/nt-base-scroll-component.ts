@@ -1,12 +1,12 @@
-import { Component, ElementRef, inject, input, output, signal, TemplateRef, viewChild } from "@angular/core";
-import { SCROLL_VIEW_SERVICE } from "../injection";
+import { Component, input, output, TemplateRef, viewChild } from "@angular/core";
 import { INtBaseScrollViewService } from "../interfaces/nt-base-scroll-view-service";
 import { INtBaseScrollView } from "../interfaces/nt-base-scroll-view";
-import { IOverscrollEvent, ISize } from "../interfaces";
+import { IOverscrollEvent } from "../interfaces";
 import { INtScroller } from "../interfaces/nt-scroller";
 import { validateBoolean, validateObject } from "../utils";
 import { BEHAVIOR_INSTANT } from "../const/behavior";
 import { INtOverscrollService } from "../interfaces/nt-overscroll-service";
+import { NtBaseComponent } from './nt-base-component';
 
 @Component({
     selector: 'nt-base-scroll-component',
@@ -18,24 +18,8 @@ import { INtOverscrollService } from "../interfaces/nt-overscroll-service";
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */
-export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, P extends INtBaseScrollViewService, C = INtScroller<S>>
+export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, P extends INtBaseScrollViewService, C = INtScroller<S>> extends NtBaseComponent<S, P>
     implements INtBaseScrollView<S, P, C> {
-    private static __nextId: number = 0;
-
-    protected _id: number = NtBaseScrollComponent.__nextId;
-
-    /**
-     * Readonly. Returns the unique identifier of the component.
-     */
-    get id() { return this._id; }
-
-    protected _service = inject<S>(SCROLL_VIEW_SERVICE);
-
-    get service() { return this._service; }
-
-    protected _parentService = inject<P | null>(SCROLL_VIEW_SERVICE, { skipSelf: true, optional: true });
-
-    get parentService() { return this._parentService; }
 
     protected _scrollerComponent = viewChild<C | undefined>('scroller');
     get component(): C | undefined { return this._scrollerComponent(); }
@@ -241,14 +225,6 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
      */
     overscrollAreaBottomRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollAreaBottomRendererOptions });
 
-    protected _bounds = signal<ISize | null>(null);
-    get bounds(): ISize { return this._bounds() ?? { width: 0, height: 0 }; }
-
-    protected _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-    get host() {
-        return this._elementRef?.nativeElement || null;
-    }
-
     get scrollLeft(): number {
         return (this.component as INtScroller<S>)?.scrollLeft ?? 0;
     }
@@ -280,8 +256,6 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
     }
 
     constructor() {
-        NtBaseScrollComponent.__nextId = NtBaseScrollComponent.__nextId + 1 === Number.MAX_SAFE_INTEGER
-            ? 0 : NtBaseScrollComponent.__nextId + 1;
-        this._id = NtBaseScrollComponent.__nextId;
+        super();
     }
 }
