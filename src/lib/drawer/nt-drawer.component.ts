@@ -556,6 +556,7 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
 
     combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, $precalculatedDockRightSize, $precalculatedDockBottomSize, this.$scroll, $bounds]).pipe(
       takeUntilDestroyed(),
+      debounceTime(100),
       tap(([dockLeftSize, dockTopSize, dockRightSize, dockBottomSize, scrollEvent]) => {
         const scrollLeft = this.scrollLeft, scrollTop = this.scrollTop;
         let sx: number, sy: number;
