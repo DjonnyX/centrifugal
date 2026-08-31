@@ -1468,7 +1468,7 @@ export class NtSScrollView extends NtSBaseScrollView {
                 });
             }
         }
-        if (this.grabbing) {
+        if (userAction) {
             this.emitOverscrollEvent(this._grabbing(), false);
         }
         return -1;

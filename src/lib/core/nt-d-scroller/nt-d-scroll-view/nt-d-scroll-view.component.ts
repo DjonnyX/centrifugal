@@ -1352,10 +1352,9 @@ export class NtDScrollView extends NtDBaseScrollView {
 
                     if (this._isContainerAllowedForCorrection) {
                         const dv = value!,
-                            scrollable = isVertical ? this.scrollableY : this.scrollableX,
                             dragV = dv < 0 ? dv : (dv - scrollSize),
-                            normalizedDrag = scrollable ? Math.abs(dragV) : 0,
-                            dragSign = scrollable ? Math.sign(dragV) : 0,
+                            normalizedDrag = Math.abs(dragV),
+                            dragSign = Math.sign(dragV),
                             pos = dragSign > 0 ? 1 : 0;
                         if (isVertical) {
                             this._dragY = normalizedDrag;
@@ -1789,7 +1788,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                 this.updateDirectionY(y, this._y);
             }
         }
-        if (this._isContainerAllowedForCorrection && this.grabbing) {
+        if (this._isContainerAllowedForCorrection && userAction) {
             this.emitOverscrollEvent(this._grabbing(), false);
         }
         return null;

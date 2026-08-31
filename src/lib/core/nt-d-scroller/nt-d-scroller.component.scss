@@ -83,8 +83,6 @@
     }
 
     .ntvs__scroller-wrapper {
-        transition: transform-origin 100ms ease-out;
-
         &.animated {
             overflow: unset;
             transition: transform 500ms ease-out;
