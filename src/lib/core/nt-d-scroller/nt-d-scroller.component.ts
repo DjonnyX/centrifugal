@@ -12,7 +12,7 @@ import { IScrollToParams } from '../../common/interfaces/scroll-to-params';
 import { BEHAVIOR_INSTANT } from '../../common/const/behavior';
 import { ScrollBox } from '../../common/utils/scroll-box';
 import {
-  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
+  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MAX_OVERSCROLL_EFFECT_PX, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
   DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, MOTION_BLUR,
 } from '../../common/const/scroller';
 import { ANIMATED } from '../../common/const/class-names';
@@ -263,10 +263,14 @@ export class NtDScrollerComponent extends NtDScrollView {
       tap(([e, viewportBounds]) => {
         const contentBounds = this.contentBounds(),
           dx = e.dragX, dy = e.dragY, sx = viewportBounds.width !== 1 ? (dx !== 0 ? Math.pow((dx + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,
-          sy = viewportBounds.height !== 0 ? (dy !== 0 ? Math.pow((dy + viewportBounds.height) / viewportBounds.height, 0.1) : 1) : 1;
+          sy = viewportBounds.height !== 0 ? (dy !== 0 ? Math.pow((dy + viewportBounds.height) / viewportBounds.height, 0.1) : 1) : 1,
+          normalizedSx = sx > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sx,
+          normalizedSy = sy > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sy,
+          actualSx = contentBounds.width * normalizedSx > (contentBounds.width + DEFAULT_MAX_OVERSCROLL_EFFECT_PX) ? (contentBounds.width + DEFAULT_MAX_OVERSCROLL_EFFECT_PX) / contentBounds.width : normalizedSx,
+          actualSy = contentBounds.height * normalizedSy > (contentBounds.height + DEFAULT_MAX_OVERSCROLL_EFFECT_PX) ? (contentBounds.height + DEFAULT_MAX_OVERSCROLL_EFFECT_PX) / contentBounds.height : normalizedSy;
         this.wrapperClass.set({ [ANIMATED]: !e.grabbing });
         this.wrapperStyles.set({
-          transform: matrix3d(0, 0, 0, sx > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sx, sy > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sy, 1, 0, 0, 0),
+          transform: matrix3d(0, 0, 0, actualSx, actualSy, 1, 0, 0, 0),
           transformOrigin: `${e.positionX === 1 ? Math.max(contentBounds.width, viewportBounds.width) : 0}${PX} ${e.positionY === 1 ? Math.max(contentBounds.height, viewportBounds.height) : 0}${PX}`,
         });
       }),
