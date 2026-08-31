@@ -1446,6 +1446,10 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
         }
     }
 
+    protected onBackdropHandler() {
+        this.close();
+    }
+
     /**
      * Enables the display of the sheet.
      */
