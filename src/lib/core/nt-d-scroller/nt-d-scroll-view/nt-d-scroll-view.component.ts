@@ -274,16 +274,14 @@ export class NtDScrollView extends NtDBaseScrollView {
     protected _verticalScrollRatio = 0;
     get verticalScrollRatio() { return this._verticalScrollRatio; }
 
-    protected _horizontalScrollRatioWhenGrabbing = 0;
-    get horizontalScrollRatioWhenGrabbing() { return this._horizontalScrollRatioWhenGrabbing; }
-
-    protected _verticalScrollRatioWhenGrabbing = 0;
-    get verticalScrollRatioWhenGrabbing() { return this._verticalScrollRatioWhenGrabbing; }
+    protected _isContainerAllowedForCorrection: boolean = true;
 
     protected _injector = inject(Injector);
 
     constructor() {
         super();
+
+        this._isContainerAllowedForCorrection = EXCLUDED_CONTAINERS.indexOf(this._type as ScrollerTypes) === -1;
 
         let mouseCanceled = false,
             touchCanceled = false;
@@ -402,8 +400,12 @@ export class NtDScrollView extends NtDBaseScrollView {
                                 dragY = deltaY;
                             this._dragX += this.scrollableX && (this._x <= 0 || this._x >= this.scrollWidth) ? Math.abs(dragX) : 0;
                             this._dragY += this.scrollableY && (this._y <= 0 || this._y >= this.scrollHeight) ? Math.abs(dragY) : 0;
-                            this._horizontalScrollRatioWhenGrabbing = Math.sign(-dragX) < 0 ? 1 : 0;
-                            this._verticalScrollRatioWhenGrabbing = Math.sign(-dragY) < 0 ? 1 : 0;
+                            if (this._isContainerAllowedForCorrection) {
+                                this.horizontalScrollRatioWhenGrabbing = Math.sign(-dragX) < 0 ? 1 : 0;
+                            }
+                            if (this._isContainerAllowedForCorrection) {
+                                this.verticalScrollRatioWhenGrabbing = Math.sign(-dragY) < 0 ? 1 : 0;
+                            }
                             this.checkOverscroll(e, true);
                             let positionX = 0, positionY = 0;
                             if (this.isInfinity()) {
@@ -437,6 +439,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                         takeUntilDestroyed(this._destroyRef),
                         delay(0),
                         tap(e => {
+                            this._controlContainerService.currentScrollView = null;
                             this._isMoving = false;
                             this._grabbing.set(false);
                             if (!mouseCanceled) {
@@ -465,6 +468,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                                     takeUntil(fromEvent<MouseEvent>(root, MOUSE_MOVE, { passive: false })),
                                     takeUntil($scrollDisabled),
                                     tap(e => {
+                                        this._controlContainerService.currentScrollView = null;
                                         this._isMoving = false;
                                         this._grabbing.set(false);
                                         if (!mouseCanceled) {
@@ -492,6 +496,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                             takeUntilDestroyed(this._destroyRef),
                             filter(v => this._interactive),
                             switchMap(e => {
+                                this._controlContainerService.currentScrollView = this;
                                 mouseCanceled = false;
                                 this._moveIteration = 0;
                                 this._clientPositionOffsetX = this._clientPositionOffsetY = 0;
@@ -530,8 +535,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                                     takeUntil($mouseDragCancel),
                                     takeUntil($scrollDisabled),
                                     switchMap(e => {
-                                        const isContainerAllowedForCorrection = EXCLUDED_CONTAINERS.indexOf(this._type as ScrollerTypes) === -1;
-                                        if (isContainerAllowedForCorrection && this._moveIteration === 0) {
+                                        if (this._isContainerAllowedForCorrection && this._moveIteration === 0) {
                                             if (this.scrollableX) {
                                                 startClientPosX -= this._clientPositionOffsetX;
                                             }
@@ -546,7 +550,7 @@ export class NtDScrollView extends NtDBaseScrollView {
 
                                         this._moveIteration++;
                                         const parentScroller = this._service.parent?.scrollView;
-                                        if (isContainerAllowedForCorrection && !!parentScroller) {
+                                        if (this._isContainerAllowedForCorrection && !!parentScroller) {
                                             parentScroller.setClientPositionOffset(this.scrollableX ? (startClientPosX - (currentPosX ?? 0)) : 0, this.scrollableY ? (startClientPosY - (currentPosY ?? 0)) : 0);
                                         }
 
@@ -563,20 +567,23 @@ export class NtDScrollView extends NtDBaseScrollView {
                                             dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentBottomOffset()) + this._startPositionY) : (dy + this._startPositionY)) : (dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentBottomOffset()))));
                                         this._dragX = this.scrollableX ? Math.abs(dragX) : 0;
                                         this._dragY = this.scrollableY ? Math.abs(dragY) : 0;
-                                        this._horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
-                                        this._verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
-
+                                        if (this._isContainerAllowedForCorrection) {
+                                            this.horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
+                                        }
+                                        if (this._isContainerAllowedForCorrection) {
+                                            this.verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
+                                        }
                                         if (this._axleLock) {
                                             this._horizontalAxleLock = this._horizontalAxleLock || this._scrollDirectionValueX < this._scrollDirectionValueY;
                                             this._verticalAxleLock = this._verticalAxleLock || this._scrollDirectionValueY < this._scrollDirectionValueX;
                                             if (this._horizontalAxleLock) {
                                                 this._dragX = 0;
-                                                this._horizontalScrollRatioWhenGrabbing = 1;
+                                                // this._horizontalScrollRatioWhenGrabbing = 1;
                                                 this._scrollDirectionValueX = 0;
                                                 positionX = this._startPositionX;
                                             } else if (this._verticalAxleLock) {
                                                 this._dragY = 0;
-                                                this._verticalScrollRatioWhenGrabbing = 1;
+                                                // this._verticalScrollRatioWhenGrabbing = 1;
                                                 this._scrollDirectionValueY = 0;
                                                 positionY = this._startPositionY;
                                             }
@@ -612,6 +619,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                                             takeUntil($mouseDragCancel),
                                             takeUntil($scrollDisabled),
                                             tap(e => {
+                                                this._controlContainerService.currentScrollView = null;
                                                 mouseCanceled = true;
                                                 const endTime = Date.now(),
                                                     horizontalAxisEnabled = this._horizontalAxisEnabled(),
@@ -664,6 +672,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                         delay(0),
                         filter(e => Array.from(e.targetTouches).findIndex(({ identifier }) => identifier === this._touchId) === -1),
                         tap(e => {
+                            this._controlContainerService.currentScrollView = null;
                             this._touchId = -1;
                             this._isMoving = false;
                             this._grabbing.set(false);
@@ -700,6 +709,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                                     takeUntil(fromEvent<TouchEvent>(root, TOUCH_MOVE, { passive: false })),
                                     takeUntil($scrollDisabled),
                                     tap(e => {
+                                        this._controlContainerService.currentScrollView = null;
                                         this._touchId = -1;
                                         this._isMoving = false;
                                         this._grabbing.set(false);
@@ -727,6 +737,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                             takeUntilDestroyed(this._destroyRef),
                             filter(v => this._interactive),
                             switchMap(e => {
+                                this._controlContainerService.currentScrollView = this;
                                 touchCanceled = false;
                                 this._moveIteration = 0;
                                 this._clientPositionOffsetX = this._clientPositionOffsetY = 0;
@@ -776,8 +787,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                                     map(([e1, e2]) => e1 ?? e2),
                                     filter(e => !!e),
                                     switchMap(e => {
-                                        const isContainerAllowedForCorrection = EXCLUDED_CONTAINERS.indexOf(this._type as ScrollerTypes) === -1;
-                                        if (isContainerAllowedForCorrection && this._moveIteration === 0) {
+                                        if (this._isContainerAllowedForCorrection && this._moveIteration === 0) {
                                             if (this.scrollableX) {
                                                 startClientPosX -= this._clientPositionOffsetX;
                                             }
@@ -792,7 +802,7 @@ export class NtDScrollView extends NtDBaseScrollView {
 
                                         this._moveIteration++;
                                         const parentScroller = this._service.parent?.scrollView;
-                                        if (isContainerAllowedForCorrection && !!parentScroller) {
+                                        if (this._isContainerAllowedForCorrection && !!parentScroller) {
                                             parentScroller.setClientPositionOffset(startClientPosX - (currentPosX ?? 0), startClientPosY - (currentPosY ?? 0));
                                         }
 
@@ -809,19 +819,23 @@ export class NtDScrollView extends NtDBaseScrollView {
                                             dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentBottomOffset()) + this._startPositionY) : (dy + this._startPositionY)) : (dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentBottomOffset()))));
                                         this._dragX = this.scrollableX ? Math.abs(dragX) : 0;
                                         this._dragY = this.scrollableY ? Math.abs(dragY) : 0;
-                                        this._horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
-                                        this._verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
+                                        if (this._isContainerAllowedForCorrection) {
+                                            this.horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
+                                        }
+                                        if (this._isContainerAllowedForCorrection) {
+                                            this.verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
+                                        }
                                         if (this._axleLock) {
                                             this._horizontalAxleLock = this._horizontalAxleLock || this._scrollDirectionValueX < this._scrollDirectionValueY;
                                             this._verticalAxleLock = this._verticalAxleLock || this._scrollDirectionValueY < this._scrollDirectionValueX;
                                             if (this._horizontalAxleLock) {
                                                 this._dragX = 0;
-                                                this._horizontalScrollRatioWhenGrabbing = 1;
+                                                // this._horizontalScrollRatioWhenGrabbing = 1;
                                                 this._scrollDirectionValueX = 0;
                                                 positionX = this._startPositionX;
                                             } else if (this._verticalAxleLock) {
                                                 this._dragY = 0;
-                                                this._verticalScrollRatioWhenGrabbing = 1;
+                                                // this._verticalScrollRatioWhenGrabbing = 1;
                                                 this._scrollDirectionValueY = 0;
                                                 positionY = this._startPositionY;
                                             }
@@ -857,6 +871,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                                             takeUntil($touchCanceler),
                                             takeUntil($scrollDisabled),
                                             tap(e => {
+                                                this._controlContainerService.currentScrollView = null;
                                                 this._touchId = -1;
                                                 touchCanceled = true;
                                                 const endTime = Date.now(),
@@ -1126,8 +1141,8 @@ export class NtDScrollView extends NtDBaseScrollView {
             grabbing,
             dragX: transitionExponent(this._horizontalScrollRatio <= 0 || this._horizontalScrollRatio >= 1 ? this._dragX : 0, bounds.width, exp),
             dragY: transitionExponent(this._verticalScrollRatio <= 0 || this._verticalScrollRatio >= 1 ? this._dragY : 0, bounds.height, exp),
-            positionX: ((this.langTextDir() === TextDirections.LTR ? (this._horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0) : (this._horizontalScrollRatioWhenGrabbing === 1 ? 0 : 1))),
-            positionY: (this._verticalScrollRatioWhenGrabbing === 1 ? 1 : 0),
+            positionX: ((this.langTextDir() === TextDirections.LTR ? (this.horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0) : (this.horizontalScrollRatioWhenGrabbing === 1 ? 0 : 1))),
+            positionY: (this.verticalScrollRatioWhenGrabbing === 1 ? 1 : 0),
         });
         return event;
     }
@@ -1343,12 +1358,18 @@ export class NtDScrollView extends NtDBaseScrollView {
                         pos = dragSign > 0 ? 1 : 0;
                     if (isVertical) {
                         this._dragY = normalizedDrag;
-                        this._verticalScrollRatioWhenGrabbing = pos;
+                        if (this._isContainerAllowedForCorrection && this.scrollableY) {
+                            this.verticalScrollRatioWhenGrabbing = pos;
+                        }
                     } else {
                         this._dragX = normalizedDrag;
-                        this._horizontalScrollRatioWhenGrabbing = pos;
+                        if (this._isContainerAllowedForCorrection && this.scrollableX) {
+                            this.horizontalScrollRatioWhenGrabbing = pos;
+                        }
                     }
-                    this.emitOverscrollEffectEvent(userAction);
+                    if (this._isContainerAllowedForCorrection) {
+                        this.emitOverscrollEffectEvent(userAction);
+                    }
                 } else if (overscrollEffectCanceled === 0) {
                     overscrollEffectCanceled = 1;
                     complete();
@@ -1374,7 +1395,9 @@ export class NtDScrollView extends NtDBaseScrollView {
                 const v0 = calculateVelocity(position, endValue, timestamp);
                 overscrollEffectCanceled = 1;
                 this._dragX = this._dragY = 0;
-                this.emitOverscrollEffectEvent(false);
+                if (this._isContainerAllowedForCorrection) {
+                    this.emitOverscrollEffectEvent(false);
+                }
                 if (alignmentAtComplete && !this._isAlignmentAnimation && !skipOverridedCoordinates) {
                     this.snapIfNecessary(isVertical ? 0 : v0, isVertical ? v0 : 0);
                 } else {
@@ -1737,7 +1760,9 @@ export class NtDScrollView extends NtDBaseScrollView {
                     xx = Math.abs(this._x);
                 this._horizontalScrollRatio = scrollWidth !== 0 ? (xx / scrollWidth) : 0;
                 if (userAction) {
-                    this._horizontalScrollRatioWhenGrabbing = this._horizontalScrollRatio <= 0 ? 0 : 1;
+                    if (this._isContainerAllowedForCorrection && this.scrollableX) {
+                        this.horizontalScrollRatioWhenGrabbing = this._horizontalScrollRatio <= 0 ? 0 : 1;
+                    }
                 }
                 this.emitScrollableEvent();
                 if (fireUpdate) {
@@ -1752,7 +1777,9 @@ export class NtDScrollView extends NtDBaseScrollView {
                     yy = Math.abs(this._y);
                 this._verticalScrollRatio = scrollHeight !== 0 ? yy / scrollHeight : 0;
                 if (userAction) {
-                    this._verticalScrollRatioWhenGrabbing = this._verticalScrollRatio <= 0 ? 0 : 1;
+                    if (this._isContainerAllowedForCorrection && this.scrollableY) {
+                        this.verticalScrollRatioWhenGrabbing = this._verticalScrollRatio <= 0 ? 0 : 1;
+                    }
                 }
                 this.emitScrollableEvent();
                 if (fireUpdate) {
@@ -1762,7 +1789,9 @@ export class NtDScrollView extends NtDBaseScrollView {
                 this.updateDirectionY(y, this._y);
             }
         }
-        this.emitOverscrollEvent(this._grabbing(), false);
+        if (this._isContainerAllowedForCorrection) {
+            this.emitOverscrollEvent(this._grabbing(), false);
+        }
         return null;
     }
 

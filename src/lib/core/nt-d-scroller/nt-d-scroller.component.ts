@@ -7,7 +7,7 @@ import {
 } from '../../common';
 import { NtBaseSliderComponent } from '../nt-base-slider/nt-base-slider.component';
 import { ISliderDragEvent } from '../nt-base-slider/interfaces';
-import { BOTTOM, LEFT_PROP_NAME, PX, RIGHT, TOP_PROP_NAME } from '../../common/const/base-prop-names';
+import { LEFT_PROP_NAME, PX, TOP_PROP_NAME } from '../../common/const/base-prop-names';
 import { IScrollToParams } from '../../common/interfaces/scroll-to-params';
 import { BEHAVIOR_INSTANT } from '../../common/const/behavior';
 import { ScrollBox } from '../../common/utils/scroll-box';
@@ -260,14 +260,14 @@ export class NtDScrollerComponent extends NtDScrollView {
 
     combineLatest([$overscrollEffectEvent, this.$resizeViewport]).pipe(
       takeUntilDestroyed(),
-      debounceTime(0),
       tap(([e, viewportBounds]) => {
-        const dx = e.dragX, dy = e.dragY, sx = viewportBounds.width !== 1 ? (dx !== 0 ? Math.pow((dx + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,
+        const contentBounds = this.contentBounds(),
+          dx = e.dragX, dy = e.dragY, sx = viewportBounds.width !== 1 ? (dx !== 0 ? Math.pow((dx + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,
           sy = viewportBounds.height !== 0 ? (dy !== 0 ? Math.pow((dy + viewportBounds.height) / viewportBounds.height, 0.1) : 1) : 1;
         this.wrapperClass.set({ [ANIMATED]: !e.grabbing });
         this.wrapperStyles.set({
           transform: matrix3d(0, 0, 0, sx > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sx, sy > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sy, 1, 0, 0, 0),
-          transformOrigin: `${e.positionX === 1 ? RIGHT : LEFT} ${e.positionY === 1 ? BOTTOM : TOP}`,
+          transformOrigin: `${e.positionX === 1 ? Math.max(contentBounds.width, viewportBounds.width) : 0}${PX} ${e.positionY === 1 ? Math.max(contentBounds.height, viewportBounds.height) : 0}${PX}`,
         });
       }),
     ).subscribe();

@@ -128,7 +128,8 @@ export class NtBaseSliderComponent extends NtSScrollView {
       $isVertical = toObservable(this.isVertical),
       $direction = toObservable(this.direction),
       $grabbing = toObservable(this._grabbing),
-      $overscrollEffectEvent = this.$overscrollEffectEvent,
+      overscrollService = this.getOverscrollService(),
+      $overscrollEffectEvent = !!overscrollService ? overscrollService.$effectEvent : this.$overscrollEffectEvent,
       $resizeViewport = this.$resizeViewport;
 
     let init = false;
@@ -140,6 +141,28 @@ export class NtBaseSliderComponent extends NtSScrollView {
         init = v;
       }),
     ).subscribe();
+
+    if (!!overscrollService) {
+      overscrollService.$event.pipe(
+        takeUntilDestroyed(),
+        tap(e => {
+          const parentScroller = this._service.parent?.scrollView;
+          if (!!parentScroller) {
+            parentScroller.setOverscrollEvent(e);
+          }
+        }),
+      ).subscribe();
+
+      overscrollService.$effectEvent.pipe(
+        takeUntilDestroyed(),
+        tap(e => {
+          const parentScroller = this._service.parent?.scrollView;
+          if (!!parentScroller) {
+            parentScroller.setOverscrollEffectEvent(e);
+          }
+        }),
+      ).subscribe();
+    }
 
     const $averageVelocity = this.$averageVelocity;
     combineLatest([$isVertical, $averageVelocity, $filter, $motionBlurEnabled, $motionBlur, $maxMotionBlur, $resizeViewport.pipe(

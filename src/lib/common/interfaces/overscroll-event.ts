@@ -29,4 +29,12 @@ export interface IOverscrollEvent {
      * Determines whether the ScrollView area is captured or not.
      */
     get grabbing(): boolean;
+
+    toObject: () => {
+        grabbing: boolean;
+        dragX: number;
+        dragY: number;
+        positionX: 0 | 1;
+        positionY: 0 | 1;
+    };
 }

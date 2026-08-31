@@ -269,6 +269,26 @@ export abstract class NtSBaseScrollView implements INtScroller<INtBaseScrollView
         return contentHeight < viewportHeight ? (isVertical ? startOffset : 0) : ((contentHeight + this.alignmentEndOffset()) - viewportHeight);
     }
 
+    protected _horizontalScrollRatioWhenGrabbing = 0;
+    get horizontalScrollRatioWhenGrabbing() { return this._horizontalScrollRatioWhenGrabbing; }
+    set horizontalScrollRatioWhenGrabbing(v: number) {
+        this._horizontalScrollRatioWhenGrabbing = v;
+        const parentScroller = this._service.parent?.scrollView;
+        if (!!parentScroller) {
+            parentScroller.horizontalScrollRatioWhenGrabbing = v;
+        }
+    }
+
+    protected _verticalScrollRatioWhenGrabbing = 0;
+    get verticalScrollRatioWhenGrabbing() { return this._verticalScrollRatioWhenGrabbing; }
+    set verticalScrollRatioWhenGrabbing(v: number) {
+        this._verticalScrollRatioWhenGrabbing = v;
+        const parentScroller = this._service.parent?.scrollView;
+        if (!!parentScroller) {
+            parentScroller.verticalScrollRatioWhenGrabbing = v;
+        }
+    }
+
     readonly viewportBounds = signal<ISize>({ width: 0, height: 0 });
 
     readonly contentBounds = signal<ISize>({ width: 0, height: 0 });
@@ -418,6 +438,8 @@ export abstract class NtSBaseScrollView implements INtScroller<INtBaseScrollView
     }
 
     abstract scroll(params: IScrollToParams): Array<number> | number | null;
+
+    getOverscrollService(): INtOverscrollService | null { return this._overscrollService; }
 
     setClientPositionOffset(x: number, y: number): void {
         if (this._moveIteration === 0) {
