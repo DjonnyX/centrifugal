@@ -315,13 +315,17 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
         return contentHeight < viewportHeight ? startOffset : ((contentHeight + this.alignmentBottomOffset()) - viewportHeight);
     }
 
+    protected _isContainerAllowedForCorrection: boolean = true;
+
     protected _horizontalScrollRatioWhenGrabbing = 0;
     get horizontalScrollRatioWhenGrabbing() { return this._horizontalScrollRatioWhenGrabbing; }
     set horizontalScrollRatioWhenGrabbing(v: number) {
         this._horizontalScrollRatioWhenGrabbing = v;
-        const parentScroller = this._service.parent?.scrollView;
-        if (!!parentScroller) {
-            parentScroller.horizontalScrollRatioWhenGrabbing = v;
+        if (!this._isContainerAllowedForCorrection) {
+            const parentScroller = this._service.parent?.scrollView;
+            if (!!parentScroller) {
+                parentScroller.horizontalScrollRatioWhenGrabbing = v;
+            }
         }
     }
 
@@ -329,9 +333,11 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
     get verticalScrollRatioWhenGrabbing() { return this._verticalScrollRatioWhenGrabbing; }
     set verticalScrollRatioWhenGrabbing(v: number) {
         this._verticalScrollRatioWhenGrabbing = v;
-        const parentScroller = this._service.parent?.scrollView;
-        if (!!parentScroller) {
-            parentScroller.verticalScrollRatioWhenGrabbing = v;
+        if (!this._isContainerAllowedForCorrection) {
+            const parentScroller = this._service.parent?.scrollView;
+            if (!!parentScroller) {
+                parentScroller.verticalScrollRatioWhenGrabbing = v;
+            }
         }
     }
 

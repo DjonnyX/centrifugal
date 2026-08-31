@@ -1430,7 +1430,7 @@ export class NtSScrollView extends NtSBaseScrollView {
                     const scrollHeight = Math.abs(this.scrollHeight - this.alignmentEndOffset()),
                         yy = Math.abs(this._y);
                     this._scrollRatio = scrollHeight !== 0 ? yy / scrollHeight : 0;
-                    if (userAction) {
+                    if (userAction && this.grabbing) {
                         this._scrollRatioWhenGrabbing = this._scrollRatio <= 0 ? 0 : 1;
                     }
                     this.emitScrollableEvent();
@@ -1444,7 +1444,7 @@ export class NtSScrollView extends NtSBaseScrollView {
                     const scrollWidth = Math.abs(this.scrollWidth - this.alignmentEndOffset()),
                         xx = Math.abs(this._x);
                     this._scrollRatio = scrollWidth !== 0 ? xx / scrollWidth : 0;
-                    if (userAction) {
+                    if (userAction && this.grabbing) {
                         this._scrollRatioWhenGrabbing = this._scrollRatio <= 0 ? 0 : 1;
                     }
                     this.emitScrollableEvent();
@@ -1468,7 +1468,9 @@ export class NtSScrollView extends NtSBaseScrollView {
                 });
             }
         }
-        this.emitOverscrollEvent(this._grabbing(), false);
+        if (this.grabbing) {
+            this.emitOverscrollEvent(this._grabbing(), false);
+        }
         return -1;
     }
 
