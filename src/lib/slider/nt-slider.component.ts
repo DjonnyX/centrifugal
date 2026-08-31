@@ -895,10 +895,9 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
       endOffset = this._precalculatedScrollEndOffset(),
       min = this.min(),
       max = this.max(),
-      preSize = isVertical ?
+      size = isVertical ?
         (bounds.height - (!isVertical ? bounds.height : minSize)) :
         (bounds.width - (isVertical ? bounds.width : minSize)),
-      size = preSize < minSize ? minSize : preSize,
       dist = (max - min),
       stepPX = size / dist;
 
