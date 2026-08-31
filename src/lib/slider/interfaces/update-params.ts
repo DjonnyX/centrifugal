@@ -1,4 +1,4 @@
-import { GradientColorPositions } from '../../../../../../src/app/types';
+import { GradientColorPositions } from "../../common";
 
 /**
  * IUpdateParams

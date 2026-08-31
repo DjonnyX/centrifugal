@@ -4,8 +4,8 @@ import {
 import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-    CONTROL_CONTAINER_SERVICE, Direction, Directions, IOverscrollEvent, ISize, OVERSCROLL_SERVICE, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE,
-    SCROLL_VIEW_TYPE, TextDirection, TextDirections,
+    CONTROL_CONTAINER_SERVICE, Direction, Directions, IOverscrollEvent, ISize, OVERSCROLL_SERVICE, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_INVERSION,
+    SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, TextDirection, TextDirections,
 } from '../../../../common';
 import { INtScroller } from '../../../../common/interfaces/nt-scroller';
 import { INtDScrollerService } from '../../interfaces';
@@ -315,6 +315,32 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
         return contentHeight < viewportHeight ? startOffset : ((contentHeight + this.alignmentBottomOffset()) - viewportHeight);
     }
 
+    protected _isContainerAllowedForCorrection: boolean = true;
+
+    protected _horizontalScrollRatioWhenGrabbing = 0;
+    get horizontalScrollRatioWhenGrabbing() { return this._horizontalScrollRatioWhenGrabbing; }
+    set horizontalScrollRatioWhenGrabbing(v: number) {
+        this._horizontalScrollRatioWhenGrabbing = v;
+        if (!this._isContainerAllowedForCorrection) {
+            const parentScroller = this._service.parent?.scrollView;
+            if (!!parentScroller) {
+                parentScroller.horizontalScrollRatioWhenGrabbing = v;
+            }
+        }
+    }
+
+    protected _verticalScrollRatioWhenGrabbing = 0;
+    get verticalScrollRatioWhenGrabbing() { return this._verticalScrollRatioWhenGrabbing; }
+    set verticalScrollRatioWhenGrabbing(v: number) {
+        this._verticalScrollRatioWhenGrabbing = v;
+        if (!this._isContainerAllowedForCorrection) {
+            const parentScroller = this._service.parent?.scrollView;
+            if (!!parentScroller) {
+                parentScroller.verticalScrollRatioWhenGrabbing = v;
+            }
+        }
+    }
+
     readonly viewportBounds = signal<ISize>({ width: 0, height: 0 });
 
     readonly contentBounds = signal<ISize>({ width: 0, height: 0 });
@@ -461,10 +487,30 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
 
     abstract scroll(params: IScrollToParams): Array<number> | null;
 
+    getOverscrollService(): INtOverscrollService | null { return this._overscrollService; }
+
     setClientPositionOffset(x: number, y: number): void {
         if (this._moveIteration === 0) {
             this._clientPositionOffsetX = x;
             this._clientPositionOffsetY = y;
+        }
+    }
+
+    setOverscrollEffectEvent(e: IOverscrollEvent): void {
+        const overscrollService = this.overscrollService();
+        if (!!overscrollService) {
+            overscrollService.emit(e, true);
+        } else {
+            this._$overscrollEffectEvent.next(e);
+        }
+    }
+
+    setOverscrollEvent(e: IOverscrollEvent): void {
+        const overscrollService = this.overscrollService();
+        if (!!overscrollService) {
+            overscrollService.emit(e, true);
+        } else {
+            this._$overscroll.next(e);
         }
     }
 }

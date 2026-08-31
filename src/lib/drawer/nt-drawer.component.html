@@ -6,19 +6,18 @@
 @let scrollRightOffset = _precalculatedScrollRightOffset();
 @let scrollTopOffset = _precalculatedScrollTopOffset();
 @let scrollBottomOffset = _precalculatedScrollBottomOffset();
-@let textDir = langTextDir();
 
 <div #container class="ntdc__container" [style.opacity]="($visible | async) ? 1 : 0">
   <nt-d-scroller #scroller class="ntdc__scroller" [classes]="classes()" [context]="this" [scrollable]="scrollable()"
-    [langTextDir]="textDir" [leftOffset]="scrollLeftOffset" [rightOffset]="scrollRightOffset"
-    [topOffset]="scrollTopOffset" [bottomOffset]="scrollBottomOffset" [direction]="direction()"
-    [scrollbarThumbRenderer]="scrollbarThumbRenderer()" [scrollbarThickness]="scrollbarThickness()"
-    [scrollbarThumbParams]="scrollbarThumbParams()" [animationParams]="animationParams()"
-    [focusedElement]="focusedElement()" [loading]="loading()" [overscrollEnabled]="overscrollEnabled()"
-    [overlappingScrollbar]="overlappingScrollbar()" [scrollbarEnabled]="scrollbarEnabled()"
-    [scrollbarInteractive]="scrollbarInteractive()" [scrollbarMinSize]="scrollbarMinSize()"
-    [scrollBehavior]="scrollBehavior()" [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()"
-    [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()" [snapToItem]="true"
+    langTextDir="ltr" [leftOffset]="scrollLeftOffset" [rightOffset]="scrollRightOffset" [topOffset]="scrollTopOffset"
+    [bottomOffset]="scrollBottomOffset" [direction]="direction()" [scrollbarThumbRenderer]="scrollbarThumbRenderer()"
+    [scrollbarThickness]="scrollbarThickness()" [scrollbarThumbParams]="scrollbarThumbParams()"
+    [animationParams]="animationParams()" [focusedElement]="focusedElement()" [loading]="loading()"
+    [overscrollEnabled]="overscrollEnabled()" [overlappingScrollbar]="overlappingScrollbar()"
+    [scrollbarEnabled]="scrollbarEnabled()" [scrollbarInteractive]="scrollbarInteractive()"
+    [scrollbarMinSize]="scrollbarMinSize()" [scrollBehavior]="scrollBehavior()"
+    [scrollingSettings]="scrollingSettings()" [motionBlur]="motionBlur()" [maxMotionBlur]="maxMotionBlur()"
+    [motionBlurEnabled]="motionBlurEnabled()" [snapToItem]="true"
     [overscrollAreaShowAutomatically]="overscrollAreaShowAutomatically()"
     [overscrollAreaUseOffsets]="overscrollAreaUseOffsets()"
     [overscrollAreaLeftEnabled]="overscrollAreaLeftEnabled() && dockLeftWidth > 0"
@@ -28,7 +27,8 @@
     [overscrollAreaLeftRenderer]="overscrollAreaLeftRenderer()"
     [overscrollAreaTopRenderer]="overscrollAreaTopRenderer()"
     [overscrollAreaRightRenderer]="overscrollAreaRightRenderer()"
-    [overscrollAreaBottomRenderer]="overscrollAreaBottomRenderer()" snapToItemAlign="start">
+    [overscrollAreaBottomRenderer]="overscrollAreaBottomRenderer()" [snappingDistance]="snappingDistance()"
+    snapToItemAlign="start">
     <ng-container #renderersContainer>
       @let bounds = _bounds();
       <nt-drawer-layout [backdrop]="backdrop()" [opened]="($opened | async)!" [scrollRatio]="($scrollRatio | async)!"

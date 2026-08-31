@@ -18,6 +18,10 @@ export interface INtBaseControlContainerService extends INtBaseScrollViewService
     get keyboardEnabled(): boolean;
     set keyboardEnabled(v: boolean);
 
+    readonly $currentScrollView: Observable<INtScroller<any> | null>;
+    get currentScrollView(): INtScroller<any> | null;
+    set currentScrollView(v: INtScroller<any> | null);
+
     readonly $input: Observable<KeyboardKeyValue | null>;
     get input(): KeyboardKeyValue | null;
 

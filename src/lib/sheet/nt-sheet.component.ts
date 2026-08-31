@@ -8,7 +8,7 @@ import {
     switchMap, take, tap,
 } from 'rxjs';
 import {
-    IAnimationParams, INtSheetService, INtSheetBreakpoints, ISheetPrecalculatedBreakpoints, ISheetPrecalculatedBreakpoint,
+    INtSheetAnimationParams, INtSheetService, INtSheetBreakpoints, ISheetPrecalculatedBreakpoints, ISheetPrecalculatedBreakpoint,
     INtSheetBreakpointInfo, INtSheetBreakpointEvent,
 } from './interfaces';
 import {
@@ -371,7 +371,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
     motionBlurEnabled = input<boolean>(DEFAULT_MOTION_BLUR_ENABLED, { ...this._motionBlurEnabledOptions });
 
     protected _animationParamsOptions = {
-        transform: (v: IAnimationParams) => {
+        transform: (v: INtSheetAnimationParams) => {
             const valid = validateObject(v, true, true);
             if (!valid) {
                 console.error('The "animationParams" parameter must be of type `object`.');
@@ -392,7 +392,7 @@ export class NtSheetComponent<S extends INtSheetService, P extends INtScrollView
     /**
      * Animation parameters. The default value is "{ fadeIn: 500, fadeOut: 500 }".
      */
-    animationParams = input<IAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
+    animationParams = input<INtSheetAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
 
     protected _overscrollEnabledOptions = {
         transform: (v: boolean) => {

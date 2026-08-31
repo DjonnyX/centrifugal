@@ -341,10 +341,19 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
                     this._$timer.next(0);
 
                     if (this.ntEmitNativeClick()) {
-                        const target = e.target as HTMLElement,
+                        let target = e.target as HTMLElement,
                             targetTagName = target.tagName.toLowerCase();
                         if (!!targetTagName) {
-                            if (targetTagName === ANCHOR) {
+                            let isAnchor = false, element: HTMLElement | null = target;
+                            while (!!element) {
+                                if (element?.tagName?.toLowerCase?.() === ANCHOR) {
+                                    isAnchor = true;
+                                    target = element;
+                                    break;
+                                }
+                                element = element?.parentElement ?? null;
+                            }
+                            if (isAnchor) {
                                 const aTarget = target as HTMLAnchorElement,
                                     url = String(aTarget.href),
                                     sanitizedUrl = this._sanitizer.sanitize(SecurityContext.URL, url);

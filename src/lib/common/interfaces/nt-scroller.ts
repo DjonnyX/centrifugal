@@ -5,6 +5,7 @@ import { INtBaseScrollViewService } from "./nt-base-scroll-view-service";
 import { INtBaseScrollView } from "./nt-base-scroll-view";
 import { Observable } from "rxjs";
 import { IOverscrollEvent } from "./overscroll-event";
+import { INtOverscrollService } from "./nt-overscroll-service";
 
 /**
  * INtScroller
@@ -47,6 +48,12 @@ export interface INtScroller<S extends INtBaseScrollViewService> {
 
     get scrollHeight(): number;
 
+    get horizontalScrollRatioWhenGrabbing(): number;
+    set horizontalScrollRatioWhenGrabbing(v: number);
+
+    get verticalScrollRatioWhenGrabbing(): number;
+    set verticalScrollRatioWhenGrabbing(v: number);
+
     readonly viewportBounds: Signal<ISize>;
 
     readonly contentBounds: Signal<ISize>;
@@ -61,5 +68,11 @@ export interface INtScroller<S extends INtBaseScrollViewService> {
 
     stopScrolling(force?: boolean): void;
 
+    getOverscrollService(): INtOverscrollService | null;
+
     setClientPositionOffset(x: number, y: number): void;
+
+    setOverscrollEffectEvent(e: IOverscrollEvent): void;
+
+    setOverscrollEvent(e: IOverscrollEvent): void;
 }

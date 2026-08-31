@@ -15,11 +15,8 @@
         position: absolute;
     }
 
-    .ntbs__slider-wrapper {
-        position: absolute;
-
-        /** For motion blur correction */
-        &.filtered {
+    .ntvs__scroller-wrapper {
+        &.animated {
             overflow: unset;
         }
     }

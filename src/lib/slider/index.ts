@@ -3,3 +3,4 @@
  */
 export * from './nt-slider.component';
 export * from './nt-slider.module';
+export * from './interfaces';

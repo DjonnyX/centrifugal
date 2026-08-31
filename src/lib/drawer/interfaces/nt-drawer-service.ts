@@ -1,6 +1,6 @@
 import { Observable } from "rxjs";
 import { Direction, Id, IRect, IScrollOptions, ISize } from "../../common";
-import { IAnimationParams, INtScrollViewService } from "../../scroll-view";
+import { INtScrollViewAnimationParams, INtScrollViewService } from "../../scroll-view";
 import { INtBaseScrollViewService } from "../../common/interfaces/nt-base-scroll-view-service";
 import { INtScroller } from "../../common/interfaces/nt-scroller";
 import { IDrawerBreakpoints } from "./drawer-breakpoints";
@@ -12,7 +12,7 @@ import { IDrawerBreakpoints } from "./drawer-breakpoints";
  * @email djonnyx@gmail.com
  */
 export interface INtDrawerService extends INtScrollViewService {
-    animationParams: IAnimationParams;
+    animationParams: INtScrollViewAnimationParams;
 
     direction: Direction;
 

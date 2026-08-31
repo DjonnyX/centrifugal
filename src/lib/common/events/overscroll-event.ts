@@ -31,4 +31,14 @@ export class OverscrollEvent implements IOverscrollEvent {
         this._positionX = positionX;
         this._positionY = positionY;
     }
+
+    toObject() {
+        return {
+            grabbing: this._grabbing,
+            dragX: this._dragX,
+            dragY: this._dragY,
+            positionX: this._positionX,
+            positionY: this._positionY,
+        }
+    }
 }

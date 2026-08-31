@@ -45,6 +45,17 @@ export class NtControlContainerService extends NtBaseScrollViewService implement
     return this._$keyboardEnabled.getValue();
   }
 
+  private _$currentScrollView = new BehaviorSubject<INtScroller<any> | null>(null);
+  readonly $currentScrollView = this._$currentScrollView.asObservable();
+  set currentScrollView(v: INtScroller<any> | null) {
+    if (this.currentScrollView !== v) {
+      this._$currentScrollView.next(v);
+    }
+  }
+  get currentScrollView() {
+    return this._$currentScrollView.getValue();
+  }
+
   private _$focusEcho = new Subject<{ element: HTMLElement, ngControl: NgControl | null, serviceId: number }>();
   readonly $focusEcho = this._$focusEcho.asObservable();
 

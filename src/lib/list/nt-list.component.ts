@@ -2662,6 +2662,13 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
       }),
     ).subscribe();
 
+    combineLatest([$precalculatedScrollStartOffset, $precalculatedScrollEndOffset]).pipe(
+      takeUntilDestroyed(),
+      tap(() => {
+        this.updateOffsetsByAllignment();
+      }),
+    ).subscribe();
+
     const update = (params: {
       alignment: Alignment; precalculatedScrollStartOffset: number; precalculatedScrollEndOffset: number; trackBy: string; isInfinity: boolean;
       snapScrollToStart: boolean, snapScrollToEnd: boolean; bounds: ISize; listBounds: ISize;

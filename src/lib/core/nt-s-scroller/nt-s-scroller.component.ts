@@ -10,7 +10,7 @@ import { IListScrollToParams } from '../../common/interfaces/list-scroll-to-para
 import { BEHAVIOR_INSTANT } from '../../common/const/behavior';
 import { ScrollBox } from '../../common/utils/scroll-box';
 import {
-  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED,
+  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MAX_OVERSCROLL_EFFECT_PX, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED,
   DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE,
   DEFAULT_SCROLLBAR_THICKNESS,
 } from '../../common/const/scroller';
@@ -209,14 +209,42 @@ export class NtSScrollerComponent extends NtSScrollView {
       }),
     ).subscribe();
 
+    if (!!overscrollService) {
+      overscrollService.$event.pipe(
+        takeUntilDestroyed(),
+        tap(e => {
+          const parentScroller = this._service.parent?.scrollView;
+          if (!!parentScroller) {
+            parentScroller.setOverscrollEvent(e);
+          }
+        }),
+      ).subscribe();
+
+      overscrollService.$effectEvent.pipe(
+        takeUntilDestroyed(),
+        tap(e => {
+          const parentScroller = this._service.parent?.scrollView;
+          if (!!parentScroller) {
+            parentScroller.setOverscrollEffectEvent(e);
+          }
+        }),
+      ).subscribe();
+    }
+
     combineLatest([$overscrollEffectEvent, this.$resizeViewport]).pipe(
       takeUntilDestroyed(),
+      debounceTime(0),
       tap(([e, viewportBounds]) => {
-        const dx = e.dragX, dy = e.dragY, sx = viewportBounds.width !== 1 ? (dx !== 0 ? Math.pow((dx + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,
-          sy = viewportBounds.height !== 0 ? (dy !== 0 ? Math.pow((dy + viewportBounds.height) / viewportBounds.height, 0.1) : 1) : 1;
+        const contentBounds = this.contentBounds(),
+          dx = e.dragX, dy = e.dragY, sx = viewportBounds.width !== 1 ? (dx !== 0 ? Math.pow((dx + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,
+          sy = viewportBounds.height !== 0 ? (dy !== 0 ? Math.pow((dy + viewportBounds.height) / viewportBounds.height, 0.1) : 1) : 1,
+          normalizedSx = sx > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sx,
+          normalizedSy = sy > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sy,
+          actualSx = contentBounds.width * normalizedSx > (contentBounds.width + DEFAULT_MAX_OVERSCROLL_EFFECT_PX) ? (contentBounds.width + DEFAULT_MAX_OVERSCROLL_EFFECT_PX) / contentBounds.width : normalizedSx,
+          actualSy = contentBounds.height * normalizedSy > (contentBounds.height + DEFAULT_MAX_OVERSCROLL_EFFECT_PX) ? (contentBounds.height + DEFAULT_MAX_OVERSCROLL_EFFECT_PX) / contentBounds.height : normalizedSy;
         this.wrapperClass.set({ [ANIMATED]: !e.grabbing });
         this.wrapperStyles.set({
-          transform: matrix3d(0, 0, 0, sx > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sx, sy > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sy, 1, 0, 0, 0),
+          transform: matrix3d(0, 0, 0, actualSx, actualSy, 1, 0, 0, 0),
           transformOrigin: `${e.positionX === 1 ? RIGHT : LEFT} ${e.positionY === 1 ? BOTTOM : TOP}`,
         });
       }),
