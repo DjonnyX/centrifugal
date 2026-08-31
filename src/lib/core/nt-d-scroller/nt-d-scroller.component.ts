@@ -7,21 +7,17 @@ import {
 } from '../../common';
 import { NtBaseSliderComponent } from '../nt-base-slider/nt-base-slider.component';
 import { ISliderDragEvent } from '../nt-base-slider/interfaces';
-import { LEFT_PROP_NAME, PX, TOP_PROP_NAME } from '../../common/const/base-prop-names';
+import { BOTTOM, LEFT, LEFT_PROP_NAME, PX, RIGHT, TOP, TOP_PROP_NAME } from '../../common/const/base-prop-names';
 import { IScrollToParams } from '../../common/interfaces/scroll-to-params';
 import { BEHAVIOR_INSTANT } from '../../common/const/behavior';
 import { ScrollBox } from '../../common/utils/scroll-box';
 import {
-  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MAX_OVERSCROLL_EFFECT_PX, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED,
-  DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, MOTION_BLUR,
+  DEFAULT_MAX_MOTION_BLUR, DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MAX_OVERSCROLL_EFFECT_PX, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED,
+  DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS, MOTION_BLUR,
 } from '../../common/const/scroller';
 import { ANIMATED } from '../../common/const/class-names';
 import { matrix3d } from '../../common/utils/matrix-3d';
-
-const TOP = 'top',
-  LEFT = 'left',
-  INSTANT = 'instant',
-  FULL_SIZE = 'full-size';
+import { FULL_SIZE } from './nt-d-scroll-view/const';
 
 /**
  * NtDScrollView
@@ -271,7 +267,7 @@ export class NtDScrollerComponent extends NtDScrollView {
         this.wrapperClass.set({ [ANIMATED]: !e.grabbing });
         this.wrapperStyles.set({
           transform: matrix3d(0, 0, 0, actualSx, actualSy, 1, 0, 0, 0),
-          transformOrigin: `${e.positionX === 1 ? Math.max(contentBounds.width, viewportBounds.width) : 0}${PX} ${e.positionY === 1 ? Math.max(contentBounds.height, viewportBounds.height) : 0}${PX}`,
+          transformOrigin: `${e.positionX === 1 ? RIGHT : LEFT} ${e.positionY === 1 ? BOTTOM : TOP}`,
         });
       }),
     ).subscribe();
@@ -660,7 +656,7 @@ export class NtDScrollerComponent extends NtDScrollView {
     });
 
     this.scrollTo({
-      [isVertical ? TOP : LEFT]: absolutePosition, behavior: INSTANT,
+      [isVertical ? TOP : LEFT]: absolutePosition, behavior: BEHAVIOR_INSTANT,
       blending: false, userAction: true, fireUpdate: true,
     });
     this.emitScrollableEvent();
