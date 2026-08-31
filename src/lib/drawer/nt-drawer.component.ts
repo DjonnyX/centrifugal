@@ -7,7 +7,7 @@ import {
 import { isPercentageValue, parseArithmeticExpression, validateBoolean, validateFloat } from "../common/utils";
 import { DEFAULT_BACKDROP, DEFAULT_DOCK_SIZE } from "./const";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { BehaviorSubject, combineLatest, debounceTime, filter, Subject, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, debounceTime, filter, startWith, Subject, switchMap, tap } from "rxjs";
 import { IDrawerBreakpoint, IDrawerBreakpoints, INtDrawerService } from "./interfaces";
 import { NtDrawerService } from './nt-drawer.service';
 import { DrawerDockPositions } from './enums';
@@ -295,10 +295,14 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
   protected $visible = this._$visible.asObservable();
 
   private _$opened = new BehaviorSubject<boolean>(false);
-  readonly $opened = this._$opened.asObservable();
+  $opened = this._$opened.asObservable();
 
   private _$open = new Subject<DrawerDockPosition | null>();
   protected $open = this._$open.asObservable();
+
+  private _$position = new BehaviorSubject<DrawerDockPosition | null>(null);
+  $position = this._$position.asObservable();
+  get position() { return this._$position.getValue(); }
 
   private _$scrollRatio = new BehaviorSubject<number>(0);
   protected $scrollRatio = this._$scrollRatio.asObservable();
@@ -444,6 +448,7 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
     $open.pipe(
       takeUntilDestroyed(),
       tap(v => {
+        this._$position.next(v);
         if (v !== null) {
           const params: IScrollOptions = { blending: false, behavior: this.scrollBehavior(), duration: this.animationParams().scrollToItem };
           switch (v) {
@@ -477,15 +482,74 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
       }),
     ).subscribe();
 
-    const $init = this.$initialized;
-    combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, $init]).pipe(
+    const $scroller = toObservable(this._scrollerComponent).pipe(
       takeUntilDestroyed(),
-      debounceTime(100),
-      filter(([, , v]) => !!v),
-      tap(([left, top]) => {
-        this.scrollTo({
-          x: left, y: top, behavior: BEHAVIOR_INSTANT, duration: 0, blending: false, snap: false,
-        });
+      filter(v => !!v),
+    ),
+      $contentResize = $scroller.pipe(
+        takeUntilDestroyed(),
+        switchMap(scroller => scroller.$resizeContent.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          startWith(null),
+        )),
+      ), $viewportResize = $scroller.pipe(
+        takeUntilDestroyed(),
+        switchMap(scroller => scroller.$resizeViewport.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          startWith(null),
+        )),
+      );
+
+    let resizing = false;
+    combineLatest([$contentResize, $viewportResize]).pipe(
+      takeUntilDestroyed(),
+      tap(() => {
+        resizing = true;
+      }),
+      debounceTime(250),
+      tap(() => {
+        resizing = false;
+      }),
+    ).subscribe();
+
+    const $init = this.$initialized;
+    combineLatest([$init, $contentResize, $viewportResize]).pipe(
+      takeUntilDestroyed(),
+      debounceTime(0),
+      filter(([v]) => !!v),
+      tap(() => {
+        this._scrollerComponent()?.stopScrolling?.();
+        const position = this.position;
+        if (position !== null) {
+          const params: IScrollOptions = { behavior: BEHAVIOR_INSTANT, duration: 0, blending: false, snap: false };
+          switch (position) {
+            case DrawerDockPositions.LEFT: {
+              params.x = 0;
+              params.y = this._precalculatedDockTopSize();
+              break;
+            }
+            case DrawerDockPositions.TOP: {
+              params.x = this._precalculatedDockLeftSize();
+              params.y = 0;
+              break;
+            }
+            case DrawerDockPositions.RIGHT: {
+              params.x = this._precalculatedDockLeftSize() + this._precalculatedDockRightSize() + (this._bounds()?.width ?? 0);
+              params.y = this._precalculatedDockTopSize();
+              break;
+            }
+            case DrawerDockPositions.BOTTOM: {
+              params.x = this._precalculatedDockLeftSize();
+              params.y = this._precalculatedDockTopSize() + this._precalculatedDockBottomSize() + (this._bounds()?.height ?? 0);
+              break;
+            }
+          }
+          this.scrollTo(params);
+        } else {
+          this.scrollTo({
+            x: this._precalculatedDockLeftSize(), y: this._precalculatedDockTopSize(), behavior: BEHAVIOR_INSTANT, duration: 0, blending: false, snap: false,
+          });
+        }
         this._$visible.next(true);
       }),
     ).subscribe();
@@ -508,6 +572,20 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
           sy = 1 - (dockBottomSize !== 0 ? ((scrollTop - dockTopSize) / dockBottomSize) : 0);
         } else {
           sy = 1;
+        }
+
+        if (!resizing) {
+          if (sx === 0 && dockLeftSize > 0 && scrollLeft === 0) {
+            this._$open.next(DrawerDockPositions.LEFT);
+          } else if (sx === 0 && dockRightSize > 0 && scrollLeft === this.scrollWidth) {
+            this._$open.next(DrawerDockPositions.RIGHT);
+          } else if (sy === 0 && dockTopSize > 0 && scrollTop === 0) {
+            this._$open.next(DrawerDockPositions.TOP);
+          } else if (sy === 0 && dockBottomSize > 0 && scrollTop === this.scrollHeight) {
+            this._$open.next(DrawerDockPositions.BOTTOM);
+          } else if (sx === 1 && sy === 1) {
+            this._$open.next(null);
+          }
         }
 
         this._$opened.next(sx !== 1 || sy !== 1);
