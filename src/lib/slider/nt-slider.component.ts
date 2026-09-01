@@ -527,6 +527,8 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
 
   protected _inputValue = signal<number>(0);
 
+  protected _actualValue = signal<number>(0);
+
   protected _size = signal<number>(DEFAULT_SIZE);
 
   protected _$init = new BehaviorSubject<boolean>(false);
@@ -589,7 +591,7 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         takeUntilDestroyed(),
         debounceTime(250),
       ),
-      $value = toObservable(this._inputValue),
+      $value = toObservable(this._actualValue),
       $max = toObservable(this.max),
       $min = toObservable(this.min),
       $step = toObservable(this.step);
@@ -632,7 +634,7 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         }
         const isVertical = this._isVertical();
         if (resizing) {
-          const { position } = this.calculateSliderParams(this._inputValue())!;
+          const { position } = this.calculateSliderParams(this._actualValue())!;
           baseSlider!.stopScrolling(true);
           baseSlider!.scroll({
             [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: position,
@@ -686,6 +688,12 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
     ).subscribe();
 
     const $inputValue = toObservable(this.value);
+    $inputValue.pipe(
+      takeUntilDestroyed(),
+      tap(v => {
+        this._actualValue.set(v);
+      }),
+    ).subscribe();
 
     this._snapToItem = computed(() => {
       const step = this.step();
@@ -772,6 +780,7 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         tap(userAction => {
           if (!resizing && userAction) {
             this.setupValue();
+            this._actualValue.set(this._inputValue());
           }
         }),
         debounceTime(1),
@@ -857,6 +866,7 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
     this.updateBreakpoints();
     this.update(this.value(), false, true);
     this._inputValue.set(this.value());
+    this._actualValue.set(this.value());
     this._$init.next(true);
   }
 
