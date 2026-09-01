@@ -1,4 +1,4 @@
-import { ISliderDragEvent } from './scrollbar-drag-data';
+import { ISliderDragEvent } from './slider-drag-data';
 import { ISliderTemplateContext } from './slider-template-context';
 
 export type {
