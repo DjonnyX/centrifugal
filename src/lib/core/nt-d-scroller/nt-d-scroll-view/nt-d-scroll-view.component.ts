@@ -559,8 +559,8 @@ export class NtDScrollView extends NtDBaseScrollView {
                                         this._scrollDirectionValueY += absScrollDeltaY;
                                         dragDeltaX += absScrollDeltaX;
                                         dragDeltaY += absScrollDeltaY;
-                                        const dx = (currentPosX ?? 0) - startClientPosX,
-                                            dy = (currentPosY ?? 0) - startClientPosY,
+                                        const dx = currentPosX === null ? 0 : currentPosX - startClientPosX,
+                                            dy = currentPosY === null ? 0 : currentPosY - startClientPosY,
                                             dragX = this._inversion ? (dx >= 0 ? (dx - (this.scrollWidth - this.alignmentRightOffset()) + this._startPositionX) : (dx + this._startPositionX)) : (dx >= 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - (this.scrollWidth - this.alignmentRightOffset())))),
                                             dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentBottomOffset()) + this._startPositionY) : (dy + this._startPositionY)) : (dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentBottomOffset()))));
                                         this._dragX = Math.abs(dragX);
@@ -809,8 +809,8 @@ export class NtDScrollView extends NtDBaseScrollView {
                                         this._scrollDirectionValueY += absScrollDeltaY;
                                         dragDeltaX += absScrollDeltaX;
                                         dragDeltaY += absScrollDeltaY;
-                                        const dx = (currentPosX ?? 0) - startClientPosX,
-                                            dy = (currentPosY ?? 0) - startClientPosY,
+                                        const dx = currentPosX === null ? 0 : currentPosX - startClientPosX,
+                                            dy = currentPosY === null ? 0 : currentPosY - startClientPosY,
                                             dragX = this._inversion ? (dx >= 0 ? (dx - (this.scrollWidth - this.alignmentRightOffset()) + this._startPositionX) : (dx + this._startPositionX)) : (dx >= 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - (this.scrollWidth - this.alignmentRightOffset())))),
                                             dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentBottomOffset()) + this._startPositionY) : (dy + this._startPositionY)) : (dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentBottomOffset()))));
                                         this._dragX = Math.abs(dragX);

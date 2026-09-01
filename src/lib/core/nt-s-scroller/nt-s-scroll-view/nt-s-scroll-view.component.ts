@@ -139,11 +139,15 @@ export class NtSScrollView extends NtSBaseScrollView {
 
     protected _horizontalAxisInvertion: Signal<boolean>;
 
-    protected _scrollRatio: number = 0;
-    get scrollRatio() { return this._scrollRatio; }
+    protected _horizontalAxleLock: boolean = false;
 
-    protected _scrollRatioWhenGrabbing: number = 0;
-    get scrollRatioWhenGrabbing() { return this._scrollRatioWhenGrabbing; }
+    protected _verticalAxleLock: boolean = false;
+
+    protected _horizontalScrollRatio = 0;
+    get horizontalScrollRatio() { return this._horizontalScrollRatio; }
+
+    protected _verticalScrollRatio = 0;
+    get verticalScrollRatio() { return this._verticalScrollRatio; }
 
     get inverted() { return this._horizontalAxisInvertion(); }
 
@@ -331,9 +335,10 @@ export class NtSScrollView extends NtSBaseScrollView {
                                 delta = isVertical ? e.deltaY : (e.deltaX * (this._horizontalAxisInvertion() ? -1 : 1)), dp = (startPos + delta),
                                 dragX = !isVertical ? delta : 0,
                                 dragY = isVertical ? delta : 0;
-                            this._dragX += !isVertical && this.scrollable && (this._x <= 0 || this._x >= this.scrollWidth) ? Math.abs(dragX) : 0;
-                            this._dragY += isVertical && this.scrollable && (this._y <= 0 || this._y >= this.scrollHeight) ? Math.abs(dragY) : 0;
-                            this._scrollRatioWhenGrabbing = Math.sign(-(isVertical ? dragY : dragX)) < 0 ? 1 : 0;
+                            this._dragX += (this._x <= 0 || this._x >= this.scrollWidth) ? Math.abs(dragX) : 0;
+                            this._dragY += (this._y <= 0 || this._y >= this.scrollHeight) ? Math.abs(dragY) : 0;
+                            this.horizontalScrollRatioWhenGrabbing = Math.sign(-dragX) < 0 ? 1 : 0;
+                            this.verticalScrollRatioWhenGrabbing = Math.sign(-dragY) < 0 ? 1 : 0;
                             this.checkOverscroll(e, true);
                             const position = this.isInfinity() ? dp : (dp < 0 ? 0 : dp > scrollSize ? scrollSize : dp);
                             this.scroll({ [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: position, behavior: BEHAVIOR_INSTANT, userAction: true, blending: false, fireUpdate: true });
@@ -413,6 +418,7 @@ export class NtSScrollView extends NtSBaseScrollView {
                             switchMap(e => {
                                 mouseCanceled = false;
                                 this._moveIteration = 0;
+                                this._horizontalAxleLock = this._verticalAxleLock = false;
                                 this._clientPositionOffsetX = this._clientPositionOffsetY = 0;
                                 this._overscrollStartIteration = 0;
                                 this._service.overscroll = { x: false, y: false };
@@ -454,29 +460,42 @@ export class NtSScrollView extends NtSBaseScrollView {
                                                 startClientPosY -= this._clientPositionOffsetY;
                                             }
                                         }
-                                        const { position: positionX, currentPos: currentPosX, endTime, scrollDelta: scrollDeltaX } =
+                                        const { position: posX, currentPos: currentPosX, endTime, scrollDelta: scrollDeltaX } =
                                             this.calculatePosition(false, true, this._horizontalAxisInvertion(), e, inversion, startClientPosX, startTime, prevClientPositionX, offsetsX, velocitiesX),
-                                            { position: positionY, currentPos: currentPosY, scrollDelta: scrollDeltaY } =
-                                                this.calculatePosition(true, true, false, e, inversion, startClientPosY, startTime, prevClientPositionY, offsetsY, velocitiesY),
-                                            position = isVertical ? positionY : positionX;
-
+                                            { position: posY, currentPos: currentPosY, scrollDelta: scrollDeltaY } =
+                                                this.calculatePosition(true, true, false, e, inversion, startClientPosY, startTime, prevClientPositionY, offsetsY, velocitiesY);
+                                        let positionX = posX, positionY = posY;
                                         this._moveIteration++;
                                         const parentScroller = this._service.parent?.scrollView;
                                         if (isContainerAllowedForCorrection && !!parentScroller) {
                                             parentScroller.setClientPositionOffset(!isVertical && this.scrollable ? (startClientPosX - (currentPosX ?? 0)) : 0, isVertical && this.scrollable ? (startClientPosY - (currentPosY ?? 0)) : 0);
                                         }
-
                                         prevClientPositionX = currentPosX;
                                         prevClientPositionY = currentPosY;
                                         this._scrollDirectionValueX += Math.abs(scrollDeltaX);
                                         this._scrollDirectionValueY += Math.abs(scrollDeltaY);
-                                        const dx = (currentPosX ?? 0) - startClientPosX,
-                                            dy = (currentPosY ?? 0) - startClientPosY,
+                                        const dx = currentPosX === null ? 0 : currentPosX - startClientPosX,
+                                            dy = currentPosY === null ? 0 : currentPosY - startClientPosY,
                                             dragX = this._inversion ? (dx >= 0 ? (dx - (this.scrollWidth - this.alignmentEndOffset()) + this._startPositionX) : (dx + this._startPositionX)) : (dx >= 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - (this.scrollWidth - this.alignmentEndOffset())))),
                                             dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentEndOffset()) + this._startPositionY) : (dy + this._startPositionY)) : (dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentEndOffset()))));
-                                        this._dragX = !isVertical && this.scrollable ? Math.abs(dragX) : 0;
-                                        this._dragY = isVertical && this.scrollable ? Math.abs(dragY) : 0;
-                                        this._scrollRatioWhenGrabbing = isVertical ? (Math.sign(dragY) < 0 ? 1 : 0) : (Math.sign(dragX) < 0 ? 1 : 0);
+                                        this._dragX = Math.abs(dragX);
+                                        this._dragY = Math.abs(dragY);
+                                        this.horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
+                                        this.verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
+                                        if (this._axleLock) {
+                                            this._horizontalAxleLock = this._horizontalAxleLock || this._scrollDirectionValueX < this._scrollDirectionValueY;
+                                            this._verticalAxleLock = this._verticalAxleLock || this._scrollDirectionValueY < this._scrollDirectionValueX;
+                                            if (this._horizontalAxleLock) {
+                                                this._dragX = 0;
+                                                this._scrollDirectionValueX = 0;
+                                                positionX = this._startPositionX;
+                                            } else if (this._verticalAxleLock) {
+                                                this._dragY = 0;
+                                                this._scrollDirectionValueY = 0;
+                                                positionY = this._startPositionY;
+                                            }
+                                        }
+                                        const position = isVertical ? positionY : positionX;
                                         this.checkOverscroll(e);
                                         this.move(isVertical, position, true, true, true);
                                         if (this.isInfinity()) {
@@ -605,6 +624,7 @@ export class NtSScrollView extends NtSBaseScrollView {
                             switchMap(e => {
                                 touchCanceled = false;
                                 this._moveIteration = 0;
+                                this._horizontalAxleLock = this._verticalAxleLock = false;
                                 this._clientPositionOffsetX = this._clientPositionOffsetY = 0;
                                 this._overscrollStartIteration = 0;
                                 this._service.overscroll = { x: false, y: false };
@@ -659,29 +679,42 @@ export class NtSScrollView extends NtSBaseScrollView {
                                                 startClientPosY -= this._clientPositionOffsetY;
                                             }
                                         }
-                                        const { position: positionX, currentPos: currentPosX, endTime, scrollDelta: scrollDeltaX } =
+                                        const { position: posX, currentPos: currentPosX, endTime, scrollDelta: scrollDeltaX } =
                                             this.calculatePosition(false, true, this._horizontalAxisInvertion(), e, inversion, startClientPosX, startTime, prevClientPositionX, offsetsX, velocitiesX, this._touchId),
-                                            { position: positionY, currentPos: currentPosY, scrollDelta: scrollDeltaY } =
-                                                this.calculatePosition(true, true, false, e, inversion, startClientPosY, startTime, prevClientPositionY, offsetsY, velocitiesY, this._touchId),
-                                            position = isVertical ? positionY : positionX;
-
+                                            { position: posY, currentPos: currentPosY, scrollDelta: scrollDeltaY } =
+                                                this.calculatePosition(true, true, false, e, inversion, startClientPosY, startTime, prevClientPositionY, offsetsY, velocitiesY, this._touchId);
+                                        let positionX = posX, positionY = posY;
                                         this._moveIteration++;
                                         const parentScroller = this._service.parent?.scrollView;
                                         if (isContainerAllowedForCorrection && !!parentScroller) {
                                             parentScroller.setClientPositionOffset(!isVertical && this.scrollable ? (startClientPosX - (currentPosX ?? 0)) : 0, isVertical && this.scrollable ? (startClientPosY - (currentPosY ?? 0)) : 0);
                                         }
-
                                         prevClientPositionX = currentPosX;
                                         prevClientPositionY = currentPosY;
                                         this._scrollDirectionValueX += Math.abs(scrollDeltaX);
                                         this._scrollDirectionValueY += Math.abs(scrollDeltaY);
-                                        const dx = (currentPosX ?? 0) - startClientPosX,
-                                            dy = (currentPosY ?? 0) - startClientPosY,
+                                        const dx = currentPosX === null ? 0 : currentPosX - startClientPosX,
+                                            dy = currentPosY === null ? 0 : currentPosY - startClientPosY,
                                             dragX = this._inversion ? (dx >= 0 ? (dx - (this.scrollWidth - this.alignmentEndOffset()) + this._startPositionX) : (dx + this._startPositionX)) : (dx >= 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - (this.scrollWidth - this.alignmentEndOffset())))),
                                             dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentEndOffset()) + this._startPositionY) : (dy + this._startPositionY)) : (dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentEndOffset()))));
-                                        this._dragX = !isVertical && this.scrollable ? Math.abs(dragX) : 0;
-                                        this._dragY = isVertical && this.scrollable ? Math.abs(dragY) : 0;
-                                        this._scrollRatioWhenGrabbing = isVertical ? (Math.sign(dragY) < 0 ? 1 : 0) : (Math.sign(dragX) < 0 ? 1 : 0);
+                                        this._dragX = Math.abs(dragX);
+                                        this._dragY = Math.abs(dragY);
+                                        this.horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
+                                        this.verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
+                                        if (this._axleLock) {
+                                            this._horizontalAxleLock = this._horizontalAxleLock || this._scrollDirectionValueX < this._scrollDirectionValueY;
+                                            this._verticalAxleLock = this._verticalAxleLock || this._scrollDirectionValueY < this._scrollDirectionValueX;
+                                            if (this._horizontalAxleLock) {
+                                                this._dragX = 0;
+                                                this._scrollDirectionValueX = 0;
+                                                positionX = this._startPositionX;
+                                            } else if (this._verticalAxleLock) {
+                                                this._dragY = 0;
+                                                this._scrollDirectionValueY = 0;
+                                                positionY = this._startPositionY;
+                                            }
+                                        }
+                                        const position = isVertical ? positionY : positionX;
                                         this.checkOverscroll(e);
                                         this.move(isVertical, position, true, true, true);
                                         if (this.isInfinity()) {
@@ -918,12 +951,12 @@ export class NtSScrollView extends NtSBaseScrollView {
     }
 
     private createOverflowEvent(grabbing: boolean, exp: number = DEFAULT_TRANSITION_EXPONENT) {
-        const bounds = this.viewportBounds(), isVertical = this.isVertical(), event = new OverscrollEvent({
+        const bounds = this.viewportBounds(), event = new OverscrollEvent({
             grabbing,
-            dragX: transitionExponent(this.scrollRatio <= 0 || this.scrollRatio >= 1 ? this._dragX : 0, bounds.width, exp),
-            dragY: transitionExponent(this.scrollRatio <= 0 || this.scrollRatio >= 1 ? this._dragY : 0, bounds.height, exp),
-            positionX: ((isVertical ? 0 : (this.langTextDir() === TextDirections.LTR ? (this._scrollRatioWhenGrabbing === 1 ? 1 : 0) : (this._scrollRatioWhenGrabbing === 1 ? 0 : 1)))),
-            positionY: ((isVertical ? (this._scrollRatioWhenGrabbing === 1 ? 1 : 0) : 0)),
+            dragX: transitionExponent(this._horizontalScrollRatio <= 0 || this._horizontalScrollRatio >= 1 ? this._dragX : 0, bounds.width, exp),
+            dragY: transitionExponent(this._verticalScrollRatio <= 0 || this._verticalScrollRatio >= 1 ? this._dragY : 0, bounds.height, exp),
+            positionX: ((this.langTextDir() === TextDirections.LTR ? (this.horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0) : (this.horizontalScrollRatioWhenGrabbing === 1 ? 0 : 1))),
+            positionY: (this.verticalScrollRatioWhenGrabbing === 1 ? 1 : 0),
         });
         return event;
     }
@@ -1088,17 +1121,21 @@ export class NtSScrollView extends NtSBaseScrollView {
                 }
                 if (!!overflowTime && ((time - overflowTime) < OVERSCROLL_EFFECT_TIME)) {
                     overscrollEffectCanceled = 0;
-                    const dv = value,
-                        scrollable = this.scrollable,
+                    const dv = value!,
                         dragV = dv < 0 ? dv : (dv - scrollSize),
-                        normalizedDrag = scrollable ? Math.abs(dragV) : 0,
-                        dragSign = scrollable ? Math.sign(dragV) : 0,
-                        pos = (this._inversion ? dragSign <= 0 : dragSign > 0) ? 1 : 0;
-                    this._scrollRatioWhenGrabbing = pos;
+                        normalizedDrag = Math.abs(dragV),
+                        dragSign = Math.sign(dragV),
+                        pos = dragSign > 0 ? 1 : 0;
                     if (isVertical) {
                         this._dragY = normalizedDrag;
+                        if (this.scrollable) {
+                            this.verticalScrollRatioWhenGrabbing = pos;
+                        }
                     } else {
                         this._dragX = normalizedDrag;
+                        if (this.scrollable) {
+                            this.horizontalScrollRatioWhenGrabbing = pos;
+                        }
                     }
                     this.emitOverscrollEffectEvent(userAction);
                 } else if (overscrollEffectCanceled === 0) {
@@ -1429,9 +1466,11 @@ export class NtSScrollView extends NtSBaseScrollView {
                     this.setY(y, snap, normalize);
                     const scrollHeight = Math.abs(this.scrollHeight - this.alignmentEndOffset()),
                         yy = Math.abs(this._y);
-                    this._scrollRatio = scrollHeight !== 0 ? yy / scrollHeight : 0;
-                    if (userAction && this.grabbing) {
-                        this._scrollRatioWhenGrabbing = this._scrollRatio <= 0 ? 0 : 1;
+                    this._verticalScrollRatio = scrollHeight !== 0 ? yy / scrollHeight : 0;
+                    if (userAction) {
+                        if (this.grabbing && this.scrollable) {
+                            this.verticalScrollRatioWhenGrabbing = this._verticalScrollRatio <= 0 ? 0 : 1;
+                        }
                     }
                     this.emitScrollableEvent();
                     if (fireUpdate) {
@@ -1443,9 +1482,11 @@ export class NtSScrollView extends NtSBaseScrollView {
                     this.setX(x, snap, normalize);
                     const scrollWidth = Math.abs(this.scrollWidth - this.alignmentEndOffset()),
                         xx = Math.abs(this._x);
-                    this._scrollRatio = scrollWidth !== 0 ? xx / scrollWidth : 0;
-                    if (userAction && this.grabbing) {
-                        this._scrollRatioWhenGrabbing = this._scrollRatio <= 0 ? 0 : 1;
+                    this._horizontalScrollRatio = scrollWidth !== 0 ? (xx / scrollWidth) : 0;
+                    if (userAction) {
+                        if (this.grabbing && this.scrollable) {
+                            this.horizontalScrollRatioWhenGrabbing = this._horizontalScrollRatio <= 0 ? 0 : 1;
+                        }
                     }
                     this.emitScrollableEvent();
                     if (fireUpdate) {

@@ -1562,7 +1562,7 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
       tap(component => {
         this._service.initialize(this._id, component, this._parentService, this._trackBox);
       }),
-    ).subscribe()
+    ).subscribe();
 
     if (!!this._parentService) {
       this._parentService.$scrollable.pipe(

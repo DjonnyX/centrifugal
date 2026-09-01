@@ -34,3 +34,5 @@ export const DEFAULT_SNAP_TO_ITEM_ALIGN: SnapToItemAlign = SnapToItemAligns.STAR
 export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '25%';
 
 export const EXCLUDED_CONTAINERS = [ScrollerTypes.CONTROL_CONTAINER, ScrollerTypes.DRAWER];
+
+export const FULL_SIZE = 'full-size';

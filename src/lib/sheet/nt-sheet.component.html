@@ -19,7 +19,7 @@
   (onRightOverscrollAreaTrigger)="onRightOverscrollAreaTrigger.emit($event)"
   (onBottomOverscrollAreaTrigger)="onBottomOverscrollAreaTrigger.emit($event)"
   (onOverscroll)="onOverscroll.emit($event)">
-  <div class="ntvsh__overlay" part="nt-sheet-overlay" [ngClass]="overlayClasses()" [ngStyle]="overlayStyles()">
+  <div ntControl class="ntvsh__overlay" part="nt-sheet-overlay" [ngClass]="overlayClasses()" [ngStyle]="overlayStyles()" (onVirtualClick)="onBackdropHandler()">
     <div class="ntvsh__content" part="nt-sheet-content" [ngClass]="contentClasses()" [ngStyle]="contentStyles()">
       <ng-content></ng-content>
     </div>
