@@ -1,9 +1,9 @@
 import {
-  Component, computed, DestroyRef, effect, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild, ViewEncapsulation,
+  Component, computed, DestroyRef, effect, inject, input, output, Signal, signal, TemplateRef, viewChild, ViewEncapsulation,
 } from "@angular/core";
 import {
-  ArithmeticExpression, Directions, GradientColorPositions, Id, IScrollingSettings, ISize, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO,
-  SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SnappingDistance, TextDirection, TextDirections,
+  ArithmeticExpression, Directions, GradientColorPositions, Id, IScrollingSettings, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_INVERSION,
+  SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SnappingDistance, TextDirection, TextDirections,
 } from "../common";
 import { DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_SIZE, DEFAULT_THUMB_SIZE } from "./const";
 import { DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLBAR_INTERACTIVE } from "../common/const/scroller";
@@ -25,7 +25,7 @@ import { ISliderDragEvent, NtBaseSliderComponent, NtBaseSliderPublicService, NtB
 import { SDirection } from "../core/nt-s-scroller/types";
 import { INtOverscrollService } from "../common/interfaces/nt-overscroll-service";
 import { IUpdateParams } from './interfaces';
-import { INtScrollViewService } from "../scroll-view";
+import { INtScrollViewAnimationParams, INtScrollViewService } from "../scroll-view";
 import { NtBaseComponent } from "../common/components/nt-base-component";
 
 /**
@@ -397,6 +397,10 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         console.error('The "scroll" parameter must be of type `number`.');
         return DEFAULT_ANIMATION_PARAMS;
       }
+      if (!validateFloat(v.snapByDivision)) {
+        console.error('The "snapByDivision" parameter must be of type `number`.');
+        return DEFAULT_ANIMATION_PARAMS;
+      }
       if (!valid) {
         console.error('The "animationParams" parameter must be of type `object`.');
         return DEFAULT_ANIMATION_PARAMS;
@@ -406,7 +410,7 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
   } as any;
 
   /**
-   * Animation parameters. The default value is "{ scroll: 500 }".
+   * Animation parameters. The default value is "{ scroll: 500, snapByDivision: 250 }".
    */
   animationParams = input<INtSliderAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
 
@@ -427,6 +431,74 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
    * The default value is `25%`.
    */
   snappingDistance = input<SnappingDistance>(DEFAULT_SNAPPING_DISTANCE, { ...this._snappingDistanceOptions });
+
+  protected _overscrollAreaLeftRendererOptions = {
+    transform: (v: TemplateRef<any> | null) => {
+      const valid = validateObject(v, true, true);
+
+      if (!valid) {
+        console.error('The "overscrollAreaLeftRenderer" parameter must be of type `TemplateRef<any>`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Specifies a custom template for the left overscroll area.
+   */
+  overscrollAreaLeftRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollAreaLeftRendererOptions });
+
+  protected _overscrollAreaTopRendererOptions = {
+    transform: (v: TemplateRef<any> | null) => {
+      const valid = validateObject(v, true, true);
+
+      if (!valid) {
+        console.error('The "overscrollAreaTopRenderer" parameter must be of type `TemplateRef<any>`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Specifies a custom template for the top overscroll area.
+   */
+  overscrollAreaTopRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollAreaTopRendererOptions });
+
+  protected _overscrollAreaRightRendererOptions = {
+    transform: (v: TemplateRef<any> | null) => {
+      const valid = validateObject(v, true, true);
+
+      if (!valid) {
+        console.error('The "overscrollAreaRightRenderer" parameter must be of type `TemplateRef<any>`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Specifies a custom template for the right overscroll area.
+   */
+  overscrollAreaRightRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollAreaRightRendererOptions });
+
+  protected _overscrollAreaBottomRendererOptions = {
+    transform: (v: TemplateRef<any> | null) => {
+      const valid = validateObject(v, true, true);
+
+      if (!valid) {
+        console.error('The "overscrollAreaBottomRenderer" parameter must be of type `TemplateRef<any>`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Specifies a custom template for the bottom overscroll area.
+   */
+  overscrollAreaBottomRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollAreaBottomRendererOptions });
 
   protected _langTextDirOptions = {
     transform: (v: TextDirection) => {
@@ -517,6 +589,8 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
 
   protected _thickness = signal<number>(20);
 
+  protected _animationParams: Signal<INtScrollViewAnimationParams>;
+
   protected _precalculatedThumbSize = signal<number>(0);
 
   protected _precalculatedScrollStartOffset = signal<number>(0);
@@ -602,6 +676,14 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         isVertical ? Directions.VERTICAL : Directions.HORIZONTAL,
         [isVertical ? Directions.HORIZONTAL : Directions.VERTICAL]
       );
+    });
+
+    this._animationParams = computed(() => {
+      const { scroll, snapByDivision } = this.animationParams();
+      return {
+        scrollToItem: scroll,
+        snapToItem: snapByDivision,
+      };
     });
 
     let init = false;

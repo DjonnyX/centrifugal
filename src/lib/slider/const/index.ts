@@ -10,6 +10,7 @@ export const DEFAULT_OVERSCROLL_ENABLED = false;
 
 export const DEFAULT_ANIMATION_PARAMS: INtSliderAnimationParams = {
     scroll: 500,
+    snapByDivision: 250,
 };
 
 export const DEFAULT_SCROLLING_SETTINGS: IScrollingSettings = {
