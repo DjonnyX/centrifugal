@@ -457,7 +457,7 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
   } as any;
 
   /**
-   * Thumb slider size.
+   * Slider thumb size.
    * Can be specified in absolute or percentage values.
    * Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0".
    * Default value is `25%`.
