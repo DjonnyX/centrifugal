@@ -12,10 +12,10 @@
         </div>
     </nt-scroll-view>
     <nt-slider #slider class="ntsw__switch-slider" style="position: absolute;" part="nt-switch-slider"
-        [thumbAnimationDuration]="thumbAnimationDuration()" [langTextDir]="langTextDir()" [thumbSize]="_thumbSize()"
-        [overscrollService]="_overscrollService" [renderer]="renderer()" [params]="params()" [overscrollEnabled]="false"
-        [interactive]="interactive()" [style.width.px]="container.offsetWidth"
-        [style.height.px]="container.offsetHeight" [direction]="dir" [min]="0" [max]="1" [step]="1"
-        [value]="_sliderValue()" (onVirtualClick)="onVirtualClickHandler($event)"
+        [thumbAnimationDuration]="thumbAnimationDuration()" [langTextDir]="langTextDir()"
+        [thumbSize]="_precalculatedThumbSize()" [overscrollService]="_overscrollService" [renderer]="renderer()"
+        [params]="params()" [overscrollEnabled]="false" [interactive]="interactive()"
+        [style.width.px]="container.offsetWidth" [style.height.px]="container.offsetHeight" [direction]="dir" [min]="0"
+        [max]="1" [step]="1" [value]="_sliderValue()" (onVirtualClick)="onVirtualClickHandler($event)"
         (onChange)="onChangeHandler($event)" />
 </div>

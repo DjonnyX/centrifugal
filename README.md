@@ -435,7 +435,7 @@ Inputs
 | scrollingSettings | [IScrollingSettings](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/scrolling-settings.ts) = { frictionalForce: 0.035, mass: 0.005, maxDistance: 100000, maxDuration: 4000, speedScale: 10, breakpointStoppingFactor: 10, optimization: false } | Scrolling settings. - frictionalForce - Frictional force. Default value is 0.035. - mass - Mass. Default value is 0.005. - maxDistance - Maximum scrolling distance. Default value is 100000. - maxDuration - Maximum animation duration. Default value is 4000. - speedScale - Speed scale. Default value is 10. - breakpointStoppingFactor - Default value is 10. - optimization - Enables scrolling performance optimization. Default value is `true`. |
 | animationParams | [INtSliderAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/slider/interfaces/nt-slider-animation-params.ts) = { scroll: 500 } | Animation parameters. The default value is "{ scroll: 500 }". |
 | snappingDistance | [SnappingDistance](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/snapping-distance.ts) = '25%' | Snapping activation distance. Can be specified as a percentage of the element size or in absolute values. The default value is `25%`. |
-| thumbSize | [ArithmeticExpression](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/arithmetic-expression.ts) = '25%' | Thumb slider size. Can be specified in absolute or percentage values. Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0". Default value is `25%`. | 
+| thumbSize | [ArithmeticExpression](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/arithmetic-expression.ts) = '25%' | Slider thumb size. Can be specified in absolute or percentage values. Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0". Default value is `25%`. | 
 | langTextDir | [TextDirection](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/text-direction.ts) | A string indicating the direction of text for the locale. Can be either "ltr" (left-to-right) or "rtl" (right-to-left). |
 
 <br/>
@@ -464,6 +464,7 @@ Inputs
 | direction | [SDirection](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/core/types/s-direction.ts) = "horizontal" | Determines the slider direction. Default value is "horizontal". |
 | interactive | boolean = true | Determines whether the slider will respond to user interaction or not. The default value is `true`. |
 | contentScale | number = 1.05 | Scale of content. Default value is `1.05`. |
+| thumbSize | [ArithmeticExpression](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/arithmetic-expression.ts) = '25%' | Switch thumb size. Can be specified in absolute or percentage values. Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0". Default value is `50%`. | 
 | thumbAnimationDuration | string = "150ms" | Content scale. Default value is `150ms`. |
 | langTextDir | [TextDirection](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/text-direction.ts) | A string indicating the direction of text for the locale. Can be either "ltr" (left-to-right) or "rtl" (right-to-left). |
 

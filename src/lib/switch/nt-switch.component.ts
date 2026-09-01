@@ -1,11 +1,11 @@
 import { Component, computed, effect, ElementRef, inject, input, output, signal, Signal, TemplateRef, viewChild, ViewEncapsulation } from "@angular/core";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
 import { combineLatest, debounceTime, filter, of, skip, switchMap, tap } from "rxjs";
-import { Directions, ISize, OVERSCROLL_SERVICE, TextDirection, TextDirections } from "../common";
+import { ArithmeticExpression, Directions, ISize, OVERSCROLL_SERVICE, TextDirection, TextDirections } from "../common";
 import { NtSliderComponent } from "../slider";
-import { toggleClassName, validateBoolean, validateFloat, validateString } from "../common/utils";
+import { isPercentageValue, parseArithmeticExpression, toggleClassName, validateBoolean, validateFloat, validateString } from "../common/utils";
 import { SDirection } from "../core/nt-s-scroller/types";
-import { DEFAULT_CONTENT_SCALE, DEFAULT_SWITCH_DIRECTION, DEFAULT_THUMB_ANIMATION_DURATION } from './const';
+import { DEFAULT_CONTENT_SCALE, DEFAULT_SWITCH_DIRECTION, DEFAULT_THUMB_ANIMATION_DURATION, DEFAULT_THUMB_SIZE } from './const';
 import { HEIGHT_PROP_NAME, PX, UNSET, WIDTH_PROP_NAME } from "../common/const/base-prop-names";
 import { NtService } from "../common/services/nt.service";
 import { NtOverscrollService } from "../common/services/nt-overscroll.service";
@@ -101,6 +101,25 @@ export class NtSwitchComponent {
      */
     contentScale = input<number>(DEFAULT_CONTENT_SCALE, { ...this._contentScaleOptions });
 
+    protected _thumbSizeOptions = {
+        transform: (v: number) => {
+            const valid = validateFloat(v) || isPercentageValue(v);
+            if (!valid) {
+                console.error('The "thumbSize" parameter must be of type `ArithmeticExpression`.');
+                return DEFAULT_THUMB_SIZE;
+            }
+            return v;
+        },
+    } as any;
+
+    /**
+     * Switch  thumb size.
+     * Can be specified in absolute or percentage values.
+     * Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0".
+     * Default value is `50%`.
+     */
+    thumbSize = input<ArithmeticExpression>(DEFAULT_THUMB_SIZE, { ...this._thumbSizeOptions });
+
     protected _thumbAnimationDurationOptions = {
         transform: (v: string) => {
             const valid = validateString(v);
@@ -168,7 +187,7 @@ export class NtSwitchComponent {
 
     protected _size: Signal<number>;
 
-    protected _thumbSize: Signal<number>;
+    protected _precalculatedThumbSize: Signal<number>;
 
     protected _containerClass: Signal<{ [cName: string]: boolean; }>;
 
@@ -208,9 +227,9 @@ export class NtSwitchComponent {
             return (isVertical ? bounds.height : bounds.width) * this.contentScale();
         });
 
-        this._thumbSize = computed(() => {
-            const isVertical = this._isVertical(), bounds = this._bounds();
-            return (isVertical ? bounds.height : bounds.width) * .5;
+        this._precalculatedThumbSize = computed(() => {
+            const isVertical = this._isVertical(), bounds = this._bounds(), thumbSize = this.thumbSize();
+            return parseArithmeticExpression(thumbSize, isVertical ? bounds.height : bounds.width);
         });
 
         this._contentStyle = computed(() => {
