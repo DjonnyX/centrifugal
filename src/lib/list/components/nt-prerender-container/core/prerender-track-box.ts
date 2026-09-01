@@ -87,8 +87,6 @@ const createItemData = (data: IVirtualListItem, isVertical: boolean, bounds: ISi
 
 /**
  * PrerenderTrackBox
- * Maximum performance for extremely large lists.
- * It is based on algorithms for virtualization of screen objects.
  * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/prerender-container/core/prerender-track-box.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
@@ -104,19 +102,40 @@ export class PrerenderTrackBox extends EventEmitter<PrerenderTrackBoxEvents, Pre
 
     private _components: Array<ComponentRef<NtBaseVirtualListItemComponent>> | null = new Array<ComponentRef<NtBaseVirtualListItemComponent>>();
 
-    private _componentsResizeObserver: ResizeObserver | null = new ResizeObserver(() => {
-        const components = this._components;
-        if (!!components) {
-            for (const comp of components) {
-                const { width, height } = comp.instance.getBounds();
-                this._map?.set(comp.instance.itemId!, { width, height });
-            }
-        }
-        this.dispatch(PrerenderTrackBoxEvents.RESIZE, (this._map?.toObject() || {}));
-    });
-
     private _active: boolean = true;
     get active() { return this._active; }
+
+    private _resizeComponents() {
+        this.dispatch(PrerenderTrackBoxEvents.RESIZE, (this._map?.toObject() || {}));
+    }
+
+    private onResizeSnappedItem() {
+        if (!this._map) {
+            return;
+        }
+        const components = this._components;
+        if (!!components) {
+            for (let i = 0, l = components.length; i < l; i++) {
+                const comp = components[i]?.instance;
+                if (!!comp) {
+                    const id = comp.id, cache = this._map.get(id), bounds = comp.getBounds();
+                    if (!cache || cache.width !== bounds.width || cache.height !== bounds.height) {
+                        this._map.set(id, { width: bounds.width, height: bounds.height });
+                        this._resizeComponents();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    tick() {
+        if (!this._active) {
+            return;
+        }
+
+        this.onResizeSnappedItem();
+    }
 
     private refresh(componentClass: Component$1<NtBaseVirtualListItemComponent>, bounds: ISize, params: IPrerenderTrackBoxRefreshParams) {
         const isVertical = params.isVertical ?? true,
@@ -126,8 +145,7 @@ export class PrerenderTrackBox extends EventEmitter<PrerenderTrackBoxEvents, Pre
             trackBy = params.trackBy ?? TRACK_BY_PROPERTY_NAME,
             itemRenderer = params.itemRenderer,
             boundsSize = isVertical ? bounds.height : bounds.width,
-            items = this._items, components = this._components,
-            resizeObserver = this._componentsResizeObserver;
+            items = this._items, components = this._components
 
         if (!items || !components || !this._container) {
             return;
@@ -144,9 +162,6 @@ export class PrerenderTrackBox extends EventEmitter<PrerenderTrackBoxEvents, Pre
                 if (components.length <= j) {
                     comp = this._container.createComponent(componentClass);
                     comp.instance.renderer = itemRenderer;
-                    if (!!resizeObserver) {
-                        resizeObserver.observe(comp.instance.element);
-                    }
                     components.push(comp);
                 } else {
                     comp = components[j];
@@ -189,15 +204,6 @@ export class PrerenderTrackBox extends EventEmitter<PrerenderTrackBoxEvents, Pre
         }
 
         this._active = true;
-        const components = this._components;
-        if (!!components) {
-            const observer = this._componentsResizeObserver;
-            for (const comp of components) {
-                if (!!comp && !!observer) {
-                    observer.observe(comp.instance.element);
-                }
-            }
-        }
     }
 
     off() {
@@ -206,9 +212,6 @@ export class PrerenderTrackBox extends EventEmitter<PrerenderTrackBoxEvents, Pre
         }
 
         this._active = false;
-        if (!!this._componentsResizeObserver) {
-            this._componentsResizeObserver?.disconnect();
-        }
     }
 
     override dispose() {
@@ -233,11 +236,6 @@ export class PrerenderTrackBox extends EventEmitter<PrerenderTrackBoxEvents, Pre
 
         if (!!this._components) {
             this._components = null;
-        }
-
-        if (!!this._componentsResizeObserver) {
-            this._componentsResizeObserver.disconnect();
-            this._componentsResizeObserver = null;
         }
     }
 }

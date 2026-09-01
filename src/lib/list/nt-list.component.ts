@@ -1408,8 +1408,6 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
     }
   };
 
-  private _resizeSnappedObserver: ResizeObserver | null = null;
-
   private focusItem = (element: HTMLElement, position: number, align: FocusAlignment = FocusAlignments.CENTER,
     behavior: ScrollBehavior = BEHAVIOR_AUTO) => {
     if (!this._readyForShow) {
@@ -1471,6 +1469,8 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
    * Dictionary of element sizes by their id
    */
   private _trackBox: TrackBox = new this._trackBoxClass(this.trackBy());
+
+  private _snappedDisplayComponentsCache = new CMap<Id, ISize>();
 
   get $cacheChanged() { return this._service.$cacheVersion; }
 
@@ -1654,6 +1654,8 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
         if (this.dynamicSize() === true) {
           this.checkBoundsOfElements();
         }
+        this.onResizeSnappedItem();
+        this._prerender()?.tick?.();
         this._scrollerComponent()?.tick?.();
       }),
     ).subscribe();
@@ -2757,10 +2759,6 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
             roundedScrollPositionAfterUpdate = scrollPositionAfterUpdate,
             roundedMaxPositionAfterUpdate = isVertical ? scroller.actualScrollHeight : scroller.actualScrollWidth;
 
-          if (this._isSnappingMethodAdvanced) {
-            this.updateRegularRenderer();
-          }
-
           this.updateOffsetsByAllignment();
 
           scroller.delta = delta;
@@ -3550,11 +3548,9 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
           comp.instance.renderer = itemRenderer;
           comp.instance.regular = true;
           this._snappedDisplayComponents.push(comp);
-          this._trackBox.snappedDisplayComponents = this._snappedDisplayComponents;
-          this._resizeSnappedObserver = new ResizeObserver(this._resizeSnappedComponentHandler);
-          this._resizeSnappedObserver.observe(comp.instance.element);
           index++;
         }
+        this._trackBox.snappedDisplayComponents = this._snappedDisplayComponents;
       }
     }
 
@@ -3590,6 +3586,21 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
         index++;
       }
       this._trackBox.setDisplayObjectIndexMapById(doMap);
+    }
+  }
+
+  private onResizeSnappedItem() {
+    const components = this._snappedDisplayComponents;
+    for (let i = 0, l = components.length; i < l; i++) {
+      const comp = components[i]?.instance;
+      if (!!comp) {
+        const id = comp.id, cache = this._snappedDisplayComponentsCache.get(id), bounds = comp.getBounds();
+        if (!cache || cache.width !== bounds.width || cache.height !== bounds.height) {
+          this._snappedDisplayComponentsCache.set(id, { width: bounds.width, height: bounds.height });
+          this._resizeSnappedComponentHandler();
+          break;
+        }
+      }
     }
   }
 
@@ -3841,10 +3852,6 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
 
     if (!!this._trackBox) {
       this._trackBox.dispose();
-    }
-
-    if (!!this._resizeSnappedObserver) {
-      this._resizeSnappedObserver.disconnect();
     }
 
     if (!!this._snappedDisplayComponents) {

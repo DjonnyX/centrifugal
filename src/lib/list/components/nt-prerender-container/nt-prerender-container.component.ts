@@ -93,4 +93,11 @@ export class NtPrerenderContainer {
             list.off();
         }
     }
+
+    tick() {
+        const list = this._list();
+        if (!!list) {
+            list.tick();
+        }
+    }
 }
