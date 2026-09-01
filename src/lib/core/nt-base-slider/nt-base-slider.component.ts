@@ -146,7 +146,7 @@ export class NtBaseSliderComponent extends NtSScrollView {
       overscrollService.$event.pipe(
         takeUntilDestroyed(),
         tap(e => {
-        const parentScroller = this._service.parent?.scrollView;
+          const parentScroller = this._service.parent?.scrollView;
           if (!!parentScroller) {
             parentScroller.setOverscrollEvent(e);
           }
@@ -166,7 +166,7 @@ export class NtBaseSliderComponent extends NtSScrollView {
       this.$overscroll.pipe(
         takeUntilDestroyed(),
         tap(e => {
-        const parentScroller = this._service.parent?.scrollView;
+          const parentScroller = this._service.parent?.scrollView;
           if (!!parentScroller) {
             parentScroller.setOverscrollEvent(e);
           }
@@ -234,8 +234,8 @@ export class NtBaseSliderComponent extends NtSScrollView {
     ), $direction, $grabbing]).pipe(
       takeUntilDestroyed(),
       tap(([e, direction, grabbing]) => {
-        const langTextDir = this.langTextDir(), isRTL = langTextDir === TextDirections.RTL, tds = isRTL ? -1 : 1,
-          dirX = (e.positionX === 1 ? 1 : -1), dirY = (e.positionY === 1 ? 1 : -1),
+        const langTextDir = this.langTextDir(), isRTL = langTextDir === TextDirections.RTL, dir = (grabbing ? 0 : 1), tds = isRTL ? -1 : 1,
+          dirX = (e.positionX === dir ? 1 : -1), dirY = (e.positionY === dir ? 1 : -1),
           viewportBounds = this.viewportBounds(), dx = e.dragX, dy = e.dragY,
           offsetX = dx * dirX, offsetY = dy * dirY,
           sx = viewportBounds.width !== 0 ? (dx !== 0 ? Math.pow((offsetX + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,
