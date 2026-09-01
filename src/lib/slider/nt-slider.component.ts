@@ -527,8 +527,6 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
 
   protected _inputValue = signal<number>(0);
 
-  protected _actualValue = signal<number>(0);
-
   protected _size = signal<number>(DEFAULT_SIZE);
 
   protected _$init = new BehaviorSubject<boolean>(false);
@@ -553,8 +551,37 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
 
     const $bounds = toObservable(this._bounds).pipe(
       filter(b => !!b),
+    ), $scroller = toObservable(this._baseSlider).pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
     ),
-      $baseSlider = toObservable(this._baseSlider),
+      $contentResize = $scroller.pipe(
+        takeUntilDestroyed(),
+        switchMap(scroller => scroller.$resizeContent.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          startWith(null),
+        )),
+      ), $viewportResize = $scroller.pipe(
+        takeUntilDestroyed(),
+        switchMap(scroller => scroller.$resizeViewport.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          startWith(null),
+        )),
+      );
+
+    let resizing = false;
+    combineLatest([$contentResize, $viewportResize, $bounds]).pipe(
+      takeUntilDestroyed(),
+      tap(() => {
+        resizing = true;
+      }),
+      debounceTime(250),
+      tap(() => {
+        resizing = false;
+      }),
+    ).subscribe();
+
+    const $baseSlider = toObservable(this._baseSlider),
       $isVertical = toObservable(this._isVertical),
       $rawScrollStartOffset = toObservable(this.scrollStartOffset),
       $rawScrollEndOffset = toObservable(this.scrollEndOffset),
@@ -562,7 +589,7 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         takeUntilDestroyed(),
         debounceTime(250),
       ),
-      $value = toObservable(this._actualValue),
+      $value = toObservable(this._inputValue),
       $max = toObservable(this.max),
       $min = toObservable(this.min),
       $step = toObservable(this.step);
@@ -603,26 +630,40 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         if (init && (!baseSlider || baseSlider.grabbing || this._animationIds !== null)) {
           return;
         }
-        const isVertical = this._isVertical(),
-          startOffset = this._precalculatedScrollStartOffset(),
-          {
-            position,
-            animated,
+        const isVertical = this._isVertical();
+        if (resizing) {
+          const { position } = this.calculateSliderParams(this._inputValue())!;
+          baseSlider!.stopScrolling(true);
+          baseSlider!.scroll({
+            [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: position,
+            fireUpdate: true,
+            behavior: BEHAVIOR_INSTANT,
             userAction,
-          } = v as IUpdateParams,
-          useAnimation = init && animated;
+            blending: false,
+            snap: false,
+            duration: 0,
+          });
+        } else {
+          const startOffset = this._precalculatedScrollStartOffset(),
+            {
+              position,
+              animated,
+              userAction,
+            } = v as IUpdateParams,
+            useAnimation = init && animated && userAction;
 
-        const actualThumbPosition = position < startOffset ? startOffset : position;
-        baseSlider!.stopScrolling(true);
-        baseSlider!.scroll({
-          [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: actualThumbPosition,
-          fireUpdate: true,
-          behavior: useAnimation ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
-          userAction,
-          blending: false,
-          snap: false,
-          duration: useAnimation ? this.animationParams().scroll : 0,
-        });
+          const actualThumbPosition = position < startOffset ? startOffset : position;
+          baseSlider!.stopScrolling(true);
+          baseSlider!.scroll({
+            [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: actualThumbPosition,
+            fireUpdate: true,
+            behavior: useAnimation ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
+            userAction,
+            blending: false,
+            snap: false,
+            duration: useAnimation ? this.animationParams().scroll : 0,
+          });
+        }
       }),
     ).subscribe();
 
@@ -645,13 +686,6 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
     ).subscribe();
 
     const $inputValue = toObservable(this.value);
-    $inputValue.pipe(
-      takeUntilDestroyed(),
-      debounceTime(0),
-      tap(() => {
-        this._actualValue.set(this.formatActualValue());
-      }),
-    ).subscribe();
 
     this._snapToItem = computed(() => {
       const step = this.step();
@@ -699,37 +733,6 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
       )),
     ).subscribe();
 
-
-    const $scroller = toObservable(this._baseSlider).pipe(
-      takeUntilDestroyed(),
-      filter(v => !!v),
-    ),
-      $contentResize = $scroller.pipe(
-        takeUntilDestroyed(),
-        switchMap(scroller => scroller.$resizeContent.pipe(
-          takeUntilDestroyed(this._destroyRef),
-          startWith(null),
-        )),
-      ), $viewportResize = $scroller.pipe(
-        takeUntilDestroyed(),
-        switchMap(scroller => scroller.$resizeViewport.pipe(
-          takeUntilDestroyed(this._destroyRef),
-          startWith(null),
-        )),
-      );
-
-    let resizing = false;
-    combineLatest([$contentResize, $viewportResize, $bounds]).pipe(
-      takeUntilDestroyed(),
-      tap(() => {
-        resizing = true;
-      }),
-      debounceTime(250),
-      tap(() => {
-        resizing = false;
-      }),
-    ).subscribe();
-
     $baseSlider.pipe(
       takeUntilDestroyed(),
       filter(v => !!v),
@@ -749,7 +752,7 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         takeUntilDestroyed(this._destroyRef),
         debounceTime(0),
         filter(([, init, , , , , , s]) => !!s && init),
-        tap(([,,,,,,,s]) => {
+        tap(([, , , , , , , s]) => {
           if (!resizing && !!s) {
             this.setupValue();
           }
@@ -769,7 +772,6 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         tap(userAction => {
           if (!resizing && userAction) {
             this.setupValue();
-            this._actualValue.set(this._inputValue());
           }
         }),
         debounceTime(1),
@@ -855,7 +857,6 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
     this.updateBreakpoints();
     this.update(this.value(), false, true);
     this._inputValue.set(this.value());
-    this._actualValue.set(this.value());
     this._$init.next(true);
   }
 
@@ -896,7 +897,8 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
   private setupValue() {
     const baseSlider = this._baseSlider(), isVertical = this._isVertical(), bounds = this._bounds(), step = this.step(), min = this.min(), max = this.max();
     if (!!baseSlider) {
-      const size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
+      const minSize = this._precalculatedThumbSize(),
+        size = isVertical ? (bounds.height - minSize) : (bounds.width - minSize),
         scrollSize = isVertical ? baseSlider!.scrollTop : baseSlider!.scrollLeft,
         dist = max - min,
         ns = step > max ? max : step < 0 ? 0 : step,
@@ -978,12 +980,6 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
     } as IUpdateParams);
   }
 
-  private formatActualValue(value: number | null = null) {
-    const v = value ?? this._inputValue(),
-      step = this.step();
-    return step > 0 ? (Math.round(v / step) * step) : v;
-  }
-
   protected onDragHandler(e: ISliderDragEvent) {
     this.onDrag.emit(e);
   }
@@ -996,6 +992,6 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
    * Sets the slider value.
    */
   setValue(v: number) {
-    this._inputValue.set(this.formatActualValue(Number(v)));
+    this._inputValue.set(v);
   }
 }
