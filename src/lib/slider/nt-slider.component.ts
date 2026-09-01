@@ -699,6 +699,37 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
       )),
     ).subscribe();
 
+
+    const $scroller = toObservable(this._baseSlider).pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+    ),
+      $contentResize = $scroller.pipe(
+        takeUntilDestroyed(),
+        switchMap(scroller => scroller.$resizeContent.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          startWith(null),
+        )),
+      ), $viewportResize = $scroller.pipe(
+        takeUntilDestroyed(),
+        switchMap(scroller => scroller.$resizeViewport.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          startWith(null),
+        )),
+      );
+
+    let resizing = false;
+    combineLatest([$contentResize, $viewportResize, $bounds]).pipe(
+      takeUntilDestroyed(),
+      tap(() => {
+        resizing = true;
+      }),
+      debounceTime(250),
+      tap(() => {
+        resizing = false;
+      }),
+    ).subscribe();
+
     $baseSlider.pipe(
       takeUntilDestroyed(),
       filter(v => !!v),
@@ -718,8 +749,10 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         takeUntilDestroyed(this._destroyRef),
         debounceTime(0),
         filter(([, init, , , , , , s]) => !!s && init),
-        tap(() => {
-          this.setupValue();
+        tap(([,,,,,,,s]) => {
+          if (!resizing && !!s) {
+            this.setupValue();
+          }
         }),
       ),
       ),
@@ -733,9 +766,11 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         startWith(true),
       ).pipe(
         takeUntilDestroyed(this._destroyRef),
-        tap(() => {
-          this.setupValue();
-          this._actualValue.set(this._inputValue());
+        tap(userAction => {
+          if (!resizing && userAction) {
+            this.setupValue();
+            this._actualValue.set(this._inputValue());
+          }
         }),
         debounceTime(1),
         filter(userAction => !!userAction),
