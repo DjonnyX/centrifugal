@@ -1,6 +1,6 @@
 import { Component, computed, effect, ElementRef, inject, input, output, signal, Signal, TemplateRef, viewChild, ViewEncapsulation } from "@angular/core";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { combineLatest, debounceTime, filter, of, switchMap, tap } from "rxjs";
+import { combineLatest, debounceTime, filter, of, skip, switchMap, tap } from "rxjs";
 import { Directions, ISize, OVERSCROLL_SERVICE, TextDirection, TextDirections } from "../common";
 import { NtSliderComponent } from "../slider";
 import { toggleClassName, validateBoolean, validateFloat, validateString } from "../common/utils";
@@ -234,12 +234,13 @@ export class NtSwitchComponent {
         const $value = toObservable(this._sliderValue);
         $value.pipe(
             takeUntilDestroyed(),
+            skip(1),
             debounceTime(1),
             tap(v => {
                 this.onChange.emit(v !== 0);
             }),
         ).subscribe();
-        
+
         this._service.$tick.pipe(
             takeUntilDestroyed(),
             tap(() => {

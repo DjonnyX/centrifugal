@@ -592,6 +592,7 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         startWith(null),
       )),
     )]);
+
     $update.pipe(
       takeUntilDestroyed(),
       map(([v]) => v),
@@ -599,7 +600,7 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
       filter(v => !!v),
       tap(v => {
         const baseSlider = this._baseSlider();
-        if (init && (!baseSlider || baseSlider.grabbing || baseSlider.userActionDuringAnimation || this._animationIds !== null)) {
+        if (init && (!baseSlider || baseSlider.grabbing || this._animationIds !== null)) {
           return;
         }
         const isVertical = this._isVertical(),
@@ -805,7 +806,7 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
       takeUntilDestroyed(),
       filter(([s, i]) => !!s && !s.grabbing && !!i),
       switchMap(() => combineLatest([
-        $min, $max, $val, $bounds, $isVertical]).pipe(
+        $min, $max, $inputValue, $bounds, $isVertical]).pipe(
           takeUntilDestroyed(this._destroyRef),
           filter(([, , , b]) => !!b),
           tap(([, , v]) => {
