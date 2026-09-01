@@ -1,9 +1,9 @@
 import {
-  Component, computed, DestroyRef, effect, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild, ViewEncapsulation,
+  Component, computed, DestroyRef, effect, inject, input, output, Signal, signal, TemplateRef, viewChild, ViewEncapsulation,
 } from "@angular/core";
 import {
-  ArithmeticExpression, Directions, GradientColorPositions, Id, IScrollingSettings, ISize, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO,
-  SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SnappingDistance, TextDirection, TextDirections,
+  ArithmeticExpression, Directions, GradientColorPositions, Id, IScrollingSettings, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_INVERSION,
+  SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SnappingDistance, TextDirection, TextDirections,
 } from "../common";
 import { DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_SIZE, DEFAULT_THUMB_SIZE } from "./const";
 import { DEFAULT_LANG_TEXT_DIR, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLBAR_INTERACTIVE } from "../common/const/scroller";
@@ -25,7 +25,7 @@ import { ISliderDragEvent, NtBaseSliderComponent, NtBaseSliderPublicService, NtB
 import { SDirection } from "../core/nt-s-scroller/types";
 import { INtOverscrollService } from "../common/interfaces/nt-overscroll-service";
 import { IUpdateParams } from './interfaces';
-import { INtScrollViewService } from "../scroll-view";
+import { INtScrollViewAnimationParams, INtScrollViewService } from "../scroll-view";
 import { NtBaseComponent } from "../common/components/nt-base-component";
 
 /**
@@ -397,6 +397,10 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         console.error('The "scroll" parameter must be of type `number`.');
         return DEFAULT_ANIMATION_PARAMS;
       }
+      if (!validateFloat(v.snapByDivision)) {
+        console.error('The "snapByDivision" parameter must be of type `number`.');
+        return DEFAULT_ANIMATION_PARAMS;
+      }
       if (!valid) {
         console.error('The "animationParams" parameter must be of type `object`.');
         return DEFAULT_ANIMATION_PARAMS;
@@ -406,7 +410,7 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
   } as any;
 
   /**
-   * Animation parameters. The default value is "{ scroll: 500 }".
+   * Animation parameters. The default value is "{ scroll: 500, snapByDivision: 250 }".
    */
   animationParams = input<INtSliderAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
 
@@ -427,6 +431,74 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
    * The default value is `25%`.
    */
   snappingDistance = input<SnappingDistance>(DEFAULT_SNAPPING_DISTANCE, { ...this._snappingDistanceOptions });
+
+  protected _overscrollAreaLeftRendererOptions = {
+    transform: (v: TemplateRef<any> | null) => {
+      const valid = validateObject(v, true, true);
+
+      if (!valid) {
+        console.error('The "overscrollAreaLeftRenderer" parameter must be of type `TemplateRef<any>`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Specifies a custom template for the left overscroll area.
+   */
+  overscrollAreaLeftRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollAreaLeftRendererOptions });
+
+  protected _overscrollAreaTopRendererOptions = {
+    transform: (v: TemplateRef<any> | null) => {
+      const valid = validateObject(v, true, true);
+
+      if (!valid) {
+        console.error('The "overscrollAreaTopRenderer" parameter must be of type `TemplateRef<any>`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Specifies a custom template for the top overscroll area.
+   */
+  overscrollAreaTopRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollAreaTopRendererOptions });
+
+  protected _overscrollAreaRightRendererOptions = {
+    transform: (v: TemplateRef<any> | null) => {
+      const valid = validateObject(v, true, true);
+
+      if (!valid) {
+        console.error('The "overscrollAreaRightRenderer" parameter must be of type `TemplateRef<any>`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Specifies a custom template for the right overscroll area.
+   */
+  overscrollAreaRightRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollAreaRightRendererOptions });
+
+  protected _overscrollAreaBottomRendererOptions = {
+    transform: (v: TemplateRef<any> | null) => {
+      const valid = validateObject(v, true, true);
+
+      if (!valid) {
+        console.error('The "overscrollAreaBottomRenderer" parameter must be of type `TemplateRef<any>`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Specifies a custom template for the bottom overscroll area.
+   */
+  overscrollAreaBottomRenderer = input<TemplateRef<any> | null>(null, { ...this._overscrollAreaBottomRendererOptions });
 
   protected _langTextDirOptions = {
     transform: (v: TextDirection) => {
@@ -457,7 +529,7 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
   } as any;
 
   /**
-   * Thumb slider size.
+   * Slider thumb size.
    * Can be specified in absolute or percentage values.
    * Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0".
    * Default value is `25%`.
@@ -517,6 +589,8 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
 
   protected _thickness = signal<number>(20);
 
+  protected _animationParams: Signal<INtScrollViewAnimationParams>;
+
   protected _precalculatedThumbSize = signal<number>(0);
 
   protected _precalculatedScrollStartOffset = signal<number>(0);
@@ -553,8 +627,37 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
 
     const $bounds = toObservable(this._bounds).pipe(
       filter(b => !!b),
+    ), $scroller = toObservable(this._baseSlider).pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
     ),
-      $baseSlider = toObservable(this._baseSlider),
+      $contentResize = $scroller.pipe(
+        takeUntilDestroyed(),
+        switchMap(scroller => scroller.$resizeContent.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          startWith(null),
+        )),
+      ), $viewportResize = $scroller.pipe(
+        takeUntilDestroyed(),
+        switchMap(scroller => scroller.$resizeViewport.pipe(
+          takeUntilDestroyed(this._destroyRef),
+          startWith(null),
+        )),
+      );
+
+    let resizing = false;
+    combineLatest([$contentResize, $viewportResize, $bounds]).pipe(
+      takeUntilDestroyed(),
+      tap(() => {
+        resizing = true;
+      }),
+      debounceTime(250),
+      tap(() => {
+        resizing = false;
+      }),
+    ).subscribe();
+
+    const $baseSlider = toObservable(this._baseSlider),
       $isVertical = toObservable(this._isVertical),
       $rawScrollStartOffset = toObservable(this.scrollStartOffset),
       $rawScrollEndOffset = toObservable(this.scrollEndOffset),
@@ -575,6 +678,14 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
       );
     });
 
+    this._animationParams = computed(() => {
+      const { scroll, snapByDivision } = this.animationParams();
+      return {
+        scrollToItem: scroll,
+        snapToItem: snapByDivision,
+      };
+    });
+
     let init = false;
     $init.pipe(
       takeUntilDestroyed(),
@@ -592,6 +703,7 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         startWith(null),
       )),
     )]);
+
     $update.pipe(
       takeUntilDestroyed(),
       map(([v]) => v),
@@ -599,29 +711,43 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
       filter(v => !!v),
       tap(v => {
         const baseSlider = this._baseSlider();
-        if (init && (!baseSlider || baseSlider.grabbing || baseSlider.userActionDuringAnimation || this._animationIds !== null)) {
+        if (init && (!baseSlider || baseSlider.grabbing || this._animationIds !== null)) {
           return;
         }
-        const isVertical = this._isVertical(),
-          startOffset = this._precalculatedScrollStartOffset(),
-          {
-            position,
-            animated,
+        const isVertical = this._isVertical();
+        if (resizing) {
+          const { position } = this.calculateSliderParams(this._actualValue())!;
+          baseSlider!.stopScrolling(true);
+          baseSlider!.scroll({
+            [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: position,
+            fireUpdate: true,
+            behavior: BEHAVIOR_INSTANT,
             userAction,
-          } = v as IUpdateParams,
-          useAnimation = init && animated;
+            blending: false,
+            snap: false,
+            duration: 0,
+          });
+        } else {
+          const startOffset = this._precalculatedScrollStartOffset(),
+            {
+              position,
+              animated,
+              userAction,
+            } = v as IUpdateParams,
+            useAnimation = init && animated && userAction;
 
-        const actualThumbPosition = position < startOffset ? startOffset : position;
-        baseSlider!.stopScrolling(true);
-        baseSlider!.scroll({
-          [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: actualThumbPosition,
-          fireUpdate: true,
-          behavior: useAnimation ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
-          userAction,
-          blending: false,
-          snap: false,
-          duration: useAnimation ? this.animationParams().scroll : 0,
-        });
+          const actualThumbPosition = position < startOffset ? startOffset : position;
+          baseSlider!.stopScrolling(true);
+          baseSlider!.scroll({
+            [isVertical ? TOP_PROP_NAME : LEFT_PROP_NAME]: actualThumbPosition,
+            fireUpdate: true,
+            behavior: useAnimation ? BEHAVIOR_AUTO : BEHAVIOR_INSTANT,
+            userAction,
+            blending: false,
+            snap: false,
+            duration: useAnimation ? this.animationParams().scroll : 0,
+          });
+        }
       }),
     ).subscribe();
 
@@ -646,9 +772,8 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
     const $inputValue = toObservable(this.value);
     $inputValue.pipe(
       takeUntilDestroyed(),
-      debounceTime(0),
-      tap(() => {
-        this._actualValue.set(this.formatActualValue());
+      tap(v => {
+        this._actualValue.set(v);
       }),
     ).subscribe();
 
@@ -717,8 +842,10 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         takeUntilDestroyed(this._destroyRef),
         debounceTime(0),
         filter(([, init, , , , , , s]) => !!s && init),
-        tap(() => {
-          this.setupValue();
+        tap(([, , , , , , , s]) => {
+          if (!resizing && !!s) {
+            this.setupValue();
+          }
         }),
       ),
       ),
@@ -732,9 +859,11 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
         startWith(true),
       ).pipe(
         takeUntilDestroyed(this._destroyRef),
-        tap(() => {
-          this.setupValue();
-          this._actualValue.set(this._inputValue());
+        tap(userAction => {
+          if (!resizing && userAction) {
+            this.setupValue();
+            this._actualValue.set(this._inputValue());
+          }
         }),
         debounceTime(1),
         filter(userAction => !!userAction),
@@ -805,7 +934,7 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
       takeUntilDestroyed(),
       filter(([s, i]) => !!s && !s.grabbing && !!i),
       switchMap(() => combineLatest([
-        $min, $max, $val, $bounds, $isVertical]).pipe(
+        $min, $max, $inputValue, $bounds, $isVertical]).pipe(
           takeUntilDestroyed(this._destroyRef),
           filter(([, , , b]) => !!b),
           tap(([, , v]) => {
@@ -860,7 +989,8 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
   private setupValue() {
     const baseSlider = this._baseSlider(), isVertical = this._isVertical(), bounds = this._bounds(), step = this.step(), min = this.min(), max = this.max();
     if (!!baseSlider) {
-      const size = isVertical ? (bounds.height - (baseSlider!.contentElement?.offsetHeight ?? 0)) : (bounds.width - (baseSlider!.contentElement?.offsetWidth ?? 0)),
+      const minSize = this._precalculatedThumbSize(),
+        size = isVertical ? (bounds.height - minSize) : (bounds.width - minSize),
         scrollSize = isVertical ? baseSlider!.scrollTop : baseSlider!.scrollLeft,
         dist = max - min,
         ns = step > max ? max : step < 0 ? 0 : step,
@@ -942,12 +1072,6 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
     } as IUpdateParams);
   }
 
-  private formatActualValue(value: number | null = null) {
-    const v = value ?? this._inputValue(),
-      step = this.step();
-    return step > 0 ? (Math.round(v / step) * step) : v;
-  }
-
   protected onDragHandler(e: ISliderDragEvent) {
     this.onDrag.emit(e);
   }
@@ -960,6 +1084,6 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
    * Sets the slider value.
    */
   setValue(v: number) {
-    this._inputValue.set(this.formatActualValue(Number(v)));
+    this._inputValue.set(v);
   }
 }

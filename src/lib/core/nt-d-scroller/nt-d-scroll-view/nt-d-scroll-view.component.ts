@@ -1802,8 +1802,10 @@ export class NtDScrollView extends NtDBaseScrollView {
 
     refreshCoordinate(x: number, y: number) {
         const scrollContent = this.scrollContent()?.nativeElement as HTMLDivElement;
-        scrollContent.style.transform = matrix3d((this._inversion ? 1 : -1) * x * (this._horizontalAxisInvertion() ? -1 : 1) + this._startLayoutOffsetX,
-            (this._inversion ? 1 : -1) * y + this._startLayoutOffsetY);
+        if (!!scrollContent) {
+            scrollContent.style.transform = matrix3d((this._inversion ? 1 : -1) * x * (this._horizontalAxisInvertion() ? -1 : 1) + this._startLayoutOffsetX,
+                (this._inversion ? 1 : -1) * y + this._startLayoutOffsetY);
+        }
     }
 
     protected fireScrollEvent(userAction: boolean) {

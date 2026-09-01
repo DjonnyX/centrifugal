@@ -9,4 +9,8 @@ export interface INtSliderAnimationParams {
      * Duration
      */
     scroll: number;
+    /**
+     * Scroll by division
+     */
+    snapByDivision: number;
 }

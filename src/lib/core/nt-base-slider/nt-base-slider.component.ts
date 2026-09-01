@@ -146,7 +146,7 @@ export class NtBaseSliderComponent extends NtSScrollView {
       overscrollService.$event.pipe(
         takeUntilDestroyed(),
         tap(e => {
-        const parentScroller = this._service.parent?.scrollView;
+          const parentScroller = this._service.parent?.scrollView;
           if (!!parentScroller) {
             parentScroller.setOverscrollEvent(e);
           }
@@ -166,7 +166,7 @@ export class NtBaseSliderComponent extends NtSScrollView {
       this.$overscroll.pipe(
         takeUntilDestroyed(),
         tap(e => {
-        const parentScroller = this._service.parent?.scrollView;
+          const parentScroller = this._service.parent?.scrollView;
           if (!!parentScroller) {
             parentScroller.setOverscrollEvent(e);
           }
@@ -234,22 +234,24 @@ export class NtBaseSliderComponent extends NtSScrollView {
     ), $direction, $grabbing]).pipe(
       takeUntilDestroyed(),
       tap(([e, direction, grabbing]) => {
-        const langTextDir = this.langTextDir(), isRTL = langTextDir === TextDirections.RTL, tds = isRTL ? -1 : 1,
-          dirX = (e.positionX === 0 ? 1 : -1), dirY = (e.positionY === 0 ? 1 : -1),
+        const langTextDir = this.langTextDir(), isRTL = langTextDir === TextDirections.RTL, dir = (grabbing ? 0 : 1), tds = isRTL ? -1 : 1,
+          dirX = (e.positionX === dir ? 1 : -1), dirY = (e.positionY === dir ? 1 : -1),
           viewportBounds = this.viewportBounds(), dx = e.dragX, dy = e.dragY,
           offsetX = dx * dirX, offsetY = dy * dirY,
-          sx = viewportBounds.width !== 1 ? (dx !== 0 ? Math.pow((offsetX + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,
+          sx = viewportBounds.width !== 0 ? (dx !== 0 ? Math.pow((offsetX + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,
           sy = viewportBounds.height !== 0 ? (dy !== 0 ? Math.pow((offsetY + viewportBounds.height) / viewportBounds.height, 0.1) : 1) : 1,
           asx = sx > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sx < DEFAULT_MIN_OVERSCROLL_EFFECT ? DEFAULT_MIN_OVERSCROLL_EFFECT : sx,
           asy = sy > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sy < DEFAULT_MIN_OVERSCROLL_EFFECT ? DEFAULT_MIN_OVERSCROLL_EFFECT : sy,
           nasx = dirX === -1 ? asx : (2 - asx),
-          nasy = dirY === -1 ? asy : (2 - asy);
+          nasy = dirY === -1 ? asy : (2 - asy),
+          scrollLeft = this.scrollLeft,
+          scrollTop = this.scrollTop;
         this.thumbClass.set({
           [ANIMATED]: init && !grabbing && !e.grabbing && !this.context()?.component?.userActionDuringAnimation && !this.context()?.component?.grabbing,
           [direction]: true, grabbing,
         });
         this.thumbStyles.set({
-          transform: matrix3d(this.scrollLeft * tds, this.scrollTop, 0, nasx, nasy, 1, 0, 0, 0),
+          transform: matrix3d(scrollLeft * tds, scrollTop, 0, nasx, nasy, 1, 0, 0, 0),
           transformOrigin: `${dirX === 1 ? RIGHT : LEFT} ${dirY === 1 ? BOTTOM : TOP}`,
         });
       }),

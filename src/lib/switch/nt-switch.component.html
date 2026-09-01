@@ -5,14 +5,20 @@
         [direction]="dir" [interactive]="false" [scrollbarEnabled]="false" [overscrollEnabled]="false"
         [overscrollAreaShowAutomatically]="false" [overscrollAreaLeftEnabled]="!isVertical"
         [overscrollAreaRightEnabled]="!isVertical" [overscrollAreaTopEnabled]="isVertical"
-        [overscrollAreaBottomEnabled]="isVertical">
+        [overscrollAreaBottomEnabled]="isVertical" [overscrollAreaLeftRenderer]="overscrollAreaLeftRenderer()"
+        [overscrollAreaTopRenderer]="overscrollAreaTopRenderer()"
+        [overscrollAreaRightRenderer]="overscrollAreaRightRenderer()"
+        [overscrollAreaBottomRenderer]="overscrollAreaBottomRenderer()">
         <div class="ntsw__switch-content" [style.width.px]="scroller.host.offsetWidth"
             [style.height.px]="scroller.host.offsetHeight" [ngStyle]="_scrollerContentStyle()">
             <ng-content></ng-content>
         </div>
     </nt-scroll-view>
     <nt-slider #slider class="ntsw__switch-slider" style="position: absolute;" part="nt-switch-slider"
-        [thumbAnimationDuration]="thumbAnimationDuration()" [langTextDir]="langTextDir()" [thumbSize]="_thumbSize()"
+        [thumbAnimationDuration]="thumbAnimationDuration()" [langTextDir]="langTextDir()" [motionBlur]="motionBlur()"
+        [maxMotionBlur]="maxMotionBlur()" [motionBlurEnabled]="motionBlurEnabled()"
+        [scrollingSettings]="scrollingSettings()" [animationParams]="animationParams()"
+        [snappingDistance]="snappingDistance()" [thumbSize]="_precalculatedThumbSize()"
         [overscrollService]="_overscrollService" [renderer]="renderer()" [params]="params()" [overscrollEnabled]="false"
         [interactive]="interactive()" [style.width.px]="container.offsetWidth"
         [style.height.px]="container.offsetHeight" [direction]="dir" [min]="0" [max]="1" [step]="1"

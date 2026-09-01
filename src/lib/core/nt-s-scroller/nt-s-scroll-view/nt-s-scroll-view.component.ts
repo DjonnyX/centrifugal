@@ -1523,8 +1523,10 @@ export class NtSScrollView extends NtSBaseScrollView {
 
     refreshCoordinate(x: number, y: number) {
         const scrollContent = this.scrollContent()?.nativeElement as HTMLDivElement;
-        scrollContent.style.transform = matrix3d((this._inversion ? 1 : -1) * x * (this._horizontalAxisInvertion() ? -1 : 1) + (this.isVertical() ? 0 : this._startLayoutOffset),
-            (this._inversion ? 1 : -1) * y + (this.isVertical() ? this._startLayoutOffset : 0));
+        if (!!scrollContent) {
+            scrollContent.style.transform = matrix3d((this._inversion ? 1 : -1) * x * (this._horizontalAxisInvertion() ? -1 : 1) + (this.isVertical() ? 0 : this._startLayoutOffset),
+                (this._inversion ? 1 : -1) * y + (this.isVertical() ? this._startLayoutOffset : 0));
+        }
     }
 
     protected fireScrollEvent(userAction: boolean) {

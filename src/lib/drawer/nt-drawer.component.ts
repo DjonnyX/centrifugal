@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, Signal, signal, TemplateRef, ViewEncapsulation } from "@angular/core";
 import { INtScrollViewService, NtScrollViewComponent } from "../scroll-view";
 import {
-  ArithmeticExpression, IScrollOptions, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
+  ArithmeticExpression, IPoint, IScrollOptions, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
   SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
 } from "../common";
 import { isPercentageValue, parseArithmeticExpression, validateBoolean, validateFloat } from "../common/utils";
 import { DEFAULT_BACKDROP, DEFAULT_DOCK_SIZE } from "./const";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
-import { BehaviorSubject, combineLatest, debounceTime, filter, startWith, Subject, switchMap, tap } from "rxjs";
+import { BehaviorSubject, combineLatest, debounceTime, filter, map, startWith, Subject, switchMap, tap } from "rxjs";
 import { IDrawerBreakpoint, IDrawerBreakpoints, INtDrawerService } from "./interfaces";
 import { NtDrawerService } from './nt-drawer.service';
 import { DrawerDockPositions } from './enums';
@@ -556,42 +556,31 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
 
     combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, $precalculatedDockRightSize, $precalculatedDockBottomSize, this.$scroll, $bounds]).pipe(
       takeUntilDestroyed(),
-      debounceTime(100),
-      tap(([dockLeftSize, dockTopSize, dockRightSize, dockBottomSize, scrollEvent]) => {
-        const scrollLeft = this.scrollLeft, scrollTop = this.scrollTop;
-        let sx: number, sy: number;
-        if (scrollLeft < dockLeftSize) {
-          sx = dockLeftSize !== 0 ? (scrollLeft / dockLeftSize) : 0;
-        } else if (scrollLeft > dockLeftSize) {
-          sx = 1 - (dockRightSize !== 0 ? ((scrollLeft - dockLeftSize) / dockRightSize) : 0);
-        } else {
-          sx = 1;
-        }
-        if (scrollTop < dockTopSize) {
-          sy = dockTopSize !== 0 ? (scrollTop / dockTopSize) : 0;
-        } else if (scrollTop > dockTopSize) {
-          sy = 1 - (dockBottomSize !== 0 ? ((scrollTop - dockTopSize) / dockBottomSize) : 0);
-        } else {
-          sy = 1;
-        }
+      map(([dockLeftSize, dockTopSize, dockRightSize, dockBottomSize]) => {
+        const { x, y } = this.getPositionRatio();
 
+        this._$opened.next(x !== 1 || y !== 1);
+
+        this._$scrollRatio.next(x !== 1 ? x : y);
+
+        return { x, y, dockLeftSize, dockTopSize, dockRightSize, dockBottomSize };
+      }),
+      debounceTime(100),
+      tap(({ x, y, dockLeftSize, dockTopSize, dockRightSize, dockBottomSize }) => {
         if (!resizing) {
-          if (sx === 0 && dockLeftSize > 0 && scrollLeft === 0) {
+          const scrollLeft = this.scrollLeft, scrollTop = this.scrollTop;
+          if (x === 0 && dockLeftSize > 0 && scrollLeft === 0) {
             this._$open.next(DrawerDockPositions.LEFT);
-          } else if (sx === 0 && dockRightSize > 0 && scrollLeft === this.scrollWidth) {
+          } else if (x === 0 && dockRightSize > 0 && scrollLeft === this.scrollWidth) {
             this._$open.next(DrawerDockPositions.RIGHT);
-          } else if (sy === 0 && dockTopSize > 0 && scrollTop === 0) {
+          } else if (y === 0 && dockTopSize > 0 && scrollTop === 0) {
             this._$open.next(DrawerDockPositions.TOP);
-          } else if (sy === 0 && dockBottomSize > 0 && scrollTop === this.scrollHeight) {
+          } else if (y === 0 && dockBottomSize > 0 && scrollTop === this.scrollHeight) {
             this._$open.next(DrawerDockPositions.BOTTOM);
-          } else if (sx === 1 && sy === 1) {
+          } else if (x === 1 && x === 1) {
             this._$open.next(null);
           }
         }
-
-        this._$opened.next(sx !== 1 || sy !== 1);
-
-        this._$scrollRatio.next(sx !== 1 ? sx : sy);
       }),
     ).subscribe();
 
@@ -608,6 +597,27 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
         this._service.bounds = v;
       }),
     ).subscribe();
+  }
+
+  private getPositionRatio(): IPoint {
+    const scrollLeft = this.scrollLeft, scrollTop = this.scrollTop, dockLeftSize = this._precalculatedDockLeftSize(), dockTopSize = this._precalculatedDockTopSize(),
+      dockRightSize = this._precalculatedDockRightSize(), dockBottomSize = this._precalculatedDockBottomSize();
+    let sx: number, sy: number;
+    if (scrollLeft < dockLeftSize) {
+      sx = dockLeftSize !== 0 ? (scrollLeft / dockLeftSize) : 0;
+    } else if (scrollLeft > dockLeftSize) {
+      sx = 1 - (dockRightSize !== 0 ? ((scrollLeft - dockLeftSize) / dockRightSize) : 0);
+    } else {
+      sx = 1;
+    }
+    if (scrollTop < dockTopSize) {
+      sy = dockTopSize !== 0 ? (scrollTop / dockTopSize) : 0;
+    } else if (scrollTop > dockTopSize) {
+      sy = 1 - (dockBottomSize !== 0 ? ((scrollTop - dockTopSize) / dockBottomSize) : 0);
+    } else {
+      sy = 1;
+    }
+    return { x: sx, y: sy };
   }
 
   /**
