@@ -1,6 +1,6 @@
 /**
  *  Sheet positions of the scroll view.
- * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/sheet/enums/sheet-directions.ts
+ * @link https://github.com/DjonnyX/centrifugal/blob/main/src/lib/sheet/enums/sheet-positions.ts
  * @author Evgenii Alexandrovich Grebennikov
  * @email djonnyx@gmail.com
  */

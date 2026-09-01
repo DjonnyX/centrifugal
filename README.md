@@ -15,7 +15,7 @@
 🛠️ Fast, customizable and developer-friendly. <br/> <br/>
 ⚡A powerful API for implementing components of varying functionality and complexity. <br/> <br/>
 💻 Works correctly in all browsers and platforms. <br/> <br/>
-💪 The software portion of the project was completed without a single line of code written using AI (artificial intelligence)! <br/>
+💪 The software portion of the project was completed without a single line of code written using artificial intelligence! <br/>
 
 <br/>
 
@@ -98,7 +98,7 @@ Inputs
 | snapScrollToBottom | boolean? = true | Determines whether the scrollbar is snapped to the bottom of the scroller. The default value is "true". That is, if `snapScrollToTop` and `snapScrollToBottom` are enabled, the scroller will initially snap to the top; if you move the scrollbar down, the scroller will snap to the bottom. If `snapScrollToTop` is disabled and `snapScrollToBottom` is enabled, the scroller will snap to the bottom; If you move the scrollbar up, the scroller will snap to the top. If both `snapScrollToTop` and `snapScrollToBottom` are disabled, the scroller will never snap to the top or bottom. |
 | scrollable | boolean? = true | Determines whether the scrollbar is shown or not. The default value is "true". |
 | scrollBehavior | ScrollBehavior? = 'smooth' | Defines the scrolling behavior for any element on the page. The default value is "smooth". |
-| scrollingSettings | [IScrollingSettings](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/scrolling-settings.ts) = {frictionalForce: 0.035, mass: 0.005, maxDistance: 100000, maxDuration: 4000, speedScale: 10, optimization: true} | Scrolling settings. |
+| scrollingSettings | [IScrollingSettings](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/scrolling-settings.ts) = {frictionalForce: 0.035, mass: 0.005, maxDistance: 100000, maxDuration: 4000, speedScale: 10, optimization: true} | Scrolling settings. |
 
 <br/>
 
@@ -165,7 +165,7 @@ Inputs
 | scrollbarThumbRenderer | TemplateRef<any> \| null = null | Scrollbar customization template. |
 | scrollbarThumbParams | {[propName: string]: any;} \| null | Additional options for the scrollbar. |
 | scrollBehavior | ScrollBehavior? = 'smooth' | Defines the scrolling behavior for any element on the page. The default value is "smooth". |
-| scrollingSettings | [IScrollingSettings](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/scrolling-settings.ts) = {frictionalForce: 0.035, mass: 0.005, maxDistance: 100000, maxDuration: 4000, speedScale: 10, optimization: true} | Scrolling settings. |
+| scrollingSettings | [IScrollingSettings](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/interfaces/scrolling-settings.ts) = {frictionalForce: 0.035, mass: 0.005, maxDistance: 100000, maxDuration: 4000, speedScale: 10, optimization: true} | Scrolling settings. |
 
 <br/>
 
@@ -249,7 +249,7 @@ Inputs
 | scrollStartOffset | [FloatOrPersentageValue](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/float-or-persentage-value.ts) = 0 | Sets the scroll start offset value. Can be specified in absolute or percentage values. Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0". |
 | scrollEndOffset | [FloatOrPersentageValue](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/float-or-persentage-value.ts) = 0 | Sets the scroll end offset value. Can be specified in absolute or percentage values. Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0". |
 | snapToItem | boolean = false | Snap to an item. The default value is `false`. |
-| snapToItemAlign | [SnapToItemAlign](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/types/snap-to-item-align.ts) = [SnapToItemAligns](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/enums/snap-to-item-aligns.ts).CENTER | Alignment for snapToItem. Available values ​​are `start`, `center`, and `end`. The default value is `center`. |
+| snapToItemAlign | [SnapToItemAlign](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/snap-to-item-align.ts) = [SnapToItemAligns](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/enums/snap-to-item-aligns.ts).CENTER | Alignment for snapToItem. Available values ​​are `start`, `center`, and `end`. The default value is `center`. |
 | snappingDistance | [SnappingDistance](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/snapping-distance.ts) = "25%" | Snapping activation distance. Can be specified as a percentage of the element size or in absolute values. The default value is `25%`. |
 | snappingMethod | [SnappingMethod](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/types/snapping-method.ts) = [SnappingMethods.STANDART](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/enums/snapping-methods.ts) | Snapping method. Default value is [SnappingMethods.STANDART](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/types/snapping-method.ts). [SnappingMethods.STANDART](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/types/snapping-method.ts) - Classic group visualization. [SnappingMethods.ADVANCED](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/types/snapping-method.ts) - A mask is applied to the viewport area so that the background is displayed underneath the attached group. |
 | snapScrollToStart | boolean? = true | Determines whether the scroll will be anchored to the start of the list. Default value is "true". This property takes precedence over the snapScrollToEnd property. That is, if snapScrollToStart and snapScrollToEnd are enabled, the list will initially snap to the beginning; if you move the scroll bar to the end, the list will snap to the end. If snapScrollToStart is disabled and snapScrollToEnd is enabled, the list will snap to the end; if you move the scroll bar to the beginning, the list will snap to the beginning. If both snapScrollToStart and snapScrollToEnd are disabled, the list will never snap to the beginning or end. In the `spreadingMode=SpreadingModes.INFINITY` mode, the `snapScrollToStart` property is automatically disabled, since the list has no beginning or end. |
@@ -324,7 +324,7 @@ Properties
 
 <br/>
 
-### [NtControlModule](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/directives/nt-control/nt-control.module.ts)
+### [NtControlModule](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/directives/nt-control/nt-control.module.ts)
 
 ### NtControl directive
 
@@ -372,7 +372,7 @@ Inputs
 | motionBlurEnabled | boolean = false | Determines whether to apply motion blur or not. The default value is `false`. |
 | animationParams | [INtSheetAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/sheet/interfaces/nt-sheet-animation-params.ts) = { fadeIn: 500, fadeOut: 500 } | Animation parameters. The default value is "{ fadeIn: 500, fadeOut: 500 }". |
 | overscrollEnabled | boolean = true | Determines whether the overscroll (re-scroll) feature will work. The default value is "true". |
-| position | [SheetPosition](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/types/sheet-position.ts) = 'bottom' | Determines the position in which elements are placed. Default value is "bottom". |
+| position | [SheetPosition](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/sheet/types/sheet-position.ts) = 'bottom' | Determines the position in which elements are placed. Default value is "bottom". |
 | langTextDir | [TextDirection](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/text-direction.ts) | A string indicating the direction of text for the locale. Can be either "ltr" (left-to-right) or "rtl" (right-to-left). |
 | overscrollAreaShowAutomatically | boolean = true | Sets whether overscroll areas are automatically displayed if the value is true. |
 | overscrollAreaUseOffsets | boolean = false | If true, scrollLeftOffset, scrollTopOffset, scrollRightOffset, and scrollBottomOffset will be used when calculating the re-scroll indicator positions. |
@@ -421,7 +421,7 @@ Inputs
 
 | Property | Type | Description |
 |---|---|---|
-| direction | [SDirection](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/core/types/s-direction.ts) = "horizontal" | Determines the slider direction. Default value is "horizontal". |
+| direction | [SDirection](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/core/nt-s-scroller/types/s-direction.ts) = "horizontal" | Determines the slider direction. Default value is "horizontal". |
 | overscrollEnabled | boolean = false | Determines whether the overscroll (re-scroll) feature will work. The default value is "false". |
 | value | number = 0 | Slider value. Default value is `0`. |
 | min | number = 0 | Slider min value. Default min value is `0`. |
@@ -467,7 +467,7 @@ Inputs
 | Property | Type | Description |
 |---|---|---|
 | value | boolean = false | Switch value. Default value is `false`. |
-| direction | [SDirection](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/core/types/s-direction.ts) = "horizontal" | Determines the slider direction. Default value is "horizontal". |
+| direction | [SDirection](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/core/nt-s-scroller/types/s-direction.ts) = "horizontal" | Determines the slider direction. Default value is "horizontal". |
 | interactive | boolean = true | Determines whether the slider will respond to user interaction or not. The default value is `true`. |
 | animationParams | [INtSwitchAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/switch/interfaces/nt-switch-animation-params.ts) = { scroll: 500, snapByDivision: 250 } | Animation parameters. The default value is "{ scroll: 500, snapByDivision: 250 }". |
 | contentScale | number = 1.05 | Scale of content. Default value is `1.05`. |
