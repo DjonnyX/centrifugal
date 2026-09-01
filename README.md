@@ -11,9 +11,9 @@
 
 🚀 A high-performance web-centric development kit for building mobile-like user interfaces. <br/> <br/>
 🌀 A fluid UI. Components interact with each other at a hierarchical level to form a unified system. <br/> <br/>
-💥Visual effects such as motion blur, depth of field, compression/expansion, and more are available, creating a next-generation user interface. <br/> <br/>
+💥 Visual effects such as motion blur, depth of field, compression/expansion, and more are available, creating a next-generation user interface. <br/> <br/>
 🛠️ Fast, customizable and developer-friendly. <br/> <br/>
-⚡A powerful API for implementing components of varying functionality and complexity. <br/> <br/>
+⚡ A powerful API for implementing components of varying functionality and complexity. <br/> <br/>
 💻 Works correctly in all browsers and platforms. <br/> <br/>
 💪 The software portion of the project was completed without a single line of code written using artificial intelligence! <br/>
 
