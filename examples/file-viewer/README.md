@@ -1,6 +1,6 @@
 # Centrifugal File Viewer Demo
 
-✨ The Centrifugal Chat Demo application (centrifugal-file-viewer) is an Angular application designed to demonstrate high-performance long list rendering using virtual scrolling techniques and next-generation web UI components.
+✨ The Centrifugal File Viewer Demo application (centrifugal-file-viewer) is an Angular application designed to demonstrate high-performance long list rendering using virtual scrolling techniques and next-generation web UI components.
 
 The project uses dependencies only from the Angular ecosystem and [centrifugal](https://github.com/DjonnyX/centrifugal) without implementing third-party solutions.
 
