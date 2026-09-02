@@ -1,0 +1,138 @@
+:host {
+    display: block;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+.wrapper {
+    background-size: 90px;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    .loading-indicator {
+        z-index: 999;
+    }
+
+    .list {
+        background-size: 90px;
+        width: 100%;
+        height: 100%;
+        max-height: unset;
+        overflow: hidden;
+
+        &.loading {
+            opacity: 0;
+        }
+
+        &::part(scroller) {
+            scroll-behavior: unset;
+        }
+
+        &::part(item) {
+            background-color: unset;
+            padding: 2px;
+        }
+
+        &::part(snapped-item) {
+            pointer-events: initial;
+            cursor: pointer;
+        }
+
+        &::part(item-focused) {
+            outline: none;
+        }
+
+        &::part(item-fx) {
+            height: 100%;
+        }
+    }
+
+    .overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+
+        @keyframes scrollToEndFadeIn {
+            from {
+                opacity: 0;
+                top: 80px;
+            }
+
+            to {
+                opacity: 1;
+                top: 60px;
+            }
+        }
+
+        @keyframes scrollToEndFadeOut {
+            from {
+                opacity: 1;
+                top: 60px;
+            }
+
+            to {
+                opacity: 0;
+                top: 40px;
+            }
+        }
+
+        .scroll-to-end {
+            -webkit-tap-highlight-color: transparent;
+            position: absolute;
+            backdrop-filter: blur(10px);
+            right: 12px;
+            z-index: 9999;
+            animation: scrollToEndFadeOut 200ms ease-out 0s 1 normal forwards;
+
+            &.show {
+                animation: scrollToEndFadeIn 200ms ease-out 0s 1 normal forwards;
+            }
+
+            &.rtl {
+                left: 12px;
+                right: unset;
+            }
+        }
+    }
+}
+
+.gallery_group {
+    overflow: hidden;
+    height: 240px;
+
+    &-container {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        box-sizing: border-box;
+
+        &__shape {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgb(12 8 28 / 38%);
+            height: 100%;
+            width: 100%;
+            color: #fff;
+            font-weight: 800;
+        }
+
+        &__image {
+            position: absolute;
+            width: 120%;
+            object-fit: cover;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            z-index: -1;
+            // filter: blur(6px);
+        }
+    }
+}

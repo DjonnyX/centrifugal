@@ -1,0 +1,16 @@
+@let listApi = api();
+@let messageData = data();
+@let messageConfig = config();
+@let messageMeasures = measures();
+@if (messageData && messageConfig && messageMeasures) {
+    @let class = classes();
+    <div class="container" [ngClass]="class">
+        <div localeSensitive class="content">
+            <div #container class="image-container" [ngClass]="class">
+                <x-page #message class="image-content" [ngClass]="class" [api]="listApi" [data]="messageData"
+                    [config]="messageConfig" [measures]="messageMeasures" [classes]="class" [params]="params()"
+                    (resourcesLoaded)="onResourcesLoadedHandler()" />
+            </div>
+        </div>
+    </div>
+}

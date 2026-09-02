@@ -1,0 +1,45 @@
+:host {
+    cursor: pointer;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+    height: auto;
+    transition: height 100ms ease-out;
+
+    .page-container {
+        width: 80px;
+        height: 80px;
+        position: relative;
+        z-index: 1;
+        transform-origin: center;
+        word-break: break-word;
+        box-sizing: border-box;
+        transition: opacity 100ms ease-out, height 100ms ease-out, min-height 100ms ease-out;
+        overflow: hidden;
+
+        .image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    }
+
+    .page-substrate {
+        position: absolute;
+        z-index: 0;
+        display: block;
+        overflow: hidden;
+    }
+
+    &.edited {
+        width: 100%;
+        min-height: 20px;
+    }
+}

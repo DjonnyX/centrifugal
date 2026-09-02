@@ -1,0 +1,12 @@
+@let d = data();
+@let c = config();
+@let w = width();
+@let h = height();
+@let class = classes();
+@if (d && c) {
+    <div #wrapper class="wrapper" [style.width.px]="w" [style.height.px]="h">
+        <div #container class="page-container" [style.width.px]="w" [style.height.px]="h" [ngClass]="class">
+            <img class="image" [src]="d.data.img" [style.width.px]="w" [style.height.px]="h" />
+        </div>
+    </div>
+}

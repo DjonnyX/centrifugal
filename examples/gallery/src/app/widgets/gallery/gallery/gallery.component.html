@@ -1,0 +1,54 @@
+@let items = collection();
+@let loading = isLoading();
+@let prepared = isListShowed();
+
+<div #wrapper class="wrapper">
+    @if (loading || (!prepared)) {
+        <x-page-loading-indicator class="loading-indicator" />
+    }
+
+    <nt-list #list class="list" [ngClass]="listClass()" [items]="items" [itemRenderer]="itemRenderer" [itemConfigMap]="collectionConfigMap()"
+        [snapScrollToEnd]="false" [dynamicSize]="true" [itemSize]="itemSize" [divides]="_divides()" [bufferSize]="2" [maxBufferSize]="2"
+        collectionMode="lazy" [stickyEnabled]="false" [defaultItemValue]="defaultItemValue()" [snapToItem]="true"
+        snapToItemAlign="start" snappingDistance="10%" [snapToEndTransitionInstantOffset]="1"
+        [scrollbarThumbRenderer]="customScrollBarThumb" [scrollbarThumbParams]="scrollbarTheme()"
+        [selectByClick]="false" [scrollingSettings]="scrollingSettings" [loading]="isLazyLoading()"
+        [animationParams]="animationParams" (onScrollReachEnd)="onScrollReachEndHandler()"
+        (onScroll)="onScrollHandler($event)" (onScrollEnd)="onScrollHandler($event)">
+    </nt-list>
+
+    <ng-template #itemRenderer let-index="index" let-data="data" let-prevData="prevData" let-nextData="nextData"
+        let-measures="measures" let-config="config" let-reseted="reseted" let-api="api">
+        <div staticClick [maxStaticClickDistance]="maxStaticClickDistance"
+            (onStaticClick)="api.select(data.id, data.edited ? true : undefined)">
+            @if (data?.data) {
+                @switch (data.data.type) {
+                    @case ("group") {
+                        <div class="gallery_group">
+                            <div class="gallery_group-container">
+                                <div class="gallery_group-container__shape">
+                                    <span>
+                                        {{
+                                            data.data.dateTime | date:'short'
+                                        }}
+                                    </span>
+                                    <img class="gallery_group-container__image" [src]="data.data.img" />
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    @default {
+                        <x-page-box [reseted]="reseted" [data]="data" [config]="config" [measures]="measures" [prevData]="prevData"
+                            [nextData]="nextData" [api]="api" />
+                    }
+                }
+            }
+        </div>
+    </ng-template>
+
+    <ng-template #customScrollBarThumb let-api="api" let-width="width" let-height="height"
+        let-fillPositions="fillPositions" let-params="params">
+        <custom-scrollbar [api]="api" [width]="width" [height]="height" [fillPositions]="fillPositions"
+            [params]="params"></custom-scrollbar>
+    </ng-template>
+</div>
