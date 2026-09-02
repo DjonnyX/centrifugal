@@ -207,6 +207,10 @@ export class NtPrerenderList implements OnDestroy {
         }
     }
 
+    tick() {
+        this._trackBox?.tick?.();
+    }
+
     ngAfterViewInit() {
         this._trackBox!.create(this._listContainerRef!);
     }
