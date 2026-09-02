@@ -1,0 +1,25 @@
+@let items = collection();
+@let initialSelectedId = selectedId();
+@let loading = isLoading();
+
+<div class="wrapper" clickOutside (onClickOutside)="onClickOutside($event)">
+    @if(loading) {
+        <x-groups-loading-indicator />
+    }
+
+    <div class="list-wrapper" [ngClass]="{loaded: !loading}">
+        <nt-list #list class="list" [items]="items" [itemRenderer]="itemRenderer" [itemSize]="43" selectingMode="select"
+            [selectByClick]="false" [bufferSize]="1" [maxBufferSize]="1" [selectedIds]="initialSelectedId"
+            [scrollStartOffset]="scrollStartOffset()" [scrollbarThumbRenderer]="customScrollBarThumb"
+            [scrollbarThumbParams]="scrollbarTheme()"></nt-list>
+    </div>
+    <ng-template #itemRenderer let-data="data" let-config="config" let-api="api">
+        <x-group [api]="api" [data]="data" [config]="config" (staticClick)="onGroupClickHandler(data)"></x-group>
+    </ng-template>
+
+    <ng-template #customScrollBarThumb let-api="api" let-width="width" let-height="height"
+        let-fillPositions="fillPositions" let-params="params">
+        <custom-scrollbar [api]="api" [width]="width" [height]="height" [fillPositions]="fillPositions"
+            [params]="params"></custom-scrollbar>
+    </ng-template>
+</div>

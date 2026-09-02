@@ -1,0 +1,29 @@
+@let _api = api();
+@let _data = data();
+@let _config = config();
+
+@if (_data && _config) {
+    @switch (_data.type) {
+        @case ("group") {
+            <div class="list__item-container" staticClick [maxStaticClickDistance]="maxStaticClickDistance"
+                (onStaticClick)="onClickHandler($event); _api?.select(_data.id, true); onGroupClickHandler(_data)">
+                <div class="content">
+                    <p localeSensitive class="name">{{_data.text}}</p>
+                </div>
+            </div>
+        }
+        @default {
+            @let class = {'selected': _config.selected};
+            <div localeSensitive class="list__item-container" [ngClass]="class" staticClick
+                [style.--background-color]="backgroundColor()"
+                [style.--color]="color()"
+                [style.--fill]="fill()"
+                [maxStaticClickDistance]="maxStaticClickDistance"
+                (onStaticClick)="onClickHandler($event); _api?.select(_data.id, true); onGroupClickHandler(_data)">
+                <div class="group">
+                    <p class="name">{{_data.text}}</p>
+                </div>
+            </div>
+        }
+    }
+}

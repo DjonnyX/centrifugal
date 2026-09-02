@@ -1,0 +1,45 @@
+@let d = data();
+@let c = config();
+@let b = actualBounds();
+@let w = b.width;
+@let h = b.height;
+@let mTime = time();
+@let searchedWords = searchPattern();
+@let class = classes();
+@let type = substrateType();
+@let stroke = strokeColor();
+@let gradientFillPositions = fillPositions();
+@if (!!d && !!c) {
+    <div #wrapper class="wrapper">
+        <div #substrateContainer>
+            <x-post-substrate #substrate class="post-substrate" [type]="type" [width]="w" [height]="h"
+                [strokeColors]="stroke" [strokeWidth]="strokeWidth()" [fillColors]="fillColors()"
+                [fillPositions]="gradientFillPositions" [rippleColor]="rippleColor()"></x-post-substrate>
+        </div>
+        <div #container class="post-container" [ngClass]="class" (pointerdown)="substrate.ripple($event)">
+            <x-text class="text" [text]="d.data.text" [time]="mTime" [searchPattern]="searchedWords"
+                [classes]="class" substringClass="search-substring" presetName="post" />
+            @if (w > 0 && h > 100) {
+                <div class="post-footer" [ngClass]="class" [style.--fill-color]="iconsColor()">
+                    <svg width="24" height="24" viewBox="0 0 91 91" style="fill: inherit">
+                        <g transform="matrix(0.945674,0,0,0.945674,2.54614,2.6174)">
+                            <path
+                                d="M46.832,19.565C43.36,16.707 38.989,14.646 34.331,14.646C22.642,14.646 13.335,25.745 13.335,35.643C13.335,45.222 17.93,54.662 23.801,62.4C31.73,72.851 41.65,80.084 41.65,80.084C44.614,82.249 48.637,82.256 51.608,80.1C51.608,80.1 61.681,72.805 69.734,62.367C75.727,54.599 80.401,45.145 80.401,35.643C80.401,25.745 70.993,14.646 59.405,14.646C54.802,14.646 50.375,16.704 46.832,19.565ZM71.941,35.643C71.941,29.733 66.324,23.106 59.405,23.106C52.485,23.106 46.721,32.187 46.721,32.187C46.721,32.187 41.311,23.106 34.331,23.106C27.351,23.106 21.794,29.733 21.794,35.643C21.794,55.1 46.641,73.253 46.641,73.253C46.641,73.253 71.941,54.898 71.941,35.643Z" />
+                        </g>
+                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 91 91" style="fill: inherit">
+                        <path
+                            d="M20.081,58.172L33.316,74.279C34.389,75.584 36.165,76.075 37.755,75.505C39.346,74.936 40.407,73.429 40.407,71.74L40.407,9.621L32.407,9.621L32.407,60.571L26.262,53.094L20.081,58.172ZM71.262,27.188L58.027,11.082C56.954,9.777 55.178,9.286 53.588,9.856C51.997,10.425 50.936,11.932 50.936,13.621L50.936,75.74L58.936,75.74L58.936,24.79L65.081,32.267L71.262,27.188Z" />
+                    </svg>
+                    <svg width="24" height="24" viewBox="0 0 91 91" style="fill: inherit">
+                        <g transform="matrix(1.17983,0,0,0.923781,-18.2771,1.81835)">
+                            <path
+                                d="M86.774,39.732C86.774,26.992 78.675,16.648 68.699,16.648L39.162,16.648C29.187,16.648 21.088,26.992 21.088,39.732L21.088,49.867C21.088,56.436 21.063,80.993 21.063,80.993C21.063,80.993 27.374,72.95 39.162,72.95L68.699,72.95C78.675,72.95 86.774,62.607 86.774,49.867L86.774,39.732ZM79.993,39.732L79.993,49.867C79.993,57.827 74.932,64.29 68.699,64.29C68.699,64.29 39.162,64.29 39.162,64.29C34.783,64.29 31.008,65.195 27.857,66.474C27.863,59.902 27.869,52.93 27.869,49.867C27.869,49.867 27.869,39.732 27.869,39.732C27.869,31.772 32.929,25.308 39.162,25.308L68.699,25.308C74.932,25.308 79.993,31.772 79.993,39.732Z" />
+                        </g>
+                    </svg>
+                    <div></div>
+                </div>
+            }
+        </div>
+    </div>
+}
