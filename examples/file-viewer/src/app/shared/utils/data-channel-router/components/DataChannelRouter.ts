@@ -1,0 +1,369 @@
+import { DATA_CHANNEL_SIGNAL_QUALITY_LIST, DEFAULT_MAX_THREADS, DEFAULT_PING_TIMEOUT } from "../const";
+import { DataChannelEvents, DataChannelSignalQuality, DataChannelStatuses } from "../enums";
+import { DataChannelRouterEvents } from "../enums/DataChannelRouterEvents";
+import { ThreadManagerEvents } from "../../thread-manager";
+import { IDataChannelInfo, IDataChannelOptions, IDataChannelRouterOptions, IDataChannelsStats, IDelayMap } from "../interfaces";
+import { Id } from "../types";
+import { calculateSignalQuality, final } from "../utils";
+import { EventEmitter } from '../../event-emitter';
+import { appendRoute } from "../utils/appendRoute";
+import { inputDelayMap } from "../utils/inputDelayMap";
+import { inputNumber } from "../utils/inputNumber";
+import { DataChannelExecutor } from "./DataChannelExecutor";
+import { DataChannelProxy } from "./DataChannelProxy";
+import { Thread, ThreadManager } from "../../thread-manager";
+
+type Events = typeof DataChannelRouterEvents.CHANNEL_CHANGE | typeof DataChannelRouterEvents.CHANNEL_UNAVAILABLE
+    | typeof DataChannelRouterEvents.CHANNEL_RECOVERY | typeof DataChannelRouterEvents.PING_FAILURE
+    | typeof DataChannelRouterEvents.ROUTE_ERROR | typeof DataChannelRouterEvents.CHANGE
+    | typeof DataChannelRouterEvents.STATS | typeof DataChannelRouterEvents.BUFFERING;
+
+type OnChannelChangeListener = (channel: IDataChannelInfo) => void;
+
+type OnChannelUnavailableListener = (channel: IDataChannelInfo) => void;
+
+type OnChannelRecoveryListener = (channel: IDataChannelInfo) => void;
+
+type OnChangeListener = (channel: IDataChannelInfo | null) => void;
+
+type OnPingFailureListener = (channelId: Id) => void;
+
+type OnRouteErrorListener = (routeName: string, channelId: Id) => void;
+
+type OnStatsListener = (stats: IDataChannelsStats) => void;
+
+type OnBufferingListener = (bufferSize: number) => void;
+
+type Listeners = OnChannelChangeListener | OnChannelUnavailableListener | OnChannelRecoveryListener | OnChangeListener
+    | OnPingFailureListener | OnRouteErrorListener | OnStatsListener | OnBufferingListener;
+
+/**
+ * Data channel router
+ * @link https://github.com/DjonnyX/data-channel-router/blob/main/library/src/components/DataChannelRouter.ts
+ * @author Evgenii Grebennikov
+ * @email djonnyx@gmail.com
+ */
+@final
+export class DataChannelRouter<R = any> extends EventEmitter<Events, Listeners> {
+    private _channelsByPriority = new Map<DataChannelSignalQuality, Array<DataChannelProxy>>();
+
+    private _pingThreadManager: ThreadManager | undefined;
+
+    private _routeThreadManager: ThreadManager;
+
+    /**
+     * Returns true if there are data channels available.
+     */
+    get isAvailable() { return this._activeChannel !== null; }
+
+    private _router = new Object();
+    /**
+     * Router
+     */
+    get router() { return this._router as R; }
+
+    private _stats: IDataChannelsStats = this.generateStats();
+    /**
+     * Returns statistics for data channels
+     */
+    get stats() { return { ...this._stats }; }
+
+    /**
+     * Returns the buffering value
+     */
+    get buffering() {
+        return this._routeThreadManager.buffering;
+    }
+
+    private _pingTimeout: number;
+
+    private _pingTimeouts: { [channelId: Id]: number } = {};
+
+    private _activeChannel: DataChannelProxy | null = null;
+    /**
+     * @internal
+     */
+    get activeChannel() { return this._activeChannel; }
+
+    private _delayMap: IDelayMap | undefined;
+
+    private _onChannelConnectedHandler = (channel: DataChannelExecutor, previousStatus: DataChannelStatuses) => {
+        if (previousStatus === DataChannelStatuses.UNAVAILABLE) {
+            this.dispatch(DataChannelRouterEvents.CHANNEL_RECOVERY, { id: channel.id, status: channel.status, signal: channel.signal });
+        }
+        this.changeDataChannel();
+    };
+
+    private _onChannelIdleHandler = () => {
+        this.changeDataChannel();
+    };
+
+    private _onChannelUnavailableHandler = (channel: DataChannelExecutor) => {
+        this.dispatch(DataChannelRouterEvents.CHANNEL_UNAVAILABLE, { id: channel.id, status: channel.status, signal: channel.signal });
+        this.changeDataChannel();
+    };
+
+    private _onRouteThreadManagerBuffering = (bufferSize: number) => {
+        this.dispatch(DataChannelRouterEvents.BUFFERING, bufferSize);
+    };
+
+    constructor(options: IDataChannelRouterOptions<R>) {
+        super();
+
+        this._pingTimeout = inputNumber(options?.pingTimeout, DEFAULT_PING_TIMEOUT);
+
+        this._delayMap = inputDelayMap(options.delayMap);
+
+        if (options?.pingTimeout) {
+            this._pingThreadManager = new ThreadManager({
+                maxThreads: inputNumber(options?.maxPingThreads, DEFAULT_MAX_THREADS),
+            });
+        }
+
+        this._routeThreadManager = new ThreadManager({
+            maxThreads: inputNumber(options?.maxThreads, DEFAULT_MAX_THREADS),
+        });
+        this._routeThreadManager.addEventListener(ThreadManagerEvents.BUFFERING, this._onRouteThreadManagerBuffering);
+
+        if (options?.channels) {
+            this.createInitialChannels(options.channels);
+        }
+
+        this.run();
+    }
+
+    private createInitialChannels(channels: Array<IDataChannelOptions>) {
+        for (let i = 0, l = channels.length; i < l; i++) {
+            const externalChannel = channels[i];
+            if (externalChannel) {
+                appendRoute(this._router, externalChannel.routes, this._routeThreadManager, this);
+
+                const channel = new DataChannelProxy(externalChannel);
+                channel.channel.addEventListener(DataChannelEvents.CONNECTED, this._onChannelConnectedHandler);
+                channel.channel.addEventListener(DataChannelEvents.IDLE, this._onChannelIdleHandler);
+                channel.channel.addEventListener(DataChannelEvents.UNAVAILABLE, this._onChannelUnavailableHandler);
+
+                this.addChannelToMap(channel);
+
+                if (this._pingThreadManager) {
+                    this.pingChannel(channel, true);
+                }
+            }
+        }
+    }
+
+    private run() {
+        if (this._pingThreadManager) {
+            this._pingThreadManager.run();
+        }
+        this._routeThreadManager.run();
+    }
+
+    /**
+     * Adds a new data channel
+     */
+    add(channel: IDataChannelOptions) {
+        const externalChannel = channel;
+        if (externalChannel) {
+            appendRoute(this._router, externalChannel.routes, this._routeThreadManager, this);
+
+            const channel = new DataChannelProxy(externalChannel);
+            channel.channel.addEventListener(DataChannelEvents.CONNECTED, this._onChannelConnectedHandler);
+            channel.channel.addEventListener(DataChannelEvents.UNAVAILABLE, this._onChannelUnavailableHandler);
+
+            this.addChannelToMap(channel);
+
+            if (this._pingThreadManager) {
+                this.pingChannel(channel, true);
+            }
+        }
+    }
+
+    private changeDataChannel() {
+        this.generateStats();
+        this.dispatch(DataChannelRouterEvents.STATS, this._stats);
+    }
+
+    private generateStats() {
+        const map = this._channelsByPriority, result: IDataChannelsStats = {};
+        for (let i = 0, l = DATA_CHANNEL_SIGNAL_QUALITY_LIST.length; i < l; i++) {
+            const signal: DataChannelSignalQuality = DATA_CHANNEL_SIGNAL_QUALITY_LIST[i];
+            if (map.has(signal)) {
+                const channels = map.get(signal);
+                if (channels && channels.length > 0) {
+                    for (let channel of channels) {
+                        result[channel.id] = { signal, status: channel.status };
+                    }
+                }
+            }
+        }
+        this._stats = result;
+        return result;
+    }
+
+    private addChannelToMap(channel: DataChannelProxy) {
+        const map = this._channelsByPriority;
+        if (!map.has(DataChannelSignalQuality.DISABLED)) {
+            map.set(DataChannelSignalQuality.DISABLED, []);
+        }
+        map.get(DataChannelSignalQuality.DISABLED)?.push(channel);
+    }
+
+    private pingChannel(channel: DataChannelProxy, init = false) {
+        clearTimeout(this._pingTimeouts[channel.id]);
+        if (init) {
+            this.ping(channel);
+        }
+        this._pingTimeouts[channel.id] = setTimeout(() => {
+            this.ping(channel);
+        }, this._pingTimeout) as unknown as number;
+    }
+
+    private ping(channel: DataChannelProxy) {
+        if (!this._pingThreadManager) {
+            return;
+        }
+
+        const thread = new Thread({
+            onStart: () => {
+                channel.channel.ping(channel.options.ping, (err: any | null, delay: number | null) => {
+                    let signalQuality: DataChannelSignalQuality = DataChannelSignalQuality.DISABLED;
+                    if (err) {
+                        thread.reject();
+
+                        this.dispatch(DataChannelRouterEvents.PING_FAILURE, channel.id);
+
+                        signalQuality = calculateSignalQuality(-1);
+                        const isChanged = this.storeChannel(channel, signalQuality);
+                        this.selectFastestChannel();
+                        if (isChanged) {
+                            this.dispatch(DataChannelRouterEvents.CHANGE, { id: channel.id, status: channel.status, signal: channel.signal });
+                        }
+
+                        this.pingChannel(channel);
+                        return;
+                    }
+
+                    signalQuality = calculateSignalQuality(delay ?? 0, this._delayMap);
+                    const isChanged = this.storeChannel(channel, signalQuality);
+                    this.selectFastestChannel();
+                    if (isChanged) {
+                        this.dispatch(DataChannelRouterEvents.CHANGE, { id: channel.id, status: channel.status, signal: channel.signal });
+                    }
+
+                    thread.complete();
+
+                    this.pingChannel(channel);
+                });
+            }
+        });
+
+        this._pingThreadManager.add(thread);
+    }
+
+    private storeChannel(channel: DataChannelProxy, signalQuality: DataChannelSignalQuality): boolean {
+        const map = this._channelsByPriority,
+            status = signalQuality === DataChannelSignalQuality.DISABLED ? DataChannelStatuses.UNAVAILABLE : DataChannelStatuses.IDLE;
+
+        if (channel.channel.signal !== signalQuality) {
+            if (!map.has(signalQuality)) {
+                map.set(signalQuality, []);
+            }
+
+            map.forEach((data) => {
+                const index = data.findIndex(c => c === channel);
+                if (index > -1) {
+                    data.splice(index, 1);
+                }
+            });
+
+            const list = map.get(signalQuality);
+            if (list) {
+                list.push(channel);
+            }
+            channel.channel.status = status;
+            channel.channel.signal = signalQuality;
+            return true;
+        }
+        return false;
+    }
+
+    private selectFastestChannel(attempt = 5) {
+        const map = this._channelsByPriority;
+        let channel: DataChannelProxy | null = null, maxSignal = 0;
+        for (let i = 0, l = DATA_CHANNEL_SIGNAL_QUALITY_LIST.length; i < l; i++) {
+            const signal: DataChannelSignalQuality = DATA_CHANNEL_SIGNAL_QUALITY_LIST[i];
+            if (signal === DataChannelSignalQuality.DISABLED) {
+                continue;
+            }
+            if (map.has(signal)) {
+                const channels = map.get(signal);
+                if (channels && channels.length > 0) {
+                    for (let i = 0, l = channels.length; i < l; i++) {
+                        const c = channels[0];
+                        if (c.status !== DataChannelStatuses.UNAVAILABLE) {
+                            if (c.signal > maxSignal) {
+                                maxSignal = Math.max(maxSignal, c.signal);
+                                channel = c;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (this._activeChannel !== channel) {
+            if (this._activeChannel) {
+                const signalQuality = this._activeChannel.channel.signal,
+                    status = signalQuality === DataChannelSignalQuality.DISABLED ? DataChannelStatuses.UNAVAILABLE : DataChannelStatuses.IDLE;
+                this._activeChannel.channel.status = status;
+                if (!channel && this._activeChannel.status === DataChannelStatuses.UNAVAILABLE) {
+                    if (attempt > 0) {
+                        this.selectFastestChannel(attempt - 1);
+                    }
+                }
+            }
+            if (channel) {
+                channel.channel.status = DataChannelStatuses.CONNECTED;
+                this._activeChannel = channel;
+                this._routeThreadManager.play();
+                this.dispatch(DataChannelRouterEvents.CHANNEL_CHANGE, { id: channel.id, status: channel.status, signal: channel.signal });
+            } else {
+                this._activeChannel = null;
+                this._routeThreadManager.pause();
+                this.dispatch(DataChannelRouterEvents.CHANNEL_CHANGE, null);
+            }
+        }
+    }
+
+    /**
+     * Clears all data. Called before deletion.
+     */
+    override dispose() {
+        super.dispose();
+
+        if (this._pingThreadManager) {
+            this._pingThreadManager.dispose();
+        }
+
+        if (this._routeThreadManager) {
+            this._routeThreadManager.dispose();
+        }
+
+        for (const channelId in this._pingTimeouts) {
+            const pingTimeoutId = this._pingTimeouts[channelId];
+            clearTimeout(pingTimeoutId);
+        }
+
+        if (this._channelsByPriority) {
+            this._channelsByPriority.forEach((channels) => {
+                if (channels) {
+                    for (let i = 0, l = channels.length; i < l; i++) {
+                        channels[i].dispose();
+                    }
+                }
+            });
+            this._channelsByPriority.clear();
+        }
+    }
+}

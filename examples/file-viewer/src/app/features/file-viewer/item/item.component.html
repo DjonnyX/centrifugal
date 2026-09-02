@@ -1,0 +1,22 @@
+@let d = data();
+@let c = config();
+@let m = measures();
+@let b = bounds();
+@let corner = shapeRoundCorner();
+@let gradientFillColors = fillGradientColors();
+@let gradientFillPositions = fillPositions();
+@let rippleColor = rippleEffectColor();
+@let searchedWords = searchPattern();
+@let class = classes();
+@if (!!d && !!c && !!m && !!d.data.text) {
+<div #wrapper class="wrapper" [style.border]="stroke()">
+    <div #container class="item-container" [ngClass]="class" (pointerdown)="substrate.ripple($event)">
+        <x-substrate #substrate class="substrate" [fillColors]="gradientFillColors" [rippleColor]="rippleColor"
+            [fillPositions]="gradientFillPositions" [width]="b.width" [height]="b.height" [roundCorner]="corner"
+            mode="rounded-rectangle" type="none" />
+        <x-text class="text" [text]="d.data.text" [searchPattern]="searchedWords" [classes]="class"
+            substringClass="search-substring" presetName="item" />
+        <div class="item-footer" [ngClass]="class" [style.--fill-color]="iconsColor()"></div>
+    </div>
+</div>
+}
