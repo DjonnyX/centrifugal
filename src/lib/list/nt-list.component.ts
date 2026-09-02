@@ -2364,12 +2364,16 @@ Right-to-left element transformations are currently unavailable in horizontal li
 To ensure correct display of such lists, you can invert the collection and scroll to the last element during initialization.
 Example:
 template:
-<nt-list #list [items]="_items()" ... />
+<div class="list-wrapper" [ngStyle]="{opacity: _opacity()}">
+  <nt-list #list [items]="_items()" ... />
+</div>
 
 component:
 private _list = viewChild<NtListComponent>('list');
 
 items = input<IVirtualListCollection<any>>([]);
+
+protected _opacity = signal<string>('0');
 
 protected _items: Signal<IVirtualListCollection<any>>;
 
@@ -2380,12 +2384,18 @@ constructor() {
 
   const $list = toObservable(this._list);
   $list.pipe(
-    takeUntilDestroyed(),
-    filter(v => !!v),
-    tap(list => {
-      // where 0 is the identifier of the first element of the collection.
-      list.scrollTo(0);
-    }),
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      switchMap(list => list.$initialized.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        filter(v => !!v),
+        tap(() => {
+          // where 0 is the identifier of the first element of the collection.
+          list.scrollTo(0, () => {
+            this._opacity.set('1');
+          });
+        }),
+      )),
   ).subscribe();
 }
 `);
