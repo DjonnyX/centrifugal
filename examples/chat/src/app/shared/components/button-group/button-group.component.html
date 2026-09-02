@@ -1,0 +1,14 @@
+@let buttons = items();
+@for (item of buttons; track item.id) {
+    @let mode = item.mode || 'rounded-rectangle';
+    @let type = item.type || 'none';
+    @let content = item.content || '';
+    @let strokeColor = item.strokeColor || undefined;
+    @let roundCorner = item.roundCorner || [0,0,0,0];
+    @let disabled = item.disabled || false;
+    @let fillColors = item.fillColors || ["rgba(255,5,255,1)", "rgba(255,55,255,1)"];
+    @let fillPositions = item.fillPositions || undefined;
+    @let themePreset = item.preset;
+    <x-button [mode]="mode" [type]="type" [content]="content" [strokeColor]="strokeColor" [roundCorner]="roundCorner" [preset]="themePreset"
+        [disabled]="disabled" [fillColors]="fillColors" [fillPositions]="fillPositions" (onClick)="onButtonClickHandler(item)"></x-button>
+}

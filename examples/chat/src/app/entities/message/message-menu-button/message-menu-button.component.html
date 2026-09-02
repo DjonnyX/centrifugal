@@ -1,0 +1,25 @@
+@let strokeColor = buttonStrokeColor();
+@let buttonType = type();
+@let disabledState = disabled();
+@let class = classes();
+@let gradientFillColors = fillColors();
+@let gradientFillPositions = fillPositions();
+@let rippleColor = rippleEffectColor();
+<x-button mode="circle" class="menu" [ngClass]="class" [type]="buttonType" [disabled]="disabledState" [rippleColor]="rippleColor"
+    [strokeColor]="strokeColor" [fillColors]="gradientFillColors" [fillPositions]="gradientFillPositions"
+    (onPress)="onPressHandler($event)" (onFocus)="onFocusHandler($event)" (onClick)="onClickHandler($event)">
+    <div #content class="content">
+        <svg class="icon" width="16" height="16" viewBox="0 0 32 32"
+            style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+            <path
+                d="M20.033,15.946c0,2.253 -1.829,4.083 -4.082,4.083c-2.253,-0 -4.082,-1.83 -4.082,-4.083c0,-2.253 1.829,-4.082 4.082,-4.082c2.253,0 4.082,1.829 4.082,4.082Z"
+                style="fill:inherit;" />
+            <path
+                d="M31.966,15.946c0,2.253 -1.829,4.083 -4.082,4.083c-2.253,-0 -4.082,-1.83 -4.082,-4.083c0,-2.253 1.829,-4.082 4.082,-4.082c2.253,0 4.082,1.829 4.082,4.082Z"
+                style="fill:inherit;" />
+            <path
+                d="M8.155,15.946c0,2.253 -1.829,4.083 -4.082,4.083c-2.253,-0 -4.082,-1.83 -4.082,-4.083c-0,-2.253 1.829,-4.082 4.082,-4.082c2.253,0 4.082,1.829 4.082,4.082Z"
+                style="fill:inherit;" />
+        </svg>
+    </div>
+</x-button>

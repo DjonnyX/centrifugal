@@ -1,0 +1,24 @@
+@let isEditing = editing();
+@let value = text();
+@let formattedValue = formattedText();
+@let substringClass = searchSubstringClass();
+@let searchedWords = searchPattern();
+@let scroll = scrolled();
+@let canselectable = selectable();
+@if (isEditing) {
+    <div #editor class="editor" [ngClass]="{scroll}">
+        <textarea #textarea ntControl localeSensitive cdkTextareaAutosize name="editable-text" class="editor-editable interactive"
+            [value]="value" (keydown)="onKeyDownHandler($event)" (click)="onTextAreaClickHandler($event)"
+            (input)="onInputHandler($event)"></textarea>
+    </div>
+} @else {
+    <p #readonlyText localeSensitive
+        [ngClass]="{selectable: canselectable, interactive: canselectable, singleline: singleline()}"
+        [style.--comment-color]="commentColor()" [style.--comment-background]="commentBackground()"
+        [style.--link-normal-color]="linkNormalColor()" [style.--link-visited-color]="linkVisitedColor()"
+        [style.--message-status-color]="messageStatusColor()" [ngStyle]="readonlyStyles()"
+        [style.--link-hover-color]="linkHoverColor()" [style.--link-active-color]="linkActiveColor()"
+        [style.--search-substring-background]="searchSubstringBackground()" searchHighlight class="editor-readonly"
+        [substringClass]="substringClass" [text]="formattedValue" [searchedWords]="searchedWords"
+        (click)="onTextClickHandler($event)"></p>
+}

@@ -1,0 +1,59 @@
+:host {
+    cursor: pointer;
+    position: relative;
+    max-width: calc(80%);
+    overflow: hidden;
+    font-size: 14px;
+    height: auto;
+
+    .message-quote-wrapper {
+        position: relative;
+        width: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+    .message-container {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        padding: 4px 6px;
+        display: flex;
+        align-items: center;
+        word-break: break-word;
+        box-sizing: border-box;
+        overflow: hidden;
+        border-left: 4px solid var(--border-color);
+    }
+
+    textarea {
+        font-family: inherit;
+        font-size: inherit;
+        max-width: calc(100%);
+        min-width: 100%;
+        outline: none;
+        border: none;
+        padding: 0;
+        margin: 0;
+        box-sizing: content-box;
+    }
+
+    .complex-message {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+
+        .text {
+            width: 100%;
+        }
+    }
+
+    .message-substrate {
+        position: absolute;
+        z-index: 0;
+    }
+}

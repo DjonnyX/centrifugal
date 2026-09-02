@@ -1,0 +1,86 @@
+@keyframes fade-in {
+    from {
+        margin-top: -10px;
+        opacity: 0;
+    }
+
+    to {
+        margin-top: 0;
+        opacity: 1;
+    }
+}
+
+:host {
+    display: block;
+    max-width: 500px;
+    width: calc(100% - 40px);
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: -10px;
+    opacity: 0;
+    animation: fade-in 200ms ease-out 100ms 1 normal forwards;
+    background-color: transparent;
+    box-shadow: 0 0 50px 8px rgba(0, 0, 0, 0.25);
+    border-radius: 8px;
+
+    .container {
+        position: relative;
+        width: 100%;
+        height: auto;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    .substrate {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+    }
+
+    .content {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+
+        .title {
+            letter-spacing: 0.5px;
+            margin-top: 0;
+            margin-bottom: 0;
+            width: 100%;
+        }
+
+        .message {
+            letter-spacing: 0.5px;
+            margin-bottom: 24px;
+            width: 100%;
+        }
+
+        .actions {
+            display: block;
+            margin-left: auto;
+
+            &.rtl {
+                margin-right: auto;
+                margin-left: initial;
+            }
+
+            .button-group {
+                display: flex;
+                justify-content: end;
+                margin: auto;
+                gap: 4px;
+                font-weight: bold;
+                letter-spacing: 0.5px;
+                font-size: 14px;
+                text-transform: lowercase;
+            }
+        }
+    }
+}

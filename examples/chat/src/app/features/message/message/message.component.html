@@ -1,0 +1,45 @@
+@let listApi = api();
+@let d = data();
+@let c = config();
+@let b = actualBounds();
+@let mTime = time();
+@let isEditing = editing();
+@let substrMode = substarateMode();
+@let searchedWords = searchPattern();
+@let class = classes();
+@let type = substrateType();
+@let stroke = strokeColor();
+@let gradientFillPositions = fillPositions();
+@let tType = themeType();
+@if (d && c) {
+    <div #wrapper class="wrapper">
+        <div #substrateContainer>
+            <x-message-substrate #substrate class="message-substrate" [type]="type" [width]="b.width" [height]="b.height"
+                [mode]="substrMode" [strokeColors]="stroke" [strokeWidth]="strokeWidth()" [fillColors]="fillColors()"
+                [fillPositions]="gradientFillPositions" [rippleColor]="rippleColor()"></x-message-substrate>
+        </div>
+        <div #container class="message-container" [ngClass]="class" (pointerdown)="substrate.ripple($event)">
+            @if (messageType() === 'quote' && d.quote) {
+                <div class="message-quote-container" staticClick [maxStaticClickDistance]="maxStaticClickDistance"
+                    (onStaticClick)="onClickQuoteHandler($event)">
+                    <x-message-quote class="message-quote" [ngClass]="class" [api]="listApi" [data]="d.quote" [params]="params()"
+                        [fillPositions]="gradientFillPositions" [classes]="class"></x-message-quote>
+                </div>
+            }
+            @if (d?.['image']) {
+                <div class="complex-message">
+                    <img [src]="d?.['image']" />
+                    <x-editable-text class="text" [themeType]="tType" [text]="d.data.text" [time]="mTime"
+                        [mailed]="d.data.mailed" [searchPattern]="searchedWords" [editing]="isEditing" [selectable]="c.selected"
+                        [classes]="class" substringClass="search-substring" (textAreaClick)="onTextAreaClickHandler($event)"
+                        presetName="message" (changeText)="onEditedTextHandler($event, d)" (onImageLoaded)="onImageLoadedHandler()"/>
+                </div>
+            } @else {
+                <x-editable-text class="text" [themeType]="tType" [text]="d.data.text" [time]="mTime" [mailed]="d.data.mailed"
+                    [searchPattern]="searchedWords" [editing]="isEditing" [selectable]="c.selected" [classes]="class"
+                    substringClass="search-substring" (textAreaClick)="onTextAreaClickHandler($event)" presetName="message"
+                    (changeText)="onEditedTextHandler($event, d)" (onImageLoaded)="onImageLoadedHandler()" />
+            }
+        </div>
+    </div>
+}

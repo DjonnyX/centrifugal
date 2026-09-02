@@ -1,0 +1,51 @@
+.container {
+    cursor: pointer;
+    height: 100%;
+    width: 100%;
+    padding: 6px 12px;
+    box-sizing: border-box;
+    font-weight: 800;
+    font-size: 12px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+
+    .wrapper {
+        position: relative;
+        height: 100%;
+        width: 100%;
+        box-sizing: border-box;
+
+        .substrate {
+            position: absolute;
+            z-index: 0;
+        }
+
+        .content {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+            font-size: 10px;
+            height: 28px;
+            padding: 6px 12px;
+            border-radius: 14px;
+            border-width: 0px;
+            border-style: solid;
+            backdrop-filter: blur(6px);
+            box-sizing: border-box;
+            background: transparent;
+            z-index: 1;
+
+            .text {
+                margin: 0;
+                padding: 0;
+            }
+        }
+    }
+}

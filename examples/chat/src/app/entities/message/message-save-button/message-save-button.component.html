@@ -1,0 +1,29 @@
+@let strokeColor = buttonStrokeColor();
+@let buttonType = type();
+@let buttonState = state();
+@let disabledState = disabled();
+@let class = classes();
+@let gradientFillColors = fillColors();
+@let gradientFillPositions = fillPositions();
+@let rippleColor = rippleEffectColor();
+<x-button #btn mode="circle" [ngClass]="class" [disabled]="disabledState" [type]="buttonType" [strokeColor]="strokeColor" [rippleColor]="rippleColor"
+    [fillColors]="gradientFillColors" [fillPositions]="gradientFillPositions" (onPress)="onPressHandler($event)" (onClick)="onClickHandler($event)">
+    <div #content class="content">
+        @switch (buttonState) {
+            @case ('send') {
+                <svg class="icon" width="20" height="20" viewBox="0 0 32 32"
+                    style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+                    <path d="M14.547,8.179l-0,19.987l1.993,0l0,-19.828l8.536,8.43l1.511,-1.53l-11.037,-10.9l-1.511,1.53l-9.065,9.064l1.41,1.41l8.163,-8.163Z" style="fill:inherit;"/>
+                </svg>
+            }
+            @case ('cancel') {
+                <svg class="icon" width="16" height="16" viewBox="0 0 32 32"
+                    style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+                    <path
+                        d="M18.096,15.955l10.242,-10.242l-2.114,-2.114l-10.242,10.242l-10.242,-10.242l-2.114,2.114l10.242,10.242l-10.242,10.242l2.114,2.115l10.242,-10.242l10.242,10.242l2.114,-2.115l-10.242,-10.242Z"
+                        style="fill:inherit;" />
+                </svg>
+            }
+        }
+    </div>
+</x-button>

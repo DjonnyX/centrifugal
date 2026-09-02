@@ -1,0 +1,77 @@
+@let items = collection();
+@let itemsConfigMap = collectionConfigMap();
+@let loading = isLoading();
+@let prepared = isListShowed();
+@let searchedWords = searchedPattern();
+@let selectedItemIds = selectedIds();
+
+<div #wrapper class="wrapper">
+    @if (loading || (!prepared)) {
+        <x-messages-loading-indicator class="loading-indicator" />
+    }
+
+    @if (!loading && prepared) {
+        <div class="overlay">
+            <x-message-scroll-to-end-button localeSensitive class="scroll-to-end" [ngClass]="{show: showScrollToBottom()}"
+                (onClick)="onScrollToEndClickHandler()">
+            </x-message-scroll-to-end-button>
+        </div>
+    }
+
+    <nt-list #list class="list" [ngClass]="listClass()" [items]="items" [itemRenderer]="itemRenderer"
+        [snapScrollToStart]="false" [itemSize]="38" [bufferSize]="2" [maxBufferSize]="2" collectionMode="lazy"
+        [scrollingSettings]="scrollingSettings" [itemConfigMap]="itemsConfigMap" [stickyEnabled]="true"
+        [defaultItemValue]="defaultItemValue()" [scrollStartOffset]="scrollStartOffset()"
+        [scrollEndOffset]="scrollEndOffset()" [snapToEndTransitionInstantOffset]="1" selectingMode="multi-select"
+        [selectedIds]="selectedItemIds" [scrollbarThumbRenderer]="customScrollBarThumb"
+        [scrollbarThumbParams]="scrollbarTheme()" [selectByClick]="false" (onSelect)="onSelectItemHandler($event)"
+        (onScrollReachStart)="onScrollReachStartHandler()" [loading]="isLazyLoading()"
+        [animationParams]="animationParams" (onScroll)="onScrollHandler($event)"
+        (onScrollEnd)="onScrollHandler($event)">
+    </nt-list>
+
+    <ng-template #itemRenderer let-index="index" let-data="data" let-prevData="prevData" let-nextData="nextData"
+        let-measures="measures" let-config="config" let-reseted="reseted" let-api="api">
+        <div staticClick [maxStaticClickDistance]="maxStaticClickDistance" class="message-template"
+            (onStaticClick)="api.select(data.id, data.edited ? true : undefined)">
+            @if (data?.data) {
+                @switch (data.data.type) {
+                    @case ("typing-indicator") {
+                        @let class = {'animate': data.animate, 'deleted': data.deleted};
+                        <x-messages-typing-indicator [classes]="class" />
+                    }
+                    @case ("unmailed-separator") {
+                        @let class = {'animate': data.animate, 'deleted': data.deleted};
+                        <x-message-unmailed-separator [classes]="class" [measures]="measures" />
+                    }
+                    @case ("group") {
+                        @let class = {'snapped': config.snapped, 'snapped-out': config.snappedOut, 'focused': config.focused,
+                        'collapsed': config.collapsed};
+                        <x-message-group [classes]="class" [measures]="measures" [text]="data.data.text"
+                            [collapsed]="config.collapsed" />
+                    }
+                    @case ("quote") {
+                        <x-message-box [messageType]="'quote'" [reseted]="reseted" [data]="data" [config]="config"
+                            [measures]="measures" [prevData]="prevData" [nextData]="nextData" [searchPattern]="searchedWords"
+                            (edited)="onChangeItemHandler(api, $event)" [api]="api" (editingCancel)="onEditingCancelHandler(data)"
+                            (edit)="onEditItemHandler($event)" (quoteSelect)="onQuoteSelectHandler($event);"
+                            (delete)="onDeleteItemHandler($event, index)" (changeText)="onChangeMessageHandler($event)" />
+                    }
+                    @default {
+                        <x-message-box [reseted]="reseted" [data]="data" [config]="config" [measures]="measures"
+                            [prevData]="prevData" [nextData]="nextData" [searchPattern]="searchedWords"
+                            (edited)="onChangeItemHandler(api, $event)" (editingCancel)="onEditingCancelHandler(data)"
+                            (edit)="onEditItemHandler($event)" [api]="api" (delete)="onDeleteItemHandler($event, index)"
+                            (changeText)="onChangeMessageHandler($event)" />
+                    }
+                }
+            }
+        </div>
+    </ng-template>
+
+    <ng-template #customScrollBarThumb let-api="api" let-width="width" let-height="height"
+        let-fillPositions="fillPositions" let-params="params">
+        <custom-scrollbar [api]="api" [width]="width" [height]="height" [fillPositions]="fillPositions"
+            [params]="params"></custom-scrollbar>
+    </ng-template>
+</div>

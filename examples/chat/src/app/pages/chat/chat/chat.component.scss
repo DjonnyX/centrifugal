@@ -1,0 +1,109 @@
+:host {
+    overflow: hidden;
+}
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    justify-content: center;
+    height: calc(100%);
+    width: calc(100%);
+}
+
+.container {
+    position: relative;
+    height: calc(100%);
+    width: calc(100%);
+    overflow: hidden;
+}
+
+.toolbar {
+    position: absolute;
+    width: 100%;
+    height: 52px;
+    backdrop-filter: blur(20px);
+    display: grid;
+    align-items: center;
+    grid-template-columns: 320px 1fr auto;
+    padding: 6px 12px 6px 12px;
+    box-sizing: border-box;
+    z-index: 1010;
+
+    &.enabled-dock-left {
+        grid-template-columns: 32px 1fr auto;
+    }
+
+    .title {
+        font-family: Arial, Helvetica, sans-serif;
+        letter-spacing: .5px;
+        text-align: center;
+        font-weight: 800;
+        padding-right: 18px;
+        text-overflow: ellipsis;
+        overflow: hidden;
+    }
+}
+
+.list-container {
+    display: grid;
+    height: calc(100%);
+    width: calc(100%);
+    overflow: hidden;
+}
+
+.viewer-container {
+    position: relative;
+    height: calc(100%);
+    width: calc(100%);
+
+    .message-creator {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1010;
+    }
+}
+
+.scroll-view-container {
+    display: grid;
+    height: calc(100%);
+    width: calc(100%);
+    overflow: hidden;
+}
+
+.scroll-view {
+    position: relative;
+    height: calc(100%);
+    width: calc(100%);
+    overflow: hidden;
+
+    &::part(nt-scroller-content) {
+        width: calc(100%);
+        height: calc(100%);
+    }
+
+    &::part(nt-overscroll-area-shape-left) {
+        background: -webkit-linear-gradient(180deg, #7b00e700 0%, #c700fe36 100%);
+    }
+
+    &::part(nt-overscroll-area-shape-top) {
+        background: -webkit-linear-gradient(90deg, #7b00e700 0%, #c700fe36 100%);
+    }
+
+    &::part(nt-overscroll-area-shape-right) {
+        background: -webkit-linear-gradient(0deg, #7b00e700 0%, #c700fe36 100%);
+    }
+
+    &::part(nt-overscroll-area-shape-bottom) {
+        background: -webkit-linear-gradient(270deg, #7b00e700 0%, #c700fe36 100%);
+    }
+}
+
+.drawer-dock {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
