@@ -41,7 +41,7 @@ npm i centrifugal
 ```html
 <nt-control-container [keyboardEnabled]="true">
   <nt-scroll-view #scrollView class="scroll-view" direction="both">
-    <div class="scroll-view__background" [style.width.px]="3000" [style.height.px]="3000" [class.grabbing]="scrollView.$grabbing | async"></div>
+    <div class="scroll-view__content" [style.width.px]="3000" [style.height.px]="3000" [class.grabbing]="scrollView.$grabbing | async"></div>
   </nt-scroll-view>
 
   <nt-list [items]="items" [bufferSize]="5" [itemRenderer]="itemRenderer" [dynamicSize]="false" [itemSize]="64"></nt-list>
