@@ -1,0 +1,14 @@
+@let c = classes();
+<div #container class="search-container" [style.--placeholder-color]="placeholderColor()"
+    [style.--placeholder-fontsize]="placeholderFontSize()" [ngClass]="c">
+    <input #input localeSensitive type="search" class="search" [ngClass]="c" [placeholder]="placeholderText()"
+        [(ngModel)]="searchText" (input)="onSearchHandler()">
+    <span #icon class="icon">
+        <svg class="search-icon" role="presentation" width="14" height="14" viewBox="0 0 32 32"
+            style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+            <path
+                d="M20.956,22.811c-2.171,1.784 -4.949,2.856 -7.975,2.856c-6.94,-0 -12.574,-5.634 -12.574,-12.574c0,-6.939 5.634,-12.573 12.574,-12.573c6.939,-0 12.574,5.634 12.574,12.573c-0,2.834 -0.94,5.449 -2.523,7.553c0.016,0.015 0.032,0.03 0.048,0.046l8.14,8.14c0.585,0.585 0.585,1.536 -0,2.121c-0.585,0.585 -1.536,0.585 -2.121,0l-8.14,-8.14l-0.003,-0.002Zm-7.975,-19.291c5.284,-0 9.574,4.289 9.574,9.573c-0,5.284 -4.29,9.574 -9.574,9.574c-5.284,-0 -9.574,-4.29 -9.574,-9.574c0,-5.284 4.29,-9.573 9.574,-9.573Z"
+                fill="inherit" />
+        </svg>
+    </span>
+</div>

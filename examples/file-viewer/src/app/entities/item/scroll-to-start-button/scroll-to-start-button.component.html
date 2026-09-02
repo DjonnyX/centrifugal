@@ -1,0 +1,23 @@
+@let strokeColor = buttonStrokeColor();
+@let buttonType = type();
+@let disabledState = disabled();
+@let class = classes();
+@let gradientFillColors = fillColors();
+@let gradientFillPositions = fillPositions();
+@let rippleColor = rippleEffectColor();
+<x-button mode="circle" class="scroll-to-end" [ngClass]="class" [type]="buttonType" [disabled]="disabledState"
+    [rippleColor]="rippleColor" [strokeColor]="strokeColor" [fillColors]="gradientFillColors"
+    [fillPositions]="gradientFillPositions" (onPress)="onPressHandler($event)" (onFocus)="onFocusHandler($event)"
+    (onClick)="onClickHandler($event)">
+    <div #content class="content">
+        <svg width="20px" height="20px" viewBox="0 0 32 32"
+            style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+            <filter id="arrowShadow">
+                <feDropShadow dx="1" dy="1" stdDeviation="3" flood-color="black" flood-opacity="0.15"/>
+            </filter>
+            <path
+                d="M17.014,24.325l0,-19.987l-1.993,0l0,19.828l-8.536,-8.43l-1.511,1.53l11.037,10.9l1.511,-1.53l9.065,-9.064l-1.41,-1.41l-8.163,8.163Z"
+                style="fill:inherit;" filter="url(#arrowShadow)" />
+        </svg>
+    </div>
+</x-button>

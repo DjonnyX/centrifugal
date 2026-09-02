@@ -1,0 +1,27 @@
+@let m = mode();
+@let t = type();
+@let b = editorBounds();
+@let stroke = strokeGradientColor();
+@let corner = shapeRoundCorner();
+@let gradientFillColors = fillGradientColors();
+@let gradientFillPositions = fillPositions();
+@let value = tmpValue();
+@let sendButtonState = editingState();
+@let isValid = isMessageValid();
+@let saving = loading();
+@let focus = focused();
+@let scroll = scrolled();
+@let rippleColor = rippleEffectColor();
+<div localeSensitive class="container" [style.--background]="containerBackground()">
+    <div class="wrapper">
+        <x-substrate #substrate class="substrate" [fillColors]="gradientFillColors" [rippleColor]="rippleColor"
+            [fillPositions]="gradientFillPositions" [width]="b.width" [height]="b.height" [roundCorner]="corner"
+            [mode]="m" [type]="t" [strokeColors]="stroke" [strokeWidth]="strokeWidth()" />
+        <div #editor class="editor" [ngClass]="{focus, scroll}">
+            <textarea #textarea ntControl localeSensitive cdkTextareaAutosize class="textarea" [disabled]="saving" [value]="value"
+                (input)="onInputHandler($event)"></textarea>
+        </div>
+        <x-message-send-button class="button" [state]="sendButtonState" [valid]="isValid" [loading]="saving"
+            (onClick)="onSaveHandler($event, sendButtonState)" calcFillPositions />
+    </div>
+</div>

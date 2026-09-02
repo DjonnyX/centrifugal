@@ -1,0 +1,15 @@
+<x-button #button class="menu" [name]="name()" aria-label="Open Menu" [fillColors]="fillColors()"
+    [fillPositions]="fillPositions()" (onPress)="onPressHandler($event)" (onFocus)="onFocusHandler($event)"
+    (onClick)="onClickHandler($event)">
+    <div #content class="content" [style.--icon-normal-fill]="iconNormalFill()"
+        [style.--icon-pressed-fill]="iconPressedFill()" [style.--icon-focused-fill]="iconFocusedFill()">
+        <span class="placeholder">Open Menu</span>
+        <svg viewBox="0 0 100 100" width="16" height="16" class="menu-open">
+            <path d="m 30, 34 h 40 c 2, 0 8, 2 8, 8 0, 5 -2, 8 -8, 8 h -20"
+                class="line top"></path>
+            <path d="m 30,51 h 40" class="line middle"></path>
+            <path d="m 70, 67 h -40 c 0, 0 -8, 0 -8,-8 0,-8 8,-8 8,-8 h 20"
+                class="line bottom"></path>
+        </svg>
+    </div>
+</x-button>

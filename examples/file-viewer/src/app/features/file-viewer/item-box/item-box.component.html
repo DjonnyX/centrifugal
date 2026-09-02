@@ -1,0 +1,16 @@
+@let listApi = api();
+@let itemData = data();
+@let itemConfig = config();
+@let itemMeasures = measures();
+@if (itemData && itemConfig && itemMeasures) {
+    @let class = classes();
+    <div class="container" [ngClass]="class">
+        <div localeSensitive class="content">
+            <div #container class="item-container" [ngClass]="class">
+                <x-item #item class="item" [ngClass]="class" [api]="listApi" [data]="itemData" [config]="itemConfig"
+                    [measures]="itemMeasures" [classes]="class" [params]="params()" [searchPattern]="searchPattern()"
+                    (resourcesLoaded)="onResourcesLoadedHandler()" />
+            </div>
+        </div>
+    </div>
+}

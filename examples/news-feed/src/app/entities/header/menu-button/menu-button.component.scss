@@ -1,0 +1,96 @@
+.menu {
+    display: block;
+    position: relative;
+    margin-right: -.625rem;
+    border-width: 0px;
+    padding: 0;
+    outline: none;
+    height: 32px;
+    width: 32px;
+
+    .content {
+        position: relative;
+        display: flex;
+        box-sizing: border-box;
+        height: 32px;
+        width: 32px;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+
+        .placeholder {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        .menu-open {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+        }
+
+        .menu-open {
+            height: 32px;
+            width: 32px;
+            cursor: pointer;
+            margin: -8px;
+            transition-duration: .1s;
+
+            .top {
+                stroke-dasharray: 40 200;
+            }
+
+            .middle {
+                transform-origin: 50%;
+                stroke-dasharray: 40 150;
+            }
+
+            .bottom {
+                transform-origin: 50%;
+                stroke-dasharray: 40 80;
+            }
+        }
+
+        .line {
+            fill: none;
+            stroke: var(--icon-normal-fill);
+            stroke-width: 7;
+            transition-duration: .1s;
+            stroke-linecap: round;
+
+            &.pressed {
+                stroke: var(--icon-pressed-fill);
+            }
+
+            &:focus {
+                stroke: var(--icon-focused-fill);
+            }
+        }
+
+        &.active {
+            svg {
+                transform: rotate(45deg);
+
+                .top {
+                    stroke-dashoffset: -64px;
+                }
+
+                .middle {
+                    transform: rotate(90deg);
+                }
+
+                .bottom {
+                    stroke-dashoffset: -64px;
+                }
+            }
+        }
+    }
+}

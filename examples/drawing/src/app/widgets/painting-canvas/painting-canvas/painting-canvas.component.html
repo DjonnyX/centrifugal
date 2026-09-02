@@ -1,0 +1,41 @@
+<div class="app">
+    <div #toolbar localeSensitive class="toolbar">
+        <div class="controls">
+            <button-draw #draw [selected]="drawSelected()" (onClick)="onDrawClickHandler()"></button-draw>
+            <button-drag #drag [selected]="dragSelected()" (onClick)="onDragClickHandler()"></button-drag>
+        </div>
+        <div #header class="title">
+            <div class="section" style="margin: 0;">
+                <p class="head__title">Drawing</p>
+            </div>
+        </div>
+    </div>
+    <nt-scroll-view #scrollView1 class="scroll-view" direction="both" [scrollable]="scrollable()"
+        [scrollTopOffset]="72" [scrollbarEnabled]="true" [scrollbarThickness]="6"
+        [scrollbarThumbRenderer]="customScrollBarThumb" [scrollbarThumbParams]="customScrollBarThumbParams"
+        [motionBlurEnabled]="motionBlurEnabled" (onScrollReachStart)="onScrollReachStartHandler()"
+        (onScrollReachEnd)="onScrollReachEndHandler()">
+        <div class="scroll-view__background" [style.width.px]="4020" [style.height.px]="4010"
+            [class.grabbing]="scrollView1.$grabbing | async">
+            <div class="content">
+                <div class="draft">
+                    <daraft />
+                </div>
+                <div #drawContainer class="content-container">
+                    <svg width="1200" height="1200" viewBox="0 0 1200 1200">
+                        <g stroke="#fff" stroke-width="3" stroke-linecap="round">
+                            <line *ngFor="let line of lines()" [attr.x1]="line.x1" [attr.y1]="line.y1"
+                                [attr.x2]="line.x2" [attr.y2]="line.y2" />
+                        </g>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </nt-scroll-view>
+</div>
+
+<ng-template #customScrollBarThumb let-api="api" let-width="width" let-height="height" let-fillPositions="fillPositions"
+    let-params="params">
+    <custom-scrollbar [api]="api" [width]="width" [height]="height" [fillPositions]="fillPositions"
+        [params]="params"></custom-scrollbar>
+</ng-template>

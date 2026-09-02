@@ -1,0 +1,18 @@
+@let listApi = api();
+@let postData = data();
+@let postConfig = config();
+@let postMeasures = measures();
+@let gradientFillPositions = fillPositions();
+@if (postData && postConfig && postMeasures) {
+    @let class = classes();
+    <div class="container" [ngClass]="class">
+        <div localeSensitive class="content">
+            <div #container class="post-container" [ngClass]="class">
+                <x-post #post class="post" [ngClass]="class" [api]="listApi" [data]="postData" [config]="postConfig"
+                    [fillPositions]="gradientFillPositions" [measures]="postMeasures"
+                    [classes]="class" [params]="params()" [searchPattern]="searchPattern()"
+                    (resourcesLoaded)="onResourcesLoadedHandler()" />
+            </div>
+        </div>
+    </div>
+}

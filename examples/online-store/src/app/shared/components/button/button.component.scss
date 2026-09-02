@@ -1,0 +1,59 @@
+/* reset */
+.button {
+    padding: 0;
+    border: none;
+    font: inherit;
+    color: inherit;
+    text-transform: inherit;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+:host {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-appearance: none;
+    border: none;
+    outline: none;
+
+    &.disabled {
+        pointer-events: none;
+    }
+}
+
+.button {
+    -webkit-appearance: none;
+    border: none;
+    outline: none;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.substrate {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.content {
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    z-index: 1;
+}

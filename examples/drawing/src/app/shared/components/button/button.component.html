@@ -1,0 +1,20 @@
+@let m = mode();
+@let t = type();
+@let b = bounds();
+@let value = content();
+@let stroke = strokeGradientColor();
+@let corner = shapeRoundCorner();
+@let gradientFillColors = fillGradientColors();
+@let gradientFillPositions = fillPositions();
+@let rippleColor = rippleEffectColor();
+<button #button press class="button" [attr.name]="name()" (pointerdown)="substrate.ripple($event)" (onPress)="onPressHandler($event)"
+    (click)="onClickHandler($event)">
+    <x-substrate #substrate class="substrate" [fillColors]="gradientFillColors" [rippleColor]="rippleColor"
+        [fillPositions]="gradientFillPositions" [width]="b.width" [height]="b.height" [roundCorner]="corner"
+        [mode]="m" [type]="t" [strokeColors]="stroke" [strokeWidth]="strokeWidth()" />
+    <p localeSensitive class="content">
+        <ng-content>
+            {{value}}
+        </ng-content>
+    </p>
+</button>

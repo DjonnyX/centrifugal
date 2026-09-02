@@ -1,0 +1,41 @@
+:host {
+    overflow: hidden;
+}
+
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    justify-content: center;
+    height: calc(100%);
+    width: calc(100%);
+}
+
+.container {
+    position: relative;
+    height: calc(100%);
+    width: calc(100%);
+    overflow: hidden;
+}
+
+.list-container {
+    display: grid;
+    height: calc(100%);
+    width: calc(100%);
+    overflow: hidden;
+}
+
+.viewer-container {
+    position: relative;
+    height: calc(100%);
+    width: calc(100%);
+
+    .message-creator {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1010;
+    }
+}

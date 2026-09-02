@@ -1,0 +1,50 @@
+@let listApi = api();
+@let messageData = data();
+@let messageConfig = config();
+@let messageMeasures = measures();
+@let sendButtonState = editingState();
+@let b = bounds();
+@let saving = isSaving();
+@let deleting = isDeleting();
+@let isValid = isMessageValid();
+@let menuDisabled = saving || deleting;
+@let gradientFillPositions = fillPositions();
+@let longPress = longPressActive();
+@if (messageData && messageConfig && messageMeasures) {
+    @let class = classes();
+    @let edited = messageData.edited;
+    <div class="container" [ngClass]="class">
+        <div localeSensitive class="content">
+            <div #container longPress class="message-container" [ngClass]="class" [longPress]="longPressDuration"
+                [longPressDisabled]="messageConfig.selected" (onLongPressActive)="onLongPressActive($event)"
+                (onLongPress)="listApi?.select(messageData.id, true); openMenu()" [longPressPrevent]="$longPressPrevent">
+                <x-message #message class="message" [ngClass]="class" [api]="listApi" [data]="messageData" [config]="messageConfig"
+                    [messageType]="messageType()" [fillPositions]="gradientFillPositions" [measures]="messageMeasures"
+                    [classes]="class" [longPressActive]="longPress" [params]="params()" [searchPattern]="searchPattern()"
+                    (changeValue)="onMessageChangeValueHandler($event)" (quoteSelect)="onQuoteSelectHandler($event)"
+                    (resourcesLoaded)="onResourcesLoadedHandler()" />
+            </div>
+            @if (messageConfig.selected) {
+                <div class="message-controls" [ngStyle]="{height: b.height}">
+                    <x-message-menu-button #menuButton [cdkMenuTriggerFor]="menuDisabled ? undefined : menu"
+                        [fillPositions]="menuButtonFillPositions()" [disabled]="menuDisabled" calcFillPositions
+                        [measures]="messageMeasures" (onFillPositions)="onMenuButtonFillPositionsHandler($event)" />
+                    <div></div>
+                    @if (edited) {
+                        <x-message-save-button [state]="sendButtonState" [valid]="isValid" [loading]="saving"
+                            [fillPositions]="sendButtonFillPositions()"
+                            (onClick)="onSaveHandler($event, messageData, messageConfig, sendButtonState)" calcFillPositions
+                            [measures]="messageMeasures" (onFillPositions)="onSendButtonFillPositionsHandler($event)" />
+                    }
+                </div>
+                <ng-template #menu>
+                    <x-context-menu [items]="contextMenuItems()" [preset]="contextMenuPreset()"
+                        [fillPositions]="contextMenuFillPositions()"
+                        (onClick)="onClickContextMenuHandler($event, messageData, messageConfig, messageMeasures)"
+                        calcFillPositions [measures]="messageMeasures"
+                        (onFillPositions)="onContextMenuFillPositionsHandler($event)"></x-context-menu>
+                </ng-template>
+            }
+        </div>
+    </div>
+}

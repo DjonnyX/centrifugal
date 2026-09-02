@@ -1,0 +1,21 @@
+@let m = mode();
+@let t = type();
+@let b = bounds();
+@let stroke = strokeGradientColor();
+@let corner = shapeRoundCorner();
+@let gradientFillColors = fillGradientColors();
+@let gradientFillPositions = fillGradientPositions();
+@let animationStrokeDuration = strokeAnimationDuration();
+@let buttonPreset = contextMenuButtonPreset();
+@let collection = items();
+<div #contextMenu cdkMenu class="context-menu">
+    <x-substrate class="substrate" [mode]="m" [type]="t" [width]="b.width" [height]="b.height" [roundCorner]="corner"
+        [fillColors]="gradientFillColors" [strokeColors]="stroke" [strokeWidth]="1.5"
+        [strokeAnimationDuration]="animationStrokeDuration" [fillPositions]="gradientFillPositions"></x-substrate>
+    <div #content class="content">
+        @for (item of collection; track item.id) {
+            <x-button class="context-menu__item" mode="rectangle" [preset]="buttonPreset"
+                (onClick)="onItemClickHandler($event, item.id)">{{item.name}}</x-button>
+        }
+    </div>
+</div>

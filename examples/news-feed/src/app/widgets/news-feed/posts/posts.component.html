@@ -1,0 +1,57 @@
+@let items = collection();
+@let itemsConfigMap = collectionConfigMap();
+@let loading = isLoading();
+@let prepared = isListShowed();
+@let searchedWords = searchedPattern();
+@let selectedItemIds = selectedIds();
+
+<div #wrapper class="wrapper">
+    @if (loading || (!prepared)) {
+        <x-posts-loading-indicator class="loading-indicator" />
+    }
+
+    @if (!loading && prepared) {
+        <div class="overlay">
+            <x-scroll-to-start-button localeSensitive class="scroll-to-end" [ngClass]="{show: showScrollToStart()}"
+                (onClick)="onScrollToStartClickHandler()">
+            </x-scroll-to-start-button>
+        </div>
+    }
+
+    <nt-list #list class="list" [ngClass]="listClass()" [items]="items" [itemRenderer]="itemRenderer"
+        [snapScrollToEnd]="false" [itemSize]="38" [bufferSize]="5" [maxBufferSize]="5" collectionMode="lazy"
+        [itemConfigMap]="itemsConfigMap" [stickyEnabled]="true" [defaultItemValue]="defaultItemValue()"
+        [scrollStartOffset]="scrollStartOffset()" [scrollEndOffset]="scrollEndOffset()" [snapToEndTransitionInstantOffset]="1"
+        selectingMode="multi-select" [selectedIds]="selectedItemIds" [scrollbarThumbRenderer]="customScrollBarThumb"
+        [scrollbarThumbParams]="scrollbarTheme()" [selectByClick]="false" [scrollingSettings]="scrollingSettings"
+        [loading]="isLazyLoading()" [animationParams]="animationParams"
+         (onSelect)="onSelectItemHandler($event)" (onScrollReachEnd)="onScrollReachEndHandler()"
+        (onScroll)="onScrollHandler($event)" (onScrollEnd)="onScrollHandler($event)">
+    </nt-list>
+
+    <ng-template #itemRenderer let-index="index" let-data="data" let-prevData="prevData" let-nextData="nextData"
+        let-measures="measures" let-config="config" let-reseted="reseted" let-api="api">
+        <div staticClick [maxStaticClickDistance]="maxStaticClickDistance" class="message-template"
+            (onStaticClick)="api.select(data.id, data.edited ? true : undefined)">
+            @if (data?.data) {
+                @switch (data.data.type) {
+                    @case ("group") {
+                        @let class = {'snapped': config.snapped, 'snapped-out': config.snappedOut, 'focused': config.focused,
+                        'collapsed': config.collapsed};
+                        <x-posts-group [classes]="class" [measures]="measures" [text]="data.data.text" [collapsed]="config.collapsed" />
+                    }
+                    @default {
+                        <x-post-box [reseted]="reseted" [data]="data" [config]="config" [measures]="measures" [prevData]="prevData"
+                            [nextData]="nextData" [searchPattern]="searchedWords"[api]="api" />
+                    }
+                }
+            }
+        </div>
+    </ng-template>
+
+    <ng-template #customScrollBarThumb let-api="api" let-width="width" let-height="height"
+        let-fillPositions="fillPositions" let-params="params">
+        <custom-scrollbar [api]="api" [width]="width" [height]="height" [fillPositions]="fillPositions"
+            [params]="params"></custom-scrollbar>
+    </ng-template>
+</div>

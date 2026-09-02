@@ -1,0 +1,43 @@
+.container {
+    width: 100%;
+    overflow: hidden;
+    margin: 0 0 3px 0;
+    padding: 0 4px;
+    background-color: transparent;
+    box-sizing: border-box;
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+
+    @media (min-width: 600px) {
+        margin: 0 0 6px 0;
+    }
+
+    .content {
+        position: relative;
+    }
+
+    .store-item-container {
+        display: flex;
+        background-size: 0% 0%;
+        background-position: center;
+        transition: grid-template-columns 100ms ease-out;
+    }
+
+    &>* {
+        height: auto;
+    }
+
+    .store-item-container {
+        height: 240px;
+        width: 100%;
+        border-radius: 12px;
+        transition: background-color 150ms ease-out;
+    }
+
+    &.selected {
+        user-select: text;
+        -moz-user-select: text;
+        -webkit-user-select: text;
+    }
+}

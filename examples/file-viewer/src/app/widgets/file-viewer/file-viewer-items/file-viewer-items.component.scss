@@ -1,0 +1,120 @@
+:host {
+    display: block;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+.wrapper {
+    background-size: 90px;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    .loading-indicator {
+        z-index: 999;
+    }
+
+    .list {
+        background-size: 90px;
+        width: 100%;
+        height: 100%;
+        max-height: unset;
+        overflow: hidden;
+
+        &.loading {
+            opacity: 0;
+        }
+
+        &::part(scroller) {
+            scroll-behavior: unset;
+
+            &::-webkit-scrollbar {
+                width: 16px;
+                height: 16px;
+            }
+
+            &::-webkit-scrollbar-track {
+                background-color: transparent;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                background-color: #b6b3d7;
+                border-radius: 20px;
+                border: 6px solid transparent;
+                background-clip: content-box;
+                min-width: 60px;
+                min-height: 60px;
+            }
+
+            &::-webkit-scrollbar-thumb:hover {
+                background-color: #908cbd;
+            }
+        }
+
+        &::part(item) {
+            background-color: unset;
+        }
+
+        &::part(snapped-item) {
+            pointer-events: initial;
+            cursor: pointer;
+        }
+
+        &::part(item-focused) {
+            outline: none;
+        }
+    }
+
+    .message-template {
+        cursor: pointer;
+    }
+
+    .overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+
+        @keyframes scrollToEndFadeIn {
+            from {
+                opacity: 0;
+                top: 80px;
+            }
+
+            to {
+                opacity: 1;
+                top: 60px;
+            }
+        }
+
+        @keyframes scrollToEndFadeOut {
+            from {
+                opacity: 1;
+                top: 60px;
+            }
+
+            to {
+                opacity: 0;
+                top: 40px;
+            }
+        }
+
+        .scroll-to-end {
+            -webkit-tap-highlight-color: transparent;
+            position: absolute;
+            backdrop-filter: blur(10px);
+            right: 12px;
+            z-index: 9999;
+            animation: scrollToEndFadeOut 200ms ease-out 0s 1 normal forwards;
+
+            &.show {
+                animation: scrollToEndFadeIn 200ms ease-out 0s 1 normal forwards;
+            }
+
+            &.rtl {
+                left: 12px;
+                right: unset;
+            }
+        }
+    }
+}

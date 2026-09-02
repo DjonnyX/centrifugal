@@ -1,0 +1,112 @@
+/* reset */
+.checkbox {
+    padding: 0;
+    border: none;
+    font: inherit;
+    color: inherit;
+    text-transform: inherit;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+:host {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-appearance: none;
+    border: none;
+    outline: none;
+
+    &.disabled {
+        pointer-events: none;
+    }
+
+    .wrapper {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+        display: inline-flex;
+        box-sizing: border-box;
+        align-items: center;
+        word-break: normal;
+        word-wrap: break-word;
+        font-size: 14px;
+        gap: 6px;
+    }
+
+    .checkbox {
+        -webkit-appearance: none;
+        border: none;
+        outline: none;
+        position: relative;
+        width: 32px;
+        height: 32px;
+        box-sizing: border-box;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .substrate {
+        position: absolute;
+        width: 32px;
+        height: 32px;
+        z-index: 0;
+    }
+
+    .content {
+        pointer-events: none;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        margin: 0;
+        font-size: inherit;
+        color: inherit;
+    }
+
+    @keyframes indicatorFadeIn {
+        0% {
+            opacity: 0;
+            transform: scale(0.7);
+        }
+
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @keyframes indicatorFadeOut {
+        0% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        100% {
+            opacity: 0;
+            transform: scale(0.7);
+        }
+    }
+
+    .indicator {
+        z-index: 1;
+        display: flex;
+
+        svg {
+            animation: indicatorFadeIn 100ms ease-out 0s 1 normal forwards;
+
+            &.fadeout {
+                animation: indicatorFadeOut 100ms ease-out 0s 1 normal forwards;
+            }
+        }
+    }
+}

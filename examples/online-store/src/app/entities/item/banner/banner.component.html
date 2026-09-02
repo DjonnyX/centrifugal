@@ -1,0 +1,20 @@
+@let b = bounds();
+@let corner = shapeRoundCorner();
+@let gradientFillColors = fillGradientColors();
+@let gradientFillPositions = fillPositions();
+@let rippleColor = rippleEffectColor();
+@let value = text();
+
+<div press class="banner-container" (pointerdown)="substrate.ripple($event)"
+    (onPress)="onPressHandler($event)">
+    <div class="wrapper">
+        <x-substrate #substrate class="substrate" [fillColors]="gradientFillColors" [rippleColor]="rippleColor"
+            [fillPositions]="gradientFillPositions" [width]="b.width" [height]="b.height" [roundCorner]="corner"
+            mode="rounded-rectangle" type="none" />
+        <span #container localeSensitive class="content">
+            <span>
+                <p localeSensitive class="text">{{value}}</p>
+            </span>
+        </span>
+    </div>
+</div>

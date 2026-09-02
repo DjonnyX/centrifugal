@@ -1,0 +1,47 @@
+:host {
+    background: rgb(255 255 255);
+    display: block;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+.wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+
+    .list-wrapper {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        opacity: 0;
+
+        &.loaded {
+            opacity: 1;
+        }
+
+        .list {
+            opacity: 1;
+            transition: opacity 0s ease-in 800ms;
+            background-size: 90px;
+            width: 100%;
+            height: 100%;
+            max-height: unset;
+            overflow: hidden;
+
+            &::part(item) {
+                background-color: unset;
+            }
+
+            &::part(snapped-item) {
+                pointer-events: initial;
+                cursor: pointer;
+            }
+
+            &::part(item-focused) {
+                outline: none;
+            }
+        }
+    }
+}

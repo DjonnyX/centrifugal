@@ -1,0 +1,25 @@
+@let d = data();
+@let c = config();
+@let w = width();
+@let h = height();
+@let searchedWords = searchPattern();
+@let class = classes();
+@let stroke = strokeColor();
+@let gradientFillPositions = fillPositions();
+@if (d && c) {
+    <div #wrapper class="wrapper" [style.width.px]="w" [style.height.px]="h">
+        <div #substrateContainer class="page-substrate">
+            <x-page-substrate #substrate [width]="w" [height]="h" [strokeColors]="stroke" [strokeWidth]="strokeWidth()"
+                [fillColors]="fillColors()" [fillPositions]="gradientFillPositions"
+                [rippleColor]="rippleColor()"></x-page-substrate>
+        </div>
+        <div #container class="page-container" [style.width.px]="w" [style.height.px]="h" [ngClass]="class"
+            (pointerdown)="substrate.ripple($event)">
+            <x-text class="text" [text]="d.data.text" [searchPattern]="searchedWords" [style.height.px]="textHeight()"
+                [classes]="class" substringClass="search-substring" presetName="message" />
+            <div class="page-num">
+                {{d.id}}
+            </div>
+        </div>
+    </div>
+}

@@ -1,0 +1,33 @@
+@let m = mode();
+@let t = type();
+@let b = bounds();
+@let stroke = strokeColor();
+@let corner = roundCorner();
+@let gradientFillColors = fillColors();
+@let gradientFillPositions = fillPositions();
+@let titleValue = data.title;
+@let messageValue = data.message;
+@let actions = buttonGroupItems();
+@let animationStrokeDuration = strokeAnimationDuration();
+@let s = styles();
+<div class="container">
+    <x-substrate class="substrate" [fillColors]="gradientFillColors" [fillPositions]="gradientFillPositions"
+        [width]="b.width" [height]="b.height" [roundCorner]="corner" [mode]="m" [type]="t" [strokeColors]="stroke"
+        [strokeAnimationDuration]="animationStrokeDuration" [strokeWidth]="1.5" />
+    <div #content class="content">
+        @if (titleValue) {
+            <h2 #title localeSensitive class="title">{{ titleValue }}</h2>
+        }
+        @if (messageValue) {
+            <p #message localeSensitive class="message">{{ messageValue }}</p>
+        }
+        <ng-template #contentTemplate>
+        </ng-template>
+        @if (actions) {
+            <div localeSensitive class="actions">
+                <x-button-group class="button-group" [ngStyle]="s" [items]="actions"
+                    (onClick)="onButtonClickHandler($event)"></x-button-group>
+            </div>
+        }
+    </div>
+</div>

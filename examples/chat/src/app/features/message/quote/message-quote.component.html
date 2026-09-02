@@ -1,0 +1,24 @@
+@let d = data();
+@let b = bounds();
+@let substrMode = substarateMode();
+@let class = classes();
+@let type = substrateType();
+@let stroke = strokeColor();
+@let gradientFillPositions = fillPositions();
+@let tType = themeType();
+@if (d) {
+    <div #wrapper class="wrapper">
+        <div class="message-quote-wrapper" [ngClass]="class" [style.--border-color]="borderColor()">
+            <div #substrateContainer>
+                <x-substrate #substrate class="message-substrate" [type]="type" [width]="b.width" [height]="b.height"
+                    [mode]="substrMode" [strokeColors]="stroke" [strokeWidth]="strokeWidth()" [fillColors]="fillColors()"
+                    [fillPositions]="gradientFillPositions" [rippleColor]="rippleColor()"></x-substrate>
+            </div>
+            <div #container class="message-container" [ngClass]="class" (pointerdown)="substrate.ripple($event)"
+                presetName="quote">
+                <x-editable-text class="text" [themeType]="tType" [text]="d.data.text" [singleline]="true"
+                    [classes]="class" />
+            </div>
+        </div>
+    </div>
+}

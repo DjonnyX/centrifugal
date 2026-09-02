@@ -1,0 +1,23 @@
+@let class = classes();
+<div class="indicator-container" [ngClass]="class">
+    <svg width="40" height="10" viewBox="0 0 120 30" fill="inherit">
+        <circle cx="10" cy="10" r="10">
+            <animate id="r0" attributeName="r" from="10" to="10" begin="0s;1.25s" dur="1.25s" values="10;8;8;8;8"
+                calcMode="linear" repeatCount="indefinite" />
+            <animate id="r1" attributeName="fill-opacity" from="1" to="1" begin="0s;1.25s" dur="1.25s"
+                values="1;0;0;0;0" calcMode="linear" repeatCount="indefinite" />
+        </circle>
+        <circle cx="50" cy="10" r="10">
+            <animate id="r2" attributeName="r" from="10" to="10" begin="0s;1.25s" dur="1.25s" values="8;10;8;8;8"
+                calcMode="linear" repeatCount="indefinite" />
+            <animate id="r3" attributeName="fill-opacity" from="1" to="1" begin="0s;1.25s" dur="1.25s"
+                values="0;1;0;0;0" calcMode="linear" repeatCount="indefinite" />
+        </circle>
+        <circle cx="90" cy="10" r="10">
+            <animate id="r4" attributeName="r" from="10" to="10" begin="0s;1.25s" dur="1.25s" values="8;8;10;8;8"
+                calcMode="linear" repeatCount="indefinite" />
+            <animate id="r5" attributeName="fill-opacity" from="1" to="1" begin="0s;1.25s" dur="1.25s" values="0;0;1;0;0"
+                calcMode="linear" repeatCount="indefinite" />
+        </circle>
+    </svg>
+</div>

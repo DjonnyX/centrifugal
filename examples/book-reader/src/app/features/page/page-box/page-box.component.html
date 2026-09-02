@@ -1,0 +1,18 @@
+@let listApi = api();
+@let messageData = data();
+@let messageConfig = config();
+@let messageMeasures = measures();
+@let gradientFillPositions = fillPositions();
+@if (messageData && messageConfig && messageMeasures) {
+    @let class = classes();
+    <div class="container" [ngClass]="class">
+        <div localeSensitive class="content">
+            <div #container class="message-container" [ngClass]="class">
+                <x-page #message class="message" [ngClass]="class" [api]="listApi" [data]="messageData" [config]="messageConfig"
+                    [fillPositions]="gradientFillPositions" [measures]="messageMeasures"
+                    [classes]="class" [params]="params()" [searchPattern]="searchPattern()"
+                    (resourcesLoaded)="onResourcesLoadedHandler()" />
+            </div>
+        </div>
+    </div>
+}

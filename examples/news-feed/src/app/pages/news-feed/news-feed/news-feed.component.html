@@ -1,0 +1,30 @@
+@let searchText = search();
+@let groupTitle = title();
+<div class="wrapper">
+    <div class="container">
+        <div #toolbar localeSensitive class="toolbar enabled-dock-left">
+            <div>
+                <x-menu-button name="menu-button" (onClick)="onOpenMenuHandler($event)"
+                    [opened]="(drawer.$opened | async)!" />
+            </div>
+            <div #header class="title">{{groupTitle}}</div>
+            <x-search (search)="onSearchHandler($event)" />
+        </div>
+
+        <div class="list-container">
+            <nt-drawer #drawer class="drawer" [dockLeftSize]="menuSize()" [dockLeft]="dockLeft"
+                (onOpen)="onDrawerOpenHandler()" (onClose)="onDrawerCloseHandler()">
+                <ng-template #dockLeft>
+                    <div class="drawer-dock">
+                        <x-groups [scrollStartOffset]="toolbarBounds().height" (select)="onGroupSelectHandler($event)"
+                            (close)="onGroupsCloseHandler()" />
+                    </div>
+                </ng-template>
+
+                <div class="viewer-container">
+                    <x-posts #posts [search]="searchText" [scrollStartOffset]="toolbarBounds().height" />
+                </div>
+            </nt-drawer>
+        </div>
+    </div>
+</div>

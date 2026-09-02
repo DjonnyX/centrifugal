@@ -1,0 +1,39 @@
+@let b = bounds();
+@let corner = shapeRoundCorner();
+@let gradientFillColors = fillGradientColors();
+@let gradientFillPositions = fillPositions();
+@let rippleColor = rippleEffectColor();
+@let class = classes();
+@let value = text();
+@let isCollapsed = collapsed();
+
+<div press class="group-container" [ngClass]="class" (pointerdown)="substrate.ripple($event)"
+    (onPress)="onPressHandler($event)">
+    <div class="wrapper">
+        <x-substrate #substrate class="substrate" [fillColors]="gradientFillColors" [rippleColor]="rippleColor"
+            [fillPositions]="gradientFillPositions" [width]="b.width" [height]="b.height" [roundCorner]="corner"
+            mode="rounded-rectangle" type="none" />
+        <span #container localeSensitive class="content">
+            <span>
+                <p localeSensitive class="text">{{value}}</p>
+            </span>
+            <span class="collapsable-indicator">
+                <span #indicator>
+                    @if (isCollapsed) {
+                        <svg width="10" height="10" fill="inherit" viewBox="0 0 24 24">
+                            <path fill="inherit"
+                                d="M12.601 17.596a.85.85 0 0 1-1.202 0L1.239 7.436a.75.75 0 0 1 1.06-1.061l9.701 9.7 9.7-9.7a.75.75 0 0 1 1.061 1.06z">
+                            </path>
+                        </svg>
+                    } @else {
+                        <svg width="10" height="10" fill="inherit" viewBox="0 0 24 24">
+                            <path fill="inherit"
+                                d="M12.601 6.404a.85.85 0 0 0-1.202 0l-10.16 10.16a.75.75 0 0 0 1.06 1.061L12 7.925l9.7 9.7a.75.75 0 0 0 1.061-1.06z">
+                            </path>
+                        </svg>
+                    }
+                </span>
+            </span>
+        </span>
+    </div>
+</div>

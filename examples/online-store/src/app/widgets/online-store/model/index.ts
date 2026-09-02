@@ -1,0 +1,1 @@
+import { IGetPostsAnswer } from "./items";

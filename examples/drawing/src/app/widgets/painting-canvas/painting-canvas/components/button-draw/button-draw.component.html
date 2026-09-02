@@ -1,0 +1,15 @@
+<x-button #button class="button" [name]="name()" [fillColors]="fillColors()" [fillPositions]="fillPositions()"
+    [ngClass]="{selected: selected()}" (onPress)="onPressHandler($event)" (onFocus)="onFocusHandler($event)"
+    (onClick)="onClickHandler($event)">
+    <div #content class="content" [style.--icon-normal-fill]="iconNormalFill()"
+        [style.--icon-pressed-fill]="iconPressedFill()" [style.--icon-focused-fill]="iconFocusedFill()">
+        <svg width="100%" height="100%" viewBox="0 0 48 48"
+            style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+            <g transform="matrix(1,0,0,1,-48.8389,-18.9488)">
+                <path
+                    d="M60.897,61.906L60.306,52.968L68.932,57.949L60.897,61.906ZM86.002,28.251L77.342,23.251L61.465,50.75L70.125,55.75L86.002,28.251Z"
+                    style="fill:white;" />
+            </g>
+        </svg>
+    </div>
+</x-button>

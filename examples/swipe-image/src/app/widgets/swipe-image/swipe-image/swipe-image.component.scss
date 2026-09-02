@@ -1,0 +1,70 @@
+:host {
+    display: block;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+}
+
+.wrapper {
+    background-size: 90px;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    .loading-indicator {
+        z-index: 999;
+    }
+
+    .list {
+        background-size: 90px;
+        width: 100%;
+        height: 100%;
+        max-height: unset;
+        overflow: hidden;
+
+        &.loading {
+            opacity: 0;
+        }
+
+        &::part(scroller) {
+            scroll-behavior: unset;
+        }
+
+        &::part(item) {
+            background-color: unset;
+        }
+
+        &::part(snapped-item) {
+            pointer-events: initial;
+            cursor: pointer;
+        }
+
+        &::part(item-focused) {
+            outline: none;
+        }
+
+        &::part(item-fx) {
+            height: 100%;
+        }
+    }
+
+    .overlay {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.list {
+    &::part(scroller) {
+        position: relative;
+    }
+
+    &::part(list) {
+        perspective: 150000px;
+    }
+
+    &::part(item-transformer) {
+        transform-style: preserve-3d;
+    }
+}
