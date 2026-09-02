@@ -1,0 +1,16 @@
+@let listApi = api();
+@let storeItemData = data();
+@let storeItemConfig = config();
+@let storeItemMeasures = measures();
+@if (storeItemData && storeItemConfig && storeItemMeasures) {
+    @let class = classes();
+    <div class="container" [ngClass]="class">
+        <div localeSensitive class="content">
+            <div #container class="store-item-container" [ngClass]="class">
+                <x-store-item #storeItem class="store-item" [ngClass]="class" [api]="listApi" [data]="storeItemData" [config]="storeItemConfig"
+                    [measures]="storeItemMeasures" [classes]="class" [params]="params()" [searchPattern]="searchPattern()"
+                    (resourcesLoaded)="onResourcesLoadedHandler()" />
+            </div>
+        </div>
+    </div>
+}
