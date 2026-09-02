@@ -1,6 +1,6 @@
 # Centrifugal Chat Demo
 
-✨ The Centrifugal Drawing Demo application (centrifugal-book-reader) is an Angular application designed to demonstrate high-performance scroll view rendering using next-generation web UI components.
+✨ The Centrifugal Drawing Demo application (centrifugal-drawer) is an Angular application designed to demonstrate high-performance scroll view rendering using next-generation web UI components.
 
 The project uses dependencies only from the Angular ecosystem and [centrifugal](https://github.com/DjonnyX/centrifugal) without implementing third-party solutions.
 
