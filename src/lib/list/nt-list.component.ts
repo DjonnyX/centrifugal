@@ -2359,7 +2359,36 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
       debounceTime(0),
       tap(([isVertical, langTextDir, itemTransform]) => {
         if (langTextDir === TextDirections.RTL && !isVertical && itemTransform) {
-          throw Error('Currently, converting right-to-left items in horizontal lists is not possible.');
+          throw Error(`
+Right-to-left element transformations are currently unavailable in horizontal lists.
+To ensure correct display of such lists, you can invert the collection and scroll to the last element during initialization.
+Example:
+template:
+<nt-list #list [items]="_items()" ... />
+
+component:
+private _list = viewChild<NtListComponent>('list');
+
+items = input<IVirtualListCollection<any>>([]);
+
+protected _items: Signal<IVirtualListCollection<any>>;
+
+constructor() {
+  this._items = computed(() => {
+    return this.items().reverse();
+  });
+
+  const $list = toObservable(this._list);
+  $list.pipe(
+    takeUntilDestroyed(),
+    filter(v => !!v),
+    tap(list => {
+      // where 0 is the identifier of the first element of the collection.
+      list.scrollTo(0);
+    }),
+  ).subscribe();
+}
+`);
         }
       }),
     ).subscribe();
