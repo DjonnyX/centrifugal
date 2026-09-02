@@ -1,0 +1,36 @@
+@let m = mode();
+@let t = type();
+@let b = bounds();
+@let val = value();
+@let hide = indicatorHide();
+@let cnt = content();
+@let stroke = strokeGradientColor();
+@let corner = shapeRoundCorner();
+@let gradientFillColors = fillGradientColors();
+@let gradientFillPositions = fillPositions();
+@let rippleColor = rippleEffectColor();
+@let indicatorClass = indicatorClasses();
+<div class="wrapper" (click)="onClickHandler($event)">
+    <button #checkbox press class="checkbox" (pointerdown)="substrate.ripple($event)"
+        (onPress)="onPressHandler($event)">
+        <x-substrate #substrate class="substrate" [fillColors]="gradientFillColors" [rippleColor]="rippleColor"
+            [fillPositions]="gradientFillPositions" [width]="b.width" [height]="b.height" [roundCorner]="corner"
+            [mode]="m" [type]="t" [strokeColors]="stroke" [strokeAnimationDuration]="10000"
+            [strokeWidth]="strokeWidth()" />
+        <span #indicator class="indicator">
+            @if (val || !hide) {
+                <svg [ngClass]="indicatorClass" width="12px" height="12px" viewBox="0 0 32 32" version="1.1"
+                    style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+                    <path
+                        d="M31.968,11.17c0,-6.169 -5.008,-11.178 -11.177,-11.178l-9.582,0c-6.169,0 -11.177,5.009 -11.177,11.178l-0,9.624c-0,6.169 5.008,11.178 11.177,11.178l9.582,0c6.169,0 11.177,-5.009 11.177,-11.178l0,-9.624Z"
+                        style="fill: inherit;" />
+                </svg>
+            }
+        </span>
+    </button>
+    <p #label localeSensitive class="content">
+        <ng-content>
+            {{cnt}}
+        </ng-content>
+    </p>
+</div>

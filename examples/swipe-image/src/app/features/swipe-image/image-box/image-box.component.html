@@ -1,0 +1,16 @@
+@let listApi = api();
+@let imageData = data();
+@let imageConfig = config();
+@let imageMeasures = measures();
+@if (imageData && imageConfig && imageMeasures) {
+    @let class = classes();
+    <div class="container" [ngClass]="class">
+        <div localeSensitive class="content">
+            <div #container class="image-container" [ngClass]="class">
+                <x-image class="image" [ngClass]="class" [api]="listApi" [data]="imageData" [config]="imageConfig"
+                    [measures]="imageMeasures" [classes]="class" [params]="params()" [searchPattern]="searchPattern()"
+                    (resourcesLoaded)="onResourcesLoadedHandler()" />
+            </div>
+        </div>
+    </div>
+}

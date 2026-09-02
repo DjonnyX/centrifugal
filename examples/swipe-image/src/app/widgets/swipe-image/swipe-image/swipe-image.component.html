@@ -1,0 +1,37 @@
+@let items = collection();
+@let loading = isLoading();
+@let prepared = isListShowed();
+@let searchedWords = searchedPattern();
+
+<div #wrapper class="wrapper">
+    @if (loading || (!prepared)) {
+    <x-page-loading-indicator class="loading-indicator" />
+    }
+
+    <nt-list #list class="list" [ngClass]="listClass()" [items]="items" [itemRenderer]="itemRenderer"
+        direction="horizontal" [snapScrollToEnd]="false" [dynamicSize]="false" itemSize="viewport" [bufferSize]="5"
+        [maxBufferSize]="5" [itemTransform]="swipe3DTransform" collectionMode="lazy" [stickyEnabled]="true"
+        [defaultItemValue]="defaultItemValue()" [snapToItem]="true" snapToItemAlign="center" snappingDistance="50%"
+        [scrollingOneByOne]="true" [snapToEndTransitionInstantOffset]="1" [motionBlurEnabled]="true"
+        [scrollbarEnabled]="false" [selectByClick]="false" [scrollingSettings]="scrollingSettings"
+        [loading]="isLazyLoading()" [animationParams]="animationParams" (onScrollReachEnd)="onScrollReachEndHandler()"
+        (onScroll)="onScrollHandler($event)" (onScrollEnd)="onScrollHandler($event)">
+    </nt-list>
+
+    <ng-template #itemRenderer let-index="index" let-data="data" let-prevData="prevData" let-nextData="nextData"
+        let-measures="measures" let-config="config" let-reseted="reseted" let-api="api">
+        <div staticClick [maxStaticClickDistance]="maxStaticClickDistance"
+            (onStaticClick)="api.select(data.id, data.edited ? true : undefined)">
+            @if (data?.data) {
+            <x-image-box [reseted]="reseted" [data]="data" [config]="config" [measures]="measures" [prevData]="prevData"
+                [nextData]="nextData" [searchPattern]="searchedWords" [api]="api" />
+            }
+        </div>
+    </ng-template>
+
+    <ng-template #customScrollBarThumb let-api="api" let-width="width" let-height="height"
+        let-fillPositions="fillPositions" let-params="params">
+        <custom-scrollbar [api]="api" [width]="width" [height]="height" [fillPositions]="fillPositions"
+            [params]="params"></custom-scrollbar>
+    </ng-template>
+</div>
