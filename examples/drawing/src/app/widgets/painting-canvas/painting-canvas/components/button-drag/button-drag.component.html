@@ -1,0 +1,14 @@
+<x-button #button class="button" [name]="name()" [fillColors]="fillColors()" [fillPositions]="fillPositions()"
+    [ngClass]="{selected: selected()}" (onPress)="onPressHandler($event)" (onFocus)="onFocusHandler($event)"
+    (onClick)="onClickHandler($event)">
+    <div #content class="content" [style.--icon-normal-fill]="iconNormalFill()"
+        [style.--icon-pressed-fill]="iconPressedFill()" [style.--icon-focused-fill]="iconFocusedFill()">
+        <svg width="100%" height="100%" viewBox="0 0 48 48">
+            <g transform="matrix(0.538932,0,0,0.538932,-43.1641,8.68086)">
+                <path
+                    d="M120.221,23.746L120.221,2.522L114.373,2.522L125.166,-7.268L135.959,2.522L130.221,2.522L130.221,23.75L130.265,23.75L130.265,23.803L151.443,23.803L151.443,17.956L161.232,28.749L151.443,39.542L151.443,33.803L130.221,33.803L130.221,33.807L130.201,33.807L130.201,55.032L136.049,55.032L125.256,64.821L114.463,55.032L120.201,55.032L120.201,33.803L120.157,33.803L120.157,33.75L98.979,33.75L98.979,39.598L89.189,28.805L98.979,18.012L98.979,23.75L120.201,23.75L120.201,23.746L120.221,23.746Z"
+                    style="fill:white;" />
+            </g>
+        </svg>
+    </div>
+</x-button>

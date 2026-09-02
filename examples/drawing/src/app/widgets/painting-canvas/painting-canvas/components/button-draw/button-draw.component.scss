@@ -1,0 +1,27 @@
+.button {
+    display: block;
+    position: relative;
+    margin-right: -.625rem;
+    border-width: 0px;
+    padding: 0;
+    outline: none;
+    height: 32px;
+    width: 32px;
+    border-radius: 4px;
+    background-color: rgba(255, 255, 255, 0);
+
+    &.selected {
+        background-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .content {
+        position: relative;
+        display: flex;
+        box-sizing: border-box;
+        height: 24px;
+        width: 24px;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+    }
+}
