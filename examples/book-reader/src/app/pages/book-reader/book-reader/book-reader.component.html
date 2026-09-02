@@ -1,0 +1,15 @@
+@let searchText = search();
+@let bookTitle = title();
+<div class="wrapper">
+    <div class="container">
+        <div #toolbar localeSensitive class="toolbar">
+            <div></div>
+            <div #header class="title">{{bookTitle}}</div>
+            <x-text-search (search)="onSearchHandler($event)" />
+        </div>
+
+        <div class="list-container">
+            <x-reader #reader [search]="searchText" [scrollStartOffset]="toolbarBounds().height" />
+        </div>
+    </div>
+</div>

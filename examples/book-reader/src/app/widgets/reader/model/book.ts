@@ -1,0 +1,20 @@
+import { IVirtualListCollection } from "centrifugal";
+import { IAnswer } from "./answer";
+import { IBookPage } from "./book-page";
+
+/**
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ * @license Copyright (c) 2026 Evgenii Alexandrovich Grebennikov (djonnyx@gmail.com tg: http://t.me/djonnyx).
+ */
+export interface IGetBookData {
+    version: number;
+    pages: IVirtualListCollection<IBookPage>;
+}
+
+/**
+ * @author Evgenii Alexandrovich Grebennikov
+ * @email djonnyx@gmail.com
+ * @license Copyright (c) 2026 Evgenii Alexandrovich Grebennikov (djonnyx@gmail.com tg: http://t.me/djonnyx).
+ */
+export interface IGetBookPagesAnswer extends IAnswer<IGetBookData> { }
