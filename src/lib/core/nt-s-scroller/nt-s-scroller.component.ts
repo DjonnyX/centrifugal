@@ -1,6 +1,6 @@
 import { Component, computed, effect, ElementRef, input, output, Signal, signal, TemplateRef, viewChild, ViewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { combineLatest, debounceTime, delay, filter, Subject, tap } from 'rxjs';
+import { combineLatest, debounceTime, filter, Subject, tap } from 'rxjs';
 import { NtSScrollView } from './nt-s-scroll-view';
 import { GradientColorPositions, Id, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO } from '../../common';
 import { TOP_PROP_NAME, LEFT_PROP_NAME, PX, RIGHT, BOTTOM } from '../../common/const/base-prop-names';
@@ -198,7 +198,7 @@ export class NtSScrollerComponent extends NtSScrollView {
 
     $preresizeViewport.pipe(
       takeUntilDestroyed(),
-      delay(0),
+      debounceTime(0),
       tap(bounds => {
         this.viewportBounds.set(bounds);
         this.updateScrollBar();
