@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, Signal, signal, TemplateRef, viewChild, ViewEncapsulation } from "@angular/core";
+import { ChangeDetectionStrategy, Component, computed, input, output, Signal, signal, TemplateRef, ViewEncapsulation } from "@angular/core";
 import { INtScrollViewService, NtScrollViewComponent } from "../scroll-view";
 import {
   ArithmeticExpression, IPoint, IScrollOptions, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
@@ -290,7 +290,7 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
 
   /**
    * Snapping activation distance. Can be specified as a percentage of the element size or in absolute values.
-   * The default value is `25%`.
+   * The default value is `5%`.
    */
   override snappingDistance = input<SnappingDistance>(DEFAULT_SNAPPING_DISTANCE, { ...this._snappingDistanceOptions });
 
@@ -532,17 +532,23 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
         )),
       );
 
-    let resizing = false;
-    combineLatest([$contentResize, $viewportResize]).pipe(
+    let userAction = false;
+    this.$scroll.pipe(
       takeUntilDestroyed(),
-      tap(() => {
-        resizing = true;
-      }),
-      debounceTime(250),
-      tap(() => {
-        resizing = false;
+      tap(e => {
+        userAction = e.userAction;
       }),
     ).subscribe();
+
+    const $scroll = this.$scroll.pipe(
+      takeUntilDestroyed(),
+      startWith({ userAction: false }),
+      switchMap(e => $viewportResize.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        startWith(null),
+        map(v => !v ? e : { ...e, userAction: false }),
+      )),
+    );
 
     const $init = this.$initialized;
     combineLatest([
@@ -550,14 +556,15 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
       $contentResize.pipe(
         takeUntilDestroyed(),
         startWith(null),
-      ), $viewportResize.pipe(
+      ),
+      $viewportResize.pipe(
         takeUntilDestroyed(),
         startWith(null),
       ),
     ]).pipe(
       takeUntilDestroyed(),
       debounceTime(0),
-      filter(([v]) => !!v),
+      filter(([v]) => !!v && !userAction),
       tap(() => {
         this._scrollerComponent()?.stopScrolling?.();
         const position = this.position;
@@ -569,10 +576,7 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
       }),
     ).subscribe();
 
-    combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, $precalculatedDockRightSize, $precalculatedDockBottomSize, this.$scroll.pipe(
-      takeUntilDestroyed(),
-      startWith({ userAction: false }),
-    ), $bounds]).pipe(
+    combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, $precalculatedDockRightSize, $precalculatedDockBottomSize, $scroll, $bounds]).pipe(
       takeUntilDestroyed(),
       map(([dockLeftSize, dockTopSize, dockRightSize, dockBottomSize, e]) => {
         const { x, y } = this.getPositionRatio();
@@ -581,23 +585,21 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
 
         this._$scrollRatio.next(x !== 1 ? x : y);
 
-        return { x, y, dockLeftSize, dockTopSize, dockRightSize, dockBottomSize, scrollEvent: e };
+        return { x, y, dockLeftSize, dockTopSize, dockRightSize, dockBottomSize };
       }),
       debounceTime(100),
-      tap(({ x, y, dockLeftSize, dockTopSize, dockRightSize, dockBottomSize, scrollEvent }) => {
-        if (scrollEvent.userAction && !resizing) {
-          const scrollLeft = this.scrollLeft, scrollTop = this.scrollTop;
-          if (x === 0 && dockLeftSize > 0 && scrollLeft === 0) {
-            this._$open.next(DrawerDockPositions.LEFT);
-          } else if (x === 0 && dockRightSize > 0 && scrollLeft === this.scrollWidth) {
-            this._$open.next(DrawerDockPositions.RIGHT);
-          } else if (y === 0 && dockTopSize > 0 && scrollTop === 0) {
-            this._$open.next(DrawerDockPositions.TOP);
-          } else if (y === 0 && dockBottomSize > 0 && scrollTop === this.scrollHeight) {
-            this._$open.next(DrawerDockPositions.BOTTOM);
-          } else if (x === 1 && x === 1) {
-            this._$open.next(null);
-          }
+      tap(({ x, y, dockLeftSize, dockTopSize, dockRightSize, dockBottomSize }) => {
+        const scrollLeft = this.scrollLeft, scrollTop = this.scrollTop;
+        if (x === 0 && dockLeftSize > 0 && scrollLeft === 0) {
+          this._$open.next(DrawerDockPositions.LEFT);
+        } else if (x === 0 && dockRightSize > 0 && scrollLeft === this.scrollWidth) {
+          this._$open.next(DrawerDockPositions.RIGHT);
+        } else if (y === 0 && dockTopSize > 0 && scrollTop === 0) {
+          this._$open.next(DrawerDockPositions.TOP);
+        } else if (y === 0 && dockBottomSize > 0 && scrollTop === this.scrollHeight) {
+          this._$open.next(DrawerDockPositions.BOTTOM);
+        } else if (x === 1 && x === 1) {
+          this._$open.next(null);
         }
       }),
     ).subscribe();
