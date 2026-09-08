@@ -3,7 +3,7 @@
 @let toolbarHeight = toolbarBounds().height;
 <div class="wrapper">
     <div class="container">
-        <div #toolbar localeSensitive class="toolbar enabled-dock-left">
+        <div #toolbar localeSensitive class="toolbar enabled-dock-right">
             <div>
                 <x-menu-button name="menu-button" (onClick)="onOpenMenuHandler($event)"
                     [opened]="(drawer.$opened | async)!" />
@@ -14,7 +14,6 @@
 
         <div class="list-container">
             <nt-drawer #drawer class="drawer" [dockRightSize]="menuSize()" [dockRight]="dockRight"
-                snappingDistance="5%">
                 (onOpen)="onDrawerOpenHandler()" (onClose)="onDrawerCloseHandler()">
                 <ng-template #dockRight>
                     <div class="drawer-dock">
