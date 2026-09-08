@@ -1,6 +1,6 @@
 import { Component, computed, effect, ElementRef, input, output, Signal, signal, TemplateRef, viewChild, ViewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { combineLatest, debounceTime, filter, Subject, tap } from 'rxjs';
+import { combineLatest, debounceTime, delay, filter, Subject, tap } from 'rxjs';
 import { NtDScrollView } from './nt-d-scroll-view';
 import {
   GradientColorPositions, Id, ISize, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_INVERSION, Directions,
@@ -216,7 +216,21 @@ export class NtDScrollerComponent extends NtDScrollView {
       $scrollContent = toObservable(this.scrollContent),
       overscrollService = this._overscrollService,
       $overscrollEffectEvent = !!overscrollService ? overscrollService.$effectEvent : this.$overscrollEffectEvent,
+      $preresizeViewport = this.$preresizeViewport,
       $resizeViewport = this.$resizeViewport;
+
+    $preresizeViewport.pipe(
+      takeUntilDestroyed(),
+      delay(0),
+      tap(bounds => {
+        this.viewportBounds.set(bounds);
+        this.updateScrollBar(false);
+        this.updateScrollBar(true);
+        this.recalculatePerspective();
+        this.dropVelocity();
+        this._$resizeViewport.next(bounds);
+      }),
+    ).subscribe();
 
     $resizeViewport.pipe(
       takeUntilDestroyed(),
@@ -418,11 +432,7 @@ export class NtDScrollerComponent extends NtDScrollView {
       if (bounds.width === b.width && bounds.height === b.height) {
         return;
       }
-      this.viewportBounds.set(bounds);
-      this.updateScrollBar(false);
-      this.updateScrollBar(true);
-      this.dropVelocity();
-      this._$resizeViewport.next(bounds);
+      this._$preresizeViewport.next(bounds);
     }
   }
 

@@ -130,6 +130,9 @@ export abstract class NtSBaseScrollView implements INtScroller<INtBaseScrollView
 
     protected _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
+    protected _$preresizeViewport = new Subject<ISize>();
+    readonly $preresizeViewport = this._$preresizeViewport.asObservable();
+
     protected _$resizeViewport = new Subject<ISize>();
     readonly $resizeViewport = this._$resizeViewport.asObservable();
 

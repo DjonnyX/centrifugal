@@ -1,4 +1,4 @@
-import { ArithmeticExpression } from "../../common";
+import { ArithmeticExpression, SnappingDistance } from "../../common";
 import { INtDrawerAnimationParams } from "../interfaces";
 
 export const DEFAULT_DOCK_SIZE: ArithmeticExpression = 0;
@@ -13,3 +13,5 @@ export const DEFAULT_ANIMATION_PARAMS: INtDrawerAnimationParams = {
     scrollToItem: 500,
     snapToItem: 500,
 };
+
+export const DEFAULT_SNAPPING_DISTANCE: SnappingDistance = '5%';
