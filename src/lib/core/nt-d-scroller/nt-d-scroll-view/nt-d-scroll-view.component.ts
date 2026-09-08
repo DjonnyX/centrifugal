@@ -1131,13 +1131,15 @@ export class NtDScrollView extends NtDBaseScrollView {
     }
 
     private createOverflowEvent(grabbing: boolean, exp: number = DEFAULT_TRANSITION_EXPONENT) {
-        const bounds = this.viewportBounds(), event = new OverscrollEvent({
-            grabbing,
-            dragX: transitionExponent(this._horizontalScrollRatio <= 0 || this._horizontalScrollRatio >= 1 ? this._dragX : 0, bounds.width, exp),
-            dragY: transitionExponent(this._verticalScrollRatio <= 0 || this._verticalScrollRatio >= 1 ? this._dragY : 0, bounds.height, exp),
-            positionX: ((this.langTextDir() === TextDirections.LTR ? (this.horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0) : (this.horizontalScrollRatioWhenGrabbing === 1 ? 0 : 1))),
-            positionY: (this.verticalScrollRatioWhenGrabbing === 1 ? 1 : 0),
-        });
+        const isRTL = this.langTextDir() === TextDirections.RTL,
+            bounds = this.viewportBounds(), event = new OverscrollEvent({
+                inverted: isRTL,
+                grabbing,
+                dragX: transitionExponent(this._horizontalScrollRatio <= 0 || this._horizontalScrollRatio >= 1 ? this._dragX : 0, bounds.width, exp),
+                dragY: transitionExponent(this._verticalScrollRatio <= 0 || this._verticalScrollRatio >= 1 ? this._dragY : 0, bounds.height, exp),
+                positionX: (!isRTL ? (this.horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0) : (this.horizontalScrollRatioWhenGrabbing === 1 ? 0 : 1)),
+                positionY: (this.verticalScrollRatioWhenGrabbing === 1 ? 1 : 0),
+            });
         return event;
     }
 
@@ -1512,7 +1514,9 @@ export class NtDScrollView extends NtDBaseScrollView {
                     offsetY = ((scrollDirectionY === 1 ? currentComponentHeight : 0) - (isPersentageSnappingDistance ? currentComponentHeight * snappingDistance : snappingDistance)) * scrollDirectionY,
                     componentBounds = this._service.getComponentBoundsByIntersectionPosition(currentPositionX + offsetX, currentPositionY + offsetY);
                 if (!!componentBounds) {
-                    const { x, y } = componentBounds, leftOffset = this.leftOffset(), topOffset = this.topOffset(),
+                    const x = componentBounds.replacementMeasurements?.x ?? componentBounds.x,
+                        y = componentBounds.replacementMeasurements?.y ?? componentBounds.y,
+                        leftOffset = this.leftOffset(), topOffset = this.topOffset(),
                         alignmentLeftOffset = this.alignmentLeftOffset(), alignmentTopOffset = this.alignmentTopOffset(),
                         maxPosX = this.scrollWidth - (leftOffset - alignmentLeftOffset) + this._startLayoutOffsetX,
                         maxPosY = this.scrollHeight - (topOffset - alignmentTopOffset) + this._startLayoutOffsetY;
@@ -1544,7 +1548,11 @@ export class NtDScrollView extends NtDBaseScrollView {
                     posY = Math.min(actualPosY, maxPosY);
                 const componentBounds = this._service.getComponentBoundsByIntersectionPosition(posX, posY);
                 if (!!componentBounds) {
-                    const { x, y, width, height } = componentBounds, leftOffset = this.leftOffset(), alignmentLeftOffset = this.alignmentLeftOffset(),
+                    const x = componentBounds.replacementMeasurements?.x ?? componentBounds.x,
+                        y = componentBounds.replacementMeasurements?.y ?? componentBounds.y,
+                        width = componentBounds.replacementMeasurements?.width ?? componentBounds.width,
+                        height = componentBounds.replacementMeasurements?.height ?? componentBounds.height,
+                        leftOffset = this.leftOffset(), alignmentLeftOffset = this.alignmentLeftOffset(),
                         topOffset = this.topOffset(), alignmentTopOffset = this.alignmentTopOffset();
                     const maxPosX = this.scrollWidth - width * .5 - viewportWidth * .5 - (leftOffset - alignmentLeftOffset) * .5,
                         maxPosY = this.scrollHeight - height * .5 - viewportHeight * .5 - (topOffset - alignmentTopOffset) * .5;
@@ -1576,7 +1584,8 @@ export class NtDScrollView extends NtDBaseScrollView {
                     posY = Math.min(actualPosY, maxPosY);
                 const componentBounds = this._service.getComponentBoundsByIntersectionPosition(posX, posY);
                 if (!!componentBounds) {
-                    const { x, y } = componentBounds;
+                    const x = componentBounds.replacementMeasurements?.x ?? componentBounds.x,
+                        y = componentBounds.replacementMeasurements?.y ?? componentBounds.y;
                     position = {
                         x: x - viewportWidth + this._startLayoutOffsetX,
                         y: y - viewportHeight + this._startLayoutOffsetY,

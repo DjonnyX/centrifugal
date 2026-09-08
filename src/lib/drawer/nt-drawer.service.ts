@@ -90,10 +90,10 @@ export class NtDrawerService extends NtBaseScrollViewService implements INtBaseS
   }
 
   override getComponentBoundsByIntersectionPosition(positionX: number, positionY: number, maxPositionX: number | null = null, maxPositionY: number | null = null):
-    (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; available?: boolean; }) | null {
+    (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; available?: boolean; replacementMeasurements?: IRect; }) | null {
     const breakpointItems = this.breakpoints;
-    let first: (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; available: boolean }) | null = null,
-      last: (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; available: boolean }) | null = null;
+    let first: (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; available: boolean; replacementMeasurements?: IRect; }) | null = null,
+      last: (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; available: boolean; replacementMeasurements?: IRect; }) | null = null;
     if (!!breakpointItems) {
       for (let i = 0, l = breakpointItems.length; i < l; i++) {
         const breakpoint = breakpointItems[i],
@@ -101,6 +101,7 @@ export class NtDrawerService extends NtBaseScrollViewService implements INtBaseS
           inverted = breakpoint.config.inverted ?? false,
           maxScrollSize = breakpoint.measures.maxScrollSize ?? 0,
           { width, height } = breakpoint.bounds,
+          replacementMeasurements = breakpoint.replacementMeasurements,
           x = breakpoint.measures.x ?? 0,
           xx = inverted ? (maxScrollSize - x) - width : x,
           y = breakpoint.measures?.y ?? 0,
@@ -110,12 +111,12 @@ export class NtDrawerService extends NtBaseScrollViewService implements INtBaseS
           posX = positionX,
           posY = positionY;
         if ((posY >= y && posY < y + height) && (posX >= xx && posX < xx + width)) {
-          return { id, x: xx, y, width, height, isFirst, isLast, available };
+          return { id, x: xx, y, width, height, replacementMeasurements, isFirst, isLast, available };
         }
         if (isFirst) {
-          first = { id, x: xx, y, width, height, isFirst, isLast, available };
+          first = { id, x: xx, y, width, height, replacementMeasurements, isFirst, isLast, available };
         } else if (isLast) {
-          last = { id, x: xx, y, width, height, isFirst, isLast, available };
+          last = { id, x: xx, y, width, height, replacementMeasurements, isFirst, isLast, available };
         }
       }
     }

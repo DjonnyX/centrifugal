@@ -951,13 +951,15 @@ export class NtSScrollView extends NtSBaseScrollView {
     }
 
     private createOverflowEvent(grabbing: boolean, exp: number = DEFAULT_TRANSITION_EXPONENT) {
-        const bounds = this.viewportBounds(), event = new OverscrollEvent({
-            grabbing,
-            dragX: transitionExponent(this._horizontalScrollRatio <= 0 || this._horizontalScrollRatio >= 1 ? this._dragX : 0, bounds.width, exp),
-            dragY: transitionExponent(this._verticalScrollRatio <= 0 || this._verticalScrollRatio >= 1 ? this._dragY : 0, bounds.height, exp),
-            positionX: ((this.langTextDir() === TextDirections.LTR ? (this.horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0) : (this.horizontalScrollRatioWhenGrabbing === 1 ? 0 : 1))),
-            positionY: (this.verticalScrollRatioWhenGrabbing === 1 ? 1 : 0),
-        });
+        const isRTL = this.langTextDir() === TextDirections.RTL,
+            bounds = this.viewportBounds(), event = new OverscrollEvent({
+                inverted: isRTL,
+                grabbing,
+                dragX: transitionExponent(this._horizontalScrollRatio <= 0 || this._horizontalScrollRatio >= 1 ? this._dragX : 0, bounds.width, exp),
+                dragY: transitionExponent(this._verticalScrollRatio <= 0 || this._verticalScrollRatio >= 1 ? this._dragY : 0, bounds.height, exp),
+                positionX: (!isRTL ? (this.horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0) : (this.horizontalScrollRatioWhenGrabbing === 1 ? 0 : 1)),
+                positionY: (this.verticalScrollRatioWhenGrabbing === 1 ? 1 : 0),
+            });
         return event;
     }
 

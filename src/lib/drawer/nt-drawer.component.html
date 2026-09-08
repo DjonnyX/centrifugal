@@ -29,14 +29,13 @@
     [overscrollAreaRightRenderer]="overscrollAreaRightRenderer()"
     [overscrollAreaBottomRenderer]="overscrollAreaBottomRenderer()" [snappingDistance]="snappingDistance()"
     snapToItemAlign="start">
-    <ng-container #renderersContainer>
-      @let bounds = _bounds();
-      <nt-drawer-layout [backdrop]="backdrop()" [opened]="($opened | async)!" [scrollRatio]="($scrollRatio | async)!"
-        [dockLeftSize]="dockLeftWidth" [dockTopSize]="dockTopHeight" [dockRightSize]="dockRightWidth"
-        [dockBottomSize]="dockBottomHeight" [dockLeft]="dockLeft()" [dockTop]="dockTop()" [dockRight]="dockRight()"
-        [dockBottom]="dockBottom()" [width]="bounds?.width ?? 0" [height]="bounds?.height ?? 0" (onBackdrop)="close()">
-        <ng-content></ng-content>
-      </nt-drawer-layout>
-    </ng-container>
+    @let bounds = _bounds();
+    <nt-drawer-layout [backdrop]="backdrop()" [opened]="($opened | async)!"
+      [scrollRatio]="($scrollRatio | async)!" [dockLeftSize]="dockLeftWidth" [dockTopSize]="dockTopHeight"
+      [dockRightSize]="dockRightWidth" [dockBottomSize]="dockBottomHeight" [dockLeft]="dockLeft()" [dockTop]="dockTop()"
+      [dockRight]="dockRight()" [dockBottom]="dockBottom()" [width]="bounds?.width ?? 0" [height]="bounds?.height ?? 0"
+      (onBackdrop)="close()">
+      <ng-content></ng-content>
+    </nt-drawer-layout>
   </nt-d-scroller>
 </div>

@@ -1,4 +1,4 @@
-import { ISize } from "../../common";
+import { IRect, ISize } from "../../common";
 
 /**
  * IDrawerBreakpoint
@@ -15,6 +15,7 @@ export interface IDrawerBreakpoint {
         inverted: boolean;
     }
     bounds: ISize;
+    replacementMeasurements: IRect;
     measures: {
         x: number;
         y: number;

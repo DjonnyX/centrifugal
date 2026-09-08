@@ -8,6 +8,9 @@ import { IOverscrollEventParams } from "./interfaces";
  * @email djonnyx@gmail.com
  */
 export class OverscrollEvent implements IOverscrollEvent {
+    private _inverted: boolean;
+    get inverted() { return this._inverted; }
+
     private _dragX: number;
     get dragX() { return this._dragX; }
 
@@ -24,7 +27,8 @@ export class OverscrollEvent implements IOverscrollEvent {
     get grabbing() { return this._grabbing; }
 
     constructor(params: IOverscrollEventParams) {
-        const { grabbing, dragX, dragY, positionX, positionY } = params;
+        const { inverted, grabbing, dragX, dragY, positionX, positionY } = params;
+        this._inverted = inverted;
         this._grabbing = grabbing;
         this._dragX = dragX;
         this._dragY = dragY;
@@ -34,6 +38,7 @@ export class OverscrollEvent implements IOverscrollEvent {
 
     toObject() {
         return {
+            inverted: this._inverted,
             grabbing: this._grabbing,
             dragX: this._dragX,
             dragY: this._dragY,

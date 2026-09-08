@@ -597,6 +597,10 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
         console.error('The "scrollToItem" parameter must be of type `number`.');
         return DEFAULT_ANIMATION_PARAMS;
       }
+      if (!validateFloat(v.snapToItem)) {
+        console.error('The "snapToItem" parameter must be of type `number`.');
+        return DEFAULT_ANIMATION_PARAMS;
+      }
       if (!valid) {
         console.error('The "animationParams" parameter must be of type `object`.');
         return DEFAULT_ANIMATION_PARAMS;
