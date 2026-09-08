@@ -4,11 +4,11 @@ import {
   ArithmeticExpression, IPoint, IScrollOptions, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
   SCROLL_VIEW_USER_INTERACTION_ENABLED, TextDirection, TextDirections,
 } from "../common";
-import { isPercentageValue, parseArithmeticExpression, validateBoolean, validateFloat } from "../common/utils";
-import { DEFAULT_BACKDROP, DEFAULT_DOCK_SIZE } from "./const";
+import { isPercentageValue, parseArithmeticExpression, validateBoolean, validateFloat, validateObject } from "../common/utils";
+import { DEFAULT_ANIMATION_PARAMS, DEFAULT_BACKDROP, DEFAULT_DOCK_SIZE } from "./const";
 import { takeUntilDestroyed, toObservable } from "@angular/core/rxjs-interop";
 import { BehaviorSubject, combineLatest, debounceTime, filter, map, startWith, Subject, switchMap, tap } from "rxjs";
-import { IDrawerBreakpoint, IDrawerBreakpoints, INtDrawerService } from "./interfaces";
+import { IDrawerBreakpoint, IDrawerBreakpoints, INtDrawerAnimationParams, INtDrawerService } from "./interfaces";
 import { NtDrawerService } from './nt-drawer.service';
 import { DrawerDockPositions } from './enums';
 import { DrawerDockPosition } from './types';
@@ -251,6 +251,31 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
    */
   dockBottomSize = input<ArithmeticExpression>(DEFAULT_DOCK_SIZE, { ...this._dockBottomSizeOptions });
 
+  protected override _animationParamsOptions = {
+    transform: (v: INtDrawerAnimationParams) => {
+      const valid = validateObject(v, true, true);
+
+      if (!validateFloat(v.scrollToItem)) {
+        console.error('The "scrollToItem" parameter must be of type `number`.');
+        return DEFAULT_ANIMATION_PARAMS;
+      }
+      if (!validateFloat(v.snapToItem)) {
+        console.error('The "snapToItem" parameter must be of type `number`.');
+        return DEFAULT_ANIMATION_PARAMS;
+      }
+      if (!valid) {
+        console.error('The "animationParams" parameter must be of type `object`.');
+        return DEFAULT_ANIMATION_PARAMS;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Animation parameters. The default value is "{ scrollToItem: 500, snapToItem: 500 }".
+   */
+  override animationParams = input<INtDrawerAnimationParams>(DEFAULT_ANIMATION_PARAMS, { ...this._animationParamsOptions });
+
   /**
    * Left dock.
    * Example: `<nt-drawer [leftDock]="leftDockTemplate">
@@ -332,19 +357,20 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
         inverted = false,
         result: IDrawerBreakpoints = [];
       const rows = 3, columns = 3;
-      let id = 0, x = 0, y = 0, width = 0, height = 0;
+      let id = 0, x = 0, y = 0, width = 0, height = 0, replacementX = 0, replacementY = 0, replacementWidth = 0, replacementHeight = 0;
       for (let i = 0; i < rows; i++) {
         switch (i) {
           case 0: {
-            height = topSize;
+            height = replacementHeight = topSize;
             break;
           }
           case 1: {
             height = bounds.height;
+            replacementHeight = bottomSize;
             break;
           }
           case 2: {
-            height = bottomSize;
+            height = replacementHeight = bottomSize;
             break;
           }
         }
@@ -352,15 +378,16 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
         for (let j = 0; j < columns; j++) {
           switch (j) {
             case 0: {
-              width = leftSize;
+              width = replacementWidth = leftSize;
               break;
             }
             case 1: {
               width = bounds.width;
+              replacementWidth = rightSize;
               break;
             }
             case 2: {
-              width = rightSize;
+              width = replacementWidth = rightSize;
               break;
             }
           }
@@ -381,16 +408,24 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
               width,
               height,
             },
+            replacementMeasurements: {
+              x: replacementX,
+              y: replacementY,
+              width: replacementWidth,
+              height: replacementHeight,
+            },
           };
           id++;
           result.push(breakpoint);
           if (id % columns === 0) {
             y += height;
+            replacementY += replacementHeight;
           } else {
             x += width;
+            replacementX += replacementWidth;
           }
           if ((j + 1) % columns === 0) {
-            x = 0;
+            x = replacementX = 0;
           }
         }
       }
@@ -556,18 +591,18 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
 
     combineLatest([$precalculatedDockLeftSize, $precalculatedDockTopSize, $precalculatedDockRightSize, $precalculatedDockBottomSize, this.$scroll, $bounds]).pipe(
       takeUntilDestroyed(),
-      map(([dockLeftSize, dockTopSize, dockRightSize, dockBottomSize]) => {
+      map(([dockLeftSize, dockTopSize, dockRightSize, dockBottomSize, e]) => {
         const { x, y } = this.getPositionRatio();
 
         this._$opened.next(x !== 1 || y !== 1);
 
         this._$scrollRatio.next(x !== 1 ? x : y);
 
-        return { x, y, dockLeftSize, dockTopSize, dockRightSize, dockBottomSize };
+        return { x, y, dockLeftSize, dockTopSize, dockRightSize, dockBottomSize, scrollEvent: e };
       }),
       debounceTime(100),
-      tap(({ x, y, dockLeftSize, dockTopSize, dockRightSize, dockBottomSize }) => {
-        if (!resizing) {
+      tap(({ x, y, dockLeftSize, dockTopSize, dockRightSize, dockBottomSize, scrollEvent }) => {
+        if (scrollEvent.userAction && !resizing) {
           const scrollLeft = this.scrollLeft, scrollTop = this.scrollTop;
           if (x === 0 && dockLeftSize > 0 && scrollLeft === 0) {
             this._$open.next(DrawerDockPositions.LEFT);

@@ -23,7 +23,7 @@ export interface INtDScrollerService extends INtBaseScrollViewService {
     scrollBottomOffset: number;
 
     getComponentBoundsByIntersectionPosition: (positionX: number, positionY: number, maxPositionX?: number | null, maxPositionY?: number | null) =>
-        (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null;
+        (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; replacementMeasurements?: IRect; }) | null;
 
     setIntersectionElementBySnapToItemAlign: (id: Id | null) => void;
 

@@ -5,6 +5,7 @@
  * @email djonnyx@gmail.com
  */
 export interface IOverscrollEventParams {
+    inverted: boolean;
     grabbing: boolean;
     dragX: number;
     dragY: number;

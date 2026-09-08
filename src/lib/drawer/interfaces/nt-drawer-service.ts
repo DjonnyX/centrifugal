@@ -39,7 +39,7 @@ export interface INtDrawerService extends INtScrollViewService {
     initialize: (id: number, scrollView: INtScroller<INtBaseScrollViewService>, parentService: INtBaseScrollViewService | null) => void;
 
     getComponentBoundsByIntersectionPosition: (positionX: number, positionY: number, maxPositionX?: number | null, maxPositionY?: number | null) =>
-        (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; }) | null;
+        (IRect & { id: Id | null; isFirst: boolean; isLast: boolean; sizeW?: number; sizeH?: number; }) | null;
 
     setIntersectionElementBySnapToItemAlign: (id: Id | null) => void;
 

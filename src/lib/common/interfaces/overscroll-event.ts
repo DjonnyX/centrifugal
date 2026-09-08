@@ -6,6 +6,11 @@
  */
 export interface IOverscrollEvent {
     /**
+     * Indicates the inversion of the horizontal axis.
+     */
+    get inverted(): boolean;
+
+    /**
      * x-axis scroll offset.
      */
     get dragX(): number;
