@@ -1,6 +1,6 @@
-<img width="1280" height="534" alt="intro_1280" src="https://github.com/user-attachments/assets/50347979-a74b-4cce-bc49-48289578e117" />
-
 # Centrifugal
+
+A high-performance web-centric development kit for building mobile-like user interfaces. <br/>
 
 <img width="1033" height="171" alt="logo" src="https://github.com/user-attachments/assets/b559cfde-405a-4361-b71b-6715478d997d" />
 
@@ -9,7 +9,6 @@
 
 <br/>
 
-🚀 A high-performance web-centric development kit for building mobile-like user interfaces. <br/> <br/>
 🌀 A fluid UI. Components interact with each other at a hierarchical level to form a unified system. <br/> <br/>
 💥 Visual effects such as motion blur, depth of field, compression/expansion, and more are available, creating a next-generation user interface. <br/> <br/>
 🛠️ Fast, customizable and developer-friendly. <br/> <br/>
