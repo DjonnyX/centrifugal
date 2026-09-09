@@ -127,6 +127,7 @@ Inputs
 | Property | Type | Description |
 |---|---|---|
 | animationParams | [INtScrollViewAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/scroll-view/interfaces/nt-scroll-view-animation-params.ts)? = { scrollToItem: 500, snapToItem: 500 } | Animation parameters. The default value is "{ scrollToItem: 500, snapToItem: 250 }". |
+| axleLock | boolean? = false | Determines whether axis locking will occur during scrolling. Default value is "false". |
 | clickDistance | number? = 40 | The maximum scroll distance at which a click event is triggered. |
 | direction | [Direction? = 'both'](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/direction.ts) | Determines the direction in which elements are placed. Default value is "both". |
 | id | number | Readonly. Returns the unique identifier of the component. | 
@@ -202,7 +203,8 @@ Inputs
 | Property | Type | Description |
 |---|---|---|
 | animationParams | [INtDrawerAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/drawer/interfaces/nt-drawer-animation-params.ts)? = { scrollToItem: 500, snapToItem: 500 } | Animation parameters. The default value is "{ scrollToItem: 500, snapToItem: 500 }". |
-| backdrop | boolean = true | Determines whether the content will be covered by an overlay when clicked to close the dock. Default value is `true`. |
+| axleLock | boolean? = false | Determines whether axis locking will occur during scrolling. Default value is "false". |
+| backdrop | boolean? = true | Determines whether the content will be covered by an overlay when clicked to close the dock. Default value is `true`. |
 | dockLeftSize | [ArithmeticExpression](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/arithmetic-expression.ts) = 0 | Sets the dock left size. Can be specified in absolute or percentage values. Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0". |
 | dockTopSize | [ArithmeticExpression](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/arithmetic-expression.ts) = 0 | Sets the dock top size. Can be specified in absolute or percentage values. Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0". |
 | dockRightSize | [ArithmeticExpression](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/arithmetic-expression.ts) = 0 | Sets the dock right size. Can be specified in absolute or percentage values. Supports arithmetic expressions of addition `50% + 25` or subtraction `50% - 25`. Default value is "0". |
@@ -275,6 +277,7 @@ Inputs
 |---|---|---|
 | alignment | [Alignment](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/types/alignment.ts) | Determines the alignment of the list. Two modes are available: `none` and `center`. The `center` mode aligns the list items to the center of the viewport, ideal for use with the `itemTransform` property. The `none` mode means no alignment. The default value is `none`. |
 | animationParams | [INtListAnimationParams](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/list/interfaces/nt-list-animation-params.ts)? = { scrollToItem: 150, snapToItem: 150, navigateToItem: 150, navigateByKeyboard: 50 } | Animation parameters. The default value is "{ scrollToItem: 150, snapToItem: 150, navigateToItem: 150, navigateByKeyboard: 50 }". |
+| axleLock | boolean? = true | Determines whether axis locking will occur during scrolling. Default value is "true". |
 | bufferSize | number? = 2 | Number of elements outside the scope of visibility. Default value is 2. |
 | clickDistance | number? = 40 | The maximum scroll distance at which a click event is triggered. |
 | collapsedIds | Array<[Id](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/id.ts)> | Sets the collapsed items. |
