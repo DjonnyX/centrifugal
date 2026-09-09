@@ -610,6 +610,8 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
 
   protected _isVertical: Signal<boolean>;
 
+  protected _isInvertedOverscroll: Signal<boolean>;
+
   private _scrollBox = new ScrollBox();
 
   private _animationIds: Array<number> | number | null = null;
@@ -618,6 +620,10 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
 
   constructor() {
     super();
+
+    this._isInvertedOverscroll = computed(() => {
+      return this.langTextDir() === TextDirections.RTL;
+    });
 
     this._isVertical = computed(() => {
       const direction = this.direction();

@@ -142,6 +142,8 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
         return this.axleLock() || this.direction() !== Directions.BOTH;
     }
 
+    readonly invertOverscroll = input(false);
+
     protected _overscrollEnabled = inject(SCROLL_VIEW_OVERSCROLL_ENABLED);
 
     protected _$preresizeViewport = new Subject<ISize>();

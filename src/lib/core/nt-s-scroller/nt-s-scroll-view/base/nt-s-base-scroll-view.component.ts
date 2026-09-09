@@ -130,6 +130,8 @@ export abstract class NtSBaseScrollView implements INtScroller<INtBaseScrollView
         return this.axleLock();
     }
 
+    readonly invertOverscroll = input(false);
+
     protected _overscrollEnabled = inject(SCROLL_VIEW_OVERSCROLL_ENABLED);
 
     protected _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
