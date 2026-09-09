@@ -571,7 +571,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                                         if (this._isContainerAllowedForCorrection) {
                                             this.verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
                                         }
-                                        if (this._axleLock) {
+                                        if (this.useAxleLock) {
                                             this._horizontalAxleLock = this._horizontalAxleLock || this._scrollDirectionValueX < this._scrollDirectionValueY;
                                             this._verticalAxleLock = this._verticalAxleLock || this._scrollDirectionValueY < this._scrollDirectionValueX;
                                             if (this._horizontalAxleLock) {
@@ -821,7 +821,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                                         if (this._isContainerAllowedForCorrection) {
                                             this.verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
                                         }
-                                        if (this._axleLock) {
+                                        if (this.useAxleLock) {
                                             this._horizontalAxleLock = this._horizontalAxleLock || this._scrollDirectionValueX < this._scrollDirectionValueY;
                                             this._verticalAxleLock = this._verticalAxleLock || this._scrollDirectionValueY < this._scrollDirectionValueX;
                                             if (this._horizontalAxleLock) {
@@ -1154,9 +1154,11 @@ export class NtDScrollView extends NtDBaseScrollView {
         } else {
             this._$overscrollEffectEvent.next(event);
         }
-        const parentScroller = this._service.parent?.scrollView;
-        if (!!parentScroller) {
-            parentScroller.setOverscrollEffectEvent(event);
+        if (!this.useAxleLock) {
+            const parentScroller = this._service.parent?.scrollView;
+            if (!!parentScroller) {
+                parentScroller.setOverscrollEffectEvent(event);
+            }
         }
     }
 
@@ -1171,9 +1173,11 @@ export class NtDScrollView extends NtDBaseScrollView {
         } else {
             this._$overscroll.next(event);
         }
-        const parentScroller = this._service.parent?.scrollView;
-        if (!!parentScroller) {
-            parentScroller.setOverscrollEvent(event);
+        if (!this.useAxleLock) {
+            const parentScroller = this._service.parent?.scrollView;
+            if (!!parentScroller) {
+                parentScroller.setOverscrollEvent(event);
+            }
         }
         if (output) {
             this.onOverscroll.emit(event);

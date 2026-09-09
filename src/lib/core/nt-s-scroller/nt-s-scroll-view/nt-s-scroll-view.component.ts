@@ -482,7 +482,7 @@ export class NtSScrollView extends NtSBaseScrollView {
                                         this._dragY = Math.abs(dragY);
                                         this.horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
                                         this.verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
-                                        if (this._axleLock) {
+                                        if (this.useAxleLock) {
                                             this._horizontalAxleLock = this._horizontalAxleLock || this._scrollDirectionValueX < this._scrollDirectionValueY;
                                             this._verticalAxleLock = this._verticalAxleLock || this._scrollDirectionValueY < this._scrollDirectionValueX;
                                             if (this._horizontalAxleLock) {
@@ -701,7 +701,7 @@ export class NtSScrollView extends NtSBaseScrollView {
                                         this._dragY = Math.abs(dragY);
                                         this.horizontalScrollRatioWhenGrabbing = Math.sign(dragX) < 0 ? 1 : 0;
                                         this.verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
-                                        if (this._axleLock) {
+                                        if (this.useAxleLock) {
                                             this._horizontalAxleLock = this._horizontalAxleLock || this._scrollDirectionValueX < this._scrollDirectionValueY;
                                             this._verticalAxleLock = this._verticalAxleLock || this._scrollDirectionValueY < this._scrollDirectionValueX;
                                             if (this._horizontalAxleLock) {

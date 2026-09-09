@@ -25,7 +25,7 @@ import {
   DEFAULT_SNAP_SCROLLTO_TOP,
 } from '../common/const/scroller';
 import {
-  ArithmeticExpression, Direction, Directions, Id, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED,
+  ArithmeticExpression, Direction, Directions, Id, IScrollOptions, IScrollViewScrollEvent, ISize, SCROLL_VIEW_OVERSCROLL_ENABLED,
   SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SCROLL_VIEW_USER_INTERACTION_ENABLED, SnappingDistance, TextDirection, TextDirections,
 } from '../common';
 import {
@@ -60,7 +60,6 @@ import { ScrollerTypes } from '../common/enums/scroller-types';
     { provide: SCROLL_VIEW_TYPE, useValue: ScrollerTypes.SCROLL_VIEW_SCROLLER },
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
-    { provide: SCROLL_VIEW_AXLE_LOCK, useValue: false },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtScrollViewService },
   ],
 })
@@ -111,6 +110,22 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
 
   protected _$initialized = new BehaviorSubject<boolean>(false);
   readonly $initialized = this._$initialized.asObservable();
+
+  protected _axleLockOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+      if (!valid) {
+        console.error('The "axleLock" parameter must be of type `boolean`.');
+        return false;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether axis locking will occur during scrolling. Default value is "false".
+   */
+  axleLock = input<boolean>(false, { ...this._axleLockOptions });
 
   protected _interactiveOptions = {
     transform: (v: boolean) => {

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, Signal, signal, TemplateRef, ViewEncapsulation } from "@angular/core";
 import { INtScrollViewService, NtScrollViewComponent } from "../scroll-view";
 import {
-  ArithmeticExpression, IPoint, IScrollOptions, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
+  ArithmeticExpression, IPoint, IScrollOptions, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
   SCROLL_VIEW_USER_INTERACTION_ENABLED, SnappingDistance, TextDirection, TextDirections,
 } from "../common";
 import { isPercentageValue, parseArithmeticExpression, validateBoolean, validateFloat, validateObject, validateString } from "../common/utils";
@@ -35,7 +35,6 @@ import { BEHAVIOR_INSTANT } from "../common/const/behavior";
     { provide: SCROLL_VIEW_TYPE, useValue: ScrollerTypes.DRAWER },
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
-    { provide: SCROLL_VIEW_AXLE_LOCK, useValue: true },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtDrawerService },
   ],
 })

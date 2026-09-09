@@ -3,7 +3,7 @@ import {
 } from '@angular/core';
 import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
 import {
-    Directions, IOverscrollEvent, ISize, OVERSCROLL_SERVICE, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
+    Directions, IOverscrollEvent, ISize, OVERSCROLL_SERVICE, SCROLL_VIEW_INVERSION, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
     TextDirection, TextDirections,
 } from '../../../../common';
 import { INtScroller } from '../../../../common/interfaces/nt-scroller';
@@ -124,7 +124,11 @@ export abstract class NtSBaseScrollView implements INtScroller<INtBaseScrollView
 
     protected _inversion = inject(SCROLL_VIEW_INVERSION);
 
-    protected _axleLock = inject(SCROLL_VIEW_AXLE_LOCK);
+    readonly axleLock = input(true);
+
+    get useAxleLock() {
+        return this.axleLock();
+    }
 
     protected _overscrollEnabled = inject(SCROLL_VIEW_OVERSCROLL_ENABLED);
 

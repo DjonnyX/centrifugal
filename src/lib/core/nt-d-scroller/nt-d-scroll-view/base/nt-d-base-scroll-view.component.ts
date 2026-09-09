@@ -4,7 +4,7 @@ import {
 import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-    CONTROL_CONTAINER_SERVICE, Direction, Directions, IOverscrollEvent, ISize, OVERSCROLL_SERVICE, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_INVERSION,
+    CONTROL_CONTAINER_SERVICE, Direction, Directions, IOverscrollEvent, ISize, OVERSCROLL_SERVICE, SCROLL_VIEW_INVERSION,
     SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, TextDirection, TextDirections,
 } from '../../../../common';
 import { INtScroller } from '../../../../common/interfaces/nt-scroller';
@@ -136,7 +136,11 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
 
     protected _inversion = inject(SCROLL_VIEW_INVERSION);
 
-    protected _axleLock = inject(SCROLL_VIEW_AXLE_LOCK);
+    readonly axleLock = input(false);
+
+    get useAxleLock() {
+        return this.axleLock() || this.direction() !== Directions.BOTH;
+    }
 
     protected _overscrollEnabled = inject(SCROLL_VIEW_OVERSCROLL_ENABLED);
 
