@@ -50,6 +50,66 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
    */
   onClose = output<void>();
 
+  protected override _snapScrollToLeftOptions = {
+    transform: (v: boolean) => {
+      console.error('The "snapScrollToLeft" property is not available.');
+      return false;
+    },
+  } as any;
+
+  /**
+   * @deprecated
+   */
+  override snapScrollToLeft = input<boolean>(false, { ...this._snapScrollToLeftOptions });
+
+  protected override _snapScrollToTopOptions = {
+    transform: (v: boolean) => {
+      console.error('The "snapScrollToTop" property is not available.');
+      return false;
+    },
+  } as any;
+
+  /**
+   * @deprecated
+   */
+  override snapScrollToTop = input<boolean>(false, { ...this._snapScrollToTopOptions });
+
+  protected override _snapScrollToRightOptions = {
+    transform: (v: boolean) => {
+      console.error('The "snapScrollToRight" property is not available.');
+      return false;
+    },
+  } as any;
+
+  /**
+   * @deprecated
+   */
+  override snapScrollToRight = input<boolean>(false, { ...this._snapScrollToRightOptions });
+
+  protected override _snapScrollToBottomOptions = {
+    transform: (v: boolean) => {
+      console.error('The "snapScrollToBottom" property is not available.');
+      return false;
+    },
+  } as any;
+
+  /**
+   * @deprecated
+   */
+  override snapScrollToBottom = input<boolean>(false, { ...this._snapScrollToBottomOptions });
+
+  protected override _scrollableOptions = {
+    transform: (v: boolean) => {
+      console.error('The "scrollable" property is not available.');
+      return true;
+    },
+  } as any;
+
+  /**
+   * @deprecated
+   */
+  override scrollable = input<boolean>(true, { ...this._scrollableOptions });
+
   protected override _overscrollAreaShowAutomaticallyOptions = {
     transform: (v: boolean) => {
       console.error('The "overscrollAreaShowAutomatically" property is not available.');
@@ -551,6 +611,15 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
     );
 
     const $init = this.$initialized;
+    $init.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      debounceTime(100),
+      tap(() => {
+        this._$visible.next(true);
+      }),
+    ).subscribe();
+
     combineLatest([
       $init,
       $contentResize.pipe(
@@ -572,7 +641,6 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
         this.scrollTo({
           x, y, behavior: BEHAVIOR_INSTANT, duration: 0, blending: false, snap: false,
         });
-        this._$visible.next(true);
       }),
     ).subscribe();
 

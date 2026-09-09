@@ -1800,6 +1800,16 @@ export class NtDScrollView extends NtDBaseScrollView {
         if (this._isContainerAllowedForCorrection && userAction) {
             this.emitOverscrollEvent(this._grabbing(), false);
         }
+        if (onComplete !== null) {
+            onComplete({
+                id: -1,
+                timestamp: 0,
+                elapsed: 0,
+                delta: 0,
+                value: 0,
+                complete: () => { },
+            });
+        }
         return null;
     }
 

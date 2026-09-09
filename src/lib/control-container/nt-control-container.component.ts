@@ -17,7 +17,7 @@ import { DEFAULT_KEYBOARD_ENABLED, NT_VALUE } from "./const";
 import { DEFAULT_KEYBOARD_SETTINGS, KEY_LAYOUT, KEY_SYS } from '../common/const/keyboard';
 import { BEHAVIOR_AUTO, BEHAVIOR_INSTANT } from "../common/const/behavior";
 import { IScrollToParams } from "../common/interfaces/scroll-to-params";
-import { PX } from "../common/const/base-prop-names";
+import { PX, SIZE_100_PERSENT, VISIBILITY_HIDDEN, VISIBILITY_VISIBLE } from "../common/const/base-prop-names";
 import { NtKeyboardService } from "../keyboard/nt-keyboard.service";
 import { TextFieldTypes } from "./enums";
 import { ATTR_DIR, ATTR_PATTERN, ATTR_TABINDEX, ATTR_TYPE, NT_DIR, NT_SERVICE_ID } from "../common/const/attribute-names";
@@ -362,7 +362,7 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
 
   protected _contentStyle: Signal<{ [styleName: string]: any }>;
 
-  protected _keyboardStyles: Signal<{ [styleName: string]: any }>;
+  protected _keyboardStyles = signal<{ [styleName: string]: any }>({ visibility: VISIBILITY_HIDDEN });
 
   protected _isVertical: Signal<boolean>;
 
@@ -374,6 +374,10 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
 
   private _$hostScroll = new Subject<IFocusedObject | null>();
   protected $hostScroll = this._$hostScroll.asObservable();
+
+  private _$focusedIndex = new BehaviorSubject<number>(-1);
+  readonly $focusedIndex = this._$focusedIndex.asObservable();
+  get focusedIndex() { return this._$focusedIndex.getValue(); }
 
   constructor() {
     super();
@@ -679,13 +683,29 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
       }
     });
 
-    this._keyboardStyles = computed(() => {
-      const keyboardSettings = this.keyboardSettings(), size = keyboardSettings.common.size, position = keyboardSettings.common.position;
-      return {
-        width: position === KeyboardPositions.LEFT || position === KeyboardPositions.RIGHT ? `${size}${PX}` : '100%',
-        height: position === KeyboardPositions.TOP || position === KeyboardPositions.BOTTOM ? `${size}${PX}` : '100%',
-      };
-    });
+    const $initialized = this.$initialized,
+      $keyboardSettings = toObservable(this.keyboardSettings);
+
+    $keyboardEnabled.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      switchMap(() => $initialized.pipe(
+        takeUntilDestroyed(this._destroyRef),
+        switchMap(initialized => {
+          return $keyboardSettings.pipe(
+            takeUntilDestroyed(this._destroyRef),
+            tap(settings => {
+              const keyboardSettings = settings, size = keyboardSettings.common.size, position = keyboardSettings.common.position;
+              this._keyboardStyles.set({
+                visibility: initialized ? VISIBILITY_VISIBLE : VISIBILITY_HIDDEN,
+                width: position === KeyboardPositions.LEFT || position === KeyboardPositions.RIGHT ? `${size}${PX}` : SIZE_100_PERSENT,
+                height: position === KeyboardPositions.TOP || position === KeyboardPositions.BOTTOM ? `${size}${PX}` : SIZE_100_PERSENT,
+              });
+            }),
+          );
+        }),
+      )),
+    ).subscribe();
 
     const $scroller = toObservable(this._scrollerComponent).pipe(
       takeUntilDestroyed(this._destroyRef),
@@ -829,7 +849,6 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
       )),
     ).subscribe();
 
-    const $keyboardSettings = toObservable(this.keyboardSettings);
     $keyboardEnabled.pipe(
       takeUntilDestroyed(),
       filter(v => !!v),
@@ -1112,10 +1131,6 @@ export class NtControlContainerComponent extends NtScrollViewComponent<INtScroll
       });
     }
   }
-
-  private _$focusedIndex = new BehaviorSubject<number>(-1);
-  readonly $focusedIndex = this._$focusedIndex.asObservable();
-  get focusedIndex() { return this._$focusedIndex.getValue(); }
 
   private getFocusedElements(): {
     element: HTMLElement | null;

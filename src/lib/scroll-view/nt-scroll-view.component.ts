@@ -397,7 +397,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
 
       if (!valid) {
         console.error('The "scrollable" parameter must be of type `boolean`.');
-        return DEFAULT_SCROLLBAR_ENABLED;
+        return DEFAULT_SCROLLABLE;
       }
       return v;
     },
