@@ -428,6 +428,8 @@ export class NtSwitchComponent {
 
     protected _elementRef = inject<ElementRef<HTMLDivElement>>(ElementRef);
 
+    protected _isInvertedOverscroll: Signal<boolean>;
+
     protected _bounds = signal<ISize>({
         width: this._elementRef.nativeElement.offsetWidth,
         height: this._elementRef.nativeElement.offsetHeight,
@@ -436,6 +438,10 @@ export class NtSwitchComponent {
     protected _service = inject(NtService);
 
     constructor() {
+        this._isInvertedOverscroll = computed(() => {
+            return this.langTextDir() === TextDirections.RTL;
+        });
+
         effect(() => {
             this._sliderValue.set(this.value() === true ? 1 : 0);
         });

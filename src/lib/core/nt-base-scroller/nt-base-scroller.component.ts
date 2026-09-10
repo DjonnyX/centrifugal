@@ -1,5 +1,5 @@
 import {
-    Component, DestroyRef, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild,
+    Component, DestroyRef, ElementRef, inject, input, output, signal, viewChild,
 } from '@angular/core';
 import { Subject } from 'rxjs';
 import {
@@ -8,7 +8,6 @@ import {
 } from '../../common';
 import { INtScroller } from '../../common/interfaces/nt-scroller';
 import { INtControlContainerService } from '../../control-container/interfaces';
-import { IScrollToParams } from '../../common/interfaces/scroll-to-params';
 import { INtBaseScrollViewService } from '../../common/interfaces/nt-base-scroll-view-service';
 import { INtBaseScrollView } from '../../common/interfaces/nt-base-scroll-view';
 import { INtOverscrollService } from '../../common/interfaces/nt-overscroll-service';
@@ -64,8 +63,8 @@ export abstract class NtBaseScroller<S extends INtBaseScrollViewService> impleme
 
     get grabbing() { return this._grabbing(); }
 
-    readonly context = input<INtBaseScrollView<S, S> | null>(null);
-    get parent() { return this.context(); }
+    readonly context = input<INtBaseScrollView<INtBaseScrollViewService, INtBaseScrollViewService> | null>(null);
+    get parent() { return this.context() as (INtBaseScrollView<S, S> | null); }
 
     get contentElement(): HTMLDivElement | null {
         return this.scrollContent()?.nativeElement ?? null;

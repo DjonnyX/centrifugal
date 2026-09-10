@@ -4,14 +4,13 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ISliderDragEvent, ISliderTemplateContext } from './interfaces';
 import {
   DEFAULT_MOTION_BLUR, DEFAULT_MAX_MOTION_BLUR, DEFAULT_SIZE, DEFAULT_THICKNESS, HEIGHT, NONE, OPACITY, OPACITY_0, OPACITY_1, PX,
-  TRANSITION, TRANSITION_FADE_IN, WIDTH, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_THUMB_ANIMATION_DURATION,
-  AVG_FILTER_ITERATIONS,
+  TRANSITION, TRANSITION_FADE_IN, WIDTH, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_THUMB_ANIMATION_DURATION, AVG_FILTER_ITERATIONS,
 } from './const';
 import { NtBaseSliderService } from './nt-base-slider.service';
 import { NtBaseSliderPublicService } from './nt-base-slider-public.service';
 import { SliderStates } from './enums';
 import {
-  GradientColorPositions, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED,
+  GradientColorPositions, IOverscrollEvent, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED,
   SCROLL_VIEW_TYPE, TextDirections,
 } from '../../common';
 import { NtSScrollView } from '../nt-s-scroller/nt-s-scroll-view';
@@ -23,6 +22,7 @@ import { DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MIN_OVERSCROLL_EFFECT, DEFAULT_O
 import { POINTER_DOWN, POINTER_ENTER, POINTER_LEAVE, POINTER_UP } from '../../common/const/event-names';
 import { matrix3d } from '../../common/utils/matrix-3d';
 import { ANIMATED } from '../../common/const/class-names';
+import { OverscrollEvent } from '../../common/events/overscroll-event';
 
 /**
  * NtBaseSliderComponent
@@ -103,6 +103,9 @@ export class NtBaseSliderComponent extends NtSScrollView {
 
   public readonly thumbClass = signal<{ [className: string]: boolean; }>({});
 
+  private _$overscrollEvent = new Subject<IOverscrollEvent>();
+  readonly $overscrollEvent = this._$overscrollEvent.asObservable();
+
   private _$init = new BehaviorSubject<boolean>(false);
   protected $init = this._$init.asObservable();
 
@@ -146,40 +149,20 @@ export class NtBaseSliderComponent extends NtSScrollView {
       overscrollService.$event.pipe(
         takeUntilDestroyed(),
         tap(e => {
-          const parentScroller = this._service.parent?.scrollView;
-          if (!!parentScroller) {
-            parentScroller.setOverscrollEvent(e);
-          }
-        }),
-      ).subscribe();
-
-      overscrollService.$effectEvent.pipe(
-        takeUntilDestroyed(),
-        tap(e => {
-          const parentScroller = this._service.parent?.scrollView;
-          if (!!parentScroller) {
-            parentScroller.setOverscrollEffectEvent(e);
-          }
+          this._$overscrollEvent.next(new OverscrollEvent({
+            ...e.toObject(),
+            positionX: this.langTextDir() === TextDirections.RTL ? (e.positionX === 1 ? 0 : 1) : e.positionX,
+          } as any));
         }),
       ).subscribe();
     } else {
       this.$overscroll.pipe(
         takeUntilDestroyed(),
         tap(e => {
-          const parentScroller = this._service.parent?.scrollView;
-          if (!!parentScroller) {
-            parentScroller.setOverscrollEvent(e);
-          }
-        }),
-      ).subscribe();
-
-      this.$overscrollEffectEvent.pipe(
-        takeUntilDestroyed(),
-        tap(e => {
-          const parentScroller = this._service.parent?.scrollView;
-          if (!!parentScroller) {
-            parentScroller.setOverscrollEffectEvent(e);
-          }
+          this._$overscrollEvent.next(new OverscrollEvent({
+            ...e.toObject(),
+            positionX: this.langTextDir() === TextDirections.RTL ? (e.positionX === 1 ? 0 : 1) : e.positionX,
+          } as any));
         }),
       ).subscribe();
     }
@@ -235,7 +218,7 @@ export class NtBaseSliderComponent extends NtSScrollView {
       takeUntilDestroyed(),
       tap(([e, direction, grabbing]) => {
         const langTextDir = this.langTextDir(), isRTL = langTextDir === TextDirections.RTL, dir = (grabbing ? 0 : 1), tds = isRTL ? -1 : 1,
-          dirX = (e.positionX === dir ? 1 : -1), dirY = (e.positionY === dir ? 1 : -1),
+          dirX = (e.positionX === dir ? 1 : -1) * tds, dirY = (e.positionY === dir ? 1 : -1),
           viewportBounds = this.viewportBounds(), dx = e.dragX, dy = e.dragY,
           offsetX = dx * dirX, offsetY = dy * dirY,
           sx = viewportBounds.width !== 0 ? (dx !== 0 ? Math.pow((offsetX + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,

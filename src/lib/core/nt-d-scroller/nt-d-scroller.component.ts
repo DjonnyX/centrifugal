@@ -3,7 +3,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, debounceTime, filter, Subject, tap } from 'rxjs';
 import { NtDScrollView } from './nt-d-scroll-view';
 import {
-  GradientColorPositions, Id, ISize, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_INVERSION, Directions,
+  GradientColorPositions, Id, ISize, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_INVERSION, Directions, IOverscrollEvent, TextDirections,
 } from '../../common';
 import { NtBaseSliderComponent } from '../nt-base-slider/nt-base-slider.component';
 import { ISliderDragEvent } from '../nt-base-slider/interfaces';
@@ -18,6 +18,7 @@ import {
 import { ANIMATED } from '../../common/const/class-names';
 import { matrix3d } from '../../common/utils/matrix-3d';
 import { FULL_SIZE } from './nt-d-scroll-view/const';
+import { OverscrollEvent } from '../../common/events/overscroll-event';
 
 /**
  * NtDScrollView
@@ -189,6 +190,9 @@ export class NtDScrollerComponent extends NtDScrollView {
 
   readonly viewInitialized = signal<boolean>(false);
 
+  private _$overscrollEvent = new Subject<IOverscrollEvent>();
+  readonly $overscrollEvent = this._$overscrollEvent.asObservable();
+
   private _isScrollbarUserActionX: boolean = false;
   get isScrollbarUserActionX() {
     return this._isScrollbarUserActionX;
@@ -250,20 +254,20 @@ export class NtDScrollerComponent extends NtDScrollView {
       overscrollService.$event.pipe(
         takeUntilDestroyed(),
         tap(e => {
-          const parentScroller = this._service.parent?.scrollView;
-          if (!!parentScroller) {
-            parentScroller.setOverscrollEvent(e);
-          }
+          this._$overscrollEvent.next(new OverscrollEvent({
+            ...e.toObject(),
+            positionX: this.langTextDir() === TextDirections.RTL ? (e.positionX === 1 ? 0 : 1) : e.positionX,
+          } as any));
         }),
       ).subscribe();
-
-      overscrollService.$effectEvent.pipe(
+    } else {
+      this.$overscroll.pipe(
         takeUntilDestroyed(),
         tap(e => {
-          const parentScroller = this._service.parent?.scrollView;
-          if (!!parentScroller) {
-            parentScroller.setOverscrollEffectEvent(e);
-          }
+          this._$overscrollEvent.next(new OverscrollEvent({
+            ...e.toObject(),
+            positionX: this.langTextDir() === TextDirections.RTL ? (e.positionX === 1 ? 0 : 1) : e.positionX,
+          } as any));
         }),
       ).subscribe();
     }
