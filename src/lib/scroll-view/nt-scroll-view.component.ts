@@ -739,6 +739,8 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
   private _$preventScrollSnapping = new BehaviorSubject<boolean>(false);
   protected readonly $preventScrollSnapping = this._$preventScrollSnapping.asObservable();
 
+  protected _isInvertedOverscroll: Signal<boolean>;
+
   protected _destroyRef = inject(DestroyRef);
 
   private _isLoading = false;
@@ -754,6 +756,10 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
     super();
 
     let hasUserAction = false;
+
+    this._isInvertedOverscroll = computed(() => {
+      return this.langTextDir() === TextDirections.RTL;
+    });
 
     const _$created = new BehaviorSubject<boolean>(false),
       $created = _$created.asObservable();
