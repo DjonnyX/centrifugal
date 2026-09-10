@@ -1085,7 +1085,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                 overscrollY = this._service.overscroll.y;
             this._userScrollDirectionIsHorizontal = this._scrollDirectionValueX > this._scrollDirectionValueY;
             if (this._userScrollDirectionIsHorizontal) {
-                if (!overscrollY && getScrollable(this._service, X_PROP_NAME, true)) {
+                if (!overscrollY) {
                     if (this._overscrollXIteration < OVERSCROLL_START_ITERATION) {
                         this._overscrollXIteration++;
                         this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
@@ -1104,7 +1104,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                     }
                 }
             } else {
-                if (!overscrollX && getScrollable(this._service, Y_PROP_NAME, true)) {
+                if (!overscrollX) {
                     if (this._overscrollYIteration < OVERSCROLL_START_ITERATION) {
                         this._overscrollYIteration++;
                         this.checkOverscrollByAxis(e, this._y, this.scrollHeight);

@@ -898,8 +898,7 @@ export class NtSScrollView extends NtSBaseScrollView {
             overscrollY = this._service.overscroll.y;
         this._userScrollDirectionIsHorizontal = this._scrollDirectionValueX > this._scrollDirectionValueY;
         if (this._userScrollDirectionIsHorizontal) {
-            const scrollable = getScrollable(this._service, X_PROP_NAME, true);
-            if (!overscrollY && scrollable) {
+            if (!overscrollY) {
                 if (this._overscrollStartIteration < OVERSCROLL_START_ITERATION) {
                     this._overscrollStartIteration++;
                     this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
@@ -920,8 +919,7 @@ export class NtSScrollView extends NtSBaseScrollView {
                 }
             }
         } else {
-            const scrollable = getScrollable(this._service, Y_PROP_NAME, true);
-            if (!overscrollX && scrollable) {
+            if (!overscrollX) {
                 if (this._overscrollStartIteration < OVERSCROLL_START_ITERATION) {
                     this._overscrollStartIteration++;
                     this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
