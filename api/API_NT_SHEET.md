@@ -21,7 +21,7 @@ Inputs
 | overscrollEnabled | boolean = true | Determines whether the overscroll (re-scroll) feature will work. The default value is "true". |
 | position | [SheetPosition](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/sheet/types/sheet-position.ts) = 'bottom' | Determines the position in which elements are placed. Default value is "bottom". |
 | langTextDir | [TextDirection](https://github.com/DjonnyX/centrifugal/blob/main/src/lib/common/types/text-direction.ts) | A string indicating the direction of text for the locale. Can be either "ltr" (left-to-right) or "rtl" (right-to-left). |
-| overscrollAreaShowAutomatically | boolean = true | Sets whether overscroll areas are automatically displayed if the value is true. |
+| overscrollAreaShowAutomatically | boolean = false | Sets whether overscroll areas are automatically displayed if the value is false. |
 | overscrollAreaUseOffsets | boolean = false | If true, scrollLeftOffset, scrollTopOffset, scrollRightOffset, and scrollBottomOffset will be used when calculating the re-scroll indicator positions. |
 | overscrollAreaLeftEnabled | boolean = false | Determines whether to display the left overscroll area if the parameter value is true or not if it is false. If the overscrollAreaShowAutomatically property is set to true and overscrollAreaLeftEnabled="false", the indicator will be used if horizontal scrolling is available. |
 | overscrollAreaTopEnabled | boolean = false | Determines whether to display the top overscroll area if the parameter value is true or not if it is false. If the overscrollAreaShowAutomatically property is set to true and overscrollAreaTopEnabled="false", the indicator will be used if vertical scrolling is available. |

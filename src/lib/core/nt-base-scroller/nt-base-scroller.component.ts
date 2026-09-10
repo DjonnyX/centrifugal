@@ -33,7 +33,7 @@ export abstract class NtBaseScroller<S extends INtBaseScrollViewService> impleme
 
     readonly onOverscroll = output<IOverscrollEvent>();
 
-    readonly overscrollAreaShowAutomatically = input<boolean>(true);
+    readonly overscrollAreaShowAutomatically = input<boolean>(false);
 
     readonly overscrollAreaUseOffsets = input<boolean>(false);
 

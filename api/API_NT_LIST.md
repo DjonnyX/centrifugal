@@ -36,7 +36,7 @@ Inputs
 | motionBlurEnabled | boolean = false | Determines whether to apply motion blur or not. The default value is `false`. |
 | overscrollEnabled | boolean? = true | Determines whether the overscroll (re-scroll) feature will work. The default value is "true". |
 | overlappingScrollbar | boolean? = false | Determines whether the scroll bar will overlap the list. The default value is "false". |
-| overscrollAreaShowAutomatically | boolean = true | Sets whether overscroll areas are automatically displayed if the value is true. |
+| overscrollAreaShowAutomatically | boolean = false | Sets whether overscroll areas are automatically displayed if the value is false. |
 | overscrollAreaUseOffsets | boolean = false | If true, scrollLeftOffset, scrollTopOffset, scrollRightOffset, and scrollBottomOffset will be used when calculating the re-scroll indicator positions. |
 | overscrollAreaLeftEnabled | boolean = false | Determines whether to display the left overscroll area if the parameter value is true or not if it is false. If the overscrollAreaShowAutomatically property is set to true and overscrollAreaLeftEnabled="false", the indicator will be used if horizontal scrolling is available. |
 | overscrollAreaTopEnabled | boolean = false | Determines whether to display the top overscroll area if the parameter value is true or not if it is false. If the overscrollAreaShowAutomatically property is set to true and overscrollAreaTopEnabled="false", the indicator will be used if vertical scrolling is available. |

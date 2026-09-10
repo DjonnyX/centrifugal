@@ -57,16 +57,16 @@ export abstract class NtBaseScrollComponent<S extends INtBaseScrollViewService, 
 
             if (!valid) {
                 console.error('The "overscrollAreaShowAutomatically" parameter must be of type `boolean`.');
-                return true;
+                return false;
             }
             return v;
         },
     } as any;
 
     /**
-     *  Sets whether overscroll areas are automatically displayed if the value is true.
+     *  Sets whether overscroll areas are automatically displayed if the value is "false".
      */
-    overscrollAreaShowAutomatically = input<boolean>(true, { ...this._overscrollAreaShowAutomaticallyOptions });
+    overscrollAreaShowAutomatically = input<boolean>(false, { ...this._overscrollAreaShowAutomaticallyOptions });
 
     protected _overscrollAreaUseOffsetsOptions = {
         transform: (v: boolean) => {
