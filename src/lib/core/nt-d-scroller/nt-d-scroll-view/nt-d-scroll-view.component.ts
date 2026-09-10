@@ -569,7 +569,6 @@ export class NtDScrollView extends NtDBaseScrollView {
                                             scrollDeltaY = sDeltaY;
                                             endTimeX = eTimeX;
                                             endTimeY = eTimeY;
-
                                         }
                                         this._moveIteration++;
 
@@ -581,8 +580,8 @@ export class NtDScrollView extends NtDBaseScrollView {
                                         dragDeltaY += absScrollDeltaY;
                                         const dx = currentPosX === null ? 0 : currentPosX - startClientPosX,
                                             dy = currentPosY === null ? 0 : currentPosY - startClientPosY,
-                                            dragX = this._inversion ? (dx >= 0 ? (dx - (this.scrollWidth - this.alignmentRightOffset()) + this._startPositionX) : (dx + this._startPositionX)) : (dx >= 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - (this.scrollWidth - this.alignmentRightOffset())))),
-                                            dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentBottomOffset()) + this._startPositionY) : (dy + this._startPositionY)) : (dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentBottomOffset()))));
+                                            dragX = this._inversion ? (dx >= 0 ? (dx - (this.scrollWidth - this.alignmentRightOffset()) + this._startPositionX) : dx) : (dx >= 0 ? dx : (dx - (this._startPositionX - (this.scrollWidth - this.alignmentRightOffset())))),
+                                            dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentBottomOffset()) + this._startPositionY) : dy) : (dy >= 0 ? dy : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentBottomOffset()))));
                                         this._dragX = Math.abs(dragX);
                                         this._dragY = Math.abs(dragY);
                                         if (this._isContainerAllowedForCorrection) {
@@ -841,7 +840,6 @@ export class NtDScrollView extends NtDBaseScrollView {
                                             scrollDeltaY = sDeltaY;
                                             endTimeX = eTimeX;
                                             endTimeY = eTimeY;
-
                                         }
                                         this._moveIteration++;
 
@@ -853,8 +851,8 @@ export class NtDScrollView extends NtDBaseScrollView {
                                         dragDeltaY += absScrollDeltaY;
                                         const dx = currentPosX === null ? 0 : currentPosX - startClientPosX,
                                             dy = currentPosY === null ? 0 : currentPosY - startClientPosY,
-                                            dragX = this._inversion ? (dx >= 0 ? (dx - (this.scrollWidth - this.alignmentRightOffset()) + this._startPositionX) : (dx + this._startPositionX)) : (dx >= 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - (this.scrollWidth - this.alignmentRightOffset())))),
-                                            dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentBottomOffset()) + this._startPositionY) : (dy + this._startPositionY)) : (dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentBottomOffset()))));
+                                            dragX = this._inversion ? (dx >= 0 ? (dx - (this.scrollWidth - this.alignmentRightOffset()) + this._startPositionX) : dx) : (dx >= 0 ? dx : (dx - (this._startPositionX - (this.scrollWidth - this.alignmentRightOffset())))),
+                                            dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentBottomOffset()) + this._startPositionY) : dy) : (dy >= 0 ? dy : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentBottomOffset()))));
                                         this._dragX = Math.abs(dragX);
                                         this._dragY = Math.abs(dragY);
                                         if (this._isContainerAllowedForCorrection) {
