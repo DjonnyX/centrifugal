@@ -5,10 +5,10 @@ import { NtSBaseScrollView } from '../../../../../core/nt-s-scroller/nt-s-scroll
 import { SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED } from '../../../../../common';
 import { LEFT_PROP_NAME, TOP_PROP_NAME } from '../../../../../common/const/base-prop-names';
 import { NtBaseSliderComponent } from '../../../../../core/nt-base-slider/nt-base-slider.component';
-import { IScrollToParams } from '../../../../../common/interfaces/scroll-to-params';
 import { BEHAVIOR_INSTANT } from '../../../../../common/const/behavior';
 import { DEFAULT_SCROLLBAR_ENABLED } from '../../../../../common/const/scroller';
 import { ScrollBox } from '../../../../../common/utils/scroll-box';
+import { IListScrollToParams } from '../../../../../common/interfaces/list-scroll-to-params';
 
 /**
  * NtPrerenderScrollerComponent
@@ -157,7 +157,7 @@ export class NtPrerenderScrollerComponent extends NtSBaseScrollView {
         this._$updateScrollBar.next();
     }
 
-    override scroll(params: IScrollToParams): Array<number> | number | null {
+    override scroll(params: IListScrollToParams): number | null {
         throw new Error('Method not implemented.');
     }
 }

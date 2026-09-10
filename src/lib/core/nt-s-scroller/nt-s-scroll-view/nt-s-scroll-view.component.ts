@@ -18,11 +18,10 @@ import { NtSBaseScrollView } from './base';
 import { INtSScrollViewAnimationParams } from './interfaces';
 import { calculateVelocity } from './utils/calculate-velocity';
 import {
-    CONTROL_CONTAINER_SERVICE, Id, IScrollingSettings, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_USER_INTERACTION_ENABLED,
+    Id, IScrollingSettings, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_USER_INTERACTION_ENABLED,
     TextDirections, SnappingDistance, SnapToItemAlign, ScrollDirection, SnapToItemAligns,
 } from '../../../common';
 import { Animator, ANIMATOR_MIN_TIMESTAMP, easeOutQuad, Easing, isPercentageValue, parseFloatOrPersentageValue } from '../../../common/utils';
-import { INtControlContainerService } from '../../../control-container/interfaces';
 import { MOUSE_DOWN, MOUSE_MOVE, MOUSE_UP, TOUCH_END, TOUCH_MOVE, TOUCH_START, WHEEL, } from '../../../common/const/event-names';
 import { INTERACTIVE } from '../../../common/const/class-names';
 import { IListScrollToParams } from '../../../common/interfaces/list-scroll-to-params';
@@ -51,8 +50,6 @@ import { isTouchSupported } from '../../../common/utils/is-touch-supported';
 export class NtSScrollView extends NtSBaseScrollView {
     @ViewChild('scrollViewport', { read: CdkScrollable })
     readonly cdkScrollable: CdkScrollable | undefined;
-
-    protected _controlContainerService = inject<INtControlContainerService>(CONTROL_CONTAINER_SERVICE);
 
     readonly scrollBehavior = input<ScrollBehavior>(DEFAULT_SCROLL_BEHAVIOR);
 
@@ -241,9 +238,6 @@ export class NtSScrollView extends NtSBaseScrollView {
     constructor() {
         super();
 
-        let mouseCanceled = false,
-            touchCanceled = false;
-
         this._horizontalAxisInvertion = computed(() => {
             const isVertical = this.isVertical(), langTextDir = this.langTextDir();
             return !isVertical && langTextDir === TextDirections.RTL;
@@ -364,10 +358,10 @@ export class NtSScrollView extends NtSBaseScrollView {
                         tap(e => {
                             this._isMoving = false;
                             this._grabbing.set(false);
-                            if (!mouseCanceled) {
+                            if (!this._mouseCanceled) {
                                 this.stopMoving();
                             }
-                            mouseCanceled = true;
+                            this._mouseCanceled = true;
                             this.cancelOverscroll({ event: e, released: true });
                             if (this.snapToItem() && this.scrollingOneByOne()) {
                                 this._isAlignmentAnimation = false;
@@ -391,10 +385,10 @@ export class NtSScrollView extends NtSBaseScrollView {
                                     tap(e => {
                                         this._isMoving = false;
                                         this._grabbing.set(false);
-                                        if (!mouseCanceled) {
+                                        if (!this._mouseCanceled) {
                                             this.stopMoving();
                                         }
-                                        mouseCanceled = true;
+                                        this._mouseCanceled = true;
                                         this.cancelOverscroll({ event: e, released: true });
                                         if (this.snapToItem() && this.scrollingOneByOne()) {
                                             this._isAlignmentAnimation = false;
@@ -416,7 +410,7 @@ export class NtSScrollView extends NtSBaseScrollView {
                             takeUntilDestroyed(this._destroyRef),
                             filter(v => this._interactive),
                             switchMap(e => {
-                                mouseCanceled = false;
+                                this._mouseCanceled = false;
                                 this._moveIteration = 0;
                                 this._horizontalAxleLock = this._verticalAxleLock = false;
                                 this._clientPositionOffsetX = this._clientPositionOffsetY = 0;
@@ -515,7 +509,7 @@ export class NtSScrollView extends NtSBaseScrollView {
                                             takeUntilDestroyed(this._destroyRef),
                                             takeUntil($mouseDragCancel),
                                             tap(e => {
-                                                mouseCanceled = true;
+                                                this._mouseCanceled = true;
                                                 const endTime = Date.now(),
                                                     timestamp = endTime - startTime,
                                                     { v0 } = this.calculateVelocity(isVertical ? offsetsY : offsetsX, isVertical ? scrollDeltaY : scrollDeltaX, timestamp),
@@ -562,10 +556,10 @@ export class NtSScrollView extends NtSBaseScrollView {
                             this._touchId = -1;
                             this._isMoving = false;
                             this._grabbing.set(false);
-                            if (!touchCanceled) {
+                            if (!this._touchCanceled) {
                                 this.stopMoving();
                             }
-                            touchCanceled = true;
+                            this._touchCanceled = true;
                             this.cancelOverscroll({ event: e, released: true });
                             if (this.snapToItem() && this.scrollingOneByOne()) {
                                 this._isAlignmentAnimation = false;
@@ -597,10 +591,10 @@ export class NtSScrollView extends NtSBaseScrollView {
                                         this._touchId = -1;
                                         this._isMoving = false;
                                         this._grabbing.set(false);
-                                        if (!touchCanceled) {
+                                        if (!this._touchCanceled) {
                                             this.stopMoving();
                                         }
-                                        touchCanceled = true;
+                                        this._touchCanceled = true;
                                         this.cancelOverscroll({ event: e, released: true });
                                         if (this.snapToItem() && this.scrollingOneByOne()) {
                                             this._isAlignmentAnimation = false;
@@ -622,7 +616,7 @@ export class NtSScrollView extends NtSBaseScrollView {
                             takeUntilDestroyed(this._destroyRef),
                             filter(() => this._interactive),
                             switchMap(e => {
-                                touchCanceled = false;
+                                this._touchCanceled = false;
                                 this._moveIteration = 0;
                                 this._horizontalAxleLock = this._verticalAxleLock = false;
                                 this._clientPositionOffsetX = this._clientPositionOffsetY = 0;
@@ -735,7 +729,7 @@ export class NtSScrollView extends NtSBaseScrollView {
                                             takeUntil($touchCanceler),
                                             tap(e => {
                                                 this._touchId = -1;
-                                                touchCanceled = true;
+                                                this._touchCanceled = true;
                                                 const endTime = Date.now(),
                                                     timestamp = endTime - startTime,
                                                     { v0 } = this.calculateVelocity(isVertical ? offsetsY : offsetsX, isVertical ? scrollDeltaY : scrollDeltaX, timestamp),
