@@ -795,7 +795,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                                         this._moveIteration++;
                                         const parentScroller = this._service.parent?.scrollView;
                                         if (this._isContainerAllowedForCorrection && !!parentScroller) {
-                                            parentScroller.setClientPositionOffset(startClientPosX - (currentPosX ?? 0), startClientPosY - (currentPosY ?? 0));
+                                            parentScroller.setClientPositionOffset(this.scrollableX ? (startClientPosX - (currentPosX ?? 0)) : 0, this.scrollableY ? (startClientPosY - (currentPosY ?? 0)) : 0);
                                         }
 
                                         let positionX = posX, positionY = posY;
