@@ -400,7 +400,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                             if (this._isContainerAllowedForCorrection) {
                                 this.verticalScrollRatioWhenGrabbing = Math.sign(-dragY) < 0 ? 1 : 0;
                             }
-                            this.checkOverscroll(e, true);
+                            this.checkOverscroll(e, deltaX !== 0, deltaY !== 0);
                             let positionX = 0, positionY = 0;
                             if (this.isInfinity()) {
                                 positionX = dpX;
@@ -1048,9 +1048,9 @@ export class NtDScrollView extends NtDBaseScrollView {
         this.emitOverscrollEvent(false, !this.overscrollEnabled());
     }
 
-    private checkOverscrollByAxis(e: Event, pos: number, limit: number, force: boolean = false): boolean {
+    private checkOverscrollByAxis(e: Event, pos: number, limit: number): boolean {
         const p = Math.abs(pos);
-        if (p > 0 && p < limit && !force) {
+        if (p > 0 && p < limit) {
             this._overscrollIteration = 0;
             if (e.cancelable) {
                 e.stopImmediatePropagation();
@@ -1071,7 +1071,7 @@ export class NtDScrollView extends NtDBaseScrollView {
         return false;
     }
 
-    private checkOverscroll(e: Event, wheel: boolean = false) {
+    private checkOverscroll(e: Event, wheelX: boolean = false, wheelY: boolean = false) {
         if (!this._overscrollEnabled || !this.overscrollEnabled()) {
             if (e.cancelable) {
                 e.stopImmediatePropagation();
@@ -1079,19 +1079,18 @@ export class NtDScrollView extends NtDBaseScrollView {
             }
             return;
         }
-
         if (this._overscrollEnabled) {
             const overscrollX = this._service.overscroll.x,
                 overscrollY = this._service.overscroll.y;
             this._userScrollDirectionIsHorizontal = this._scrollDirectionValueX > this._scrollDirectionValueY;
-            if (this._userScrollDirectionIsHorizontal) {
+            if (this._userScrollDirectionIsHorizontal || wheelX) {
                 if (!overscrollY) {
                     if (this._overscrollXIteration < OVERSCROLL_START_ITERATION) {
                         this._overscrollXIteration++;
-                        this.checkOverscrollByAxis(e, this._x, this.scrollWidth, wheel);
+                        this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
                     } else {
                         this._service.overscroll = { ...this._service.overscroll, x: true };
-                        this.checkOverscrollByAxis(e, this._x, this.scrollWidth, wheel);
+                        this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
                     }
                 } else {
                     if (e.cancelable) {
@@ -1099,18 +1098,18 @@ export class NtDScrollView extends NtDBaseScrollView {
                         e.preventDefault();
                     }
                     const p = Math.abs(this._x);
-                    if (p <= 0 || p >= this.scrollWidth || wheel) {
+                    if (p <= 0 || p >= this.scrollWidth) {
                         this.emitOverscrollEvent();
                     }
                 }
             } else {
-                if (!overscrollX) {
+                if (!overscrollX || wheelY) {
                     if (this._overscrollYIteration < OVERSCROLL_START_ITERATION) {
                         this._overscrollYIteration++;
-                        this.checkOverscrollByAxis(e, this._y, this.scrollHeight, wheel);
+                        this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
                     } else {
                         this._service.overscroll = { ...this._service.overscroll, y: true };
-                        this.checkOverscrollByAxis(e, this._y, this.scrollHeight, wheel);
+                        this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
                     }
                 } else {
                     if (e.cancelable) {
@@ -1118,7 +1117,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                         e.preventDefault();
                     }
                     const p = Math.abs(this._y);
-                    if (p <= 0 || p >= this.scrollHeight || wheel) {
+                    if (p <= 0 || p >= this.scrollHeight) {
                         this.emitOverscrollEvent();
                     }
                 }
