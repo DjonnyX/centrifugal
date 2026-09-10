@@ -227,12 +227,7 @@ export class NtDScrollerComponent extends NtDScrollView {
       takeUntilDestroyed(),
       debounceTime(0),
       tap(bounds => {
-        this.viewportBounds.set(bounds);
-        this.updateScrollBar(false);
-        this.updateScrollBar(true);
-        this.recalculatePerspective();
-        this.dropVelocity();
-        this._$resizeViewport.next(bounds);
+        this.resizeViewport(bounds);
       }),
     ).subscribe();
 
@@ -436,8 +431,21 @@ export class NtDScrollerComponent extends NtDScrollView {
       if (bounds.width === b.width && bounds.height === b.height) {
         return;
       }
-      this._$preresizeViewport.next(bounds);
+      if (this.deferredResize()) {
+        this._$preresizeViewport.next(bounds);
+      } else {
+        this.resizeViewport(bounds);
+      }
     }
+  }
+
+  private resizeViewport(bounds: ISize) {
+    this.viewportBounds.set(bounds);
+    this.updateScrollBar(false);
+    this.updateScrollBar(true);
+    this.recalculatePerspective();
+    this.dropVelocity();
+    this._$resizeViewport.next(bounds);
   }
 
   protected override onResizeContent(width: number | null = null, height: number | null = null) {

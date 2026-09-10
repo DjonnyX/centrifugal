@@ -77,6 +77,8 @@ export abstract class NtBaseScroller<S extends INtBaseScrollViewService> impleme
 
     protected _inversion = inject(SCROLL_VIEW_INVERSION);
 
+    readonly deferredResize = input(false);
+
     readonly invertOverscroll = input(false);
 
     protected _overscrollEnabled = inject(SCROLL_VIEW_OVERSCROLL_ENABLED);
