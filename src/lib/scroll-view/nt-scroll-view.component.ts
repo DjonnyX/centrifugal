@@ -110,6 +110,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
 
   protected _$initialized = new BehaviorSubject<boolean>(false);
   readonly $initialized = this._$initialized.asObservable();
+  get initialized() { return this._$initialized.getValue(); }
 
   protected _axleLockOptions = {
     transform: (v: boolean) => {

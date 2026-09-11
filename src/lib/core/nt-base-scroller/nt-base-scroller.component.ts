@@ -77,14 +77,9 @@ export abstract class NtBaseScroller<S extends INtBaseScrollViewService> impleme
 
     protected _inversion = inject(SCROLL_VIEW_INVERSION);
 
-    readonly deferredResize = input(false);
-
     readonly invertOverscroll = input(false);
 
     protected _overscrollEnabled = inject(SCROLL_VIEW_OVERSCROLL_ENABLED);
-
-    protected _$preresizeViewport = new Subject<ISize>();
-    readonly $preresizeViewport = this._$preresizeViewport.asObservable();
 
     protected _$resizeViewport = new Subject<ISize>();
     readonly $resizeViewport = this._$resizeViewport.asObservable();

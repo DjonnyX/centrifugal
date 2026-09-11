@@ -560,6 +560,9 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
     $open.pipe(
       takeUntilDestroyed(),
       tap(v => {
+        if (!this.initialized) {
+          return;
+        }
         this._$position.next(v);
         const { x, y } = this.getPosition(v);
         if (v !== null) {
@@ -635,8 +638,8 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
       filter(([v]) => !!v && !userAction),
       tap(() => {
         this._scrollerComponent()?.stopScrolling?.();
-        const position = this.position;
-        const { x, y } = this.getPosition(position);
+        const position = this.position,
+          { x, y } = this.getPosition(position);
         this.scrollTo({
           x, y, behavior: BEHAVIOR_INSTANT, duration: 0, blending: false, snap: false,
         });
@@ -654,6 +657,7 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
 
         return { x, y, dockLeftSize, dockTopSize, dockRightSize, dockBottomSize };
       }),
+      filter(() => this.initialized),
       debounceTime(100),
       tap(({ x, y, dockLeftSize, dockTopSize, dockRightSize, dockBottomSize }) => {
         const scrollLeft = this.scrollLeft, scrollTop = this.scrollTop;

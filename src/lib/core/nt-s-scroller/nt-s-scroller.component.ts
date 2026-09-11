@@ -196,16 +196,7 @@ export class NtSScrollerComponent extends NtSScrollView {
       $scrollContent = toObservable(this.scrollContent),
       overscrollService = this._overscrollService,
       $overscrollEffectEvent = !!overscrollService ? overscrollService.$effectEvent : this.$overscrollEffectEvent,
-      $preresizeViewport = this.$preresizeViewport,
       $resizeViewport = this.$resizeViewport;
-
-    $preresizeViewport.pipe(
-      takeUntilDestroyed(),
-      debounceTime(0),
-      tap(bounds => {
-        this.resizeViewport(bounds);
-      }),
-    ).subscribe();
 
     $resizeViewport.pipe(
       takeUntilDestroyed(),
@@ -380,20 +371,20 @@ export class NtSScrollerComponent extends NtSScrollView {
       if (bounds.width === b.width && bounds.height === b.height) {
         return;
       }
-      if (this.deferredResize()) {
-        this._$preresizeViewport.next(bounds);
-      } else {
-        this.resizeViewport(bounds);
-      }
+      this.resizeViewport(bounds);
     }
   }
 
-  private resizeViewport(bounds: ISize) {
-    this.viewportBounds.set(bounds);
+  private resizeViewport(bounds: ISize | null = null) {
+    if (!this.viewInitialized()) {
+      return;
+    }
+    const value = bounds ?? this.viewportBounds();
+    this.viewportBounds.set(value);
     this.updateScrollBar();
     this.recalculatePerspective();
     this.dropVelocity();
-    this._$resizeViewport.next(bounds);
+    this._$resizeViewport.next(value);
   }
 
   protected override onResizeContent(value: number | null = null) {
