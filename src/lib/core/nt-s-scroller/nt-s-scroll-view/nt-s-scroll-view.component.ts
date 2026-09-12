@@ -1233,7 +1233,7 @@ export class NtSScrollView extends NtSBaseScrollView {
     }
 
     protected alignPosition(animated: boolean = true, force: boolean = false, fireUpdate: boolean = false) {
-        if (this._disableAlignment || !this.snapToItem() || (this._isAlignmentAnimation && !force)) {
+        if (this._disableAlignment || !this.snapToItem() || this.grabbing || (this._isAlignmentAnimation && !force)) {
             return false;
         }
         const scrollDirection = this.scrollDirection || (force ? 1 : 0);
