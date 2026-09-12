@@ -1527,7 +1527,7 @@ export class NtDScrollView extends NtDBaseScrollView {
         return size;
     }
 
-    protected alignPosition(animated: boolean = true, force: boolean = false, fireUpdate: boolean = false) {
+    protected alignPosition(animated: boolean = true, force: boolean = false, fireUpdate: boolean = true) {
         if (this._disableAlignment || !this.snapToItem() || this.grabbing || (this._isAlignmentAnimation && !force)) {
             return false;
         }
