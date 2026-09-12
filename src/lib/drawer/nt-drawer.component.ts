@@ -559,19 +559,24 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
 
     $open.pipe(
       takeUntilDestroyed(),
+      debounceTime(0),
       tap(v => {
         if (!this.initialized) {
           return;
         }
         this._$position.next(v);
-        const { x, y } = this.getPosition(v);
-        if (v !== null) {
-          const params: IScrollOptions = { x, y, blending: false, behavior: this.scrollBehavior(), duration: this.animationParams().scrollToItem };
-          this.scrollTo(params);
-          this.onOpen.emit(v);
-        } else {
-          this.scrollTo({ x, y, blending: false, behavior: this.scrollBehavior(), duration: this.animationParams().scrollToItem });
-          this.onClose.emit();
+
+        const scroller = this._scrollerComponent();
+        if (!!scroller && !scroller.grabbing) {
+          const { x, y } = this.getPosition(v);
+          if (v !== null) {
+            const params: IScrollOptions = { x, y, blending: false, behavior: this.scrollBehavior(), duration: this.animationParams().scrollToItem };
+            this.scrollTo(params);
+            this.onOpen.emit(v);
+          } else {
+            this.scrollTo({ x, y, blending: false, behavior: this.scrollBehavior(), duration: this.animationParams().scrollToItem });
+            this.onClose.emit();
+          }
         }
       }),
     ).subscribe();
@@ -637,12 +642,15 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
       debounceTime(0),
       filter(([v]) => !!v && !userAction),
       tap(() => {
-        this._scrollerComponent()?.stopScrolling?.();
-        const position = this.position,
-          { x, y } = this.getPosition(position);
-        this.scrollTo({
-          x, y, behavior: BEHAVIOR_INSTANT, duration: 0, blending: false, snap: false,
-        });
+        const scroller = this._scrollerComponent();
+        if (!!scroller && !scroller.grabbing) {
+          scroller.stopScrolling();
+          const position = this.position,
+            { x, y } = this.getPosition(position);
+          this.scrollTo({
+            x, y, behavior: BEHAVIOR_INSTANT, duration: 0, blending: false, snap: false,
+          });
+        }
       }),
     ).subscribe();
 
