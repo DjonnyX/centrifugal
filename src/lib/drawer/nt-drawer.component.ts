@@ -567,7 +567,7 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
         this._$position.next(v);
 
         const scroller = this._scrollerComponent();
-        if (!!scroller && !scroller.grabbing) {
+        if (!!scroller && !scroller.grabbing && !scroller.hasAnimation()) {
           const { x, y } = this.getPosition(v);
           if (v !== null) {
             const params: IScrollOptions = { x, y, blending: false, behavior: this.scrollBehavior(), duration: this.animationParams().scrollToItem };
@@ -668,17 +668,19 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
       filter(() => this.initialized),
       debounceTime(100),
       tap(({ x, y, dockLeftSize, dockTopSize, dockRightSize, dockBottomSize }) => {
-        const scrollLeft = this.scrollLeft, scrollTop = this.scrollTop;
-        if (x === 0 && dockLeftSize > 0 && scrollLeft === 0) {
-          this._$open.next(DrawerDockPositions.LEFT);
-        } else if (x === 0 && dockRightSize > 0 && scrollLeft === this.scrollWidth) {
-          this._$open.next(DrawerDockPositions.RIGHT);
-        } else if (y === 0 && dockTopSize > 0 && scrollTop === 0) {
-          this._$open.next(DrawerDockPositions.TOP);
-        } else if (y === 0 && dockBottomSize > 0 && scrollTop === this.scrollHeight) {
-          this._$open.next(DrawerDockPositions.BOTTOM);
-        } else if (x === 1 && x === 1) {
-          this._$open.next(null);
+        if (!this._scrollerComponent()?.hasAnimation()) {
+          const scrollLeft = this.scrollLeft, scrollTop = this.scrollTop;
+          if (x === 0 && dockLeftSize > 0 && scrollLeft === 0) {
+            this._$open.next(DrawerDockPositions.LEFT);
+          } else if (x === 0 && dockRightSize > 0 && scrollLeft === this.scrollWidth) {
+            this._$open.next(DrawerDockPositions.RIGHT);
+          } else if (y === 0 && dockTopSize > 0 && scrollTop === 0) {
+            this._$open.next(DrawerDockPositions.TOP);
+          } else if (y === 0 && dockBottomSize > 0 && scrollTop === this.scrollHeight) {
+            this._$open.next(DrawerDockPositions.BOTTOM);
+          } else if (x === 1 && x === 1) {
+            this._$open.next(null);
+          }
         }
       }),
     ).subscribe();
