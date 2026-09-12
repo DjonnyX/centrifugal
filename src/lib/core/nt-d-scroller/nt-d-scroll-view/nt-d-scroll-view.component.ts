@@ -514,8 +514,8 @@ export class NtDScrollView extends NtDBaseScrollView {
                                 this._startPositionX = this.x;
                                 this._startPositionY = this.y;
                                 this._touchId = -1;
-                                let prevClientPositionX: number | null = e.clientX * (this._horizontalAxisInvertion() ? -1 : 1),
-                                    prevClientPositionY: number | null = e.clientY,
+                                let prevClientPositionX: number | null = Math.round(e.clientX) * (this._horizontalAxisInvertion() ? -1 : 1),
+                                    prevClientPositionY: number | null = Math.round(e.clientY),
                                     startClientPosX = prevClientPositionX,
                                     startClientPosY = prevClientPositionY,
                                     offsetsX = new Array<[number, number]>(),
@@ -778,8 +778,8 @@ export class NtDScrollView extends NtDBaseScrollView {
                                 this._startPositionX = this.x;
                                 this._startPositionY = this.y;
                                 this._touchId = touch.identifier;
-                                let prevClientPositionX: number | null = (touch.clientX) * (this._horizontalAxisInvertion() ? -1 : 1),
-                                    prevClientPositionY: number | null = touch.clientY,
+                                let prevClientPositionX: number | null = Math.round(touch.clientX) * (this._horizontalAxisInvertion() ? -1 : 1),
+                                    prevClientPositionY: number | null = Math.round(touch.clientY),
                                     startClientPosX = prevClientPositionX,
                                     startClientPosY = prevClientPositionY,
                                     offsetsX = new Array<[number, number]>(),
@@ -1073,7 +1073,7 @@ export class NtDScrollView extends NtDBaseScrollView {
         }
         const coord = (isVertical ? ((!!e.targetTouches ? Array.from((e as TouchEvent).targetTouches)?.find(({ identifier }) => identifier === touchId)?.clientY ?? 0 : e.clientY)) :
             ((!!e.targetTouches ? Array.from((e as TouchEvent).targetTouches)?.find(({ identifier }) => identifier === touchId)?.clientX ?? 0 : e.clientX))),
-            currentPos = coord * (axisInversion ? -1 : 1),
+            currentPos = Math.round(coord) * (axisInversion ? -1 : 1),
             scrollSize = isVertical ? (this.scrollHeight) : this.scrollWidth, delta = (inversion ? -1 : 1) * (startClientPos - currentPos),
             dp = (isVertical ? this._startPositionY : this._startPositionX) + delta, position = dp < 0 ? 0 : dp > scrollSize ? scrollSize : dp,
             endTime = Date.now(), timestamp = endTime - startTime, scrollDelta = (prevClientPosition === 0 || prevClientPosition === null) ? 0 : prevClientPosition - currentPos,

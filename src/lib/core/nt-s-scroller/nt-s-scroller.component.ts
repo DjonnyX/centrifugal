@@ -240,8 +240,8 @@ export class NtSScrollerComponent extends NtSScrollView {
       tap(([e, viewportBounds]) => {
         const contentBounds = this.contentBounds(),
           inverted = e.inverted,
-          dx = e.dragX, dy = e.dragY, sx = viewportBounds.width !== 1 ? (dx !== 0 ? Math.pow((dx + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,
-          sy = viewportBounds.height !== 0 ? (dy !== 0 ? Math.pow((dy + viewportBounds.height) / viewportBounds.height, 0.1) : 1) : 1,
+          dx = e.dragX, dy = e.dragY, sx = viewportBounds.width !== 1 ? (Math.pow((dx + viewportBounds.width) / viewportBounds.width, 0.1)) : 1,
+          sy = viewportBounds.height !== 0 ? (Math.pow((dy + viewportBounds.height) / viewportBounds.height, 0.1)) : 1,
           normalizedSx = sx > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sx,
           normalizedSy = sy > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sy,
           actualSx = contentBounds.width * normalizedSx > (contentBounds.width + DEFAULT_MAX_OVERSCROLL_EFFECT_PX) ? (contentBounds.width + DEFAULT_MAX_OVERSCROLL_EFFECT_PX) / contentBounds.width : normalizedSx,
