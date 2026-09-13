@@ -1367,7 +1367,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                 return animator.id;
             }
         }
-        let overflowTime: number | null = null, overscrollEffectCanceled = -1;
+        let overscrollTime: number | null = null, overscrollEffectCanceled = -1;
         return animator.animate({
             withDelta: !this.isInfinity(),
             startValue,
@@ -1386,10 +1386,10 @@ export class NtDScrollView extends NtDBaseScrollView {
                     return;
                 }
                 const time = Date.now(), scrollSize = (isVertical ? this.scrollHeight : this.scrollWidth);
-                if (!overflowTime && (value! <= 0 || value! >= scrollSize)) {
-                    overflowTime = Date.now();
+                if (!overscrollTime && (value! <= 0 || value! >= scrollSize)) {
+                    overscrollTime = Date.now();
                 }
-                if (!!overflowTime && ((time - overflowTime) < OVERSCROLL_EFFECT_TIME)) {
+                if (!!overscrollTime && ((time - overscrollTime) < OVERSCROLL_EFFECT_TIME)) {
                     overscrollEffectCanceled = 0;
 
                     if (this._isContainerAllowedForCorrection) {

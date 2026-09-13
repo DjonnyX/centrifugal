@@ -1099,7 +1099,7 @@ export class NtSScrollView extends NtSBaseScrollView {
             }
         }
 
-        let overflowTime: number | null = null, overscrollEffectCanceled = -1;
+        let overscrollTime: number | null = null, overscrollEffectCanceled = -1;
         return this._animator.animate({
             withDelta: this._service.dynamic && !this.isInfinity(),
             startValue,
@@ -1111,10 +1111,10 @@ export class NtSScrollView extends NtSBaseScrollView {
             }, onUpdate: data => {
                 this._userActionDuringAnimation.set(userAction);
                 const { value, timestamp, elapsed, complete } = data, time = Date.now(), scrollSize = (isVertical ? this.scrollHeight : this.scrollWidth);
-                if (!overflowTime && (value <= 0 || value >= scrollSize)) {
-                    overflowTime = Date.now();
+                if (!overscrollTime && (value <= 0 || value >= scrollSize)) {
+                    overscrollTime = Date.now();
                 }
-                if (!!overflowTime && ((time - overflowTime) < OVERSCROLL_EFFECT_TIME)) {
+                if (!!overscrollTime && ((time - overscrollTime) < OVERSCROLL_EFFECT_TIME)) {
                     overscrollEffectCanceled = 0;
                     const dv = value!,
                         dragV = dv < 0 ? dv : (dv - scrollSize),
