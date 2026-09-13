@@ -22,7 +22,7 @@
             <nt-overscroll-container class="ntbs" dir="ltr" [context]="parent" [bounds]="viewportBounds()"
                 [leftOffset]="_leftOffset()" [topOffset]="_topOffset()" [rightOffset]="_rightOffset()"
                 [bottomOffset]="_bottomOffset()"
-                [overscrollEvent]="(!!_overscrollService ? _overscrollService.$event : $overscroll) | async"
+                [overscrollEvent]="$overscrollEvent | async"
                 [leftIndicatorEnabled]="_actualOverscrollAreaLeftEnabled()"
                 [topIndicatorEnabled]="_actualOverscrollAreaTopEnabled()"
                 [rightIndicatorEnabled]="_actualOverscrollAreaRightEnabled()"

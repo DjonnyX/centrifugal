@@ -174,6 +174,22 @@ export class NtListComponent<S extends INtListService = any, P extends INtScroll
   private _$initialized = new BehaviorSubject<boolean>(false);
   readonly $initialized = this._$initialized.asObservable();
 
+  protected _axleLockOptions = {
+    transform: (v: boolean) => {
+      const valid = validateBoolean(v);
+      if (!valid) {
+        console.error('The "axleLock" parameter must be of type `boolean`.');
+        return true;
+      }
+      return v;
+    },
+  } as any;
+
+  /**
+   * Determines whether axis locking will occur during scrolling. Default value is "true".
+   */
+  axleLock = input<boolean>(true, { ...this._axleLockOptions });
+
   protected _interactiveOptions = {
     transform: (v: boolean) => {
       const valid = validateBoolean(v);

@@ -13,8 +13,7 @@ import {
 } from './const';
 import {
     ACCELERATION_SCALE, ANIMATION_DURATION, DURATION, FRICTION_FORCE, MASS, MAX_DIST, MAX_DURATION, MAX_ITERATIONS_FOR_AVERAGE_CALCULATIONS,
-    MAX_VELOCITY_TIMESTAMP, MAX_VELOCITIES_LENGTH, OVERSCROLL_START_ITERATION, SPEED_SCALE, MIN_ACCELERATION, MIN_DELTA,
-    OVERSCROLL_EFFECT_TIME,
+    MAX_VELOCITY_TIMESTAMP, MAX_VELOCITIES_LENGTH, OVERSCROLL_START_ITERATION, SPEED_SCALE, MIN_ACCELERATION, MIN_DELTA, OVERSCROLL_EFFECT_TIME,
 } from './const';
 import { calculateDirection, matrix3d } from './utils';
 import { NtDBaseScrollView } from './base';
@@ -42,6 +41,8 @@ import { DEFAULT_OVERSCROLL_ENABLED, DEFAULT_SCROLL_BEHAVIOR, DEFAULT_SCROLLABLE
 import { SCROLL_EVENT } from '../../const/index';
 import { isPercentageValue, parseFloatOrPersentageValue } from '../../../common/utils';
 import { isTouchSupported } from '../../../common/utils/is-touch-supported';
+import { INtBaseScrollViewService } from '../../../common/interfaces/nt-base-scroll-view-service';
+import { INtScroller } from '../../../common/interfaces/nt-scroller';
 
 /**
  * NtDScrollView
@@ -279,10 +280,7 @@ export class NtDScrollView extends NtDBaseScrollView {
     constructor() {
         super();
 
-        this._isContainerAllowedForCorrection = EXCLUDED_CONTAINERS.indexOf(this._type as ScrollerTypes) === -1;
-
-        let mouseCanceled = false,
-            touchCanceled = false;
+        this._isContainerAllowedForCorrection = this._type !== ScrollerTypes.CONTROL_CONTAINER;
 
         this._horizontalAxisEnabled = computed(() => {
             const direction = this.direction();
@@ -404,7 +402,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                             if (this._isContainerAllowedForCorrection) {
                                 this.verticalScrollRatioWhenGrabbing = Math.sign(-dragY) < 0 ? 1 : 0;
                             }
-                            this.checkOverscroll(e, true);
+                            this.checkOverscroll(e, deltaX !== 0, deltaY !== 0);
                             let positionX = 0, positionY = 0;
                             if (this.isInfinity()) {
                                 positionX = dpX;
@@ -440,10 +438,10 @@ export class NtDScrollView extends NtDBaseScrollView {
                             this._controlContainerService.currentScrollView = null;
                             this._isMoving = false;
                             this._grabbing.set(false);
-                            if (!mouseCanceled) {
+                            if (!this._mouseCanceled) {
                                 this.stopMoving();
                             }
-                            mouseCanceled = true;
+                            this._mouseCanceled = true;
                             this.cancelOverscroll({ event: e, released: true });
                             if (this.snapToItem() && this.scrollingOneByOne()) {
                                 this._isAlignmentAnimation = false;
@@ -469,10 +467,10 @@ export class NtDScrollView extends NtDBaseScrollView {
                                         this._controlContainerService.currentScrollView = null;
                                         this._isMoving = false;
                                         this._grabbing.set(false);
-                                        if (!mouseCanceled) {
+                                        if (!this._mouseCanceled) {
                                             this.stopMoving();
                                         }
-                                        mouseCanceled = true;
+                                        this._mouseCanceled = true;
                                         this.cancelOverscroll({ event: e, released: true });
                                         if (this.snapToItem() && this.scrollingOneByOne()) {
                                             this._isAlignmentAnimation = false;
@@ -495,7 +493,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                             filter(v => this._interactive),
                             switchMap(e => {
                                 this._controlContainerService.currentScrollView = this;
-                                mouseCanceled = false;
+                                this._mouseCanceled = false;
                                 this._moveIteration = 0;
                                 this._clientPositionOffsetX = this._clientPositionOffsetY = 0;
                                 this._horizontalAxleLock = this._verticalAxleLock = false;
@@ -516,8 +514,8 @@ export class NtDScrollView extends NtDBaseScrollView {
                                 this._startPositionX = this.x;
                                 this._startPositionY = this.y;
                                 this._touchId = -1;
-                                let prevClientPositionX: number | null = e.clientX * (this._horizontalAxisInvertion() ? -1 : 1),
-                                    prevClientPositionY: number | null = e.clientY,
+                                let prevClientPositionX: number | null = Math.round(e.clientX) * (this._horizontalAxisInvertion() ? -1 : 1),
+                                    prevClientPositionY: number | null = Math.round(e.clientY),
                                     startClientPosX = prevClientPositionX,
                                     startClientPosY = prevClientPositionY,
                                     offsetsX = new Array<[number, number]>(),
@@ -533,26 +531,47 @@ export class NtDScrollView extends NtDBaseScrollView {
                                     takeUntil($mouseDragCancel),
                                     takeUntil($scrollDisabled),
                                     switchMap(e => {
+                                        const { position: posX, currentPos: cPosX, endTime: eTimeX, scrollDelta: sDeltaX } =
+                                            this.calculatePosition(false, this._horizontalAxisEnabled(), this._horizontalAxisInvertion(), e, inversion, startClientPosX, startTimeX, prevClientPositionX, offsetsX, velocitiesX),
+                                            { position: posY, currentPos: cPosY, endTime: eTimeY, scrollDelta: sDeltaY } =
+                                                this.calculatePosition(true, this._verticalAxisEnabled(), false, e, inversion, startClientPosY, startTimeY, prevClientPositionY, offsetsY, velocitiesY);
+
+                                        let positionX = posX, positionY = posY, currentPosX = cPosX, currentPosY = cPosY, scrollDeltaX = sDeltaX, scrollDeltaY = sDeltaY,
+                                            endTimeX = eTimeX, endTimeY = eTimeY;
+
+                                        let parentScroller: INtScroller<INtBaseScrollViewService> | null = this;
+                                        if (this._isContainerAllowedForCorrection && !!parentScroller) {
+                                            const cpoX = this.scrollableX ? (startClientPosX - (currentPosX ?? 0)) : 0,
+                                                cpoY = this.scrollableY ? (startClientPosY - (currentPosY ?? 0)) : 0;
+                                            while (!!parentScroller) {
+                                                parentScroller.setClientPositionOffset(cpoX, cpoY);
+                                                parentScroller = parentScroller?.service?.parent?.scrollView ?? null;
+                                            }
+                                        }
                                         if (this._isContainerAllowedForCorrection && this._moveIteration === 0) {
                                             if (this.scrollableX) {
                                                 startClientPosX -= this._clientPositionOffsetX;
+                                                this._clientPositionOffsetX = 0;
                                             }
                                             if (this.scrollableY) {
                                                 startClientPosY -= this._clientPositionOffsetY;
+                                                this._clientPositionOffsetY = 0;
                                             }
+                                            const { position: posX, currentPos: cPosX, endTime: eTimeX, scrollDelta: sDeltaX } =
+                                                this.calculatePosition(false, this._horizontalAxisEnabled(), this._horizontalAxisInvertion(), e, inversion, startClientPosX, startTimeX, prevClientPositionX, offsetsX, velocitiesX),
+                                                { position: posY, currentPos: cPosY, endTime: eTimeY, scrollDelta: sDeltaY } =
+                                                    this.calculatePosition(true, this._verticalAxisEnabled(), false, e, inversion, startClientPosY, startTimeY, prevClientPositionY, offsetsY, velocitiesY);
+                                            positionX = posX;
+                                            positionY = posY;
+                                            currentPosX = cPosX;
+                                            currentPosY = cPosY;
+                                            scrollDeltaX = sDeltaX;
+                                            scrollDeltaY = sDeltaY;
+                                            endTimeX = eTimeX;
+                                            endTimeY = eTimeY;
                                         }
-                                        const { position: posX, currentPos: currentPosX, endTime: endTimeX, scrollDelta: scrollDeltaX } =
-                                            this.calculatePosition(false, this._horizontalAxisEnabled(), this._horizontalAxisInvertion(), e, inversion, startClientPosX, startTimeX, prevClientPositionX, offsetsX, velocitiesX),
-                                            { position: posY, currentPos: currentPosY, endTime: endTimeY, scrollDelta: scrollDeltaY } =
-                                                this.calculatePosition(true, this._verticalAxisEnabled(), false, e, inversion, startClientPosY, startTimeY, prevClientPositionY, offsetsY, velocitiesY);
-
                                         this._moveIteration++;
-                                        const parentScroller = this._service.parent?.scrollView;
-                                        if (this._isContainerAllowedForCorrection && !!parentScroller) {
-                                            parentScroller.setClientPositionOffset(this.scrollableX ? (startClientPosX - (currentPosX ?? 0)) : 0, this.scrollableY ? (startClientPosY - (currentPosY ?? 0)) : 0);
-                                        }
 
-                                        let positionX = posX, positionY = posY;
                                         const absScrollDeltaX = Math.abs(scrollDeltaX),
                                             absScrollDeltaY = Math.abs(scrollDeltaY);
                                         this._scrollDirectionValueX += absScrollDeltaX;
@@ -561,8 +580,8 @@ export class NtDScrollView extends NtDBaseScrollView {
                                         dragDeltaY += absScrollDeltaY;
                                         const dx = currentPosX === null ? 0 : currentPosX - startClientPosX,
                                             dy = currentPosY === null ? 0 : currentPosY - startClientPosY,
-                                            dragX = this._inversion ? (dx >= 0 ? (dx - (this.scrollWidth - this.alignmentRightOffset()) + this._startPositionX) : (dx + this._startPositionX)) : (dx >= 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - (this.scrollWidth - this.alignmentRightOffset())))),
-                                            dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentBottomOffset()) + this._startPositionY) : (dy + this._startPositionY)) : (dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentBottomOffset()))));
+                                            dragX = this._inversion ? (dx >= 0 ? (dx - (this.scrollWidth - this.alignmentRightOffset()) + this._startPositionX) : dx) : (dx >= 0 ? dx : (dx - (this._startPositionX - (this.scrollWidth - this.alignmentRightOffset())))),
+                                            dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentBottomOffset()) + this._startPositionY) : dy) : (dy >= 0 ? dy : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentBottomOffset()))));
                                         this._dragX = Math.abs(dragX);
                                         this._dragY = Math.abs(dragY);
                                         if (this._isContainerAllowedForCorrection) {
@@ -571,7 +590,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                                         if (this._isContainerAllowedForCorrection) {
                                             this.verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
                                         }
-                                        if (this._axleLock) {
+                                        if (this.useAxleLock) {
                                             this._horizontalAxleLock = this._horizontalAxleLock || this._scrollDirectionValueX < this._scrollDirectionValueY;
                                             this._verticalAxleLock = this._verticalAxleLock || this._scrollDirectionValueY < this._scrollDirectionValueX;
                                             if (this._horizontalAxleLock) {
@@ -616,7 +635,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                                             takeUntil($scrollDisabled),
                                             tap(e => {
                                                 this._controlContainerService.currentScrollView = null;
-                                                mouseCanceled = true;
+                                                this._mouseCanceled = true;
                                                 const endTime = Date.now(),
                                                     horizontalAxisEnabled = this._horizontalAxisEnabled(),
                                                     verticalAxisEnabled = this._verticalAxisEnabled(),
@@ -672,10 +691,10 @@ export class NtDScrollView extends NtDBaseScrollView {
                             this._touchId = -1;
                             this._isMoving = false;
                             this._grabbing.set(false);
-                            if (!touchCanceled) {
+                            if (!this._touchCanceled) {
                                 this.stopMoving();
                             }
-                            touchCanceled = true;
+                            this._touchCanceled = true;
                             this.cancelOverscroll({ event: e, released: true });
                             if ((this.snapToItem() && this.scrollingOneByOne())) {
                                 this._isAlignmentAnimation = false;
@@ -709,10 +728,10 @@ export class NtDScrollView extends NtDBaseScrollView {
                                         this._touchId = -1;
                                         this._isMoving = false;
                                         this._grabbing.set(false);
-                                        if (!touchCanceled) {
+                                        if (!this._touchCanceled) {
                                             this.stopMoving();
                                         }
-                                        touchCanceled = true;
+                                        this._touchCanceled = true;
                                         if ((this.snapToItem() && this.scrollingOneByOne())) {
                                             this._isAlignmentAnimation = false;
                                             this.alignPosition(true, true);
@@ -734,7 +753,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                             filter(v => this._interactive),
                             switchMap(e => {
                                 this._controlContainerService.currentScrollView = this;
-                                touchCanceled = false;
+                                this._touchCanceled = false;
                                 this._moveIteration = 0;
                                 this._clientPositionOffsetX = this._clientPositionOffsetY = 0;
                                 this._horizontalAxleLock = this._verticalAxleLock = false;
@@ -759,8 +778,8 @@ export class NtDScrollView extends NtDBaseScrollView {
                                 this._startPositionX = this.x;
                                 this._startPositionY = this.y;
                                 this._touchId = touch.identifier;
-                                let prevClientPositionX: number | null = (touch.clientX) * (this._horizontalAxisInvertion() ? -1 : 1),
-                                    prevClientPositionY: number | null = touch.clientY,
+                                let prevClientPositionX: number | null = Math.round(touch.clientX) * (this._horizontalAxisInvertion() ? -1 : 1),
+                                    prevClientPositionY: number | null = Math.round(touch.clientY),
                                     startClientPosX = prevClientPositionX,
                                     startClientPosY = prevClientPositionY,
                                     offsetsX = new Array<[number, number]>(),
@@ -783,26 +802,47 @@ export class NtDScrollView extends NtDBaseScrollView {
                                     map(([e1, e2]) => e1 ?? e2),
                                     filter(e => !!e),
                                     switchMap(e => {
+                                        const { position: posX, currentPos: cPosX, endTime: eTimeX, scrollDelta: sDeltaX } =
+                                            this.calculatePosition(false, this._horizontalAxisEnabled(), this._horizontalAxisInvertion(), e, inversion, startClientPosX, startTimeX, prevClientPositionX, offsetsX, velocitiesX, this._touchId),
+                                            { position: posY, currentPos: cPosY, endTime: eTimeY, scrollDelta: sDeltaY } =
+                                                this.calculatePosition(true, this._verticalAxisEnabled(), false, e, inversion, startClientPosY, startTimeY, prevClientPositionY, offsetsY, velocitiesY, this._touchId);
+
+                                        let positionX = posX, positionY = posY, currentPosX = cPosX, currentPosY = cPosY, scrollDeltaX = sDeltaX, scrollDeltaY = sDeltaY,
+                                            endTimeX = eTimeX, endTimeY = eTimeY;
+
+                                        let parentScroller: INtScroller<INtBaseScrollViewService> | null = this;
+                                        if (this._isContainerAllowedForCorrection && !!parentScroller) {
+                                            const cpoX = this.scrollableX ? (startClientPosX - (currentPosX ?? 0)) : 0,
+                                                cpoY = this.scrollableY ? (startClientPosY - (currentPosY ?? 0)) : 0;
+                                            while (!!parentScroller) {
+                                                parentScroller.setClientPositionOffset(cpoX, cpoY);
+                                                parentScroller = parentScroller?.service?.parent?.scrollView ?? null;
+                                            }
+                                        }
                                         if (this._isContainerAllowedForCorrection && this._moveIteration === 0) {
                                             if (this.scrollableX) {
                                                 startClientPosX -= this._clientPositionOffsetX;
+                                                this._clientPositionOffsetX = 0;
                                             }
                                             if (this.scrollableY) {
                                                 startClientPosY -= this._clientPositionOffsetY;
+                                                this._clientPositionOffsetY = 0;
                                             }
+                                            const { position: posX, currentPos: cPosX, endTime: eTimeX, scrollDelta: sDeltaX } =
+                                                this.calculatePosition(false, this._horizontalAxisEnabled(), this._horizontalAxisInvertion(), e, inversion, startClientPosX, startTimeX, prevClientPositionX, offsetsX, velocitiesX, this._touchId),
+                                                { position: posY, currentPos: cPosY, endTime: eTimeY, scrollDelta: sDeltaY } =
+                                                    this.calculatePosition(true, this._verticalAxisEnabled(), false, e, inversion, startClientPosY, startTimeY, prevClientPositionY, offsetsY, velocitiesY, this._touchId);
+                                            positionX = posX;
+                                            positionY = posY;
+                                            currentPosX = cPosX;
+                                            currentPosY = cPosY;
+                                            scrollDeltaX = sDeltaX;
+                                            scrollDeltaY = sDeltaY;
+                                            endTimeX = eTimeX;
+                                            endTimeY = eTimeY;
                                         }
-                                        const { position: posX, currentPos: currentPosX, endTime: endTimeX, scrollDelta: scrollDeltaX } =
-                                            this.calculatePosition(false, this._horizontalAxisEnabled(), this._horizontalAxisInvertion(), e, inversion, startClientPosX, startTimeX, prevClientPositionX, offsetsX, velocitiesX, this._touchId),
-                                            { position: posY, currentPos: currentPosY, endTime: endTimeY, scrollDelta: scrollDeltaY } =
-                                                this.calculatePosition(true, this._verticalAxisEnabled(), false, e, inversion, startClientPosY, startTimeY, prevClientPositionY, offsetsY, velocitiesY, this._touchId);
-
                                         this._moveIteration++;
-                                        const parentScroller = this._service.parent?.scrollView;
-                                        if (this._isContainerAllowedForCorrection && !!parentScroller) {
-                                            parentScroller.setClientPositionOffset(startClientPosX - (currentPosX ?? 0), startClientPosY - (currentPosY ?? 0));
-                                        }
 
-                                        let positionX = posX, positionY = posY;
                                         const absScrollDeltaX = Math.abs(scrollDeltaX),
                                             absScrollDeltaY = Math.abs(scrollDeltaY);
                                         this._scrollDirectionValueX += absScrollDeltaX;
@@ -811,8 +851,8 @@ export class NtDScrollView extends NtDBaseScrollView {
                                         dragDeltaY += absScrollDeltaY;
                                         const dx = currentPosX === null ? 0 : currentPosX - startClientPosX,
                                             dy = currentPosY === null ? 0 : currentPosY - startClientPosY,
-                                            dragX = this._inversion ? (dx >= 0 ? (dx - (this.scrollWidth - this.alignmentRightOffset()) + this._startPositionX) : (dx + this._startPositionX)) : (dx >= 0 ? (dx - this._startPositionX) : (dx - (this._startPositionX - (this.scrollWidth - this.alignmentRightOffset())))),
-                                            dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentBottomOffset()) + this._startPositionY) : (dy + this._startPositionY)) : (dy >= 0 ? (dy - this._startPositionY) : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentBottomOffset()))));
+                                            dragX = this._inversion ? (dx >= 0 ? (dx - (this.scrollWidth - this.alignmentRightOffset()) + this._startPositionX) : dx) : (dx >= 0 ? dx : (dx - (this._startPositionX - (this.scrollWidth - this.alignmentRightOffset())))),
+                                            dragY = this._inversion ? (dy >= 0 ? (dy - (this.scrollHeight - this.alignmentBottomOffset()) + this._startPositionY) : dy) : (dy >= 0 ? dy : (dy - (this._startPositionY - (this.scrollHeight - this.alignmentBottomOffset()))));
                                         this._dragX = Math.abs(dragX);
                                         this._dragY = Math.abs(dragY);
                                         if (this._isContainerAllowedForCorrection) {
@@ -821,7 +861,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                                         if (this._isContainerAllowedForCorrection) {
                                             this.verticalScrollRatioWhenGrabbing = Math.sign(dragY) < 0 ? 1 : 0;
                                         }
-                                        if (this._axleLock) {
+                                        if (this.useAxleLock) {
                                             this._horizontalAxleLock = this._horizontalAxleLock || this._scrollDirectionValueX < this._scrollDirectionValueY;
                                             this._verticalAxleLock = this._verticalAxleLock || this._scrollDirectionValueY < this._scrollDirectionValueX;
                                             if (this._horizontalAxleLock) {
@@ -867,7 +907,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                                             tap(e => {
                                                 this._controlContainerService.currentScrollView = null;
                                                 this._touchId = -1;
-                                                touchCanceled = true;
+                                                this._touchCanceled = true;
                                                 const endTime = Date.now(),
                                                     timestampX = endTime - startTimeX,
                                                     timestampY = endTime - startTimeY,
@@ -1033,7 +1073,7 @@ export class NtDScrollView extends NtDBaseScrollView {
         }
         const coord = (isVertical ? ((!!e.targetTouches ? Array.from((e as TouchEvent).targetTouches)?.find(({ identifier }) => identifier === touchId)?.clientY ?? 0 : e.clientY)) :
             ((!!e.targetTouches ? Array.from((e as TouchEvent).targetTouches)?.find(({ identifier }) => identifier === touchId)?.clientX ?? 0 : e.clientX))),
-            currentPos = coord * (axisInversion ? -1 : 1),
+            currentPos = Math.round(coord) * (axisInversion ? -1 : 1),
             scrollSize = isVertical ? (this.scrollHeight) : this.scrollWidth, delta = (inversion ? -1 : 1) * (startClientPos - currentPos),
             dp = (isVertical ? this._startPositionY : this._startPositionX) + delta, position = dp < 0 ? 0 : dp > scrollSize ? scrollSize : dp,
             endTime = Date.now(), timestamp = endTime - startTime, scrollDelta = (prevClientPosition === 0 || prevClientPosition === null) ? 0 : prevClientPosition - currentPos,
@@ -1075,7 +1115,7 @@ export class NtDScrollView extends NtDBaseScrollView {
         return false;
     }
 
-    private checkOverscroll(e: Event, wheel: boolean = false) {
+    private checkOverscroll(e: Event, wheelX: boolean = false, wheelY: boolean = false) {
         if (!this._overscrollEnabled || !this.overscrollEnabled()) {
             if (e.cancelable) {
                 e.stopImmediatePropagation();
@@ -1083,13 +1123,12 @@ export class NtDScrollView extends NtDBaseScrollView {
             }
             return;
         }
-
         if (this._overscrollEnabled) {
             const overscrollX = this._service.overscroll.x,
                 overscrollY = this._service.overscroll.y;
             this._userScrollDirectionIsHorizontal = this._scrollDirectionValueX > this._scrollDirectionValueY;
-            if (this._userScrollDirectionIsHorizontal) {
-                if (!overscrollY && getScrollable(this._service, X_PROP_NAME, true)) {
+            if (this._userScrollDirectionIsHorizontal || wheelX) {
+                if (!overscrollY) {
                     if (this._overscrollXIteration < OVERSCROLL_START_ITERATION) {
                         this._overscrollXIteration++;
                         this.checkOverscrollByAxis(e, this._x, this.scrollWidth);
@@ -1108,7 +1147,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                     }
                 }
             } else {
-                if (!overscrollX && getScrollable(this._service, Y_PROP_NAME, true)) {
+                if (!overscrollX || wheelY) {
                     if (this._overscrollYIteration < OVERSCROLL_START_ITERATION) {
                         this._overscrollYIteration++;
                         this.checkOverscrollByAxis(e, this._y, this.scrollHeight);
@@ -1132,12 +1171,13 @@ export class NtDScrollView extends NtDBaseScrollView {
 
     private createOverflowEvent(grabbing: boolean, exp: number = DEFAULT_TRANSITION_EXPONENT) {
         const isRTL = this.langTextDir() === TextDirections.RTL,
+            positionX = (!isRTL ? (this.horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0) : (this.horizontalScrollRatioWhenGrabbing === 1 ? 0 : 1)),
             bounds = this.viewportBounds(), event = new OverscrollEvent({
                 inverted: isRTL,
                 grabbing,
                 dragX: transitionExponent(this._horizontalScrollRatio <= 0 || this._horizontalScrollRatio >= 1 ? this._dragX : 0, bounds.width, exp),
                 dragY: transitionExponent(this._verticalScrollRatio <= 0 || this._verticalScrollRatio >= 1 ? this._dragY : 0, bounds.height, exp),
-                positionX: (!isRTL ? (this.horizontalScrollRatioWhenGrabbing === 1 ? 1 : 0) : (this.horizontalScrollRatioWhenGrabbing === 1 ? 0 : 1)),
+                positionX: this.invertOverscroll() ? (positionX === 1 ? 0 : 1) : positionX,
                 positionY: (this.verticalScrollRatioWhenGrabbing === 1 ? 1 : 0),
             });
         return event;
@@ -1327,7 +1367,7 @@ export class NtDScrollView extends NtDBaseScrollView {
                 return animator.id;
             }
         }
-        let overflowTime: number | null = null, overscrollEffectCanceled = -1;
+        let overscrollTime: number | null = null, overscrollEffectCanceled = -1;
         return animator.animate({
             withDelta: !this.isInfinity(),
             startValue,
@@ -1346,10 +1386,10 @@ export class NtDScrollView extends NtDBaseScrollView {
                     return;
                 }
                 const time = Date.now(), scrollSize = (isVertical ? this.scrollHeight : this.scrollWidth);
-                if (!overflowTime && (value! <= 0 || value! >= scrollSize)) {
-                    overflowTime = Date.now();
+                if (!overscrollTime && (value! <= 0 || value! >= scrollSize)) {
+                    overscrollTime = Date.now();
                 }
-                if (!!overflowTime && ((time - overflowTime) < OVERSCROLL_EFFECT_TIME)) {
+                if (!!overscrollTime && ((time - overscrollTime) < OVERSCROLL_EFFECT_TIME)) {
                     overscrollEffectCanceled = 0;
 
                     if (this._isContainerAllowedForCorrection) {
@@ -1487,8 +1527,8 @@ export class NtDScrollView extends NtDBaseScrollView {
         return size;
     }
 
-    protected alignPosition(animated: boolean = true, force: boolean = false, fireUpdate: boolean = false) {
-        if (this._disableAlignment || !this.snapToItem() || (this._isAlignmentAnimation && !force)) {
+    protected alignPosition(animated: boolean = true, force: boolean = false, fireUpdate: boolean = true) {
+        if (this._disableAlignment || !this.snapToItem() || this.grabbing || (this._isAlignmentAnimation && !force)) {
             return false;
         }
         const scrollDirectionX = this.scrollDirectionX || (force ? 1 : 0),
@@ -1729,7 +1769,7 @@ export class NtDScrollView extends NtDBaseScrollView {
         this._dragX = this._dragY = 0;
     }
 
-    scroll(params: IScrollToParams): Array<number> | null {
+    override scroll(params: IScrollToParams): Array<number> | null {
         const animationIds = new Array<number>(),
             posX = params.x ?? params.left ?? null,
             posY = params.y ?? params.top ?? null,
@@ -1799,6 +1839,16 @@ export class NtDScrollView extends NtDBaseScrollView {
         }
         if (this._isContainerAllowedForCorrection && userAction) {
             this.emitOverscrollEvent(this._grabbing(), false);
+        }
+        if (onComplete !== null) {
+            onComplete({
+                id: -1,
+                timestamp: 0,
+                elapsed: 0,
+                delta: 0,
+                value: 0,
+                complete: () => { },
+            });
         }
         return null;
     }

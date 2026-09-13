@@ -2,7 +2,7 @@ import { Component, computed, effect, ElementRef, input, output, Signal, signal,
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { combineLatest, debounceTime, filter, Subject, tap } from 'rxjs';
 import { NtSScrollView } from './nt-s-scroll-view';
-import { GradientColorPositions, Id, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO } from '../../common';
+import { GradientColorPositions, Id, IOverscrollEvent, ISize, SCROLL_VIEW_INVERSION, SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, TextDirections } from '../../common';
 import { TOP_PROP_NAME, LEFT_PROP_NAME, PX, RIGHT, BOTTOM } from '../../common/const/base-prop-names';
 import { NtBaseSliderComponent } from '../nt-base-slider/nt-base-slider.component';
 import { ISliderDragEvent } from '../nt-base-slider/interfaces';
@@ -11,11 +11,11 @@ import { BEHAVIOR_INSTANT } from '../../common/const/behavior';
 import { ScrollBox } from '../../common/utils/scroll-box';
 import {
   DEFAULT_MAX_MOTION_BLUR, DEFAULT_MAX_OVERSCROLL_EFFECT, DEFAULT_MAX_OVERSCROLL_EFFECT_PX, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED,
-  DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE,
-  DEFAULT_SCROLLBAR_THICKNESS,
+  DEFAULT_OVERLAPPING_SCROLLBAR, DEFAULT_SCROLLBAR_ENABLED, DEFAULT_SCROLLBAR_INTERACTIVE, DEFAULT_SCROLLBAR_MIN_SIZE, DEFAULT_SCROLLBAR_THICKNESS,
 } from '../../common/const/scroller';
 import { ANIMATED } from '../../common/const/class-names';
 import { matrix3d } from '../../common/utils/matrix-3d';
+import { OverscrollEvent } from '../../common/events/overscroll-event';
 
 const TOP = 'top',
   LEFT = 'left',
@@ -170,6 +170,9 @@ export class NtSScrollerComponent extends NtSScrollView {
 
   readonly viewInitialized = signal<boolean>(false);
 
+  private _$overscrollEvent = new Subject<IOverscrollEvent>();
+  readonly $overscrollEvent = this._$overscrollEvent.asObservable();
+
   private _isScrollbarUserAction: boolean = false;
   get isScrollbarUserAction() {
     return this._isScrollbarUserAction;
@@ -193,20 +196,7 @@ export class NtSScrollerComponent extends NtSScrollView {
       $scrollContent = toObservable(this.scrollContent),
       overscrollService = this._overscrollService,
       $overscrollEffectEvent = !!overscrollService ? overscrollService.$effectEvent : this.$overscrollEffectEvent,
-      $preresizeViewport = this.$preresizeViewport,
       $resizeViewport = this.$resizeViewport;
-
-    $preresizeViewport.pipe(
-      takeUntilDestroyed(),
-      debounceTime(0),
-      tap(bounds => {
-        this.viewportBounds.set(bounds);
-        this.updateScrollBar();
-        this.recalculatePerspective();
-        this.dropVelocity();
-        this._$resizeViewport.next(bounds);
-      }),
-    ).subscribe();
 
     $resizeViewport.pipe(
       takeUntilDestroyed(),
@@ -226,20 +216,20 @@ export class NtSScrollerComponent extends NtSScrollView {
       overscrollService.$event.pipe(
         takeUntilDestroyed(),
         tap(e => {
-          const parentScroller = this._service.parent?.scrollView;
-          if (!!parentScroller) {
-            parentScroller.setOverscrollEvent(e);
-          }
+          this._$overscrollEvent.next(new OverscrollEvent({
+            ...e.toObject(),
+            positionX: this.langTextDir() === TextDirections.RTL ? (e.positionX === 1 ? 0 : 1) : e.positionX,
+          } as any));
         }),
       ).subscribe();
-
-      overscrollService.$effectEvent.pipe(
+    } else {
+      this.$overscroll.pipe(
         takeUntilDestroyed(),
         tap(e => {
-          const parentScroller = this._service.parent?.scrollView;
-          if (!!parentScroller) {
-            parentScroller.setOverscrollEffectEvent(e);
-          }
+          this._$overscrollEvent.next(new OverscrollEvent({
+            ...e.toObject(),
+            positionX: this.langTextDir() === TextDirections.RTL ? (e.positionX === 1 ? 0 : 1) : e.positionX,
+          } as any));
         }),
       ).subscribe();
     }
@@ -250,8 +240,8 @@ export class NtSScrollerComponent extends NtSScrollView {
       tap(([e, viewportBounds]) => {
         const contentBounds = this.contentBounds(),
           inverted = e.inverted,
-          dx = e.dragX, dy = e.dragY, sx = viewportBounds.width !== 1 ? (dx !== 0 ? Math.pow((dx + viewportBounds.width) / viewportBounds.width, 0.1) : 1) : 1,
-          sy = viewportBounds.height !== 0 ? (dy !== 0 ? Math.pow((dy + viewportBounds.height) / viewportBounds.height, 0.1) : 1) : 1,
+          dx = e.dragX, dy = e.dragY, sx = viewportBounds.width !== 1 ? (Math.pow((dx + viewportBounds.width) / viewportBounds.width, 0.1)) : 1,
+          sy = viewportBounds.height !== 0 ? (Math.pow((dy + viewportBounds.height) / viewportBounds.height, 0.1)) : 1,
           normalizedSx = sx > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sx,
           normalizedSy = sy > DEFAULT_MAX_OVERSCROLL_EFFECT ? DEFAULT_MAX_OVERSCROLL_EFFECT : sy,
           actualSx = contentBounds.width * normalizedSx > (contentBounds.width + DEFAULT_MAX_OVERSCROLL_EFFECT_PX) ? (contentBounds.width + DEFAULT_MAX_OVERSCROLL_EFFECT_PX) / contentBounds.width : normalizedSx,
@@ -381,8 +371,20 @@ export class NtSScrollerComponent extends NtSScrollView {
       if (bounds.width === b.width && bounds.height === b.height) {
         return;
       }
-      this._$preresizeViewport.next(bounds);
+      this.resizeViewport(bounds);
     }
+  }
+
+  private resizeViewport(bounds: ISize | null = null) {
+    if (!this.viewInitialized()) {
+      return;
+    }
+    const value = bounds ?? this.viewportBounds();
+    this.viewportBounds.set(value);
+    this.updateScrollBar();
+    this.recalculatePerspective();
+    this.dropVelocity();
+    this._$resizeViewport.next(value);
   }
 
   protected override onResizeContent(value: number | null = null) {

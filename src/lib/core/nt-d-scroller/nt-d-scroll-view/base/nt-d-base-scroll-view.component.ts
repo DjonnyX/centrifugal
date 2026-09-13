@@ -1,19 +1,16 @@
 import {
-    Component, computed, DestroyRef, ElementRef, inject, input, output, Signal, signal, TemplateRef, viewChild,
+    Component, computed, input, output, Signal, TemplateRef,
 } from '@angular/core';
-import { combineLatest, debounceTime, Subject, tap } from 'rxjs';
+import { combineLatest, debounceTime, tap } from 'rxjs';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import {
-    CONTROL_CONTAINER_SERVICE, Direction, Directions, IOverscrollEvent, ISize, OVERSCROLL_SERVICE, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_INVERSION,
-    SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, TextDirection, TextDirections,
+    Directions, TextDirections,
 } from '../../../../common';
-import { INtScroller } from '../../../../common/interfaces/nt-scroller';
 import { INtDScrollerService } from '../../interfaces';
-import { INtControlContainerService } from '../../../../control-container/interfaces';
-import { IScrollToParams } from '../../../../common/interfaces/scroll-to-params';
+import { INtScroller } from '../../../../common/interfaces/nt-scroller';
 import { INtBaseScrollViewService } from '../../../../common/interfaces/nt-base-scroll-view-service';
-import { INtBaseScrollView } from '../../../../common/interfaces/nt-base-scroll-view';
-import { INtOverscrollService } from '../../../../common/interfaces/nt-overscroll-service';
+import { NtBaseScroller } from '../../../nt-base-scroller';
+import { IScrollToParams } from '../../../../common/interfaces/scroll-to-params';
 
 /**
  * NtDBaseScrollView
@@ -25,17 +22,7 @@ import { INtOverscrollService } from '../../../../common/interfaces/nt-overscrol
     selector: 'nt-d-base-scroll-view',
     template: '',
 })
-export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollViewService> {
-    readonly scrollContent = viewChild<ElementRef<HTMLDivElement>>('scrollContent');
-
-    readonly scrollViewport = viewChild<ElementRef<HTMLDivElement>>('scrollViewport');
-
-    protected _overscrollService = inject(OVERSCROLL_SERVICE, { optional: true });
-
-    readonly onVirtualClick = output<PointerEvent | TouchEvent>();
-
-    readonly onOverscroll = output<IOverscrollEvent>();
-
+export abstract class NtDBaseScrollView extends NtBaseScroller<INtDScrollerService> implements INtScroller<INtBaseScrollViewService> {
     readonly onLeftOverscrollAreaTrigger = output<boolean>();
 
     readonly onTopOverscrollAreaTrigger = output<boolean>();
@@ -43,10 +30,6 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
     readonly onRightOverscrollAreaTrigger = output<boolean>();
 
     readonly onBottomOverscrollAreaTrigger = output<boolean>();
-
-    readonly overscrollAreaShowAutomatically = input<boolean>(true);
-
-    readonly overscrollAreaUseOffsets = input<boolean>(false);
 
     readonly overscrollAreaLeftEnabled = input<boolean>(false);
 
@@ -64,14 +47,6 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
 
     readonly overscrollAreaBottomRenderer = input<TemplateRef<any> | null>(null);
 
-    readonly overscrollService = input<INtOverscrollService | null>(null);
-
-    readonly interactive = input<boolean>(true);
-
-    readonly direction = input<Direction>(Directions.BOTH);
-
-    readonly langTextDir = input<TextDirection>(TextDirections.LTR);
-
     readonly leftOffset = input<number>(0);
 
     readonly topOffset = input<number>(0);
@@ -88,8 +63,6 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
 
     readonly alignmentBottomOffset = input<number>(0);
 
-    readonly isInfinity = input<boolean>(false);
-
     protected _leftOffset: Signal<number>;
 
     protected _topOffset: Signal<number>;
@@ -98,6 +71,12 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
 
     protected _bottomOffset: Signal<number>;
 
+    readonly axleLock = input(false);
+
+    get useAxleLock() {
+        return this.axleLock() || this.direction() !== Directions.BOTH;
+    }
+
     get offsetLeft() { return this._leftOffset(); }
 
     get offsetTop() { return this._topOffset(); }
@@ -105,61 +84,6 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
     get offsetRight() { return this._rightOffset(); }
 
     get offsetBottom() { return this._bottomOffset(); }
-
-    protected _actualOverscrollAreaLeftEnabled = signal<boolean>(false);
-
-    protected _actualOverscrollAreaTopEnabled = signal<boolean>(false);
-
-    protected _actualOverscrollAreaRightEnabled = signal<boolean>(false);
-
-    protected _actualOverscrollAreaBottomEnabled = signal<boolean>(false);
-
-    protected _userActionDuringAnimation = signal<boolean>(false);
-
-    get userActionDuringAnimation() { return this._userActionDuringAnimation(); }
-
-    protected _grabbing = signal<boolean>(false);
-
-    get grabbing() { return this._grabbing(); }
-
-    readonly context = input<INtBaseScrollView<INtBaseScrollViewService, INtBaseScrollViewService> | null>(null);
-    get parent() { return this.context(); }
-
-    get contentElement(): HTMLDivElement | null {
-        return this.scrollContent()?.nativeElement ?? null;
-    }
-
-    protected _type = inject(SCROLL_VIEW_TYPE, { optional: true });
-    get type() { return this._type; }
-
-    protected _elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
-
-    protected _inversion = inject(SCROLL_VIEW_INVERSION);
-
-    protected _axleLock = inject(SCROLL_VIEW_AXLE_LOCK);
-
-    protected _overscrollEnabled = inject(SCROLL_VIEW_OVERSCROLL_ENABLED);
-
-    protected _$preresizeViewport = new Subject<ISize>();
-    readonly $preresizeViewport = this._$preresizeViewport.asObservable();
-
-    protected _$resizeViewport = new Subject<ISize>();
-    readonly $resizeViewport = this._$resizeViewport.asObservable();
-
-    protected _$resizeContent = new Subject<ISize>();
-    readonly $resizeContent = this._$resizeContent.asObservable();
-
-    protected _$overscroll = new Subject<IOverscrollEvent>();
-    $overscroll = this._$overscroll.asObservable();
-
-    protected _$overscrollEffectEvent = new Subject<IOverscrollEvent>();
-    $overscrollEffectEvent = this._$overscroll.asObservable();
-
-    protected _$updateScrollBarHorizontal = new Subject<void>();
-    protected $updateScrollBarHorizontal = this._$updateScrollBarHorizontal.asObservable();
-
-    protected _$updateScrollBarVertical = new Subject<void>();
-    protected $updateScrollBarVertical = this._$updateScrollBarVertical.asObservable();
 
     get scrollableX() {
         const { width } = this.viewportBounds(),
@@ -173,25 +97,6 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
             viewportSize = height,
             totalSize = this._totalHeight;
         return this._inversion ? (totalSize < viewportSize) : (totalSize > viewportSize);
-    }
-
-    protected _moveIteration = 0;
-
-    protected _clientPositionOffsetX = 0;
-
-    protected _clientPositionOffsetY = 0;
-
-    protected _destroyRef = inject(DestroyRef);
-
-    protected _service = inject<INtDScrollerService>(SCROLL_VIEW_SERVICE);
-
-    get service() { return this._service; }
-
-    protected _controlContainerService = inject<INtControlContainerService>(CONTROL_CONTAINER_SERVICE);
-
-    protected _isMoving = false;
-    get isMoving() {
-        return this._isMoving;
     }
 
     protected _x: number = 0;
@@ -318,41 +223,8 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
         return contentHeight < viewportHeight ? startOffset : ((contentHeight + this.alignmentBottomOffset()) - viewportHeight);
     }
 
-    protected _isContainerAllowedForCorrection: boolean = true;
-
-    protected _horizontalScrollRatioWhenGrabbing = 0;
-    get horizontalScrollRatioWhenGrabbing() { return this._horizontalScrollRatioWhenGrabbing; }
-    set horizontalScrollRatioWhenGrabbing(v: number) {
-        this._horizontalScrollRatioWhenGrabbing = v;
-        if (!this._isContainerAllowedForCorrection) {
-            const parentScroller = this._service.parent?.scrollView;
-            if (!!parentScroller) {
-                parentScroller.horizontalScrollRatioWhenGrabbing = v;
-            }
-        }
-    }
-
-    protected _verticalScrollRatioWhenGrabbing = 0;
-    get verticalScrollRatioWhenGrabbing() { return this._verticalScrollRatioWhenGrabbing; }
-    set verticalScrollRatioWhenGrabbing(v: number) {
-        this._verticalScrollRatioWhenGrabbing = v;
-        if (!this._isContainerAllowedForCorrection) {
-            const parentScroller = this._service.parent?.scrollView;
-            if (!!parentScroller) {
-                parentScroller.verticalScrollRatioWhenGrabbing = v;
-            }
-        }
-    }
-
-    readonly viewportBounds = signal<ISize>({ width: 0, height: 0 });
-
-    readonly contentBounds = signal<ISize>({ width: 0, height: 0 });
-
-    protected _isCoordinatesOverrided: boolean = false;
-
-    protected _disableAlignment: boolean = false;
-
     constructor() {
+        super();
         const $viewportBounds = toObservable(this.viewportBounds),
             $contentBounds = toObservable(this.contentBounds),
             $langTextDir = toObservable(this.langTextDir),
@@ -486,34 +358,7 @@ export abstract class NtDBaseScrollView implements INtScroller<INtBaseScrollView
         }
     }
 
-    abstract stopScrolling(force?: boolean): void;
-
-    abstract scroll(params: IScrollToParams): Array<number> | null;
-
-    getOverscrollService(): INtOverscrollService | null { return this._overscrollService; }
-
-    setClientPositionOffset(x: number, y: number): void {
-        if (this._moveIteration === 0) {
-            this._clientPositionOffsetX = x;
-            this._clientPositionOffsetY = y;
-        }
-    }
-
-    setOverscrollEffectEvent(e: IOverscrollEvent): void {
-        const overscrollService = this.overscrollService();
-        if (!!overscrollService) {
-            overscrollService.emit(e, true);
-        } else {
-            this._$overscrollEffectEvent.next(e);
-        }
-    }
-
-    setOverscrollEvent(e: IOverscrollEvent): void {
-        const overscrollService = this.overscrollService();
-        if (!!overscrollService) {
-            overscrollService.emit(e, true);
-        } else {
-            this._$overscroll.next(e);
-        }
+    scroll(params: IScrollToParams): Array<number> | number | null {
+        throw new Error('Method not implemented.');
     }
 }

@@ -2,8 +2,8 @@
 @let isVertical = _isVertical();
 <div #container class="ntsw__container" [ngClass]="_containerClass()">
     <nt-scroll-view #scroller class="ntsw__scroller" style="position: absolute;" [langTextDir]="langTextDir()"
-        [direction]="dir" [interactive]="false" [scrollbarEnabled]="false" [overscrollEnabled]="false"
-        [overscrollAreaShowAutomatically]="false" [overscrollAreaLeftEnabled]="!isVertical"
+        [direction]="dir" [interactive]="false" [scrollbarEnabled]="false"
+        [overscrollEnabled]="false" [overscrollAreaShowAutomatically]="false" [overscrollAreaLeftEnabled]="!isVertical"
         [overscrollAreaRightEnabled]="!isVertical" [overscrollAreaTopEnabled]="isVertical"
         [overscrollAreaBottomEnabled]="isVertical" [overscrollAreaLeftRenderer]="overscrollAreaLeftRenderer()"
         [overscrollAreaTopRenderer]="overscrollAreaTopRenderer()"

@@ -18,7 +18,7 @@
     <div class="ntdc-dock-content" part="nt-drawer-dock-content">
         <ng-content></ng-content>
         @if (opened() && backdrop()) {
-            <div ntControl class="ntdc-overlay" part="nt-drawer-overlay" [style.opacity]="1 - scrollRatio()"
+            <div ntControl class="ntdc-overlay" part="nt-drawer-overlay" [style.opacity]="_overlayOpacity()"
                 (onVirtualClick)="onBackdrop.emit()"></div>
         }
     </div>

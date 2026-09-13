@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, Signal, signal, TemplateRef, ViewEncapsulation } from "@angular/core";
 import { INtScrollViewService, NtScrollViewComponent } from "../scroll-view";
 import {
-  ArithmeticExpression, IPoint, IScrollOptions, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
+  ArithmeticExpression, IPoint, IScrollOptions, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE,
   SCROLL_VIEW_USER_INTERACTION_ENABLED, SnappingDistance, TextDirection, TextDirections,
 } from "../common";
 import { isPercentageValue, parseArithmeticExpression, validateBoolean, validateFloat, validateObject, validateString } from "../common/utils";
@@ -35,7 +35,6 @@ import { BEHAVIOR_INSTANT } from "../common/const/behavior";
     { provide: SCROLL_VIEW_TYPE, useValue: ScrollerTypes.DRAWER },
     { provide: SCROLL_VIEW_USER_INTERACTION_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
-    { provide: SCROLL_VIEW_AXLE_LOCK, useValue: true },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtDrawerService },
   ],
 })
@@ -49,6 +48,66 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
    * Triggered when the drawer is closed.
    */
   onClose = output<void>();
+
+  protected override _snapScrollToLeftOptions = {
+    transform: (v: boolean) => {
+      console.error('The "snapScrollToLeft" property is not available.');
+      return false;
+    },
+  } as any;
+
+  /**
+   * @deprecated
+   */
+  override snapScrollToLeft = input<boolean>(false, { ...this._snapScrollToLeftOptions });
+
+  protected override _snapScrollToTopOptions = {
+    transform: (v: boolean) => {
+      console.error('The "snapScrollToTop" property is not available.');
+      return false;
+    },
+  } as any;
+
+  /**
+   * @deprecated
+   */
+  override snapScrollToTop = input<boolean>(false, { ...this._snapScrollToTopOptions });
+
+  protected override _snapScrollToRightOptions = {
+    transform: (v: boolean) => {
+      console.error('The "snapScrollToRight" property is not available.');
+      return false;
+    },
+  } as any;
+
+  /**
+   * @deprecated
+   */
+  override snapScrollToRight = input<boolean>(false, { ...this._snapScrollToRightOptions });
+
+  protected override _snapScrollToBottomOptions = {
+    transform: (v: boolean) => {
+      console.error('The "snapScrollToBottom" property is not available.');
+      return false;
+    },
+  } as any;
+
+  /**
+   * @deprecated
+   */
+  override snapScrollToBottom = input<boolean>(false, { ...this._snapScrollToBottomOptions });
+
+  protected override _scrollableOptions = {
+    transform: (v: boolean) => {
+      console.error('The "scrollable" property is not available.');
+      return true;
+    },
+  } as any;
+
+  /**
+   * @deprecated
+   */
+  override scrollable = input<boolean>(true, { ...this._scrollableOptions });
 
   protected override _overscrollAreaShowAutomaticallyOptions = {
     transform: (v: boolean) => {
@@ -500,16 +559,24 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
 
     $open.pipe(
       takeUntilDestroyed(),
+      debounceTime(0),
       tap(v => {
+        if (!this.initialized) {
+          return;
+        }
         this._$position.next(v);
-        const { x, y } = this.getPosition(v);
-        if (v !== null) {
-          const params: IScrollOptions = { x, y, blending: false, behavior: this.scrollBehavior(), duration: this.animationParams().scrollToItem };
-          this.scrollTo(params);
-          this.onOpen.emit(v);
-        } else {
-          this.scrollTo({ x, y, blending: false, behavior: this.scrollBehavior(), duration: this.animationParams().scrollToItem });
-          this.onClose.emit();
+
+        const scroller = this._scrollerComponent();
+        if (!!scroller && !scroller.grabbing && !scroller.hasAnimation()) {
+          const { x, y } = this.getPosition(v);
+          if (v !== null) {
+            const params: IScrollOptions = { x, y, blending: false, behavior: this.scrollBehavior(), duration: this.animationParams().scrollToItem };
+            this.scrollTo(params);
+            this.onOpen.emit(v);
+          } else {
+            this.scrollTo({ x, y, blending: false, behavior: this.scrollBehavior(), duration: this.animationParams().scrollToItem });
+            this.onClose.emit();
+          }
         }
       }),
     ).subscribe();
@@ -551,6 +618,15 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
     );
 
     const $init = this.$initialized;
+    $init.pipe(
+      takeUntilDestroyed(),
+      filter(v => !!v),
+      debounceTime(100),
+      tap(() => {
+        this._$visible.next(true);
+      }),
+    ).subscribe();
+
     combineLatest([
       $init,
       $contentResize.pipe(
@@ -566,13 +642,15 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
       debounceTime(0),
       filter(([v]) => !!v && !userAction),
       tap(() => {
-        this._scrollerComponent()?.stopScrolling?.();
-        const position = this.position;
-        const { x, y } = this.getPosition(position);
-        this.scrollTo({
-          x, y, behavior: BEHAVIOR_INSTANT, duration: 0, blending: false, snap: false,
-        });
-        this._$visible.next(true);
+        const scroller = this._scrollerComponent();
+        if (!!scroller && !scroller.grabbing) {
+          scroller.stopScrolling();
+          const position = this.position,
+            { x, y } = this.getPosition(position);
+          this.scrollTo({
+            x, y, behavior: BEHAVIOR_INSTANT, duration: 0, blending: false, snap: false,
+          });
+        }
       }),
     ).subscribe();
 
@@ -587,19 +665,22 @@ export class NtDrawerComponent extends NtScrollViewComponent<INtDrawerService, I
 
         return { x, y, dockLeftSize, dockTopSize, dockRightSize, dockBottomSize };
       }),
+      filter(() => this.initialized),
       debounceTime(100),
       tap(({ x, y, dockLeftSize, dockTopSize, dockRightSize, dockBottomSize }) => {
-        const scrollLeft = this.scrollLeft, scrollTop = this.scrollTop;
-        if (x === 0 && dockLeftSize > 0 && scrollLeft === 0) {
-          this._$open.next(DrawerDockPositions.LEFT);
-        } else if (x === 0 && dockRightSize > 0 && scrollLeft === this.scrollWidth) {
-          this._$open.next(DrawerDockPositions.RIGHT);
-        } else if (y === 0 && dockTopSize > 0 && scrollTop === 0) {
-          this._$open.next(DrawerDockPositions.TOP);
-        } else if (y === 0 && dockBottomSize > 0 && scrollTop === this.scrollHeight) {
-          this._$open.next(DrawerDockPositions.BOTTOM);
-        } else if (x === 1 && x === 1) {
-          this._$open.next(null);
+        if (!this._scrollerComponent()?.hasAnimation()) {
+          const scrollLeft = this.scrollLeft, scrollTop = this.scrollTop;
+          if (x === 0 && dockLeftSize > 0 && scrollLeft === 0) {
+            this._$open.next(DrawerDockPositions.LEFT);
+          } else if (x === 0 && dockRightSize > 0 && scrollLeft === this.scrollWidth) {
+            this._$open.next(DrawerDockPositions.RIGHT);
+          } else if (y === 0 && dockTopSize > 0 && scrollTop === 0) {
+            this._$open.next(DrawerDockPositions.TOP);
+          } else if (y === 0 && dockBottomSize > 0 && scrollTop === this.scrollHeight) {
+            this._$open.next(DrawerDockPositions.BOTTOM);
+          } else if (x === 1 && x === 1) {
+            this._$open.next(null);
+          }
         }
       }),
     ).subscribe();

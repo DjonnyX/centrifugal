@@ -1,4 +1,4 @@
-import { Component, input, output, TemplateRef } from "@angular/core";
+import { Component, computed, input, output, Signal, TemplateRef } from "@angular/core";
 import { DEFAULT_BACKDROP } from "../../const";
 
 /**
@@ -44,4 +44,13 @@ export class NtDrawerLayoutComponent {
     width = input<number>(0);
 
     height = input<number>(0);
+
+    protected _overlayOpacity: Signal<string>;
+
+    constructor() {
+        this._overlayOpacity = computed(() => {
+            const scrollRatio = this.scrollRatio();
+            return `${1 - scrollRatio}`;
+        });
+    }
 }

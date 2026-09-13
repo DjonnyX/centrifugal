@@ -58,7 +58,6 @@
     .ntvs__scroller-wrapper {
         position: absolute;
 
-        /** For motion blur correction */
         &.filtered {
             overflow: unset;
         }

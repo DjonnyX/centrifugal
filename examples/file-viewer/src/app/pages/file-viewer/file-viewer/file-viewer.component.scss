@@ -31,7 +31,7 @@
     box-sizing: border-box;
     z-index: 1010;
 
-    &.enabled-dock-left {
+    &.enabled-dock-right {
         grid-template-columns: 32px 1fr auto;
     }
 

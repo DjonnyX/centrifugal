@@ -19,7 +19,7 @@
     }
 
     <nt-list #list class="list" [ngClass]="listClass()" [items]="items" [itemRenderer]="itemRenderer" langTextDir="rtl"
-        [snapScrollToEnd]="false" [itemSize]="40" [bufferSize]="1" [maxBufferSize]="1" collectionMode="lazy" [divides]="_divides()"
+        [snapScrollToEnd]="false" [minItemSize]="60" [bufferSize]="1" [maxBufferSize]="1" collectionMode="lazy" [divides]="_divides()"
         [itemConfigMap]="itemsConfigMap" [stickyEnabled]="true" [defaultItemValue]="defaultItemValue()"
         [scrollStartOffset]="scrollStartOffset()" [scrollEndOffset]="0" [snapToEndTransitionInstantOffset]="1"
         selectingMode="multi-select" [selectedIds]="selectedItemIds" [scrollbarThumbRenderer]="customScrollBarThumb"

@@ -2,7 +2,7 @@ import {
   Component, computed, DestroyRef, effect, inject, input, output, Signal, signal, TemplateRef, viewChild, ViewEncapsulation,
 } from "@angular/core";
 import {
-  ArithmeticExpression, Directions, GradientColorPositions, Id, IScrollingSettings, SCROLL_VIEW_AXLE_LOCK, SCROLL_VIEW_INVERSION,
+  ArithmeticExpression, Directions, GradientColorPositions, Id, IScrollingSettings, SCROLL_VIEW_INVERSION,
   SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, SCROLL_VIEW_OVERSCROLL_ENABLED, SCROLL_VIEW_SERVICE, SCROLL_VIEW_TYPE, SnappingDistance, TextDirection, TextDirections,
 } from "../common";
 import { DEFAULT_MAX_MOTION_BLUR, DEFAULT_MOTION_BLUR, DEFAULT_MOTION_BLUR_ENABLED, DEFAULT_SIZE, DEFAULT_THUMB_SIZE } from "./const";
@@ -46,7 +46,6 @@ import { NtBaseComponent } from "../common/components/nt-base-component";
   providers: [
     { provide: SCROLL_VIEW_TYPE, useValue: ScrollerTypes.SLIDER_SCROLLER },
     { provide: SCROLL_VIEW_INVERSION, useValue: true },
-    { provide: SCROLL_VIEW_AXLE_LOCK, useValue: true },
     { provide: SCROLL_VIEW_NORMALIZE_VALUE_FROM_ZERO, useValue: false },
     { provide: SCROLL_VIEW_OVERSCROLL_ENABLED, useValue: true },
     { provide: SCROLL_VIEW_SERVICE, useClass: NtSliderService },
@@ -611,6 +610,8 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
 
   protected _isVertical: Signal<boolean>;
 
+  protected _isInvertedOverscroll: Signal<boolean>;
+
   private _scrollBox = new ScrollBox();
 
   private _animationIds: Array<number> | number | null = null;
@@ -619,6 +620,10 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
 
   constructor() {
     super();
+
+    this._isInvertedOverscroll = computed(() => {
+      return this.langTextDir() === TextDirections.RTL;
+    });
 
     this._isVertical = computed(() => {
       const direction = this.direction();
