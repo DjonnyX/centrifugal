@@ -1,0 +1,16 @@
+<div ntControl class="nt-touchable-highlight" (onVirtualClick)="ripple($event)">
+    <svg #svg class="nt-touchable-highlight__shape"
+        style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+        <defs>
+            <path #path />
+            <clipPath #clip>
+                <use #clipUse />
+            </clipPath>
+        </defs>
+        <use #shape class="shape" fill="rgba(0,0,0,0)" />
+        <circle #ntRipple class="ripple" fill="none" />
+    </svg>
+</div>
+<div class="nt-touchable-highlight__content">
+    <ng-content></ng-content>
+</div>
