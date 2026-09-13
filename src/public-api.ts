@@ -141,6 +141,14 @@ export {
 } from './lib/tabs';
 
 /*
+ * Public API Surface of NtTouchableHighlight
+ */
+export {
+    NtTouchableHighlightComponent,
+    NtTouchableHighlightModule,
+} from './lib/touchable-highlight';
+
+/*
  * Public API Surface of common
  */
 export * from './lib/common';

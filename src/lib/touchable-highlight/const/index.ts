@@ -1,0 +1,16 @@
+
+export const RIPPLE_ANIMATE_CLASS = 'animate',
+    DEFAULT_RIPPLE_COLOR = 'rgba(0, 0, 0, .1)',
+    DEFAULT_RIPPLE_DURATION = 800,
+    SHAPE_NAME = 'nt-touchable-highlight-shape',
+    CLIP_NAME = 'nt-touchable-highlight-clip',
+    FILL = 'fill',
+    INHERIT = 'inherit',
+    ID = 'id',
+    HREF = 'href',
+    CLIP_PATH = 'clip-path',
+    D = 'd',
+    VIEW_BOX = 'viewBox',
+    CX = 'cx',
+    CY = 'cy',
+    R = 'r';

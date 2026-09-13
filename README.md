@@ -68,6 +68,7 @@ items = Array.from({ length: 100000 }, (_, i) => ({ id: i, name: `Item #${i}` })
 - [NtSheet](https://github.com/DjonnyX/centrifugal/blob/main/api/API_NT_SHEET.md)
 - [NtSlider](https://github.com/DjonnyX/centrifugal/blob/main/api/API_NT_SLIDER.md)
 - [NtSwitch](https://github.com/DjonnyX/centrifugal/blob/main/api/API_NT_SWITCH_.md)
+- [NtTouchableHighlightComponent](https://github.com/DjonnyX/centrifugal/blob/main/api/API_NT_TOUCHABLE_HIGHLIGHT.md)
 
 <br/>
 <br/>
