@@ -548,7 +548,7 @@ export class NtSwitchComponent {
         this._sliderValue.set(value);
     }
 
-    protected onVirtualClickHandler(e: PointerEvent | TouchEvent) {
+    protected onVirtualClickHandler(e: PointerEvent) {
         const slider = this._slider();
         if (!!slider) {
             const value = slider.value(), nextValue = value !== 0 ? 0 : 1;

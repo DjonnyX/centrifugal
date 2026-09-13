@@ -29,7 +29,7 @@ export abstract class NtBaseScroller<S extends INtBaseScrollViewService> impleme
 
     protected _overscrollService = inject(OVERSCROLL_SERVICE, { optional: true });
 
-    readonly onVirtualClick = output<PointerEvent | TouchEvent>();
+    readonly onVirtualClick = output<PointerEvent>();
 
     readonly onOverscroll = output<IOverscrollEvent>();
 

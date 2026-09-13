@@ -38,12 +38,12 @@ export class NtControlDirective<S extends INtBaseScrollViewService, C extends IN
     /**
      * Fires when a click is processed.
      */
-    onVirtualClick = output<PointerEvent | TouchEvent>();
+    onVirtualClick = output<PointerEvent>();
 
     /**
      * Fires when pressed.
      */
-    onVirtualClickPress = output<PointerEvent | TouchEvent>();
+    onVirtualClickPress = output<PointerEvent>();
 
     /**
      * Fires when a click is cancelled.

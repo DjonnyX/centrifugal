@@ -106,7 +106,7 @@ export class NtScrollViewComponent<S extends INtScrollViewService, P extends INt
   /**
    * Triggers an event when clicked.
    */
-  readonly onVirtualClick = output<PointerEvent | TouchEvent>();
+  readonly onVirtualClick = output<PointerEvent>();
 
   protected _$initialized = new BehaviorSubject<boolean>(false);
   readonly $initialized = this._$initialized.asObservable();

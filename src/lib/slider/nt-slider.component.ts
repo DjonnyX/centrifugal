@@ -81,12 +81,12 @@ export class NtSliderComponent<S extends INtSliderService = any, P extends INtSc
   /**
    * Triggers an event when clicked.
    */
-  readonly onVirtualClick = output<PointerEvent | TouchEvent>();
+  readonly onVirtualClick = output<PointerEvent>();
 
   /**
    * Clicking on a track triggers an event.
    */
-  readonly onTrackVirtualClick = output<PointerEvent | TouchEvent>();
+  readonly onTrackVirtualClick = output<PointerEvent>();
 
   protected _directionOptions = {
     transform: (v: SDirection) => {
