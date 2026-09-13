@@ -6,7 +6,7 @@ import {
 } from './const';
 import { Color, ISize } from '../common';
 import { PX } from '../common/const/base-prop-names';
-import { getClientPoint, roundedRectPath } from './utils';
+import { roundedRectPath } from './utils';
 import { NtService } from '../common/services/nt.service';
 
 /**
@@ -29,7 +29,7 @@ export class NtTouchableHighlightComponent {
   /**
    * Triggers on click.
    */
-  readonly onClick = output<PointerEvent | TouchEvent>();
+  readonly onClick = output<PointerEvent>();
 
   /**
    * Ripple effect color.
@@ -126,7 +126,7 @@ export class NtTouchableHighlightComponent {
     effect(() => {
       const svg = this.svg()?.nativeElement, path = this.path()?.nativeElement, minSize = 0,
         { width, height } = this._bounds();
-      if (svg && path) {
+      if (!!svg && !!path) {
         svg.style.width = `${width}${PX}`;
         svg.style.height = `${height}${PX}`;
         svg.setAttribute(VIEW_BOX, `0 0 ${width} ${height}`);
@@ -147,9 +147,7 @@ export class NtTouchableHighlightComponent {
           takeUntilDestroyed(this._destroyRef),
           filter(v => !!v),
           tap(() => {
-            if (rippleShape) {
-              rippleShape.classList.add(RIPPLE_ANIMATE_CLASS);
-            }
+            rippleShape.classList.add(RIPPLE_ANIMATE_CLASS);
           }),
           delay(this.duration()),
           takeUntilDestroyed(this._destroyRef),
@@ -162,14 +160,10 @@ export class NtTouchableHighlightComponent {
     ).subscribe();
   }
 
-  ripple(e: PointerEvent | TouchEvent) {
+  ripple(e: PointerEvent) {
     const { x, y, width, height } = (this._elementRef.nativeElement as HTMLDivElement).getBoundingClientRect(),
-      point = getClientPoint(e);
-    if (!point) {
-      return;
-    }
-    const localX = point.x - x,
-      localY = point.y - y,
+      localX = e.clientX - x,
+      localY = e.clientY - y,
       color = this.color() ?? DEFAULT_RIPPLE_COLOR,
       endRadius = Math.max(width, height),
       rippleShape = this.rippleShape()?.nativeElement;
